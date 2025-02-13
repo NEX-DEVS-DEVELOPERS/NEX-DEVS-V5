@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 import Footer from "@/components/layout/Footer"
 import { ThemeProvider } from "@/components/ThemeProvider"
 import Navbar from "@/components/layout/Navbar"
+import EasterEggCounter from "@/components/layout/EasterEggCounter"
+import { EasterEggProvider } from "@/context/EasterEggContext"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -30,11 +32,14 @@ export default function RootLayout({
           enableSystem
           disableTransitionOnChange
         >
-          <Navbar />
-          <div className="flex-1">
-            {children}
-          </div>
-          <Footer />
+          <EasterEggProvider>
+            <Navbar />
+            <EasterEggCounter />
+            <div className="flex-1">
+              {children}
+            </div>
+            <Footer />
+          </EasterEggProvider>
         </ThemeProvider>
       </body>
     </html>

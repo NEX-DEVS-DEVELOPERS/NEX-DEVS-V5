@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 import Image from 'next/image'
 import { useEffect, useState, useCallback } from 'react'
+import { useEasterEggs } from '@/context/EasterEggContext'
 
 // Easter Egg: Hidden message in source code
 /**
@@ -52,6 +53,7 @@ const PROGRAMMING_JOKES = [
 ]
 
 export default function Home() {
+  const { addEasterEgg } = useEasterEggs()
   const [konamiIndex, setKonamiIndex] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
   const [techClickCounts, setTechClickCounts] = useState<{ [key: string]: number }>({})
@@ -60,6 +62,8 @@ export default function Home() {
   const [currentJoke, setCurrentJoke] = useState(PROGRAMMING_JOKES[0])
   const [showJoke, setShowJoke] = useState(false)
   const [terminalInput, setTerminalInput] = useState("")
+  const [counterPosition, setCounterPosition] = useState({ x: 16, y: 16 }) // Start from top-left with padding
+  const [isDragging, setIsDragging] = useState(false)
   const [terminalOutput, setTerminalOutput] = useState<string[]>([
     "Welcome to the secret terminal! Try these commands:",
     "$ help - Show available commands",
@@ -68,6 +72,16 @@ export default function Home() {
     "$ clear - Clear terminal",
     "$ exit - Close terminal"
   ])
+  const [foundEasterEggs, setFoundEasterEggs] = useState<Set<string>>(new Set())
+  const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
+
+  // Track total number of possible easter eggs
+  const TOTAL_EASTER_EGGS = 4
+
+  // Function to add found easter egg
+  const addFoundEasterEgg = (eggName: string) => {
+    addEasterEgg(eggName)
+  }
 
   const technologies = [
     { 
@@ -203,6 +217,9 @@ export default function Home() {
 
   // Handle terminal commands
   const handleTerminalCommand = (command: string) => {
+    if (!foundEasterEggs.has('terminal')) {
+      addFoundEasterEgg('terminal')
+    }
     switch (command.toLowerCase()) {
       case 'joke':
         const joke = getRandomJoke()
@@ -237,11 +254,12 @@ export default function Home() {
     setTerminalInput("")
   }
 
-  // Modify Konami code handler to show random joke
+  // Modify Konami code handler to track easter egg
   const handleKonamiComplete = () => {
     setCurrentJoke(getRandomJoke())
     setShowEasterEgg(true)
     setKonamiIndex(0)
+    addFoundEasterEgg('konami')
   }
 
   // Modify handleKeyDown
@@ -284,10 +302,75 @@ export default function Home() {
     setTechClickCounts(prev => {
       const newCount = (prev[techName] || 0) + 1
       if (newCount === 10) {
+        addFoundEasterEgg('tech-achievement')
         alert(`🎉 You've unlocked the ${techName} achievement! You must really love ${techName}!`)
       }
       return { ...prev, [techName]: newCount }
     })
+  }
+
+  // Add useEffect to check for source code easter egg
+  useEffect(() => {
+    const hasViewedSource = localStorage.getItem('viewed-source')
+    if (hasViewedSource) {
+      addFoundEasterEgg('source-code')
+    }
+  }, [])
+
+  // Add keyboard shortcut listener for source code viewing
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      // Check for Ctrl+U (view source) or Command+U on Mac
+      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
+        localStorage.setItem('viewed-source', 'true')
+        addFoundEasterEgg('source-code')
+      }
+    }
+
+    window.addEventListener('keydown', handleKeyPress)
+    return () => window.removeEventListener('keydown', handleKeyPress)
+  }, [])
+
+  // Add right-click context menu handler
+  useEffect(() => {
+    const handleContextMenu = () => {
+      localStorage.setItem('viewed-source', 'true')
+      addFoundEasterEgg('source-code')
+    }
+
+    window.addEventListener('contextmenu', handleContextMenu)
+    return () => window.removeEventListener('contextmenu', handleContextMenu)
+  }, [])
+
+  // Load saved position on mount
+  useEffect(() => {
+    const savedPosition = localStorage.getItem('easterEggCounterPosition')
+    if (savedPosition) {
+      setCounterPosition(JSON.parse(savedPosition))
+    }
+  }, [])
+
+  // Add useEffect to calculate drag constraints based on window size
+  useEffect(() => {
+    const updateConstraints = () => {
+      const padding = 20 // Padding from window edges
+      setDragConstraints({
+        left: padding - window.innerWidth / 2,
+        right: window.innerWidth / 2 - padding,
+        top: padding - window.innerHeight / 2,
+        bottom: window.innerHeight / 2 - padding,
+      })
+    }
+
+    updateConstraints()
+    window.addEventListener('resize', updateConstraints)
+    return () => window.removeEventListener('resize', updateConstraints)
+  }, [])
+
+  // Simplified drag end handler
+  const handleDragEnd = (event: any, info: any) => {
+    setCounterPosition({ x: info.offset.x, y: info.offset.y })
+    setIsDragging(false)
   }
 
   return (
@@ -718,23 +801,11 @@ export default function Home() {
               transition={{ delay: 0.3 }}
               className="flex justify-center mt-12"
             >
-              <Link
-                href="/projects"
-                className="group relative inline-flex items-center gap-2 px-8 py-4 
-                         rounded-xl overflow-hidden transition-all duration-300"
+              <Link 
+                href="/featured-projects" 
+                className="inline-flex items-center justify-center px-6 py-3 mt-12 text-base font-medium text-white bg-[#1A1A1A] rounded-lg hover:bg-[#2A2A2A] transition-colors"
               >
-                <div className="absolute inset-0 bg-white/10 backdrop-blur-sm rounded-xl border border-white/20 
-                             transition-all duration-300 group-hover:bg-white" />
-                <span className="relative z-10 text-white group-hover:text-black font-medium transition-colors duration-300">
-                  View All Projects
-                </span>
-                <motion.span
-                  className="relative z-10 text-white group-hover:text-black transition-colors duration-300"
-                  animate={{ x: [0, 5, 0] }}
-                  transition={{ repeat: Infinity, duration: 1.5 }}
-                >
-                  →
-                </motion.span>
+                View All Projects →
               </Link>
             </motion.div>
 
