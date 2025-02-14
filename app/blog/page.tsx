@@ -122,32 +122,32 @@ const blogPosts = [
 const testimonials = [
   {
     content: "The insights shared in these blog posts have significantly improved my development workflow.",
-    author: "Sarah Johnson",
+    author: "SAEED KHAN",
     role: "Senior Developer"
   },
   {
     content: "Clear, concise, and incredibly practical. These articles are a must-read for any developer.",
-    author: "Michael Chen",
+    author: "MINAHIL JUTT",
     role: "Tech Lead"
   },
   {
     content: "The technical depth combined with easy-to-follow explanations makes this blog outstanding.",
-    author: "Emma Williams",
+    author: "RIDA FATIMA",
     role: "Frontend Engineer"
   },
   {
     content: "These articles helped me transition from junior to senior developer. Invaluable resource!",
-    author: "David Rodriguez",
+    author: "DAWOOD AHMAD",
     role: "Full Stack Developer"
   },
   {
     content: "The performance optimization tips literally helped us cut our loading times in half.",
-    author: "Lisa Zhang",
+    author: "ANAS AHMAD",
     role: "Performance Engineer"
   },
   {
     content: "A goldmine of practical knowledge. Every article feels like a masterclass.",
-    author: "Alex Thompson",
+    author: "HARIS JUTT",
     role: "Software Architect"
   }
 ];

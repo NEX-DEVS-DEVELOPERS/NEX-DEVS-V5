@@ -136,47 +136,54 @@ export default function Hero() {
             transition={{ duration: 0.3 }}
             className="space-y-6"
           >
-            <motion.div
-              variants={fadeInUpVariant}
+            <div
               className="text-sm bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text"
             >
               hello I am
-            </motion.div>
+            </div>
 
             <h1 className="text-6xl font-bold leading-tight">
-              <motion.span 
-                className="text-white cursor-pointer relative group"
+              <motion.div 
+                className="text-white cursor-pointer relative group inline-block"
                 onClick={toggleSecretPanel}
                 whileHover={{ scale: 1.02 }}
                 transition={{ duration: 0.2 }}
               >
                 ALI <span className="bg-white text-black px-2 rounded-lg group-hover:bg-purple-500 group-hover:text-white transition-all duration-300">HASNAAT</span>
-                <span className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-sm text-purple-400 whitespace-nowrap">
+                <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-sm text-purple-400 whitespace-nowrap">
                   <span className="animate-bounce inline-block">👆</span> Click for a fun fact!
-                </span>
-              </motion.span>
-              <motion.span 
-                variants={fadeInUpVariant}
+                </div>
+              </motion.div>
+              <div 
                 className="block mt-4"
               >
                 <span className="border-2 border-white text-white px-6 py-2 rounded-lg text-base tracking-widest hover:bg-white hover:text-black transition-all duration-300 cursor-default inline-block">
                   FULLSTACK DEVELOPER
                 </span>
-              </motion.span>
-            </h1>
-            <div className="space-y-4">
-              <p className="text-gray-400 text-lg max-w-xl">
-                Crafting exceptional digital experiences through clean code and innovative solutions.
-              </p>
-              <div className="flex gap-2 items-center text-sm text-gray-400">
-                <span className="flex items-center gap-1">
-                  <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-                  Available for new projects
-                </span>
-                <span className="px-2">•</span>
-                <span>Based in Pakistan</span>
               </div>
-            </div>
+            </h1>
+
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="space-y-6"
+              suppressHydrationWarning
+            >
+              <div className="space-y-4">
+                <div className="text-gray-400 text-lg max-w-xl">
+                  Crafting exceptional digital experiences through clean code and innovative solutions.
+                </div>
+                <div className="flex gap-2 items-center text-sm text-gray-400">
+                  <span className="flex items-center gap-1">
+                    <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
+                    Available for new projects
+                  </span>
+                  <span className="px-2">•</span>
+                  <span>Based in Pakistan</span>
+                </div>
+              </div>
+            </motion.div>
           </motion.div>
 
           {/* Work Process - Use windowing for long lists if needed */}
@@ -206,7 +213,7 @@ export default function Hero() {
             </div>
           </div>
 
-          <div className="flex gap-4 pt-4">
+          <div className="flex flex-wrap gap-4 pt-4">
             <Link 
               href="/contact" 
               className="bg-white text-black px-6 py-3 rounded-lg font-medium hover:bg-gray-100 transition group flex items-center gap-2"
@@ -222,9 +229,16 @@ export default function Hero() {
             </Link>
             <Link 
               href="/projects" 
-              className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition"
+              className="border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white hover:text-black transition flex items-center gap-2 sm:text-base text-sm whitespace-nowrap"
             >
               View Projects
+              <motion.span 
+                className="inline-block"
+                animate={{ x: [0, 5, 0] }}
+                transition={{ repeat: Infinity, duration: 1.5, delay: 0.2 }}
+              >
+                →
+              </motion.span>
             </Link>
           </div>
         </div>

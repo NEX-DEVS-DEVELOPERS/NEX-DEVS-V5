@@ -105,27 +105,27 @@ export default function Footer() {
             </h3>
             <div className="space-y-4">
               <a 
-                href="mailto:contact@alihasnaat.com" 
+                href="nexwebs.org@gmail.com" 
                 className="flex items-center gap-3 text-gray-400 hover:text-white 
                            transition-all duration-300 group w-fit"
               >
                 <MailIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300 
                                    group-hover:text-purple-500" />
                 <span className="relative">
-                  contact@alihasnaat.com
+                   nexwebs.org@gmail.com
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all 
                                  duration-300 group-hover:w-full"></span>
                 </span>
               </a>
               <a 
-                href="tel:+1234567890" 
+                href="tel:+92 329-2425-950" 
                 className="flex items-center gap-3 text-gray-400 hover:text-white 
                            transition-all duration-300 group w-fit"
               >
                 <PhoneIcon className="h-5 w-5 group-hover:rotate-12 transition-transform duration-300 
                                     group-hover:text-purple-500" />
                 <span className="relative">
-                  +1 (234) 567-890
+                  +92 329-2425-950
                   <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-purple-500 transition-all 
                                  duration-300 group-hover:w-full"></span>
                 </span>

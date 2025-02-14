@@ -19,10 +19,10 @@ interface PricingPlan {
 const pricingPlans: PricingPlan[] = [
   {
     title: "WordPress Development",
-    price: "Starting from $999",
+    price: "Starting from Pkr30k-50k",
     description: "Custom WordPress solutions tailored to your business needs with modern design and functionality.",
     icon: "🎨",
-    timeline: "2-4 weeks",
+    timeline: "1 weeks",
     bestFor: ["Small Businesses", "Bloggers", "Portfolio Sites"],
     includes: ["Free SSL Certificate", "1 Year Hosting", "24/7 Support"],
     features: [
@@ -38,10 +38,10 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Shopify/WooCommerce",
-    price: "Starting from $1499",
+    price: "Starting from PKR 40k-50k",
     description: "Complete e-commerce solutions with powerful features to grow your online business.",
     icon: "🛍️",
-    timeline: "3-6 weeks",
+    timeline: "1-2 weeks",
     bestFor: ["Online Stores", "Retailers", "Digital Products"],
     includes: ["Payment Gateway Setup", "Inventory System", "Order Management"],
     features: [
@@ -57,10 +57,10 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Website",
-    price: "Starting from $2499",
+    price: "Starting from PKR 60k-70k",
     description: "End-to-end web solutions with custom functionality and seamless user experience.",
     icon: "⚡",
-    timeline: "6-12 weeks",
+    timeline: "3-5 weeks",
     bestFor: ["Enterprises", "SaaS Products", "Web Applications"],
     includes: ["CI/CD Setup", "Database Design", "API Documentation"],
     features: [
@@ -76,10 +76,10 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Figma/Framer",
-    price: "Starting from $799",
+    price: "Starting from PKR 40K-50K",
     description: "Professional UI/UX design services with modern design principles and interactive prototypes.",
     icon: "✨",
-    timeline: "1-3 weeks",
+    timeline: "1 weeks",
     bestFor: ["Startups", "Design Teams", "Product Managers"],
     includes: ["Design System", "Component Library", "Prototype Access"],
     features: [
@@ -95,10 +95,10 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "AI Agents/WebApps",
-    price: "Starting from $1999",
+    price: "Starting from PKR 70K",
     description: "Intelligent web applications powered by cutting-edge AI technology.",
     icon: "🤖",
-    timeline: "4-8 weeks",
+    timeline: "1-2 weeks",
     bestFor: ["Tech Companies", "Automation Needs", "Data-driven Businesses"],
     includes: ["AI Model Training", "API Access", "Usage Analytics"],
     features: [
@@ -114,7 +114,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "SEO/Content Writing",
-    price: "Starting from $499",
+    price: "Starting from 20K",
     description: "Strategic content creation and SEO optimization to improve your online presence.",
     icon: "📝",
     timeline: "Ongoing",
@@ -137,19 +137,19 @@ const pricingPlans: PricingPlan[] = [
 const testimonials = [
   {
     text: "The development process was smooth and the results exceeded our expectations.",
-    author: "Sarah Johnson",
-    role: "CEO, TechStart",
+    author: "SANA MALIK",
+    role: "WEBDEVELOPER",
     icon: "💫"
   },
   {
     text: "Outstanding service and incredible attention to detail. Highly recommended!",
-    author: "Michael Chen",
+    author: "USMAN AFTAB",
     role: "Founder, EcoStore",
     icon: "⭐"
   },
   {
     text: "The team delivered our project ahead of schedule with exceptional quality.",
-    author: "Emma Davis",
+    author: "EMAN ALI",
     role: "Marketing Director",
     icon: "🌟"
   }

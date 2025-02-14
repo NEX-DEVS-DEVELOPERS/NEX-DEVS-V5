@@ -15,12 +15,13 @@ export default function BlogTestimonial({ content, author, role }: TestimonialPr
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       className="bg-zinc-900/50 p-6 rounded-xl border border-purple-500/20"
+      suppressHydrationWarning
     >
-      <p className="text-gray-300 italic mb-4">"{content}"</p>
+      <div className="text-gray-300 italic mb-4">"{content}"</div>
       <div className="flex items-center gap-2">
         <div>
-          <p className="font-semibold text-white">{author}</p>
-          <p className="text-sm text-purple-400">{role}</p>
+          <div className="font-semibold text-white">{author}</div>
+          <div className="text-sm text-purple-400">{role}</div>
         </div>
       </div>
     </motion.div>

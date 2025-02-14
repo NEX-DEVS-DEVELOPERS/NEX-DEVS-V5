@@ -10,6 +10,7 @@ interface InvoiceDetails {
   date: string;
   dueDate: string;
   package: string;
+  timeline: string;
   amount: number;
   discount: number;
   total: number;
@@ -88,6 +89,14 @@ function CheckoutPageContent() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
   const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedDetails, setEditedDetails] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    timeline: 'Normal (2-4 weeks)'
+  });
 
   useEffect(() => {
     const plan = searchParams.get('plan');
@@ -98,18 +107,30 @@ function CheckoutPageContent() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (invoice) {
+      setEditedDetails({
+        name: invoice.billingDetails?.name || '',
+        email: invoice.billingDetails?.email || '',
+        phone: invoice.billingDetails?.phone || '',
+        address: invoice.billingDetails?.address || '',
+        timeline: invoice.timeline || 'Normal (2-4 weeks)'
+      });
+    }
+  }, [invoice]);
+
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
-      'WordPress Development': 999,
-      'Shopify/WooCommerce': 1499,
-      'FULLSTACK WEBSITE': 2499,
-      'UI/UX Design': 799,
-      'Web Apps & AI Solutions': 3999,
-      'SEO & Content Writing': 599,
-      'Full-Stack Website': 2499,
-      'Figma/Framer': 799,
-      'AI Agents/WebApps': 3999,
-      'SEO/Content Writing': 599
+      'WordPress Development': 30000,
+      'Shopify/WooCommerce': 40000,
+      'FULLSTACK WEBSITE': 60000,
+      'UI/UX Design': 40000,
+      'Web Apps & AI Solutions': 70000,
+      'SEO & Content Writing': 20000,
+      'Full-Stack Website': 60000,
+      'Figma/Framer': 40000,
+      'AI Agents/WebApps': 70000,
+      'SEO/Content Writing': 20000
     };
     
     const matchingKey = Object.keys(prices).find(
@@ -119,8 +140,26 @@ function CheckoutPageContent() {
     return matchingKey ? prices[matchingKey] : 0;
   };
 
+  const getTimelineSurcharge = (timeline: string): number => {
+    switch (timeline) {
+      case 'Urgent (1-2 weeks)':
+        return 0.20; // 20% surcharge for urgent projects
+      default:
+        return 0;
+    }
+  };
+
   const generateInvoice = (plan: string) => {
     const baseAmount = getBaseAmount(plan);
+    
+    // Get timeline from the form or use a default value
+    const timelineElement = document.querySelector('select[name="timeline"]') as HTMLSelectElement;
+    const timeline = timelineElement?.value || 'Normal (2-4 weeks)';
+    
+    // Calculate surcharge for urgent timeline
+    const timelineSurcharge = getTimelineSurcharge(timeline);
+    const surchargeAmount = parseFloat((baseAmount * timelineSurcharge).toFixed(2));
+    
     const items = [
       {
         description: plan,
@@ -131,24 +170,36 @@ function CheckoutPageContent() {
       }
     ];
 
-    const subTotal = baseAmount;
-    const taxRate = 0.16; // 16% tax rate for Pakistan
-    const taxAmount = parseFloat((subTotal * taxRate).toFixed(2));
-    const discount = parseFloat((subTotal * 0.2).toFixed(2)); // 20% discount
-    const total = parseFloat((subTotal + taxAmount - discount).toFixed(2));
+    // Add surcharge as a separate item if applicable
+    if (surchargeAmount > 0) {
+      items.push({
+        description: "Urgent Timeline Surcharge",
+        details: "20% additional charge for urgent delivery (1-2 weeks)",
+        quantity: 1,
+        rate: surchargeAmount,
+        amount: surchargeAmount
+      });
+    }
+
+    const subTotal = baseAmount + surchargeAmount;
+    const taxRate = 0;
+    const taxAmount = 0;
+    const discount = parseFloat((subTotal * 0.2).toFixed(2));
+    const total = parseFloat((subTotal - discount).toFixed(2));
 
     setInvoice({
       invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
       date: new Date().toLocaleDateString(),
       dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
       package: plan,
+      timeline: timeline,
       amount: baseAmount,
       subTotal: subTotal,
       taxRate: taxRate,
       taxAmount: taxAmount,
       discount: discount,
       total: total,
-      currency: 'USD',
+      currency: 'PKR',
       items: items,
       billingDetails: {
         name: 'Your Name',
@@ -161,51 +212,273 @@ function CheckoutPageContent() {
 
   const downloadInvoice = (invoice: InvoiceDetails) => {
     const invoiceContent = `
-NEX-WEBS INVOICE
-===============================
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>NEX-WEBS Invoice</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #000;
+        }
+        .invoice-container {
+            background: linear-gradient(145deg, #000000, #1a1a1a);
+            border: 1px solid #333;
+            border-radius: 10px;
+            padding: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            color: #fff;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #8B5CF6;
+            padding-bottom: 20px;
+        }
+        .header h1 {
+            color: #8B5CF6;
+            margin: 0;
+            font-size: 28px;
+        }
+        .invoice-details {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .billing-details {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 30px;
+        }
+        .section-title {
+            color: #8B5CF6;
+            font-size: 18px;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
+        .items-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 30px;
+        }
+        .items-table th {
+            background: rgba(139, 92, 246, 0.2);
+            color: #8B5CF6;
+            padding: 12px;
+            text-align: left;
+        }
+        .items-table td {
+            padding: 12px;
+            border-bottom: 1px solid #333;
+        }
+        .summary {
+            margin-left: auto;
+            width: 300px;
+        }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid #333;
+        }
+        .total-row {
+            font-size: 20px;
+            font-weight: bold;
+            color: #8B5CF6;
+            border-top: 2px solid #8B5CF6;
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #8B5CF6;
+            color: #666;
+        }
+        .discount {
+            color: #10B981;
+        }
+        .company-details {
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(139, 92, 246, 0.1);
+            border-radius: 8px;
+        }
+        .company-details h2 {
+            color: #8B5CF6;
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+        .contact-info {
+            font-size: 14px;
+            color: #fff;
+            line-height: 1.6;
+        }
+        .contact-info strong {
+            color: #8B5CF6;
+            display: inline-block;
+            width: 80px;
+        }
+        .project-details {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        .project-details h2 {
+            color: #8B5CF6;
+            margin: 0 0 10px 0;
+            font-size: 20px;
+        }
+        .timeline-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.2);
+            color: #8B5CF6;
+            padding: 4px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="invoice-container">
+        <div class="header">
+            <h1>NEX-WEBS</h1>
+            <p>Professional Web Development Services</p>
+        </div>
 
-Invoice Number: ${invoice.invoiceNumber}
-Date: ${invoice.date}
-Due Date: ${invoice.dueDate}
+        <div class="details-grid">
+            <div class="company-details">
+                <h2>Our Details</h2>
+                <div class="contact-info">
+                    <p><strong>Name:</strong> ALI-HASNAAT</p>
+                    <p><strong>Email:</strong> nexwebs.org@gmail.com</p>
+                    <p><strong>Phone:</strong> 0329-2425950</p>
+                </div>
+            </div>
 
-BILLING DETAILS
---------------
-Name: ${invoice.billingDetails?.name}
-Email: ${invoice.billingDetails?.email}
-Phone: ${invoice.billingDetails?.phone}
-Address: ${invoice.billingDetails?.address}
+            <div class="company-details">
+                <h2>Client Details</h2>
+                <div class="contact-info">
+                    <p><strong>Name:</strong> ${invoice.billingDetails?.name}</p>
+                    <p><strong>Email:</strong> ${invoice.billingDetails?.email}</p>
+                    <p><strong>Phone:</strong> ${invoice.billingDetails?.phone}</p>
+                    <p><strong>Address:</strong> ${invoice.billingDetails?.address}</p>
+                </div>
+            </div>
+        </div>
 
-INVOICE ITEMS
-------------
+        <div class="project-details">
+            <h2>Project Information</h2>
+            <div class="contact-info">
+                <p><strong>Package:</strong> ${invoice.package}</p>
+                <p><strong>Timeline:</strong> <span class="timeline-badge">${invoice.timeline}</span></p>
+            </div>
+        </div>
+
+        <div class="invoice-details">
+            <div>
+                <div class="section-title">Invoice Details</div>
+                <p>Invoice Number: ${invoice.invoiceNumber}</p>
+                <p>Date: ${invoice.date}</p>
+                <p>Due Date: ${invoice.dueDate}</p>
+            </div>
+        </div>
+
+        <div class="section-title">Invoice Items</div>
+        <table class="items-table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Quantity</th>
+                    <th>Rate</th>
+                    <th>Amount</th>
+                </tr>
+            </thead>
+            <tbody>
 ${invoice.items.map(item => `
-Description: ${item.description}
-Quantity: ${item.quantity}
-Rate: $${item.rate}
-Amount: $${item.amount}
-`).join('\n')}
+                    <tr>
+                        <td>
+                            ${item.description}<br>
+                            <small style="color: #666;">${item.details}</small>
+                        </td>
+                        <td>${item.quantity}</td>
+                        <td>PKR ${item.rate.toLocaleString()}</td>
+                        <td>PKR ${item.amount.toLocaleString()}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        </table>
 
-SUMMARY
--------
-Sub Total: $${invoice.subTotal}
-Tax (${(invoice.taxRate * 100).toFixed(0)}%): $${invoice.taxAmount}
-Discount (20%): $${invoice.discount}
-Total Amount: $${invoice.total}
+        <div class="summary">
+            <div class="summary-row">
+                <span>Sub Total:</span>
+                <span>PKR ${invoice.subTotal.toLocaleString()}</span>
+            </div>
+            <div class="summary-row">
+                <span>Tax (0%):</span>
+                <span>PKR 0.00</span>
+            </div>
+            <div class="summary-row discount">
+                <span>Discount (20%):</span>
+                <span>-PKR ${invoice.discount.toLocaleString()}</span>
+            </div>
+            <div class="summary-row total-row">
+                <span>Total:</span>
+                <span>PKR ${invoice.total.toLocaleString()}</span>
+            </div>
+        </div>
 
-Payment Terms
-------------
-Please make the payment within 7 days of invoice date.
-For support, contact: support@nexwebs.com
-
-Thank you for choosing NEX-WEBS!
+        <div class="footer">
+            <p><strong>Payment Terms</strong></p>
+            <p>Please make the payment within 7 days of invoice date.</p>
+            <p>For support, contact: nexwebs.org@gmail.com</p>
+            <p style="color: #8B5CF6;">Thank you for choosing NEX-WEBS!</p>
+        </div>
+    </div>
+</body>
+</html>
 `;
 
-    const blob = new Blob([invoiceContent], { type: 'text/plain' });
+    const blob = new Blob([invoiceContent], { type: 'text/html' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Invoice-${invoice.invoiceNumber}.txt`;
+    a.download = `Invoice-${invoice.invoiceNumber}.html`;
     a.click();
     window.URL.revokeObjectURL(url);
+  };
+
+  const handleSaveDetails = () => {
+    if (invoice) {
+      setInvoice({
+        ...invoice,
+        billingDetails: {
+          name: editedDetails.name,
+          email: editedDetails.email,
+          phone: editedDetails.phone,
+          address: editedDetails.address
+        },
+        timeline: editedDetails.timeline
+      });
+    }
+    setIsEditing(false);
   };
 
   return (
@@ -311,7 +584,7 @@ Thank you for choosing NEX-WEBS!
                       <li>Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
                       <li>Select "Send Money"</li>
                       <li>Enter the number shown above</li>
-                      <li>Enter amount: ${invoice?.total}</li>
+                      <li>Enter amount: PKR ${invoice?.total}</li>
                       <li>Complete the transaction</li>
                       <li>Send the transaction ID to support@nexwebs.com</li>
                     </ol>
@@ -362,6 +635,23 @@ Thank you for choosing NEX-WEBS!
                 </form>
               </div>
             )}
+
+            <div>
+              <label className="block text-sm font-medium mb-2">Project Timeline</label>
+              <select
+                name="timeline"
+                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                onChange={(e) => {
+                  if (invoice) {
+                    generateInvoice(invoice.package);
+                  }
+                }}
+              >
+                <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) (+20% charge)</option>
+                <option value="Normal (2-4 weeks)" selected>Normal (2-4 weeks)</option>
+                <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks)</option>
+              </select>
+            </div>
           </div>
 
           {/* Right Column - Invoice & Summary */}
@@ -418,17 +708,112 @@ Thank you for choosing NEX-WEBS!
 
                   {/* Billing Details */}
                   <div className="border-t border-white/10 pt-4">
-                    <h3 className="font-semibold mb-3">Billing Details</h3>
-                    <div className="grid md:grid-cols-2 gap-4 text-sm">
-                      <div>
-                        <p><span className="text-gray-400">Name:</span> {invoice.billingDetails?.name}</p>
-                        <p><span className="text-gray-400">Email:</span> {invoice.billingDetails?.email}</p>
-                      </div>
-                      <div>
-                        <p><span className="text-gray-400">Phone:</span> {invoice.billingDetails?.phone}</p>
-                        <p><span className="text-gray-400">Address:</span> {invoice.billingDetails?.address}</p>
-                      </div>
+                    <div className="flex justify-between items-center mb-3">
+                      <h3 className="font-semibold">Billing Details</h3>
+                      <button
+                        onClick={() => setIsEditing(!isEditing)}
+                        className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-2"
+                      >
+                        {isEditing ? (
+                          <span>Cancel</span>
+                        ) : (
+                          <>
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                            <span>Edit Details</span>
+                          </>
+                        )}
+                      </button>
                     </div>
+                    
+                    {isEditing ? (
+                      <div className="space-y-4">
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Name</label>
+                            <input
+                              type="text"
+                              value={editedDetails.name}
+                              onChange={(e) => setEditedDetails({...editedDetails, name: e.target.value})}
+                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                              placeholder="Your Name"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Email</label>
+                            <input
+                              type="email"
+                              value={editedDetails.email}
+                              onChange={(e) => setEditedDetails({...editedDetails, email: e.target.value})}
+                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                              placeholder="your.email@example.com"
+                            />
+                          </div>
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Phone</label>
+                            <input
+                              type="tel"
+                              value={editedDetails.phone}
+                              onChange={(e) => setEditedDetails({...editedDetails, phone: e.target.value})}
+                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                              placeholder="Your Phone"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium mb-2">Address</label>
+                            <input
+                              type="text"
+                              value={editedDetails.address}
+                              onChange={(e) => setEditedDetails({...editedDetails, address: e.target.value})}
+                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                              placeholder="Your Address"
+                            />
+                          </div>
+                        </div>
+                      <div>
+                          <label className="block text-sm font-medium mb-2">Project Timeline</label>
+                          <select
+                            value={editedDetails.timeline}
+                            onChange={(e) => {
+                              setEditedDetails({...editedDetails, timeline: e.target.value});
+                              if (invoice) {
+                                generateInvoice(invoice.package);
+                              }
+                            }}
+                            className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                          >
+                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) (+20% charge)</option>
+                            <option value="Normal (2-4 weeks)">Normal (2-4 weeks)</option>
+                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks)</option>
+                          </select>
+                        </div>
+                        <div className="flex justify-end mt-4">
+                          <button
+                            onClick={handleSaveDetails}
+                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Save Details
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <p><span className="text-gray-400">Name:</span> {invoice?.billingDetails?.name}</p>
+                          <p><span className="text-gray-400">Email:</span> {invoice?.billingDetails?.email}</p>
+                      </div>
+                      <div>
+                          <p><span className="text-gray-400">Phone:</span> {invoice?.billingDetails?.phone}</p>
+                          <p><span className="text-gray-400">Address:</span> {invoice?.billingDetails?.address}</p>
+                        </div>
+                        <div className="md:col-span-2">
+                          <p><span className="text-gray-400">Timeline:</span> <span className="text-purple-400">{invoice?.timeline}</span></p>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Invoice Items */}
@@ -447,11 +832,11 @@ Thank you for choosing NEX-WEBS!
                             </div>
                             <div>
                               <span className="text-gray-400 text-sm">Rate</span>
-                              <p className="font-medium">${item.rate.toFixed(2)}</p>
+                              <p className="font-medium">PKR {item.rate.toFixed(2)}</p>
                             </div>
                             <div>
                               <span className="text-gray-400 text-sm">Amount</span>
-                              <p className="font-medium">${item.amount.toFixed(2)}</p>
+                              <p className="font-medium">PKR {item.amount.toFixed(2)}</p>
                             </div>
                           </div>
                         </div>
@@ -464,20 +849,20 @@ Thank you for choosing NEX-WEBS!
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Sub Total:</span>
-                        <span>${invoice.subTotal.toFixed(2)}</span>
+                        <span>PKR {invoice.subTotal.toFixed(2)}</span>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Tax ({(invoice.taxRate * 100).toFixed(0)}%):</span>
-                        <span>${invoice.taxAmount.toFixed(2)}</span>
+                      <div className="flex justify-between text-gray-400">
+                        <span>Tax (0%):</span>
+                        <span>PKR 0.00</span>
                       </div>
                       <div className="flex justify-between text-green-400">
                         <span>Discount (20%):</span>
-                        <span>-${invoice.discount.toFixed(2)}</span>
+                        <span>-PKR {invoice.discount.toFixed(2)}</span>
                       </div>
                       <div className="border-t border-white/10 pt-2 mt-2">
                         <div className="flex justify-between text-xl font-bold">
                           <span>Total:</span>
-                          <span>${invoice.total.toFixed(2)}</span>
+                          <span>PKR {invoice.total.toFixed(2)}</span>
                         </div>
                       </div>
                     </div>

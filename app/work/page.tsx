@@ -20,7 +20,7 @@ type Testimonial = {
 const testimonials: Testimonial[] = [
   {
     id: 1,
-    name: "John Smith",
+    name: "JUNAID KHAN",
     role: "CEO",
     company: "TechCorp",
     content: "Working with this developer was an absolute pleasure. Their attention to detail and creative solutions exceeded our expectations. The final product was exactly what we needed and more.",
@@ -28,7 +28,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 2,
-    name: "Sarah Johnson",
+    name: "ALI IMRAN",
     role: "Product Manager",
     company: "InnovateLabs",
     content: "The web application developed for us is not only beautiful but also highly functional. The attention to user experience and performance optimization really sets this work apart.",
@@ -36,7 +36,7 @@ const testimonials: Testimonial[] = [
   },
   {
     id: 3,
-    name: "Michael Chen",
+    name: "MUNEEB AHMAD",
     role: "CTO",
     company: "DigitalFirst",
     content: "Exceptional work on our e-commerce platform. The implementation of modern technologies and best practices has significantly improved our conversion rates.",

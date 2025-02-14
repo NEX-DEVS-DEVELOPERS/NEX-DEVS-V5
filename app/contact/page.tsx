@@ -47,19 +47,19 @@ const expertiseAreas = [
 
 const testimonials = [
   {
-    name: "John Smith",
+    name: "AHMAD JAVEED",
     role: "CEO, Tech Solutions",
     content: "Exceptional web development service! The attention to detail and professional approach exceeded our expectations.",
     image: "/testimonials/john.jpg"
   },
   {
-    name: "Sarah Johnson",
+    name: "SAIMA KHAN",
     role: "Marketing Director",
     content: "The WordPress website they built for us is both beautiful and functional. Highly recommended!",
     image: "/testimonials/sarah.jpg"
   },
   {
-    name: "Mike Brown",
+    name: "FAIZAN KHAN",
     role: "E-commerce Manager",
     content: "Our Shopify store's conversion rate improved significantly after their optimization work.",
     image: "/testimonials/mike.jpg"
@@ -152,26 +152,68 @@ function ContactPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
-  const [easterEggCount, setEasterEggCount] = useState(0);
-  const [showDiscount, setShowDiscount] = useState(false);
+  const [selectedTimeline, setSelectedTimeline] = useState('');
+  const [adjustedPrice, setAdjustedPrice] = useState('');
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    address: '',
+    timeline: '',
+    details: ''
+  });
 
   useEffect(() => {
     const plan = searchParams.get('plan');
     if (plan) {
-      setSelectedPlan(decodeURIComponent(plan));
-      setShowDiscount(true);
+      setSelectedPlan(plan);
+      setFormData(prev => ({
+        ...prev,
+        details: `I'm interested in the ${plan} package.`
+      }));
     }
   }, [searchParams]);
 
-  const handleEasterEgg = () => {
-    setEasterEggCount(prev => {
-      const newCount = prev + 1;
-      if (newCount === 2) {
-        setShowDiscount(true);
-        return 0;
+  const handleTimelineChange = (timeline: string) => {
+    setSelectedTimeline(timeline);
+    setFormData(prev => ({ ...prev, timeline }));
+    
+    // Update pricing based on timeline
+    if (selectedPlan) {
+      const basePrice = packages.find(p => p.name === selectedPlan)?.price || '';
+      let newPrice = basePrice;
+      
+      if (timeline === 'urgent') {
+        // Add 20% for urgent timeline
+        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
+        const rushFee = Math.round(numericPrice * 0.2);
+        newPrice = `${basePrice} + ${rushFee}k Rush Fee`;
       }
-      return newCount;
+      
+      setAdjustedPrice(newPrice);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Add form validation
+    if (!formData.name || !formData.email || !formData.timeline || !formData.details) {
+      alert('Please fill in all required fields');
+      return;
+    }
+
+    // Here you would typically send the form data to your backend
+    console.log('Form submitted:', {
+      ...formData,
+      selectedPlan,
+      adjustedPrice
     });
+
+    // Redirect to checkout if a plan is selected
+    if (selectedPlan) {
+      router.push(`/checkout?plan=${encodeURIComponent(selectedPlan)}&timeline=${encodeURIComponent(formData.timeline)}`);
+    }
   };
 
   return (
@@ -272,7 +314,7 @@ function ContactPageContent() {
                       <span className="text-2xl md:text-4xl animate-spin-slow">✨</span>
                     </div>
                     <div className="bg-yellow-400 text-black px-4 md:px-6 py-2 md:py-3 rounded-full font-black text-sm md:text-xl inline-block">
-                      20% OFF - Use Code: EASTER20
+                      20% OFF - Use Code: NEX-WEBS20%
                     </div>
                   </div>
                 </div>
@@ -286,7 +328,7 @@ function ContactPageContent() {
                   <svg className="w-3 h-3 md:w-4 md:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
-                  {!showDiscount ? (
+                  {!adjustedPrice ? (
                     "Scroll down to complete your project details"
                   ) : (
                     <span className="text-yellow-400 animate-pulse">
@@ -342,15 +384,15 @@ function ContactPageContent() {
                   <FaPhone className="text-purple-500 w-5 h-5" />
                   <div>
                     <p className="font-medium">Call Us</p>
-                    <p>+1 (555) 123-4567</p>
-                    <p className="text-sm text-gray-400">Mon-Fri, 9am-6pm EST</p>
+                    <p>+92 329-2425-950</p>
+                    <p className="text-sm text-gray-400">Mon-Fri, 8am-9pm EST</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
                   <FaWhatsapp className="text-purple-500 w-5 h-5" />
                   <div>
                     <p className="font-medium">WhatsApp</p>
-                    <p>+1 (555) 123-4567</p>
+                    <p>+92 329-2425-950</p>
                     <p className="text-sm text-gray-400">Available for quick chat</p>
                   </div>
                 </div>
@@ -358,7 +400,7 @@ function ContactPageContent() {
                   <FaEnvelope className="text-purple-500 w-5 h-5" />
                   <div>
                     <p className="font-medium">Email Us</p>
-                    <p>contact@yourportfolio.com</p>
+                    <p>nexwebs.org@gmail.com.com</p>
                     <p className="text-sm text-gray-400">24/7 support available</p>
                   </div>
                 </div>
@@ -370,8 +412,8 @@ function ContactPageContent() {
                   <FaMapMarkerAlt className="text-purple-500 w-5 h-5" />
                   <div>
                     <p className="font-medium">Location</p>
-                    <p>New York, NY</p>
-                    <p className="text-sm text-gray-400">Available for remote work worldwide</p>
+                    <p>MULTAN ,MUX</p>
+                    <p className="text-sm text-gray-400">NOT AVAILABE FOR REMORTE WORK YET!</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-3">
@@ -379,7 +421,7 @@ function ContactPageContent() {
                   <div>
                     <p className="font-medium">Business Hours</p>
                     <p>Monday - Friday</p>
-                    <p className="text-sm text-gray-400">9:00 AM - 6:00 PM EST</p>
+                    <p className="text-sm text-gray-400">9:00 AM - 8:00 PM EST</p>
                   </div>
                 </div>
               </div>
@@ -409,35 +451,48 @@ function ContactPageContent() {
                 <span className="text-yellow-400">🎯 20% Discount Applied</span>
               </h3>
             </div>
-            <form className="space-y-4">
-              <div className="grid md:grid-cols-2 gap-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">Name</label>
                   <input
                     type="text"
                     className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                    placeholder="Your Name"
                     required
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
+                <div>
+                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <input
+                    type="email"
+                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    required
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium mb-2">Phone</label>
                   <input
                     type="tel"
                     className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                    placeholder="Your Phone"
-                    required
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
-              </div>
-              <div>
-                <label className="block text-sm font-medium mb-2">Email</label>
-                <input
-                  type="email"
-                  className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                  placeholder="Your Email"
-                  required
-                />
+                <div>
+                  <label className="block text-sm font-medium mb-2">Address</label>
+                  <input
+                    type="text"
+                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    value={formData.address}
+                    onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Package</label>
@@ -462,12 +517,53 @@ function ContactPageContent() {
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Project Timeline</label>
-                <select className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+                <select 
+                  className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-300"
+                  required
+                  value={formData.timeline}
+                  onChange={(e) => {
+                    const timeline = e.target.value;
+                    setFormData(prev => ({ ...prev, timeline }));
+                    handleTimelineChange(timeline);
+                  }}
+                >
                   <option value="">Select Timeline</option>
-                  <option value="urgent">Urgent (1-2 weeks)</option>
+                  <option value="urgent">Urgent (1-2 weeks) +20% Rush Fee</option>
                   <option value="normal">Normal (2-4 weeks)</option>
                   <option value="relaxed">Relaxed (4+ weeks)</option>
                 </select>
+                {formData.timeline && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-sm text-gray-400"
+                  >
+                    {formData.timeline === 'urgent' && (
+                      <span className="text-yellow-400">
+                        ⚡ Rush delivery includes 20% additional fee for prioritized development
+                      </span>
+                    )}
+                    {formData.timeline === 'normal' && (
+                      <span>
+                        ✨ Standard timeline for optimal development and testing
+                      </span>
+                    )}
+                    {formData.timeline === 'relaxed' && (
+                      <span>
+                        🌟 Extended timeline for more iterations and refinements
+                      </span>
+                    )}
+                  </motion.p>
+                )}
+                {adjustedPrice && formData.timeline === 'urgent' && (
+                  <motion.p 
+                    initial={{ opacity: 0, y: -10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-2 text-sm font-medium text-yellow-400"
+                  >
+                    Adjusted Price: {adjustedPrice}
+                  </motion.p>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Project Details</label>
@@ -476,7 +572,8 @@ function ContactPageContent() {
                   rows={4}
                   placeholder="Tell us about your project requirements, goals, and any specific features you need..."
                   required
-                  defaultValue={selectedPlan ? `I'm interested in the ${selectedPlan} package.` : ''}
+                  value={formData.details}
+                  onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
                 />
               </div>
               <div>
@@ -555,7 +652,7 @@ function ContactPageContent() {
                       transform-gpu hover:scale-105 transition-transform duration-500
                       animate-typing"
                     >
-                      Make It Easy For You
+                    "Elevate Your Online Presence."
                     </h4>
 
                     {/* Services List with Clean Typography */}
