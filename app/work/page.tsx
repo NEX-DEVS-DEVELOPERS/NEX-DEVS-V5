@@ -299,8 +299,8 @@ export default function WorkPage() {
           <div className="inline-block bg-purple-500/10 text-purple-300 px-4 py-1 rounded-full mb-4 backdrop-blur-sm border border-purple-500/20">
             MY WORK
           </div>
-          <h1 className="text-5xl font-bold mb-6 bg-gradient-to-r from-white to-purple-400 bg-clip-text text-transparent">
-            Crafting Digital Excellence
+          <h1 className="text-5xl font-bold mb-6 text-center">
+            Crafting Digital <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Excellence</span>
           </h1>
           <p className="text-xl text-gray-300 mb-8 max-w-2xl">
             Transforming ideas into exceptional digital experiences. Explore my portfolio of successful projects and discover how I can help bring your vision to life.

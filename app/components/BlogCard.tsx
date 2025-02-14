@@ -10,39 +10,45 @@ interface BlogCardProps {
   category: string;
   date: string;
   readTime: string;
-  details?: string[];
+  details: string[];
 }
 
-export default function BlogCard({ title, excerpt, slug, category, date, readTime, details = [] }: BlogCardProps) {
+export default function BlogCard({ title, excerpt, slug, category, date, readTime, details }: BlogCardProps) {
   return (
-    <motion.div
-      whileHover={{ scale: 1.02 }}
-      transition={{ duration: 0.2 }}
-      className="bg-zinc-900/50 rounded-xl overflow-hidden border border-purple-500/20 hover:border-purple-500/50 transition-all duration-300 backdrop-blur-sm"
-    >
-      <Link href={`/blog/${slug}`} className="block p-6">
-        <div className="flex items-center gap-4 text-sm text-purple-400 mb-3">
-          <span className="bg-purple-500/10 px-3 py-1 rounded-full">{category}</span>
-          <span>•</span>
-          <span>{date}</span>
-          <span>•</span>
-          <span>{readTime} min read</span>
-        </div>
-        <h2 className="text-xl font-bold mb-3 text-white group-hover:text-purple-400 transition-colors">
-          {title}
-        </h2>
-        <p className="text-gray-400 mb-4">{excerpt}</p>
-        {details.length > 0 && (
-          <div className="space-y-2">
-            {details.map((detail, index) => (
-              <div key={index} className="flex items-start gap-2 text-sm text-gray-300">
-                <span className="text-purple-400">•</span>
-                <span>{detail}</span>
-              </div>
-            ))}
+    <div className="bg-zinc-900/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
+      <div className="flex flex-col h-full">
+        <div className="mb-4">
+          <span className="text-purple-400 text-sm">{category}</span>
+          <div className="flex items-center gap-2 text-gray-500 text-sm mt-1">
+            <span>{date}</span>
+            <span>•</span>
+            <span>{readTime} min read</span>
           </div>
-        )}
-      </Link>
-    </motion.div>
+        </div>
+        
+        <h3 className="text-xl font-bold text-white mb-2">{title}</h3>
+        <p className="text-gray-400 mb-4 flex-grow">{excerpt}</p>
+        
+        <a 
+          href={`/blog/${slug}`} 
+          className="inline-flex items-center text-purple-400 hover:text-purple-300 transition-colors group"
+        >
+          Read More 
+          <svg 
+            className="w-4 h-4 ml-2 transform group-hover:translate-x-1 transition-transform" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+          >
+            <path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              strokeWidth={2} 
+              d="M9 5l7 7-7 7"
+            />
+          </svg>
+        </a>
+      </div>
+    </div>
   );
 } 

@@ -165,11 +165,12 @@ export default function BlogPage() {
       
       {/* Hero section */}
       <div className="relative px-6 py-24 mx-auto max-w-7xl">
-        <div className="bg-zinc-900/50 backdrop-blur-sm p-8 rounded-xl inline-block mb-12 border border-purple-500/20">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Dive into Development Excellence
+        <div className="text-center mb-12">
+          <h1 className="text-4xl md:text-6xl font-bold mb-4 inline-flex flex-wrap justify-center gap-4">
+            <span className="text-white">Digital</span>
+            <span className="text-black bg-white px-4 py-1 rounded-lg">Excellence</span>
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl">
+          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Discover in-depth articles, practical tutorials, and expert insights about web development, 
             design patterns, and emerging technologies. Join thousands of developers leveling up their skills.
           </p>
