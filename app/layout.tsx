@@ -6,12 +6,24 @@ import { ThemeProvider } from "@/components/ThemeProvider"
 import Navbar from "@/components/layout/Navbar"
 import EasterEggCounter from "@/components/layout/EasterEggCounter"
 import { EasterEggProvider } from "@/context/EasterEggContext"
+import type { Metadata } from 'next'
 
 const inter = Inter({ subsets: ["latin"] })
 
-export const metadata = {
+export const metadata: Metadata = {
   title: "Ali Hasnaat - Website Developer",
   description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+  metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
+  openGraph: {
+    title: "Ali Hasnaat - Website Developer",
+    description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: "Ali Hasnaat - Website Developer",
+    description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+  },
 }
 
 export default function RootLayout({

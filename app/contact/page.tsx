@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub, FaTwitter, FaWhatsapp, FaClock, FaGlobe, FaCode, FaPalette, FaRocket, FaMobile, FaWordpress, FaShoppingCart } from 'react-icons/fa';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -148,7 +148,7 @@ const fadeInScale = {
   }
 };
 
-export default function ContactPage() {
+function ContactPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -623,5 +623,17 @@ export default function ContactPage() {
         </section>
       </div>
     </main>
+  );
+}
+
+export default function ContactPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+      </div>
+    }>
+      <ContactPageContent />
+    </Suspense>
   );
 } 

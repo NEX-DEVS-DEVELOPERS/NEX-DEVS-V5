@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaBitcoin, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf } from 'react-icons/fa';
 import { motion } from 'framer-motion';
@@ -82,7 +82,7 @@ const paymentMethods = [
   { id: 'crypto', icon: FaBitcoin, label: 'Cryptocurrency' },
 ];
 
-export default function CheckoutPage() {
+function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
@@ -512,5 +512,17 @@ Thank you for choosing NEX-WEBS!
         </div>
       </div>
     </main>
+  );
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-white"></div>
+      </div>
+    }>
+      <CheckoutPageContent />
+    </Suspense>
   );
 } 
