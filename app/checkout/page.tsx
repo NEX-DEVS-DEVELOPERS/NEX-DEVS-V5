@@ -218,154 +218,435 @@ function CheckoutPageContent() {
     <meta charset="UTF-8">
     <title>NEX-WEBS Invoice</title>
     <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
         body {
-            font-family: 'Arial', sans-serif;
+            font-family: 'Inter', sans-serif;
             line-height: 1.6;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-            background-color: #000;
-        }
-        .invoice-container {
-            background: linear-gradient(145deg, #000000, #1a1a1a);
-            border: 1px solid #333;
-            border-radius: 10px;
-            padding: 30px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             color: #fff;
-        }
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #8B5CF6;
-            padding-bottom: 20px;
-        }
-        .header h1 {
-            color: #8B5CF6;
             margin: 0;
-            font-size: 28px;
-        }
-        .invoice-details {
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-        }
-        .billing-details {
-            background: rgba(139, 92, 246, 0.1);
             padding: 20px;
-            border-radius: 8px;
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            min-height: 100vh;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+        }
+        
+        .invoice-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.95));
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        @media (min-width: 768px) {
+            .invoice-container {
+                padding: 40px;
+            }
+        }
+
+        .header {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+        }
+
+        @media (min-width: 768px) {
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+                margin-bottom: 40px;
+                padding-bottom: 30px;
+            }
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
             margin-bottom: 30px;
         }
-        .section-title {
-            color: #8B5CF6;
-            font-size: 18px;
-            margin-bottom: 15px;
-            border-bottom: 1px solid #333;
-            padding-bottom: 5px;
+
+        @media (min-width: 768px) {
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 40px;
+                margin-bottom: 40px;
+            }
         }
+
         .items-table {
             width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 30px;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin: 30px 0;
+            display: block;
+            overflow-x: auto;
         }
-        .items-table th {
-            background: rgba(139, 92, 246, 0.2);
-            color: #8B5CF6;
-            padding: 12px;
-            text-align: left;
+
+        @media (min-width: 768px) {
+            .items-table {
+                display: table;
+            }
         }
+
+        .items-table th,
         .items-table td {
+            white-space: nowrap;
             padding: 12px;
-            border-bottom: 1px solid #333;
         }
+
+        @media (min-width: 768px) {
+            .items-table th,
+            .items-table td {
+                padding: 15px;
+            }
+        }
+
         .summary {
             margin-left: auto;
-            width: 300px;
+            width: 100%;
+            background: rgba(139, 92, 246, 0.05);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
         }
+
+        @media (min-width: 768px) {
+            .summary {
+                width: 350px;
+                padding: 25px;
+            }
+        }
+
+        .payment-methods {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            margin: 20px 0;
+        }
+
+        @media (min-width: 768px) {
+            .payment-methods {
+                gap: 20px;
+            }
+        }
+
+        .terms-section {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .terms-section h3 {
+            color: #8B5CF6;
+            margin: 0 0 15px 0;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .terms-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+        }
+
+        .terms-category {
+            background: rgba(139, 92, 246, 0.05);
+            padding: 15px;
+            border-radius: 8px;
+        }
+
+        .terms-category h4 {
+            color: #8B5CF6;
+            margin: 0 0 10px 0;
+            font-size: 16px;
+        }
+
+        .terms-category ul {
+            margin: 0;
+            padding-left: 20px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .terms-category li {
+            margin-bottom: 8px;
+        }
+
+        .terms-category li:last-child {
+            margin-bottom: 0;
+        }
+        
+        .logo-section {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+        
+        .logo-section h1 {
+            color: #8B5CF6;
+            margin: 0;
+            font-size: 36px;
+            font-weight: 800;
+            letter-spacing: -1px;
+            background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .invoice-info {
+            text-align: right;
+            background: rgba(139, 92, 246, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .invoice-info h2 {
+            color: #8B5CF6;
+            margin: 0 0 10px 0;
+            font-size: 24px;
+        }
+        
+        .details-section {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 25px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        
+        .details-section h2 {
+            color: #8B5CF6;
+            margin: 0 0 20px 0;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .details-section h2 svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .contact-info {
+            display: grid;
+            gap: 12px;
+        }
+        
+        .contact-info p {
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        
+        .contact-info strong {
+            color: rgba(139, 92, 246, 0.9);
+            font-weight: 500;
+            min-width: 100px;
+        }
+        
+        .project-details {
+            background: rgba(139, 92, 246, 0.05);
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        
+        .items-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0 10px;
+            margin: 30px 0;
+        }
+        
+        .items-table th {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8B5CF6;
+            padding: 15px;
+            text-align: left;
+            font-weight: 600;
+            border-radius: 8px;
+        }
+        
+        .items-table td {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
+        }
+        
+        .items-table tr td:first-child {
+            border-radius: 8px 0 0 8px;
+        }
+        
+        .items-table tr td:last-child {
+            border-radius: 0 8px 8px 0;
+        }
+        
         .summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #333;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
+        
         .total-row {
-            font-size: 20px;
-            font-weight: bold;
+            font-size: 24px;
+            font-weight: 700;
             color: #8B5CF6;
-            border-top: 2px solid #8B5CF6;
-            margin-top: 10px;
-            padding-top: 10px;
+            border-top: 2px solid rgba(139, 92, 246, 0.3);
+            margin-top: 15px;
+            padding-top: 15px;
         }
+        
         .footer {
             text-align: center;
-            margin-top: 40px;
-            padding-top: 20px;
-            border-top: 2px solid #8B5CF6;
-            color: #666;
+            margin-top: 50px;
+            padding-top: 30px;
+            border-top: 2px solid rgba(139, 92, 246, 0.3);
         }
-        .discount {
-            color: #10B981;
+        
+        .footer h3 {
+            color: #8B5CF6;
+            margin-bottom: 15px;
         }
-        .company-details {
-            margin-bottom: 20px;
-            padding: 15px;
-            background: rgba(139, 92, 246, 0.1);
+        
+        .payment-methods {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        
+        .payment-method {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 10px 20px;
             border-radius: 8px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
         }
-        .company-details h2 {
-            color: #8B5CF6;
-            margin: 0 0 10px 0;
-            font-size: 20px;
-        }
-        .details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 30px;
-            margin-bottom: 30px;
-        }
-        .contact-info {
-            font-size: 14px;
-            color: #fff;
-            line-height: 1.6;
-        }
-        .contact-info strong {
-            color: #8B5CF6;
-            display: inline-block;
-            width: 80px;
-        }
-        .project-details {
-            background: rgba(139, 92, 246, 0.1);
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .project-details h2 {
-            color: #8B5CF6;
-            margin: 0 0 10px 0;
-            font-size: 20px;
-        }
+        
         .timeline-badge {
             display: inline-block;
-            background: rgba(139, 92, 246, 0.2);
+            background: rgba(139, 92, 246, 0.1);
             color: #8B5CF6;
-            padding: 4px 12px;
-            border-radius: 4px;
+            padding: 8px 16px;
+            border-radius: 8px;
             font-size: 14px;
-            margin-top: 8px;
+            font-weight: 500;
+            margin-top: 10px;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+        
+        .discount {
+            color: #10B981;
+            font-weight: 500;
+        }
+        
+        .qr-section {
+            text-align: center;
+            margin-top: 30px;
+        }
+        
+        .qr-code {
+            background: white;
+            padding: 15px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-bottom: 10px;
+        }
+        
+        .status-badge {
+            display: inline-block;
+            background: rgba(139, 92, 246, 0.1);
+            color: #8B5CF6;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-weight: 500;
+            margin-bottom: 20px;
+        }
+        
+        .terms-section {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 20px;
+            border-radius: 12px;
+            margin-top: 30px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+        
+        .terms-section h3 {
+            color: #8B5CF6;
+            margin: 0 0 15px 0;
+        }
+        
+        .terms-section ul {
+            margin: 0;
+            padding-left: 20px;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .watermark {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            opacity: 0.1;
+            font-size: 100px;
+            font-weight: 800;
+            color: #8B5CF6;
+            transform: rotate(-45deg);
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
     <div class="invoice-container">
+        <div class="watermark">NEX-WEBS</div>
+        
         <div class="header">
-            <h1>NEX-WEBS</h1>
-            <p>Professional Web Development Services</p>
+            <div class="logo-section">
+                <h1>NEX-WEBS</h1>
+                <p>Professional Web Development Services</p>
+                <div class="status-badge">INVOICE</div>
+            </div>
+            
+            <div class="invoice-info">
+                <h2>Invoice Details</h2>
+                <p><strong>Invoice No:</strong> ${invoice.invoiceNumber}</p>
+                <p><strong>Date:</strong> ${invoice.date}</p>
+                <p><strong>Due Date:</strong> ${invoice.dueDate}</p>
+            </div>
         </div>
 
         <div class="details-grid">
-            <div class="company-details">
-                <h2>Our Details</h2>
+            <div class="details-section">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
+                    </svg>
+                    Our Details
+                </h2>
                 <div class="contact-info">
                     <p><strong>Name:</strong> ALI-HASNAAT</p>
                     <p><strong>Email:</strong> nexwebs.org@gmail.com</p>
@@ -373,8 +654,13 @@ function CheckoutPageContent() {
                 </div>
             </div>
 
-            <div class="company-details">
-                <h2>Client Details</h2>
+            <div class="details-section">
+                <h2>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
+                    </svg>
+                    Client Details
+                </h2>
                 <div class="contact-info">
                     <p><strong>Name:</strong> ${invoice.billingDetails?.name}</p>
                     <p><strong>Email:</strong> ${invoice.billingDetails?.email}</p>
@@ -385,23 +671,18 @@ function CheckoutPageContent() {
         </div>
 
         <div class="project-details">
-            <h2>Project Information</h2>
+            <h2>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
+                </svg>
+                Project Information
+            </h2>
             <div class="contact-info">
                 <p><strong>Package:</strong> ${invoice.package}</p>
                 <p><strong>Timeline:</strong> <span class="timeline-badge">${invoice.timeline}</span></p>
             </div>
         </div>
 
-        <div class="invoice-details">
-            <div>
-                <div class="section-title">Invoice Details</div>
-                <p>Invoice Number: ${invoice.invoiceNumber}</p>
-                <p>Date: ${invoice.date}</p>
-                <p>Due Date: ${invoice.dueDate}</p>
-            </div>
-        </div>
-
-        <div class="section-title">Invoice Items</div>
         <table class="items-table">
             <thead>
                 <tr>
@@ -412,11 +693,11 @@ function CheckoutPageContent() {
                 </tr>
             </thead>
             <tbody>
-${invoice.items.map(item => `
+                ${invoice.items.map(item => `
                     <tr>
                         <td>
-                            ${item.description}<br>
-                            <small style="color: #666;">${item.details}</small>
+                            <strong>${item.description}</strong><br>
+                            <span style="color: rgba(255,255,255,0.6); font-size: 0.9em;">${item.details}</span>
                         </td>
                         <td>${item.quantity}</td>
                         <td>PKR ${item.rate.toLocaleString()}</td>
@@ -428,7 +709,7 @@ ${invoice.items.map(item => `
 
         <div class="summary">
             <div class="summary-row">
-                <span>Sub Total:</span>
+                <span>Subtotal:</span>
                 <span>PKR ${invoice.subTotal.toLocaleString()}</span>
             </div>
             <div class="summary-row">
@@ -445,11 +726,97 @@ ${invoice.items.map(item => `
             </div>
         </div>
 
+        <div class="terms-section">
+            <h3>Terms & Conditions</h3>
+            <div class="terms-grid">
+                <div class="terms-category">
+                    <h4>Payment Terms</h4>
+                    <ul>
+                        <li>Payment is due within 7 days of invoice date</li>
+                        <li>50% advance payment required to start the project</li>
+                        <li>Remaining 50% payment before project delivery</li>
+                        <li>All prices are in Pakistani Rupees (PKR)</li>
+                        <li>Late payments will incur a 5% monthly charge</li>
+                    </ul>
+                </div>
+
+                <div class="terms-category">
+                    <h4>Project Terms</h4>
+                    <ul>
+                        <li>Timeline starts after receiving advance payment</li>
+                        <li>Project scope as defined in the package details</li>
+                        <li>Two rounds of revisions included</li>
+                        <li>Additional revisions charged separately</li>
+                        <li>Source code handover upon full payment</li>
+                    </ul>
+                </div>
+
+                <div class="terms-category">
+                    <h4>Delivery & Support</h4>
+                    <ul>
+                        <li>Delivery timeline as specified in project details</li>
+                        <li>30 days of free support after project completion</li>
+                        <li>Bug fixes covered under warranty period</li>
+                        <li>Training session included for website management</li>
+                        <li>24/7 emergency support available</li>
+                    </ul>
+                </div>
+
+                <div class="terms-category">
+                    <h4>Cancellation & Refund</h4>
+                    <ul>
+                        <li>Cancellation fee of 30% if project cancelled after start</li>
+                        <li>No refund on custom development work completed</li>
+                        <li>Refund processing time: 7-14 business days</li>
+                        <li>Project can be put on hold for up to 30 days</li>
+                        <li>Unused hours/services non-refundable</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div class="footer">
-            <p><strong>Payment Terms</strong></p>
-            <p>Please make the payment within 7 days of invoice date.</p>
-            <p>For support, contact: nexwebs.org@gmail.com</p>
-            <p style="color: #8B5CF6;">Thank you for choosing NEX-WEBS!</p>
+            <h3>Payment Methods</h3>
+            <div class="payment-methods">
+                <div class="payment-method">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                    </svg>
+                    Bank Transfer
+                </div>
+                <div class="payment-method">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    JazzCash
+                </div>
+                <div class="payment-method">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                    </svg>
+                    Easypaisa
+                </div>
+            </div>
+            
+            <div class="qr-section">
+                <div class="qr-code">
+                    <svg width="100" height="100" viewBox="0 0 100 100">
+                        <!-- Placeholder for QR code -->
+                        <rect width="100" height="100" fill="#000"/>
+                    </svg>
+                </div>
+                <p>Scan to view digital copy</p>
+            </div>
+            
+            <div class="contact-support">
+                <p style="color: #8B5CF6; margin-top: 30px; font-weight: 600;">Thank you for choosing NEX-WEBS!</p>
+                <p style="color: rgba(255,255,255,0.6);">
+                    For support: <a href="mailto:nexwebs.org@gmail.com" style="color: #8B5CF6; text-decoration: none;">nexwebs.org@gmail.com</a>
+                </p>
+                <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 20px;">
+                    This is a computer-generated invoice. No signature required.
+                </p>
+            </div>
         </div>
     </div>
 </body>

@@ -279,7 +279,7 @@ export default function PricingPage() {
               onHoverStart={() => setHoveredPlan(plan.title)}
               onHoverEnd={() => setHoveredPlan(null)}
               onClick={() => setSelectedPlan(plan)}
-              className="bg-black/40 backdrop-blur-sm rounded-xl p-6 md:p-8 cursor-pointer transform transition-all duration-500 hover:scale-105 hover:bg-black/60 border border-purple-500/20 hover:border-purple-500/50 hover:shadow-purple-glow group"
+              className="bg-black/40 backdrop-blur-sm rounded-xl p-6 md:p-8 cursor-pointer transition-all duration-300 hover:bg-black/60 border border-purple-500/20 hover:border-purple-500/50 group"
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
@@ -309,6 +309,7 @@ export default function PricingPage() {
                   opacity: hoveredPlan === plan.title ? 1 : 0,
                   height: hoveredPlan === plan.title ? 'auto' : 0
                 }}
+                transition={{ duration: 0.2 }}
                 className="overflow-hidden"
               >
                 <div className="border-t border-purple-500/20 pt-4 mb-4">
@@ -322,7 +323,7 @@ export default function PricingPage() {
                   </div>
                 </div>
               </motion.div>
-              <button className="w-full py-3 px-6 text-black bg-white rounded-lg hover:bg-gray-100 transition-all duration-300 font-semibold">
+              <button className="w-full py-3 px-6 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold">
                 Learn More
               </button>
             </motion.div>
@@ -345,11 +346,11 @@ export default function PricingPage() {
                 key={index}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.2 }}
-                className="bg-gradient-to-br from-purple-500/10 to-transparent backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-colors"
+                transition={{ delay: index * 0.1, duration: 0.3 }}
+                className="bg-gradient-to-br from-purple-500/10 to-transparent backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 transition-colors duration-200 hover:border-purple-500/40"
               >
                 <div className="flex items-start mb-4">
-                  <span className="text-3xl mr-3 animate-float-smooth">{testimonial.icon}</span>
+                  <span className="text-3xl mr-3">{testimonial.icon}</span>
                   <p className="text-gray-300 italic">{testimonial.text}</p>
                 </div>
                 <div className="mt-4">
@@ -373,8 +374,8 @@ export default function PricingPage() {
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               transition={{ 
-                duration: 0.5,
-                ease: [0.16, 1, 0.3, 1]
+                duration: 0.3,
+                ease: "easeOut"
               }}
               className="bg-black/80 backdrop-blur-md rounded-xl p-6 md:p-8 w-full max-w-4xl mt-32 mb-4 md:mt-40 lg:mt-44 relative border border-purple-500/30 shadow-purple-glow"
             >
@@ -500,11 +501,11 @@ export default function PricingPage() {
                 <div className="flex justify-end pt-6 border-t border-purple-500/20">
                   <button 
                     onClick={() => handleGetStarted(selectedPlan)}
-                    className="py-3 px-8 text-black bg-white rounded-lg hover:bg-gray-100 transition-all duration-300 font-semibold group"
+                    className="py-3 px-8 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold group"
                   >
                     <span className="flex items-center">
                       Get Started
-                      <svg className="w-5 h-5 ml-2 transform transition-transform duration-500 group-hover:translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </span>
