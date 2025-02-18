@@ -808,26 +808,6 @@ export default function Home() {
                 View All Projects →
               </Link>
             </motion.div>
-
-            {/* Client Testimonial */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4 }}
-              className="relative max-w-4xl mx-auto text-center mt-24"
-            >
-              <div className="absolute -top-6 left-1/2 -translate-x-1/2 text-6xl text-white/20">
-                "
-              </div>
-              <blockquote className="text-2xl text-gray-300 font-light italic leading-relaxed px-8">
-                Working with NEX-WEBS has been transformative for our business. Their technical expertise 
-                and innovative solutions helped us achieve our digital goals beyond expectations.
-              </blockquote>
-              <div className="mt-8 text-gray-400">
-                <p className="font-medium text-lg text-white/80">John Smith</p>
-                <p className="text-sm text-gray-500">CEO, Tech Innovations Inc</p>
-              </div>
-            </motion.div>
           </div>
         </div>
       </section>

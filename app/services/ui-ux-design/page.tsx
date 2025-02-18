@@ -1,13 +1,12 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import Image from 'next/image'
 
 const designTools = [
   {
     name: "Figma",
     description: "Industry-leading collaborative interface design tool that enables real-time team collaboration and powerful design systems",
-    icon: "/icons/figma.svg",
+    icon: "🎨",
     features: [
       "Real-time Design Collaboration",
       "Advanced Component Libraries",
@@ -20,7 +19,7 @@ const designTools = [
   {
     name: "Framer",
     description: "Advanced prototyping and animation platform that brings designs to life with realistic interactions and transitions",
-    icon: "/icons/framer.svg",
+    icon: "✨",
     features: [
       "Advanced Motion Design",
       "Interactive Components",
@@ -33,7 +32,7 @@ const designTools = [
   {
     name: "Adobe Creative Suite",
     description: "Comprehensive creative toolkit for advanced graphic design, photo editing, and vector illustrations",
-    icon: "/icons/adobe.svg",
+    icon: "🎯",
     features: [
       "Professional Photo Editing",
       "Vector Illustrations",
@@ -104,7 +103,7 @@ const projects = [
   {
     title: "E-commerce Redesign",
     description: "Complete UX overhaul of a major e-commerce platform focusing on conversion optimization and user engagement",
-    image: "/projects/ecommerce-ux.jpg",
+    icon: "🛍️",
     tags: ["E-commerce", "UX Design", "Mobile-first", "A/B Testing"],
     results: [
       "150% increase in conversion rate",
@@ -117,7 +116,7 @@ const projects = [
   {
     title: "Mobile App Design",
     description: "User-centered design for a fitness tracking app with gamification elements and social features",
-    image: "/projects/mobile-app.jpg",
+    icon: "📱",
     tags: ["Mobile App", "UI Design", "Gamification", "Social"],
     results: [
       "200k+ downloads in first month",
@@ -130,7 +129,7 @@ const projects = [
   {
     title: "SaaS Dashboard",
     description: "Complex data visualization and analytics dashboard redesigned for improved usability and efficiency",
-    image: "/projects/saas-dashboard.jpg",
+    icon: "📊",
     tags: ["SaaS", "Dashboard", "Data Viz", "Enterprise"],
     results: [
       "40% reduction in task completion time",
@@ -144,19 +143,19 @@ const projects = [
 
 const testimonials = [
   {
-    name: "Emily Chen",
+    name: "EMAN MALIK",
     role: "Product Manager",
     company: "TechStart Inc",
     content: "Their UI/UX expertise transformed our product completely. The user engagement metrics increased dramatically after the redesign, and the new interface has received overwhelming positive feedback from our user base.",
-    image: "/testimonials/emily.jpg",
+    icon: "👨‍💼",
     metrics: ["2x User Engagement", "45% More Features Used", "92% User Satisfaction"]
   },
   {
-    name: "David Kim",
+    name: "Danial Ahmad",
     role: "Founder & CEO",
     company: "HealthTech Solutions",
     content: "The design process was incredibly thorough and professional. They truly understood our users' needs and delivered a solution that exceeded our expectations. The attention to detail and focus on user experience has been instrumental in our app's success.",
-    image: "/testimonials/david.jpg",
+    icon: "👨‍💻",
     metrics: ["500k+ Active Users", "4.8/5 App Rating", "89% User Retention"]
   }
 ]
@@ -226,14 +225,8 @@ export default function UIUXDesignPage() {
                               opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 
                 <div className="relative z-10">
-                  <div className="h-16 w-16 mb-6 transform group-hover:scale-110 transition-transform duration-300">
-                    <Image
-                      src={tool.icon}
-                      alt={tool.name}
-                      width={64}
-                      height={64}
-                      className="object-contain"
-                    />
+                  <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform duration-300">
+                    {tool.icon}
                   </div>
                   <h3 className="text-2xl font-semibold text-white mb-3">{tool.name}</h3>
                   <p className="text-gray-400 mb-6 text-sm md:text-base">{tool.description}</p>
@@ -355,15 +348,10 @@ export default function UIUXDesignPage() {
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
                 <div className="relative rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300 overflow-hidden">
-                  <div className="relative h-48 lg:h-56">
-                    <Image
-                      src={project.image}
-                      alt={project.title}
-                      fill
-                      className="object-cover transform group-hover:scale-105 transition-transform duration-500"
-                    />
-                  </div>
                   <div className="p-6 md:p-8">
+                    <div className="text-6xl mb-6 transform group-hover:scale-110 transition-transform duration-300">
+                      {project.icon}
+                    </div>
                     <h3 className="text-xl md:text-2xl font-semibold text-white mb-3">{project.title}</h3>
                     <p className="text-gray-400 text-sm md:text-base mb-4">{project.description}</p>
                     
@@ -432,13 +420,8 @@ export default function UIUXDesignPage() {
                 <div className="relative p-6 md:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                      <Image
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="text-4xl transform group-hover:scale-110 transition-transform duration-300">
+                      {testimonial.icon}
                     </div>
                     <div>
                       <h4 className="text-lg md:text-xl font-semibold text-white">{testimonial.name}</h4>

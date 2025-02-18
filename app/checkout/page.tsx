@@ -21,6 +21,7 @@ interface InvoiceDetails {
   items: {
     description: string;
     details?: string;
+    features?: string[];
     quantity: number;
     rate: number;
     amount: number;
@@ -121,16 +122,16 @@ function CheckoutPageContent() {
 
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
-      'WordPress Development': 30000,
+      'WordPress Basic': 25000,
+      'WordPress Professional': 35000,
+      'WordPress Enterprise': 50000,
       'Shopify/WooCommerce': 40000,
-      'FULLSTACK WEBSITE': 60000,
+      'Full-Stack Basic': 40000,
+      'Full-Stack Professional': 60000,
+      'Full-Stack Enterprise': 80000,
       'UI/UX Design': 40000,
       'Web Apps & AI Solutions': 70000,
-      'SEO & Content Writing': 20000,
-      'Full-Stack Website': 60000,
-      'Figma/Framer': 40000,
-      'AI Agents/WebApps': 70000,
-      'SEO/Content Writing': 20000
+      'SEO & Content Writing': 20000
     };
     
     const matchingKey = Object.keys(prices).find(
@@ -160,10 +161,117 @@ function CheckoutPageContent() {
     const timelineSurcharge = getTimelineSurcharge(timeline);
     const surchargeAmount = parseFloat((baseAmount * timelineSurcharge).toFixed(2));
     
+    // Get package details
+    const packageDetails = {
+      'WordPress Basic': {
+        details: "Professional WordPress Development with GeneratePress theme, 5 pages, and basic SEO setup",
+        features: [
+          "GeneratePress Theme Setup",
+          "Up to 5 Pages Development",
+          "Mobile-First Design",
+          "2 SEO Articles",
+          "5 Days Revision"
+        ]
+      },
+      'WordPress Professional': {
+        details: "Advanced WordPress Development with premium themes and comprehensive SEO optimization",
+        features: [
+          "Premium Theme (Foxiz/Pixwell/Phlox)",
+          "Up to 10 Pages",
+          "Rank Math Pro + Elementor Pro",
+          "Advanced SEO Setup",
+          "10 Days Revision"
+        ]
+      },
+      'WordPress Enterprise': {
+        details: "Complete WordPress solution with all premium features, hosting, and extensive optimization",
+        features: [
+          "All Premium Themes Access",
+          "Unlimited Pages",
+          "Premium Plugin Bundle",
+          "6 SEO Articles + Backlinks",
+          "1 Year Hosting + Domain"
+        ]
+      },
+      'Shopify/WooCommerce': {
+        details: "Complete e-commerce solution with custom design and full functionality",
+        features: [
+          "Custom Store Design",
+          "Product Setup & Migration",
+          "Payment Gateway Integration",
+          "Inventory Management",
+          "Analytics Integration"
+        ]
+      },
+      'Full-Stack Basic': {
+        details: "Entry-level full-stack development with essential features and modern tech stack",
+        features: [
+          "React/Next.js Frontend",
+          "Node.js/Express Backend",
+          "MongoDB Database",
+          "Basic Authentication",
+          "Essential API Endpoints"
+        ]
+      },
+      'Full-Stack Professional': {
+        details: "Advanced full-stack solution with robust features and scalable architecture",
+        features: [
+          "Next.js/TypeScript Frontend",
+          "Node.js/NestJS Backend",
+          "PostgreSQL with Prisma ORM",
+          "OAuth & JWT Authentication",
+          "Comprehensive API Suite"
+        ]
+      },
+      'Full-Stack Enterprise': {
+        details: "Enterprise-grade full-stack development with premium features and microservices architecture",
+        features: [
+          "Next.js 14/React Server Components",
+          "Microservices Architecture",
+          "Multi-Database Support",
+          "Advanced Security Features",
+          "CI/CD Pipeline Setup"
+        ]
+      },
+      'UI/UX Design': {
+        details: "Professional UI/UX design with modern aesthetics and user experience",
+        features: [
+          "Custom UI Design",
+          "Interactive Prototypes",
+          "Design System Creation",
+          "Responsive Layouts",
+          "User Flow Mapping"
+        ]
+      },
+      'Web Apps & AI Solutions': {
+        details: "Advanced web applications with AI integration and automation",
+        features: [
+          "AI Model Integration",
+          "Custom AI Solutions",
+          "Real-time Processing",
+          "Data Analytics",
+          "Machine Learning Pipeline"
+        ]
+      },
+      'SEO & Content Writing': {
+        details: "Comprehensive SEO optimization and content creation services",
+        features: [
+          "Keyword Research",
+          "Content Strategy",
+          "Technical SEO",
+          "Content Creation",
+          "Performance Tracking"
+        ]
+      }
+    };
+
+    const selectedPackage = packageDetails[plan as keyof typeof packageDetails];
+    
     const items = [
       {
         description: plan,
-        details: "Professional Web Development Service Package",
+        details: selectedPackage?.details || "Professional Web Development Service Package",
+        features: selectedPackage?.features || [],
         quantity: 1,
         rate: baseAmount,
         amount: baseAmount
@@ -175,6 +283,7 @@ function CheckoutPageContent() {
       items.push({
         description: "Urgent Timeline Surcharge",
         details: "20% additional charge for urgent delivery (1-2 weeks)",
+        features: [],
         quantity: 1,
         rate: surchargeAmount,
         amount: surchargeAmount
@@ -184,7 +293,16 @@ function CheckoutPageContent() {
     const subTotal = baseAmount + surchargeAmount;
     const taxRate = 0;
     const taxAmount = 0;
-    const discount = parseFloat((subTotal * 0.2).toFixed(2));
+    // Calculate discount based on package
+    let discountRate = 0;
+    if (plan === 'WordPress Basic') {
+      discountRate = 0; // No discount
+    } else if (plan === 'Full-Stack Basic') {
+      discountRate = 0.10; // 10% discount
+    } else {
+      discountRate = 0.20; // 20% discount for other packages
+    }
+    const discount = parseFloat((subTotal * discountRate).toFixed(2));
     const total = parseFloat((subTotal - discount).toFixed(2));
 
     setInvoice({
@@ -717,7 +835,7 @@ function CheckoutPageContent() {
                 <span>PKR 0.00</span>
             </div>
             <div class="summary-row discount">
-                <span>Discount (20%):</span>
+                <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
                 <span>-PKR ${invoice.discount.toLocaleString()}</span>
             </div>
             <div class="summary-row total-row">
@@ -1189,21 +1307,33 @@ function CheckoutPageContent() {
                     <div className="space-y-3">
                       {invoice.items.map((item, index) => (
                         <div key={index} className="bg-zinc-800/50 p-3 rounded-lg">
-                          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                            <div className="md:col-span-2">
+                          <div className="grid grid-cols-1 gap-3">
+                            <div>
                               <span className="text-gray-400 text-sm">Description</span>
                               <p className="font-medium">{item.description}</p>
                               {item.details && (
-                                <p className="text-sm text-gray-400">{item.details}</p>
+                                <p className="text-sm text-gray-400 mt-1">{item.details}</p>
+                              )}
+                              {item.features && item.features.length > 0 && (
+                                <div className="mt-3 space-y-1">
+                                  <span className="text-sm text-purple-400">Key Features:</span>
+                                  <ul className="text-sm text-gray-400 list-disc list-inside">
+                                    {item.features.map((feature, idx) => (
+                                      <li key={idx}>{feature}</li>
+                                    ))}
+                                  </ul>
+                                </div>
                               )}
                             </div>
-                            <div>
-                              <span className="text-gray-400 text-sm">Rate</span>
-                              <p className="font-medium">PKR {item.rate.toFixed(2)}</p>
-                            </div>
-                            <div>
-                              <span className="text-gray-400 text-sm">Amount</span>
-                              <p className="font-medium">PKR {item.amount.toFixed(2)}</p>
+                            <div className="grid grid-cols-2 gap-3 mt-3">
+                              <div>
+                                <span className="text-gray-400 text-sm">Rate</span>
+                                <p className="font-medium">PKR {item.rate.toLocaleString()}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-sm">Amount</span>
+                                <p className="font-medium">PKR {item.amount.toLocaleString()}</p>
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -1223,8 +1353,8 @@ function CheckoutPageContent() {
                         <span>PKR 0.00</span>
                       </div>
                       <div className="flex justify-between text-green-400">
-                        <span>Discount (20%):</span>
-                        <span>-PKR {invoice.discount.toFixed(2)}</span>
+                        <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
+                        <span>-PKR {invoice.discount.toLocaleString()}</span>
                       </div>
                       <div className="border-t border-white/10 pt-2 mt-2">
                         <div className="flex justify-between text-xl font-bold">

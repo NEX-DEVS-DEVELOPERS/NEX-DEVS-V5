@@ -68,70 +68,164 @@ const testimonials = [
 
 const packages = [
   {
-    name: "WordPress Development",
-    price: "Starting at $999",
+    name: "WordPress Basic",
     features: [
-      "Custom WordPress Theme",
-      "Plugin Development",
-      "Speed Optimization",
-      "Security Setup",
-      "WooCommerce Integration"
-    ]
+      "GeneratePress Theme Setup",
+      "Up to 5 Pages Development",
+      "Mobile-First Design",
+      "2 SEO Articles",
+      "5 Days Revision",
+      "Basic XML Sitemap",
+      "Google Analytics Integration",
+      "Contact Form Integration",
+      "Social Media Integration",
+      "Basic Security Package"
+    ],
+    hasDiscount: false
+  },
+  {
+    name: "WordPress Professional",
+    features: [
+      "Premium Theme (Foxiz/Pixwell/Phlox)",
+      "Up to 10 Pages Development",
+      "Rank Math Pro + Elementor Pro",
+      "Advanced SEO Setup",
+      "10 Days Revision",
+      "CDN Integration",
+      "Schema Markup Implementation",
+      "Advanced Analytics",
+      "Database Optimization",
+      "Advanced Security Package"
+    ],
+    hasDiscount: true
+  },
+  {
+    name: "WordPress Enterprise",
+    features: [
+      "All Premium Themes Access",
+      "Unlimited Pages Development",
+      "Premium Plugin Bundle",
+      "6 SEO Articles + Backlinks",
+      "1 Year Hosting + Domain",
+      "WP Rocket Pro Integration",
+      "Multi-language Support",
+      "Custom Admin Dashboard",
+      "Monthly Performance Reports",
+      "Priority Support (30 Days)"
+    ],
+    hasDiscount: true
   },
   {
     name: "Shopify/WooCommerce",
-    price: "Starting at $1499",
     features: [
-      "Store Setup & Configuration",
-      "Custom Theme Development",
+      "Custom Store Design",
+      "Product Setup & Migration",
       "Payment Gateway Integration",
-      "Product Management",
-      "Analytics Setup"
-    ]
+      "Inventory Management",
+      "Analytics Integration",
+      "Mobile Commerce Ready",
+      "Multi-currency Support",
+      "Automated Email Marketing",
+      "Order Management System",
+      "Security Implementation"
+    ],
+    hasDiscount: true
   },
   {
-    name: "FULLSTACK WEBSITE",
-    price: "Starting at $2499",
+    name: "Full-Stack Basic",
     features: [
-      "Modern React Development",
-      "SEO Optimization",
+      "Modern React/Next.js Frontend",
+      "Node.js/Express Backend",
+      "MongoDB Database Setup",
+      "Basic User Authentication",
+      "Essential API Endpoints",
+      "Responsive Design",
+      "Basic SEO Setup",
       "Performance Optimization",
-      "API Integration",
-      "Responsive Design"
-    ]
+      "Security Best Practices",
+      "Basic Documentation"
+    ],
+    hasDiscount: true
+  },
+  {
+    name: "Full-Stack Professional",
+    features: [
+      "Next.js/TypeScript Frontend",
+      "Node.js/NestJS Backend",
+      "PostgreSQL with Prisma ORM",
+      "OAuth & JWT Authentication",
+      "Comprehensive API Suite",
+      "Advanced State Management",
+      "Unit & Integration Tests",
+      "CI/CD Setup",
+      "Performance Monitoring",
+      "Detailed Documentation"
+    ],
+    hasDiscount: true
+  },
+  {
+    name: "Full-Stack Enterprise",
+    features: [
+      "Next.js 14/React Server Components",
+      "Microservices Architecture",
+      "Multi-Database Support",
+      "Advanced Security Features",
+      "CI/CD Pipeline Setup",
+      "Load Balancing",
+      "Auto-scaling Configuration",
+      "Monitoring & Logging",
+      "Disaster Recovery",
+      "Enterprise Documentation"
+    ],
+    hasDiscount: true
   },
   {
     name: "UI/UX Design",
-    price: "Starting at $799",
     features: [
-      "Figma/Framer Design",
-      "Wireframing",
-      "Prototype Development",
-      "User Flow Design",
-      "Design System Creation"
-    ]
+      "Custom UI Design",
+      "Interactive Prototypes",
+      "Design System Creation",
+      "Responsive Layouts",
+      "User Flow Mapping",
+      "Wireframe Development",
+      "Animation & Interactions",
+      "Design Handoff",
+      "Style Guide",
+      "Design Documentation"
+    ],
+    hasDiscount: true
   },
   {
     name: "Web Apps & AI Solutions",
-    price: "Starting at $3999",
     features: [
-      "Custom AI Integration",
-      "Full-Stack Development",
-      "Database Architecture",
+      "AI Model Integration",
+      "Custom AI Solutions",
+      "Real-time Processing",
+      "Data Analytics",
+      "Machine Learning Pipeline",
       "API Development",
-      "Real-time Features"
-    ]
+      "Scalable Architecture",
+      "Automated Workflows",
+      "Performance Monitoring",
+      "Technical Support"
+    ],
+    hasDiscount: true
   },
   {
     name: "SEO & Content Writing",
-    price: "Starting at $599",
     features: [
       "Keyword Research",
       "Content Strategy",
       "Technical SEO",
-      "Blog Writing",
-      "Performance Tracking"
-    ]
+      "Content Creation",
+      "Performance Tracking",
+      "Monthly Reports",
+      "Competitor Analysis",
+      "Link Building Strategy",
+      "Analytics Setup",
+      "Content Calendar"
+    ],
+    hasDiscount: true
   }
 ];
 
@@ -154,6 +248,7 @@ function ContactPageContent() {
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedTimeline, setSelectedTimeline] = useState('');
   const [adjustedPrice, setAdjustedPrice] = useState('');
+  const [showDiscountBanner, setShowDiscountBanner] = useState(true);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -166,11 +261,15 @@ function ContactPageContent() {
   useEffect(() => {
     const plan = searchParams.get('plan');
     if (plan) {
+      const selectedPackage = packages.find(p => p.name === decodeURIComponent(plan));
       setSelectedPlan(plan);
       setFormData(prev => ({
         ...prev,
         details: `I'm interested in the ${plan} package.`
       }));
+      
+      // Only show discount banner for eligible packages
+      setShowDiscountBanner(selectedPackage?.hasDiscount ?? false);
     }
   }, [searchParams]);
 
@@ -265,8 +364,9 @@ function ContactPageContent() {
               <motion.div 
                 initial={{ opacity: 0, y: -20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-gradient-to-r from-yellow-500 to-yellow-400 
-                  text-black py-3 md:py-4 shadow-xl border-b-4 border-yellow-600 mb-6 md:mb-8 rounded-lg px-3 md:px-4"
+                className={`bg-gradient-to-r from-yellow-500 to-yellow-400 
+                  text-black py-3 md:py-4 shadow-xl border-b-4 border-yellow-600 mb-6 md:mb-8 rounded-lg px-3 md:px-4
+                  ${!showDiscountBanner ? 'hidden' : ''}`}
               >
                 <div className="container mx-auto text-center">
                   <div className="text-lg md:text-2xl font-black flex items-center justify-center gap-2 md:gap-4">
@@ -275,7 +375,7 @@ function ContactPageContent() {
                     <span className="animate-bounce hidden md:inline">🎉</span>
                   </div>
                   <div className="text-sm md:text-lg font-bold mt-1">
-                    Use Code: <span className="bg-black text-yellow-400 px-2 md:px-4 py-1 rounded-full">EASTER20</span>
+                    Use Code: <span className="bg-black text-yellow-400 px-2 md:px-4 py-1 rounded-full">NEX-WEBS20%</span>
                   </div>
                 </div>
               </motion.div>
@@ -504,16 +604,52 @@ function ContactPageContent() {
                     focus:border-purple-500 focus:ring-1 focus:ring-purple-500`}
                   required
                   value={selectedPlan || ""}
-                  onChange={(e) => setSelectedPlan(e.target.value)}
+                  onChange={(e) => {
+                    const selected = e.target.value;
+                    setSelectedPlan(selected);
+                    const selectedPackage = packages.find(p => p.name === selected);
+                    setShowDiscountBanner(selectedPackage?.hasDiscount ?? false);
+                  }}
                 >
                   <option value="">Select a Package</option>
-                  <option value="WordPress Development">WordPress Development</option>
-                  <option value="Shopify/WooCommerce">Shopify/WooCommerce</option>
-                  <option value="Full-Stack Website">Full-Stack Website</option>
-                  <option value="Figma/Framer">UI/UX Design</option>
-                  <option value="AI Agents/WebApps">Web Apps & AI Solutions</option>
-                  <option value="SEO/Content Writing">SEO & Content Writing</option>
+                  {packages.map((pkg, index) => (
+                    <option key={index} value={pkg.name}>
+                      {pkg.name}
+                    </option>
+                  ))}
                 </select>
+                
+                {/* Package Details Display */}
+                {selectedPlan && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20"
+                  >
+                    <h4 className="font-medium text-white mb-2">Package Features:</h4>
+                    <ul className="space-y-2">
+                      {packages.find(p => p.name === selectedPlan)?.features.map((feature, index) => (
+                        <motion.li
+                          key={index}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className="flex items-center text-gray-300 text-sm"
+                        >
+                          <svg className="w-4 h-4 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          {feature}
+                        </motion.li>
+                      ))}
+                    </ul>
+                    {!packages.find(p => p.name === selectedPlan)?.hasDiscount && (
+                      <p className="mt-4 text-sm text-yellow-400">
+                        Note: This package is not eligible for the 20% discount offer.
+                      </p>
+                    )}
+                  </motion.div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-medium mb-2">Project Timeline</label>

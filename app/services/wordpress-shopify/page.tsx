@@ -5,18 +5,18 @@ import Image from 'next/image'
 
 const testimonials = [
   {
-    name: "Sarah Johnson",
+    name: "Saira faisal",
     role: "E-commerce Manager",
     company: "Fashion Boutique",
     content: "The WordPress solution provided transformed our online presence. Sales increased by 150% within the first quarter!",
-    image: "/testimonials/sarah.jpg"
+    initials: "SF"
   },
   {
-    name: "Michael Chen",
+    name: "Muhammad Ali",
     role: "Store Owner",
     company: "Tech Gadgets",
     content: "Their Shopify expertise helped us scale from local to international. The custom features they added were game-changing.",
-    image: "/testimonials/michael.jpg"
+    initials: "MA"
   }
 ]
 
@@ -466,13 +466,8 @@ export default function WordPressShopifyPage() {
                 <div className="relative p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
                   <div className="flex items-center gap-4 mb-6">
-                    <div className="relative w-16 h-16 rounded-full overflow-hidden">
-                      <Image
-                        src={testimonial.image}
-                        alt={testimonial.name}
-                        fill
-                        className="object-cover"
-                      />
+                    <div className="w-16 h-16 rounded-full bg-purple-500/20 flex items-center justify-center text-xl font-semibold text-white">
+                      {testimonial.initials}
                     </div>
                     <div>
                       <h4 className="text-lg font-semibold text-white">{testimonial.name}</h4>

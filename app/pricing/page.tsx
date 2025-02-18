@@ -18,22 +18,195 @@ interface PricingPlan {
 
 const pricingPlans: PricingPlan[] = [
   {
-    title: "WordPress Development",
-    price: "Starting from Pkr30k-50k",
-    description: "Custom WordPress solutions tailored to your business needs with modern design and functionality.",
-    icon: "🎨",
-    timeline: "1 weeks",
-    bestFor: ["Small Businesses", "Bloggers", "Portfolio Sites"],
-    includes: ["Free SSL Certificate", "1 Year Hosting", "24/7 Support"],
+    title: "WordPress Basic",
+    price: "PKR 25,000",
+    description: "Perfect starter package for small businesses and bloggers with essential WordPress features and SEO optimization.",
+    icon: "🎯",
+    timeline: "1-2 weeks",
+    bestFor: ["Small Businesses", "Personal Blogs", "Portfolio Sites", "Startups"],
+    includes: [
+      "GeneratePress Theme License",
+      "5 Days Revision Period",
+      "2 SEO Articles",
+      "Basic Security Package"
+    ],
     features: [
-      "Custom Theme Development",
-      "Plugin Integration & Customization",
-      "E-commerce Integration",
-      "Speed Optimization",
-      "SEO-friendly Structure",
-      "Mobile Responsive Design",
-      "Security Hardening",
-      "Performance Monitoring"
+      "GeneratePress Theme Professional Setup",
+      "Complete Website Development (Up to 5 Pages)",
+      "Mobile-First Responsive Design",
+      "Essential Premium Plugins Integration",
+      "Speed & Performance Optimization",
+      "2 SEO-Optimized Articles with Research",
+      "Basic XML Sitemap Setup",
+      "Google Analytics Integration",
+      "Contact Form Integration",
+      "Social Media Integration",
+      "Basic On-Page SEO Setup",
+      "5 Days Post-Launch Support",
+      "Website Security Setup",
+      "1-on-1 Training Session"
+    ]
+  },
+  {
+    title: "WordPress Professional",
+    price: "PKR 35,000",
+    description: "Advanced WordPress solution with premium themes, plugins, and comprehensive SEO optimization for growing businesses.",
+    icon: "⚡",
+    timeline: "2-3 weeks",
+    bestFor: [
+      "Growing Businesses",
+      "Content Creators",
+      "Online Magazines",
+      "Professional Bloggers"
+    ],
+    includes: [
+      "Premium Theme License (Foxiz/Pixwell/Phlox)",
+      "10 Days Revision Period",
+      "Pro Plugins Bundle",
+      "Advanced Security Package"
+    ],
+    features: [
+      "Premium Theme Installation & Setup",
+      "Complete Website Development (Up to 10 Pages)",
+      "Rank Math Pro SEO Suite Integration",
+      "Elementor Pro Page Builder Setup",
+      "WPForms Pro Integration",
+      "Advanced Performance Optimization",
+      "CDN Integration & Setup",
+      "Complete Schema Markup Implementation",
+      "Advanced XML Sitemap Configuration",
+      "Google Search Console Setup",
+      "Advanced Analytics Integration",
+      "Social Media Widgets Integration",
+      "Custom 404 Error Page",
+      "Database Optimization",
+      "Caching System Implementation",
+      "Advanced Security Measures",
+      "Comprehensive SEO Strategy Document",
+      "2 Hours of Training Sessions"
+    ]
+  },
+  {
+    title: "WordPress Enterprise",
+    price: "PKR 50,000",
+    description: "Complete WordPress solution with all premium features, hosting, extensive SEO optimization, and comprehensive digital presence setup.",
+    icon: "👑",
+    timeline: "3-4 weeks",
+    bestFor: [
+      "Large Businesses",
+      "E-commerce Sites",
+      "News Portals",
+      "Digital Agencies"
+    ],
+    includes: [
+      "All Premium Theme Access ($500+ Value)",
+      "Premium Plugins Bundle ($1000+ Value)",
+      "1 Year Hostinger Business Hosting",
+      "Free Domain Registration",
+      "Premium SSL Certificate"
+    ],
+    features: [
+      "Unlimited Pages Development",
+      "Premium Theme Access (AVADA, FOXIX, PIXWELL)",
+      "WP Rocket Pro Speed Optimization ($170 Value)",
+      "Rank Math Pro SEO Suite ($129/year Value)",
+      "Elementor Pro Page Builder ($59/year Value)",
+      "Smush Pro Image Optimization",
+      "Advanced Forms Pro Integration",
+      "6 Semantically Optimized Articles (2000+ Words Each)",
+      "Professional Backlinks Strategy Document",
+      "Comprehensive Keyword Research",
+      "Complete Technical SEO Setup",
+      "Advanced Security Implementation",
+      "Regular Backup System",
+      "Multi-language Support Setup",
+      "Advanced E-commerce Features",
+      "Custom Gutenberg Blocks",
+      "API Integration for Fast Indexing",
+      "Advanced Analytics Dashboard",
+      "Custom Admin Dashboard",
+      "Priority Support (30 Days)",
+      "4 Hours of Team Training",
+      "Monthly Performance Report",
+      "Complete Technical Documentation"
+    ]
+  },
+  {
+    title: "Full-Stack Basic",
+    price: "PKR 40,000",
+    description: "Entry-level full-stack development package with essential features and modern tech stack for startups and small businesses.",
+    icon: "💻",
+    timeline: "2-3 weeks",
+    bestFor: ["Startups", "Small Businesses", "MVPs", "Personal Projects"],
+    includes: [
+      "React/Next.js Frontend",
+      "Node.js Backend",
+      "MongoDB Database",
+      "Basic Deployment"
+    ],
+    features: [
+      "Modern React/Next.js Frontend",
+      "Node.js/Express Backend",
+      "MongoDB Database Setup",
+      "Basic User Authentication",
+      "Essential API Endpoints",
+      "Responsive Design",
+      "Basic SEO Setup",
+      "Performance Optimization",
+      "Security Best Practices",
+      "Basic Documentation"
+    ]
+  },
+  {
+    title: "Full-Stack Professional",
+    price: "PKR 60,000",
+    description: "Advanced full-stack solution with robust features, TypeScript integration, and scalable architecture for growing businesses.",
+    icon: "⚡",
+    timeline: "3-4 weeks",
+    bestFor: ["Growing Businesses", "E-commerce", "SaaS Products", "Web Applications"],
+    includes: [
+      "Next.js with TypeScript",
+      "NestJS Backend",
+      "PostgreSQL Database",
+      "Cloud Deployment"
+    ],
+    features: [
+      "Next.js/TypeScript Frontend",
+      "Node.js/NestJS Backend",
+      "PostgreSQL with Prisma ORM",
+      "OAuth & JWT Authentication",
+      "Comprehensive API Suite",
+      "Advanced State Management",
+      "Unit & Integration Tests",
+      "CI/CD Setup",
+      "Performance Monitoring",
+      "Detailed Documentation"
+    ]
+  },
+  {
+    title: "Full-Stack Enterprise",
+    price: "PKR 80,000",
+    description: "Enterprise-grade full-stack development with premium features, microservices architecture, and advanced security for large-scale applications.",
+    icon: "🚀",
+    timeline: "4-6 weeks",
+    bestFor: ["Enterprises", "Large-scale Apps", "High-traffic Platforms", "Complex Systems"],
+    includes: [
+      "Microservices Architecture",
+      "Multi-Database Support",
+      "Advanced Security",
+      "DevOps Setup"
+    ],
+    features: [
+      "Next.js 14/React Server Components",
+      "Microservices Architecture",
+      "Multi-Database Support",
+      "Advanced Security Features",
+      "CI/CD Pipeline Setup",
+      "Load Balancing",
+      "Auto-scaling Configuration",
+      "Monitoring & Logging",
+      "Disaster Recovery",
+      "Enterprise Documentation"
     ]
   },
   {
@@ -53,25 +226,6 @@ const pricingPlans: PricingPlan[] = [
       "Mobile Commerce Ready",
       "Multi-currency Support",
       "Automated Email Marketing"
-    ]
-  },
-  {
-    title: "Full-Stack Website",
-    price: "Starting from PKR 60k-70k",
-    description: "End-to-end web solutions with custom functionality and seamless user experience.",
-    icon: "⚡",
-    timeline: "3-5 weeks",
-    bestFor: ["Enterprises", "SaaS Products", "Web Applications"],
-    includes: ["CI/CD Setup", "Database Design", "API Documentation"],
-    features: [
-      "Custom Frontend & Backend",
-      "Database Design",
-      "API Integration",
-      "User Authentication",
-      "Cloud Deployment",
-      "Performance Optimization",
-      "Scalable Architecture",
-      "Real-time Features"
     ]
   },
   {
@@ -191,7 +345,7 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden pt-32 md:pt-36">
+    <div className="min-h-screen bg-black relative overflow-hidden pt-52 md:pt-64">
       {/* Enhanced Glow Effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-float-smooth opacity-50 md:opacity-100"></div>
@@ -199,8 +353,8 @@ export default function PricingPage() {
         <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse opacity-50 md:opacity-100"></div>
       </div>
 
-      {/* Back Button */}
-      <div className="fixed top-32 md:top-36 left-4 md:left-8 z-50">
+      {/* Back Button - Further adjusted position */}
+      <div className="fixed top-20 md:top-24 left-4 md:left-8 z-50">
         <button 
           onClick={() => router.push('/')}
           className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
@@ -217,10 +371,10 @@ export default function PricingPage() {
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-12 pb-20 relative z-20">
-        <div className="text-center mb-12 md:mb-16">
-          {/* Floating Mockups */}
-          <div className="relative w-full max-w-lg mx-auto mb-8">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-16 md:pt-20 pb-20 relative z-20">
+        <div className="text-center mb-16 md:mb-20 relative z-10">
+          {/* Floating Mockups - Further adjusted position */}
+          <div className="relative w-full max-w-lg mx-auto mb-12 mt-12 md:mt-16">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -243,7 +397,7 @@ export default function PricingPage() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, ease: "easeOut" }}
-            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 relative"
+            className="text-4xl md:text-5xl lg:text-6xl font-bold text-white mb-6 md:mb-8 glow-text-purple px-6 py-6 relative z-20 bg-black/40 backdrop-blur-sm rounded-xl inline-block mt-8"
           >
             Choose Your <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Perfect Plan</span>
             <motion.span
@@ -259,7 +413,7 @@ export default function PricingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
-            className="text-white/80 text-base md:text-lg glow-text-sm max-w-2xl mx-auto px-4"
+            className="text-white/80 text-base md:text-lg glow-text-sm max-w-2xl mx-auto px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg"
           >
             Transparent pricing with no hidden fees. Select a plan to view detailed features.
           </motion.p>
@@ -279,7 +433,12 @@ export default function PricingPage() {
               onHoverStart={() => setHoveredPlan(plan.title)}
               onHoverEnd={() => setHoveredPlan(null)}
               onClick={() => setSelectedPlan(plan)}
-              className="bg-black/40 backdrop-blur-sm rounded-xl p-6 md:p-8 cursor-pointer transition-all duration-300 hover:bg-black/60 border border-purple-500/20 hover:border-purple-500/50 group"
+              className={`${
+                plan.title.includes('Full-Stack') 
+                  ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40 hover:border-purple-500/70 shadow-lg shadow-purple-500/20' 
+                  : 'bg-black/40 border-purple-500/20 hover:border-purple-500/50'
+              } backdrop-blur-sm rounded-xl p-6 md:p-8 cursor-pointer transition-all duration-500 hover:bg-black/60 border group
+              hover:transform hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10`}
             >
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
@@ -323,7 +482,9 @@ export default function PricingPage() {
                   </div>
                 </div>
               </motion.div>
-              <button className="w-full py-3 px-6 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold">
+              <button className="w-full py-3 px-6 text-black bg-white rounded-lg transition-all duration-300 
+                hover:bg-gray-100 font-semibold group-hover:shadow-lg group-hover:shadow-white/20 
+                transform group-hover:scale-[1.02]">
                 Learn More
               </button>
             </motion.div>
@@ -368,7 +529,7 @@ export default function PricingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed inset-0 bg-black/90 flex items-center justify-center z-[100] p-2 md:p-4 modal-overlay overflow-y-auto"
+            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-2 md:p-4 modal-overlay overflow-y-auto pt-32"
           >
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
@@ -377,13 +538,13 @@ export default function PricingPage() {
                 duration: 0.3,
                 ease: "easeOut"
               }}
-              className="bg-black/80 backdrop-blur-md rounded-xl p-6 md:p-8 w-full max-w-4xl mt-32 mb-4 md:mt-40 lg:mt-44 relative border border-purple-500/30 shadow-purple-glow"
+              className="bg-black/80 backdrop-blur-md rounded-xl p-6 md:p-8 w-full max-w-4xl my-12 relative border border-purple-500/30 shadow-purple-glow"
             >
-              {/* Close button with tooltip */}
-              <div className="absolute top-4 right-4 group">
+              {/* Close button with tooltip - Adjusted position */}
+              <div className="sticky top-6 right-6 float-right group z-50">
                 <button
                   onClick={() => setSelectedPlan(null)}
-                  className="text-purple-400 hover:text-white transition-colors p-2"
+                  className="text-purple-400 hover:text-white transition-colors p-3 bg-black/50 rounded-full backdrop-blur-sm"
                 >
                   <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -394,35 +555,38 @@ export default function PricingPage() {
                 </div>
               </div>
 
-              {/* Modal content with better spacing */}
-              <div className="space-y-8">
-                <div className="flex items-center gap-6 border-b border-purple-500/20 pb-6">
-                  <span className="text-5xl animate-float-smooth">{selectedPlan.icon}</span>
+              {/* Modal header - Made sticky with increased padding */}
+              <div className="sticky top-0 bg-black/95 backdrop-blur-md z-40 -mx-6 -mt-6 md:-mx-8 md:-mt-8 px-8 py-8 md:px-10 md:py-10 rounded-t-xl border-b border-purple-500/20">
+                <div className="flex items-center gap-8">
+                  <span className="text-6xl animate-float-smooth">{selectedPlan.icon}</span>
                   <div>
-                    <h2 className="text-3xl font-bold text-white glow-text-purple">{selectedPlan.title}</h2>
-                    <p className="text-purple-300 text-xl">{selectedPlan.price}</p>
+                    <h2 className="text-4xl font-bold text-white glow-text-purple mb-2">{selectedPlan.title}</h2>
+                    <p className="text-purple-300 text-2xl">{selectedPlan.price}</p>
+                  </div>
                   </div>
                 </div>
 
-                <div className="bg-purple-500/10 rounded-lg p-6 mb-8">
-                  <h3 className="text-xl text-white font-semibold mb-4">Project Details</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center text-gray-300 bg-purple-500/5 p-3 rounded-lg">
-                      <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              {/* Modal content - Increased padding and spacing */}
+              <div className="space-y-10 pt-10">
+                <div className="bg-purple-500/10 rounded-lg p-8 mb-10">
+                  <h3 className="text-2xl text-white font-semibold mb-6">Project Details</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-base">
+                    <div className="flex items-center text-gray-300 bg-purple-500/5 p-4 rounded-lg">
+                      <svg className="w-6 h-6 text-purple-400 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Timeline: {selectedPlan.timeline}
+                      <span>Timeline: {selectedPlan.timeline}</span>
                     </div>
-                    <div className="flex items-center text-gray-300 bg-purple-500/5 p-3 rounded-lg">
-                      <svg className="w-5 h-5 text-purple-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <div className="flex items-center text-gray-300 bg-purple-500/5 p-4 rounded-lg">
+                      <svg className="w-6 h-6 text-purple-400 mr-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
-                      Includes Support
+                      <span>Includes Support</span>
                     </div>
                   </div>
                 </div>
 
-                <p className="text-gray-300 mb-6">{selectedPlan.description}</p>
+                <p className="text-gray-300 text-lg mb-8">{selectedPlan.description}</p>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                   <div>
@@ -498,18 +662,21 @@ export default function PricingPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-6 border-t border-purple-500/20">
+                {/* Footer - Made sticky with increased padding */}
+                <div className="sticky bottom-0 bg-black/95 backdrop-blur-md -mx-6 md:-mx-8 px-8 md:px-10 py-6 mt-10 border-t border-purple-500/20 rounded-b-xl">
+                  <div className="flex justify-end">
                   <button 
                     onClick={() => handleGetStarted(selectedPlan)}
-                    className="py-3 px-8 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold group"
+                      className="py-4 px-10 text-black bg-white rounded-lg hover:bg-gray-100 transition-colors duration-200 font-semibold text-lg group"
                   >
                     <span className="flex items-center">
                       Get Started
-                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <svg className="w-6 h-6 ml-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                       </svg>
                     </span>
                   </button>
+                  </div>
                 </div>
               </div>
             </motion.div>
