@@ -175,19 +175,19 @@ export default function WebDevelopmentPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-6"
+            className="text-center space-y-4 sm:space-y-6"
           >
-            <div className="space-y-4">
-              <h1 className="text-5xl font-bold text-white">
+            <div className="space-y-2 sm:space-y-4">
+              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
                 Modern Web Development
               </h1>
               <div className="flex justify-center">
-                <span className="inline-block bg-white text-black px-8 py-2 rounded-lg text-3xl font-semibold">
+                <span className="inline-block bg-white text-black px-4 sm:px-8 py-1 sm:py-2 rounded-lg text-xl sm:text-2xl md:text-3xl font-semibold">
                   Solutions
                 </span>
               </div>
             </div>
-            <p className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed">
               Delivering cutting-edge web applications with advanced technologies, 
               robust architecture, and exceptional user experiences. Our solutions 
               combine modern frameworks, AI capabilities, and best practices to 
@@ -198,31 +198,31 @@ export default function WebDevelopmentPage() {
       </section>
 
       {/* Technologies Section */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white text-center mb-16"
+            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-16"
           >
             Technologies We Master
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {technologies.map((tech, index) => (
               <motion.div
                 key={tech.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                className="group relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
                          hover:border-purple-500/50 transition-all duration-300"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent 
                               opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 
                 <div className="relative z-10">
-                  <div className="h-12 w-12 mb-4">
+                  <div className="h-8 sm:h-12 w-8 sm:w-12 mb-3 sm:mb-4">
                     <Image
                       src={tech.icon}
                       alt={tech.name}
@@ -231,12 +231,12 @@ export default function WebDevelopmentPage() {
                       className="object-contain"
                     />
                   </div>
-                  <h3 className="text-xl font-semibold text-white mb-2">{tech.name}</h3>
-                  <p className="text-gray-400 mb-4">{tech.description}</p>
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2">{tech.name}</h3>
+                  <p className="text-sm sm:text-base text-gray-400 mb-3 sm:mb-4">{tech.description}</p>
                   
                   <ul className="space-y-2">
                     {tech.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-gray-300">
+                      <li key={i} className="flex items-center gap-2 text-gray-300 text-sm sm:text-base">
                         <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                         {feature}
                       </li>
@@ -250,17 +250,17 @@ export default function WebDevelopmentPage() {
       </section>
 
       {/* Featured Projects */}
-      <section className="py-20 relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-20 relative overflow-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white text-center mb-16"
+            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-16"
           >
             Featured Projects
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {projects.map((project, index) => (
               <motion.div
                 key={project.title}
@@ -272,24 +272,24 @@ export default function WebDevelopmentPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
                 <div className="relative rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
-                              hover:border-purple-500/50 transition-all duration-300 p-8">
-                  <h3 className="text-2xl font-semibold text-white mb-4">{project.title}</h3>
-                  <p className="text-gray-200 text-lg mb-6">{project.description}</p>
+                              hover:border-purple-500/50 transition-all duration-300 p-4 sm:p-8">
+                  <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-4">{project.title}</h3>
+                  <p className="text-base sm:text-lg text-gray-200 mb-4 sm:mb-6">{project.description}</p>
                   
-                  <div className="flex flex-wrap gap-2 mb-6">
+                  <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
                     {project.tech.map((t) => (
-                      <span key={t} className="px-3 py-1.5 text-sm rounded-full bg-purple-500/20 
+                      <span key={t} className="px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm rounded-full bg-purple-500/20 
                                             border border-purple-500/30 text-purple-200 font-medium">
                         {t}
                       </span>
                     ))}
                   </div>
 
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-white mb-3">Key Features</h4>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <div className="mb-4 sm:mb-6">
+                    <h4 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Key Features</h4>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                       {project.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-2 text-gray-200">
+                        <li key={i} className="flex items-center gap-2 text-gray-200 text-sm sm:text-base">
                           <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                           {feature}
                         </li>
@@ -298,10 +298,10 @@ export default function WebDevelopmentPage() {
                   </div>
 
                   <div>
-                    <h4 className="text-lg font-semibold text-white mb-3">Performance Metrics</h4>
-                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <h4 className="text-base sm:text-lg font-semibold text-white mb-2 sm:mb-3">Performance Metrics</h4>
+                    <ul className="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                       {project.metrics.map((metric, i) => (
-                        <li key={i} className="flex items-center gap-2 text-gray-200">
+                        <li key={i} className="flex items-center gap-2 text-gray-200 text-sm sm:text-base">
                           <span className="w-1.5 h-1.5 bg-green-500 rounded-full" />
                           {metric}
                         </li>

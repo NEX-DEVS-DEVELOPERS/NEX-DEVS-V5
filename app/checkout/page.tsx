@@ -967,23 +967,23 @@ function CheckoutPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white py-20">
-      <div className="max-w-6xl mx-auto px-4">
+    <main className="min-h-screen bg-black text-white py-20 px-4 sm:px-6">
+      <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="mb-8">
           <button 
             onClick={() => router.back()}
-            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors"
+            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors text-sm sm:text-base"
           >
             <span>← Back</span>
           </button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-8">
           {/* Left Column - Payment Details */}
-          <div className="space-y-8">
-            <div className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              <h2 className="text-2xl font-bold mb-6">Payment Method</h2>
+          <div className="space-y-4 md:space-y-8">
+            <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Payment Method</h2>
               
               <div className="space-y-4">
                 {paymentMethods.map(({ id, icon: Icon, label }) => (
@@ -1007,28 +1007,28 @@ function CheckoutPageContent() {
 
             {/* Bank Transfer Details */}
             {paymentMethod === 'bank-transfer' && (
-              <div className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-xl font-bold mb-4">Bank Account Details</h3>
-                <div className="space-y-6">
+              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Bank Account Details</h3>
+                <div className="space-y-4 md:space-y-6">
                   {pakistaniBanks.map((bank, index) => (
-                    <div key={index} className="p-4 rounded-lg border border-white/10 space-y-2">
+                    <div key={index} className="p-3 md:p-4 rounded-lg border border-white/10 space-y-2">
                       <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-lg">{bank.bank}</h4>
+                        <h4 className="font-semibold text-base md:text-lg">{bank.bank}</h4>
                         <button 
                           onClick={() => navigator.clipboard.writeText(bank.accountNumber)}
-                          className="text-sm text-purple-400 hover:text-purple-300"
+                          className="text-xs md:text-sm text-purple-400 hover:text-purple-300"
                         >
                           Copy
                         </button>
                       </div>
-                      <div className="space-y-1 text-sm">
+                      <div className="space-y-1 text-xs md:text-sm">
                         <p><span className="text-gray-400">Account Title:</span> {bank.accountTitle}</p>
                         <p><span className="text-gray-400">Account Number:</span> {bank.accountNumber}</p>
                         <p><span className="text-gray-400">IBAN:</span> {bank.iban}</p>
                       </div>
                     </div>
                   ))}
-                  <p className="text-sm text-yellow-400 mt-4">
+                  <p className="text-xs md:text-sm text-yellow-400 mt-4">
                     Please send your payment proof to support@nexwebs.com after making the transfer
                   </p>
                 </div>
@@ -1037,35 +1037,35 @@ function CheckoutPageContent() {
 
             {/* Mobile Wallet Details */}
             {(paymentMethod === 'jazzcash' || paymentMethod === 'easypaisa') && (
-              <div className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-xl font-bold mb-4">
+              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
                   {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} Details
                 </h3>
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {mobileWallets
                     .filter(wallet => wallet.name.toLowerCase() === paymentMethod)
                     .map((wallet, index) => (
-                      <div key={index} className="p-4 rounded-lg border border-white/10 space-y-2">
+                      <div key={index} className="p-3 md:p-4 rounded-lg border border-white/10 space-y-2">
                         <div className="flex justify-between items-center">
-                          <h4 className="font-semibold text-lg">{wallet.name}</h4>
+                          <h4 className="font-semibold text-base md:text-lg">{wallet.name}</h4>
                           <button 
                             onClick={() => navigator.clipboard.writeText(wallet.number)}
-                            className="text-sm text-purple-400 hover:text-purple-300"
+                            className="text-xs md:text-sm text-purple-400 hover:text-purple-300"
                           >
                             Copy Number
                           </button>
                         </div>
-                        <div className="space-y-1 text-sm">
+                        <div className="space-y-1 text-xs md:text-sm">
                           <p><span className="text-gray-400">Account Title:</span> {wallet.accountTitle}</p>
                           <p><span className="text-gray-400">Number:</span> {wallet.number}</p>
                         </div>
                       </div>
                     ))}
                   <div className="mt-4 space-y-2">
-                    <p className="text-sm text-yellow-400">
+                    <p className="text-xs md:text-sm text-yellow-400">
                       Please follow these steps:
                     </p>
-                    <ol className="text-sm text-gray-300 list-decimal list-inside space-y-1">
+                    <ol className="text-xs md:text-sm text-gray-300 list-decimal list-inside space-y-1">
                       <li>Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
                       <li>Select "Send Money"</li>
                       <li>Enter the number shown above</li>
@@ -1080,40 +1080,40 @@ function CheckoutPageContent() {
 
             {/* Existing Credit Card Form */}
             {paymentMethod === 'credit-card' && (
-              <div className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-xl font-bold mb-4">Card Details</h3>
+              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Card Details</h3>
                 <form className="space-y-4">
                   <div>
-                    <label className="block text-sm font-medium mb-2">Card Number</label>
+                    <label className="block text-xs md:text-sm font-medium mb-2">Card Number</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                      className="w-full px-3 md:px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
                       placeholder="1234 5678 9012 3456"
                     />
                   </div>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium mb-2">Expiry Date</label>
+                      <label className="block text-xs md:text-sm font-medium mb-2">Expiry Date</label>
                       <input
                         type="text"
-                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
                         placeholder="MM/YY"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium mb-2">CVV</label>
+                      <label className="block text-xs md:text-sm font-medium mb-2">CVV</label>
                       <input
                         type="text"
-                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
                         placeholder="123"
                       />
                     </div>
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-2">Name on Card</label>
+                    <label className="block text-xs md:text-sm font-medium mb-2">Name on Card</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
                       placeholder="John Doe"
                     />
                   </div>
@@ -1145,46 +1145,46 @@ function CheckoutPageContent() {
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5"
+                className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5"
               >
-                <div className="flex justify-between items-center mb-6">
-                  <h2 className="text-2xl font-bold">Invoice Details</h2>
+                <div className="flex justify-between items-center mb-4 md:mb-6">
+                  <h2 className="text-xl md:text-2xl font-bold">Invoice Details</h2>
                   <div className="flex gap-2">
                     <button
                       onClick={() => downloadInvoice(invoice)}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs md:text-sm font-medium transition-colors"
                     >
-                      <FaDownload className="w-4 h-4" />
+                      <FaDownload className="w-3 h-3 md:w-4 md:h-4" />
                       <span>Download</span>
                     </button>
                     <button
                       onClick={() => window.print()}
-                      className="flex items-center gap-2 px-3 py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs md:text-sm font-medium transition-colors"
                     >
-                      <FaFilePdf className="w-4 h-4" />
+                      <FaFilePdf className="w-3 h-3 md:w-4 md:h-4" />
                       <span>Print</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-6">
+                <div className="space-y-4 md:space-y-6">
                   {/* Company and Invoice Info */}
-                  <div className="grid md:grid-cols-2 gap-6">
+                  <div className="grid md:grid-cols-2 gap-4 md:gap-6">
                     <div>
-                      <h3 className="text-xl font-bold mb-2">NEX-WEBS</h3>
-                      <p className="text-sm text-gray-400">Professional Web Development Services</p>
-                      <p className="text-sm text-gray-400">support@nexwebs.com</p>
+                      <h3 className="text-lg md:text-xl font-bold mb-2">NEX-WEBS</h3>
+                      <p className="text-xs md:text-sm text-gray-400">Professional Web Development Services</p>
+                      <p className="text-xs md:text-sm text-gray-400">support@nexwebs.com</p>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-xs md:text-sm">
                         <span className="text-gray-400">Invoice Number:</span>
                         <span className="font-medium">{invoice.invoiceNumber}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-xs md:text-sm">
                         <span className="text-gray-400">Date:</span>
                         <span>{invoice.date}</span>
                       </div>
-                      <div className="flex justify-between">
+                      <div className="flex justify-between text-xs md:text-sm">
                         <span className="text-gray-400">Due Date:</span>
                         <span>{invoice.dueDate}</span>
                       </div>
@@ -1366,7 +1366,7 @@ function CheckoutPageContent() {
                   </div>
 
                   {/* Payment Instructions */}
-                  <div className="border-t border-white/10 pt-4 text-sm text-gray-400">
+                  <div className="border-t border-white/10 pt-4 text-xs md:text-sm text-gray-400">
                     <p className="font-medium text-yellow-400 mb-2">Payment Instructions:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Please make the payment within 7 days of invoice date</li>
@@ -1378,15 +1378,15 @@ function CheckoutPageContent() {
               </motion.div>
             )}
 
-            <div className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5">
+            <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
               <button
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-3 px-6 rounded-lg transition-colors flex items-center justify-center space-x-2"
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm md:text-base"
                 onClick={() => {/* Handle payment */}}
               >
-                <FaLock className="w-4 h-4" />
+                <FaLock className="w-3 h-3 md:w-4 md:h-4" />
                 <span>Pay Now</span>
               </button>
-              <p className="text-sm text-gray-400 text-center mt-4">
+              <p className="text-xs md:text-sm text-gray-400 text-center mt-3 md:mt-4">
                 Your payment is secured with SSL encryption
               </p>
             </div>

@@ -294,15 +294,15 @@ export default function WorkPage() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto mb-20"
+          className="max-w-7xl mx-auto mb-12 sm:mb-20"
         >
-          <div className="inline-block bg-purple-500/10 text-purple-300 px-4 py-1 rounded-full mb-4 backdrop-blur-sm border border-purple-500/20">
+          <div className="inline-block bg-purple-500/10 text-purple-300 px-3 py-1 text-sm rounded-full mb-4 backdrop-blur-sm border border-purple-500/20">
             MY WORK
           </div>
-          <h1 className="text-5xl font-bold mb-6 text-center">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
             Crafting Digital <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Excellence</span>
           </h1>
-          <p className="text-xl text-gray-300 mb-8 max-w-2xl">
+          <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto">
             Transforming ideas into exceptional digital experiences. Explore my portfolio of successful projects and discover how I can help bring your vision to life.
           </p>
         </motion.section>
@@ -312,10 +312,10 @@ export default function WorkPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="max-w-7xl mx-auto mb-20"
+          className="max-w-7xl mx-auto mb-12 sm:mb-20"
         >
-          <h2 className="text-3xl font-bold mb-8">Featured Projects</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Featured Projects</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
             {featuredProjects.map((project) => (
               <motion.div
                 key={project.id}
@@ -324,12 +324,12 @@ export default function WorkPage() {
                 onHoverEnd={() => setHoveredProject(null)}
                 onClick={handleSecretClick}
               >
-                <div className="p-6">
-                  <div className="flex items-center gap-4 mb-4">
-                    <project.icon className="w-8 h-8 text-purple-400" />
-                    <h3 className="text-2xl font-bold">{project.title}</h3>
+                <div className="p-4 sm:p-6">
+                  <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
+                    <project.icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
+                    <h3 className="text-xl sm:text-2xl font-bold">{project.title}</h3>
                   </div>
-                  <p className="text-gray-300 mb-4">{project.description}</p>
+                  <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">{project.description}</p>
                   <div className="space-y-4">
                     <div className="flex flex-wrap gap-2">
                       {project.technologies.map((tech) => (
@@ -515,24 +515,24 @@ export default function WorkPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.6 }}
-          className="max-w-7xl mx-auto mb-20"
+          className="max-w-7xl mx-auto mb-12 sm:mb-20"
         >
-          <h2 className="text-3xl font-bold mb-8">Work Process</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Work Process</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
             {workProcess.map((phase, index) => (
               <motion.div
                 key={phase.phase}
-                className="bg-white/5 p-6 rounded-xl backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/20 transition-colors"
+                className="bg-white/5 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/20 transition-colors"
                 whileHover={{ scale: 1.02 }}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 * index }}
               >
-                <h3 className="text-xl font-bold mb-4 text-purple-300">{phase.phase}</h3>
-                <p className="text-gray-300 mb-4">{phase.description}</p>
+                <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-purple-300">{phase.phase}</h3>
+                <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">{phase.description}</p>
                 <ul className="space-y-2">
                   {phase.steps.map((step, stepIndex) => (
-                    <li key={stepIndex} className="flex items-center gap-2 text-gray-400">
+                    <li key={stepIndex} className="flex items-center gap-2 text-sm sm:text-base text-gray-400">
                       <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
                       {step}
                     </li>
@@ -548,10 +548,10 @@ export default function WorkPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.8 }}
-          className="max-w-7xl mx-auto mb-20"
+          className="max-w-7xl mx-auto mb-12 sm:mb-20"
         >
           <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8"
             animate={statsControls}
           >
             {[
@@ -562,7 +562,7 @@ export default function WorkPage() {
             ].map((stat, index) => (
               <motion.div
                 key={stat.label}
-                className={`text-center p-6 rounded-xl backdrop-blur-sm cursor-pointer
+                className={`text-center p-4 sm:p-6 rounded-xl backdrop-blur-sm cursor-pointer
                   ${lastClickedStat === stat.label 
                     ? 'bg-purple-500/30 border-purple-400/50 shadow-[0_0_30px_rgba(168,85,247,0.4)]' 
                     : 'bg-white/5 border-purple-500/10'} 
@@ -578,13 +578,13 @@ export default function WorkPage() {
                 onClick={() => handleStatClick(stat.label)}
               >
                 <motion.h4 
-                  className="text-5xl font-bold bg-gradient-to-r from-white via-purple-300 to-purple-500 bg-clip-text text-transparent mb-3"
+                  className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-purple-300 to-purple-500 bg-clip-text text-transparent mb-2 sm:mb-3"
                   whileHover={{ scale: 1.1 }}
                   transition={{ type: "spring", stiffness: 300 }}
                 >
                   {stat.value}
                 </motion.h4>
-                <p className="text-gray-200 font-semibold">{stat.label}</p>
+                <p className="text-sm sm:text-base text-gray-200 font-semibold">{stat.label}</p>
                 {lastClickedStat === stat.label && (
                   <>
                     <motion.div

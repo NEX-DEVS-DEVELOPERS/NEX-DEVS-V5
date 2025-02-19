@@ -471,73 +471,73 @@ function ContactPageContent() {
         </section>
 
         {/* Enhanced Contact Grid with 3D hover effects */}
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="contact-info bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border border-white/5 
+        <div className="grid md:grid-cols-3 gap-4 md:gap-8 mb-8 md:mb-16 px-4 md:px-0">
+          <div className="contact-info bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5 
           hover:border-white/30 transition-all duration-500 
           transform perspective-1000 hover:scale-105 hover:rotate-1
           hover:shadow-lg hover:shadow-purple-500/20">
-            <h2 className="text-2xl font-semibold mb-6 text-white">Contact Information</h2>
-            <div className="space-y-6">
+            <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-white">Contact Information</h2>
+            <div className="space-y-4 md:space-y-6">
               {/* Primary Contact Info */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <FaPhone className="text-purple-500 w-5 h-5" />
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FaPhone className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                   <div>
-                    <p className="font-medium">Call Us</p>
-                    <p>+92 329-2425-950</p>
-                    <p className="text-sm text-gray-400">Mon-Fri, 8am-9pm EST</p>
+                    <p className="text-sm md:text-base font-medium">Call Us</p>
+                    <p className="text-xs md:text-sm">+92 329-2425-950</p>
+                    <p className="text-xs text-gray-400">Mon-Fri, 8am-9pm EST</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <FaWhatsapp className="text-purple-500 w-5 h-5" />
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FaWhatsapp className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                   <div>
-                    <p className="font-medium">WhatsApp</p>
-                    <p>+92 329-2425-950</p>
-                    <p className="text-sm text-gray-400">Available for quick chat</p>
+                    <p className="text-sm md:text-base font-medium">WhatsApp</p>
+                    <p className="text-xs md:text-sm">+92 329-2425-950</p>
+                    <p className="text-xs text-gray-400">Available for quick chat</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <FaEnvelope className="text-purple-500 w-5 h-5" />
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FaEnvelope className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                   <div>
-                    <p className="font-medium">Email Us</p>
-                    <p>nexwebs.org@gmail.com.com</p>
-                    <p className="text-sm text-gray-400">24/7 support available</p>
+                    <p className="text-sm md:text-base font-medium">Email Us</p>
+                    <p className="text-xs md:text-sm">nexwebs.org@gmail.com</p>
+                    <p className="text-xs text-gray-400">24/7 support available</p>
                   </div>
                 </div>
               </div>
 
               {/* Location & Hours */}
-              <div className="space-y-4">
-                <div className="flex items-center gap-3">
-                  <FaMapMarkerAlt className="text-purple-500 w-5 h-5" />
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FaMapMarkerAlt className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                   <div>
-                    <p className="font-medium">Location</p>
-                    <p>MULTAN ,MUX</p>
-                    <p className="text-sm text-gray-400">NOT AVAILABE FOR REMORTE WORK YET!</p>
+                    <p className="text-sm md:text-base font-medium">Location</p>
+                    <p className="text-xs md:text-sm">MULTAN ,MUX</p>
+                    <p className="text-xs text-gray-400">NOT AVAILABE FOR REMORTE WORK YET!</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-3">
-                  <FaClock className="text-purple-500 w-5 h-5" />
+                <div className="flex items-start gap-2 md:gap-3">
+                  <FaClock className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                   <div>
-                    <p className="font-medium">Business Hours</p>
-                    <p>Monday - Friday</p>
-                    <p className="text-sm text-gray-400">9:00 AM - 8:00 PM EST</p>
+                    <p className="text-sm md:text-base font-medium">Business Hours</p>
+                    <p className="text-xs md:text-sm">Monday - Friday</p>
+                    <p className="text-xs text-gray-400">9:00 AM - 8:00 PM EST</p>
                   </div>
                 </div>
               </div>
 
               {/* Social Links */}
-              <div className="pt-4 border-t border-zinc-800">
-                <p className="font-medium mb-3">Connect With Us</p>
-                <div className="flex gap-4">
+              <div className="pt-3 md:pt-4 border-t border-zinc-800">
+                <p className="text-sm md:text-base font-medium mb-2 md:mb-3">Connect With Us</p>
+                <div className="flex gap-3 md:gap-4">
                   <a href="#" className="text-purple-500 hover:text-purple-400 transition-colors">
-                    <FaLinkedin className="w-6 h-6" />
+                    <FaLinkedin className="w-5 h-5 md:w-6 md:h-6" />
                   </a>
                   <a href="#" className="text-purple-500 hover:text-purple-400 transition-colors">
-                    <FaGithub className="w-6 h-6" />
+                    <FaGithub className="w-5 h-5 md:w-6 md:h-6" />
                   </a>
                   <a href="#" className="text-purple-500 hover:text-purple-400 transition-colors">
-                    <FaTwitter className="w-6 h-6" />
+                    <FaTwitter className="w-5 h-5 md:w-6 md:h-6" />
                   </a>
                 </div>
               </div>
@@ -545,63 +545,59 @@ function ContactPageContent() {
           </div>
 
           {/* Enhanced Contact Form */}
-          <div className="md:col-span-2 bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm border-2 border-yellow-500/30">
-            <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 -mx-6 -mt-6 mb-6 py-4 px-6 rounded-t-xl">
-              <h3 className="text-xl font-bold text-center">
+          <div className="md:col-span-2 bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border-2 border-yellow-500/30">
+            <div className="bg-gradient-to-r from-yellow-500/20 to-yellow-500/10 -mx-4 md:-mx-6 -mt-4 md:-mt-6 mb-4 md:mb-6 py-3 md:py-4 px-4 md:px-6 rounded-t-xl">
+              <h3 className="text-base md:text-xl font-bold text-center">
                 <span className="text-yellow-400">🎯 20% Discount Applied</span>
               </h3>
             </div>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Name</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Name</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     required
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Email</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Email</label>
                   <input
                     type="email"
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     required
                     value={formData.email}
                     onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
                   />
                 </div>
               </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                 <div>
-                  <label className="block text-sm font-medium mb-2">Phone</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Phone</label>
                   <input
                     type="tel"
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     value={formData.phone}
                     onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium mb-2">Address</label>
+                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Address</label>
                   <input
                     type="text"
-                    className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                    className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     value={formData.address}
                     onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                   />
                 </div>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Package</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Package</label>
                 <select 
-                  className={`w-full px-4 py-2 rounded-lg bg-zinc-800 border transition-all duration-300
-                    ${selectedPlan 
-                      ? 'border-purple-500 ring-2 ring-purple-500/20 shadow-[0_0_10px_-2px_rgba(147,51,234,0.3)]' 
-                      : 'border-zinc-700'} 
-                    focus:border-purple-500 focus:ring-1 focus:ring-purple-500`}
+                  className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   required
                   value={selectedPlan || ""}
                   onChange={(e) => {
@@ -618,43 +614,38 @@ function ContactPageContent() {
                     </option>
                   ))}
                 </select>
-                
+
                 {/* Package Details Display */}
                 {selectedPlan && (
                   <motion.div
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="mt-4 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20"
+                    className="mt-3 md:mt-4 p-3 md:p-4 bg-purple-500/10 rounded-lg border border-purple-500/20"
                   >
-                    <h4 className="font-medium text-white mb-2">Package Features:</h4>
-                    <ul className="space-y-2">
+                    <h4 className="text-sm md:text-base font-medium text-white mb-2">Package Features:</h4>
+                    <ul className="space-y-1.5 md:space-y-2">
                       {packages.find(p => p.name === selectedPlan)?.features.map((feature, index) => (
                         <motion.li
                           key={index}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: index * 0.1 }}
-                          className="flex items-center text-gray-300 text-sm"
+                          className="flex items-center text-gray-300 text-xs md:text-sm"
                         >
-                          <svg className="w-4 h-4 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-3 h-3 md:w-4 md:h-4 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                           {feature}
                         </motion.li>
                       ))}
                     </ul>
-                    {!packages.find(p => p.name === selectedPlan)?.hasDiscount && (
-                      <p className="mt-4 text-sm text-yellow-400">
-                        Note: This package is not eligible for the 20% discount offer.
-                      </p>
-                    )}
                   </motion.div>
                 )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Project Timeline</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Project Timeline</label>
                 <select 
-                  className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all duration-300"
+                  className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   required
                   value={formData.timeline}
                   onChange={(e) => {
@@ -668,43 +659,11 @@ function ContactPageContent() {
                   <option value="normal">Normal (2-4 weeks)</option>
                   <option value="relaxed">Relaxed (4+ weeks)</option>
                 </select>
-                {formData.timeline && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm text-gray-400"
-                  >
-                    {formData.timeline === 'urgent' && (
-                      <span className="text-yellow-400">
-                        ⚡ Rush delivery includes 20% additional fee for prioritized development
-                      </span>
-                    )}
-                    {formData.timeline === 'normal' && (
-                      <span>
-                        ✨ Standard timeline for optimal development and testing
-                      </span>
-                    )}
-                    {formData.timeline === 'relaxed' && (
-                      <span>
-                        🌟 Extended timeline for more iterations and refinements
-                      </span>
-                    )}
-                  </motion.p>
-                )}
-                {adjustedPrice && formData.timeline === 'urgent' && (
-                  <motion.p 
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="mt-2 text-sm font-medium text-yellow-400"
-                  >
-                    Adjusted Price: {adjustedPrice}
-                  </motion.p>
-                )}
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">Project Details</label>
+                <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Project Details</label>
                 <textarea
-                  className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                  className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   rows={4}
                   placeholder="Tell us about your project requirements, goals, and any specific features you need..."
                   required
@@ -712,22 +671,22 @@ function ContactPageContent() {
                   onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
                 />
               </div>
-              <div>
+              <div className="space-y-3 md:space-y-4">
                 <button
                   type="button"
                   onClick={() => router.push(`/checkout?plan=${encodeURIComponent(selectedPlan || '')}`)}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-medium py-3 px-6 rounded-lg transition-colors mb-4"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm md:text-base font-medium py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors"
                 >
                   Proceed to Checkout
                 </button>
                 <button
                   type="submit"
-                  className="w-full bg-white hover:bg-gray-100 text-black font-medium py-3 px-6 rounded-lg transition-colors"
+                  className="w-full bg-white hover:bg-gray-100 text-black text-sm md:text-base font-medium py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors"
                 >
                   Send Message
                 </button>
               </div>
-              <p className="text-sm text-gray-400 text-center mt-4">
+              <p className="text-xs md:text-sm text-gray-400 text-center">
                 We typically respond within 24 hours
               </p>
             </form>
@@ -735,41 +694,41 @@ function ContactPageContent() {
         </div>
 
         {/* Modern Solutions Section */}
-        <section className="mb-20 relative z-10 bg-gradient-to-br from-zinc-900/50 via-purple-900/10 to-zinc-900/50 
-        rounded-2xl p-8 backdrop-blur-sm border border-white/5
+        <section className="mb-12 md:mb-20 relative z-10 bg-gradient-to-br from-zinc-900/50 via-purple-900/10 to-zinc-900/50 
+        rounded-xl md:rounded-2xl p-4 md:p-8 backdrop-blur-sm border border-white/5
         transform perspective-1000 hover:scale-[1.02] hover:rotate-1 transition-all duration-500
-        hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
-            <div className="space-y-6">
-              <h2 className="text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent">
+        hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 mx-4 md:mx-0">
+          <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start md:items-center">
+            <div className="space-y-4 md:space-y-6">
+              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent leading-tight">
                 Modern Solutions for Modern Businesses
               </h2>
-              <p className="text-gray-300 text-lg">
+              <p className="text-gray-300 text-sm md:text-lg">
                 We create cutting-edge digital solutions that help businesses thrive in the modern world. 
                 Our expertise spans across various technologies and platforms.
               </p>
-              <ul className="space-y-4">
+              <ul className="space-y-3 md:space-y-4">
                 {["Responsive Web Applications", "E-commerce Solutions", "Custom CMS Development"].map((item, index) => (
-                  <li key={index} className="flex items-center gap-3 group">
-                    <span className="text-purple-400 transform group-hover:scale-110 transition-transform">✓</span>
-                    <span className="group-hover:translate-x-1 transition-transform text-gray-300 group-hover:text-white">{item}</span>
+                  <li key={index} className="flex items-center gap-2 md:gap-3 group">
+                    <span className="text-purple-400 transform group-hover:scale-110 transition-transform text-base md:text-lg">✓</span>
+                    <span className="group-hover:translate-x-1 transition-transform text-gray-300 group-hover:text-white text-sm md:text-base">{item}</span>
                   </li>
                 ))}
               </ul>
             </div>
-            <div className="relative group">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-3xl group-hover:blur-2xl transition-all"></div>
-              <div className="relative bg-zinc-900/50 p-4 rounded-xl border border-purple-500/10 transform hover:scale-105 transition-all duration-300 hover:border-purple-500/30">
+            <div className="relative group mt-6 md:mt-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-2xl md:blur-3xl group-hover:blur-2xl transition-all"></div>
+              <div className="relative bg-zinc-900/50 p-3 md:p-4 rounded-lg md:rounded-xl border border-purple-500/10 transform hover:scale-105 transition-all duration-300 hover:border-purple-500/30">
                 <div className="aspect-video rounded-lg overflow-hidden flex items-center justify-center relative">
                   {/* Improved Background Gradients */}
                   <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-blue-900/30"></div>
                   <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_60%)]"></div>
                   
                   {/* Main Content Container */}
-                  <div className="relative z-10 text-center space-y-8 p-8">
+                  <div className="relative z-10 text-center space-y-4 md:space-y-8 p-4 md:p-8">
                     {/* Main Title with Clean 3D Effect */}
                     <div className="relative">
-                      <h3 className="text-4xl md:text-6xl font-bold tracking-tight inline-block
+                      <h3 className="text-3xl md:text-6xl font-bold tracking-tight inline-block
                         [text-shadow:_0_1px_0_rgb(255_255_255_/_60%),_0_2px_0_rgb(255_255_255_/_40%),_0_3px_0_rgb(255_255_255_/_30%),_0_4px_0_rgb(255_255_255_/_20%),_0_8px_8px_rgba(0,0,0,0.3)]
                         bg-gradient-to-b from-white via-white to-purple-200 bg-clip-text text-transparent
                         transform-gpu hover:scale-105 transition-transform duration-500
@@ -778,32 +737,32 @@ function ContactPageContent() {
                         NEX-WEBS
                       </h3>
                       {/* Subtle Glow Effect */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-2xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
+                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl md:blur-2xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
                     </div>
 
                     {/* Tagline with Refined Animation */}
-                    <h4 className="text-xl md:text-2xl font-semibold inline-block
+                    <h4 className="text-lg md:text-2xl font-semibold inline-block
                       bg-gradient-to-r from-purple-200 via-white to-purple-200 bg-clip-text text-transparent
                       [text-shadow:_0_2px_4px_rgba(0,0,0,0.3)]
                       transform-gpu hover:scale-105 transition-transform duration-500
                       animate-typing"
                     >
-                    "Elevate Your Online Presence."
+                      "Elevate Your Online Presence."
                     </h4>
 
                     {/* Services List with Clean Typography */}
-                    <div className="flex flex-wrap justify-center gap-x-4 text-base md:text-lg
+                    <div className="flex flex-wrap justify-center gap-2 md:gap-x-4 text-sm md:text-lg
                       text-purple-100/90 font-medium tracking-wide overflow-hidden"
                     >
                       <span className="animate-reveal">Web Development</span>
-                      <span className="animate-reveal-delay-1">•</span>
+                      <span className="hidden md:inline animate-reveal-delay-1">•</span>
                       <span className="animate-reveal-delay-1">Design</span>
-                      <span className="animate-reveal-delay-1">•</span>
+                      <span className="hidden md:inline animate-reveal-delay-1">•</span>
                       <span className="animate-reveal-delay-2">Innovation</span>
                     </div>
 
                     {/* Subtitle with Subtle Animation */}
-                    <p className="text-base md:text-lg text-gray-300
+                    <p className="text-sm md:text-lg text-gray-300
                       tracking-wide font-medium max-w-2xl mx-auto
                       [text-shadow:_0_1px_2px_rgba(0,0,0,0.3)]
                       animate-reveal-delay-2"
@@ -811,21 +770,21 @@ function ContactPageContent() {
                       Transforming Ideas into Digital Excellence
                     </p>
 
-                    {/* Refined Floating Elements */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                      <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-purple-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute bottom-1/4 right-1/4 w-2 h-2 bg-blue-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute top-1/2 left-1/3 w-1.5 h-1.5 bg-pink-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute bottom-1/3 right-1/3 w-1.5 h-1.5 bg-purple-400/40 rounded-full animate-float-smooth"></div>
+                    {/* Refined Floating Elements - Show only on larger screens */}
+                    <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
+                      <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 md:w-2 md:h-2 bg-purple-400/40 rounded-full animate-float-smooth"></div>
+                      <div className="absolute bottom-1/4 right-1/4 w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-400/40 rounded-full animate-float-smooth"></div>
+                      <div className="absolute top-1/2 left-1/3 w-1 h-1 md:w-1.5 md:h-1.5 bg-pink-400/40 rounded-full animate-float-smooth"></div>
+                      <div className="absolute bottom-1/3 right-1/3 w-1 h-1 md:w-1.5 md:h-1.5 bg-purple-400/40 rounded-full animate-float-smooth"></div>
                     </div>
                   </div>
                 </div>
 
-                {/* Refined Border Elements */}
-                <div className="absolute -top-6 -left-6 w-12 h-12 border-t-[1px] border-l-[1px] border-purple-500/30 rounded-tl-2xl"></div>
-                <div className="absolute -bottom-6 -right-6 w-12 h-12 border-b-[1px] border-r-[1px] border-purple-500/30 rounded-br-2xl"></div>
-                <div className="absolute -top-6 -right-6 w-12 h-12 border-t-[1px] border-r-[1px] border-blue-500/20 rounded-tr-2xl"></div>
-                <div className="absolute -bottom-6 -left-6 w-12 h-12 border-b-[1px] border-l-[1px] border-blue-500/20 rounded-bl-2xl"></div>
+                {/* Refined Border Elements - Adjust sizes for mobile */}
+                <div className="absolute -top-3 md:-top-6 -left-3 md:-left-6 w-8 md:w-12 h-8 md:h-12 border-t-[1px] border-l-[1px] border-purple-500/30 rounded-tl-2xl"></div>
+                <div className="absolute -bottom-3 md:-bottom-6 -right-3 md:-right-6 w-8 md:w-12 h-8 md:h-12 border-b-[1px] border-r-[1px] border-purple-500/30 rounded-br-2xl"></div>
+                <div className="absolute -top-3 md:-top-6 -right-3 md:-right-6 w-8 md:w-12 h-8 md:h-12 border-t-[1px] border-r-[1px] border-blue-500/20 rounded-tr-2xl"></div>
+                <div className="absolute -bottom-3 md:-bottom-6 -left-3 md:-left-6 w-8 md:w-12 h-8 md:h-12 border-b-[1px] border-l-[1px] border-blue-500/20 rounded-bl-2xl"></div>
               </div>
             </div>
           </div>

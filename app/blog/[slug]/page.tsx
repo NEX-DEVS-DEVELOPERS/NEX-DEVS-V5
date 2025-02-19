@@ -44,37 +44,37 @@ export default function BlogPost({ params }: BlogPostParams) {
       <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-transparent to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
       
-      <article className="relative px-6 py-24 mx-auto max-w-4xl">
+      <article className="relative px-4 sm:px-6 py-12 sm:py-24 mx-auto max-w-4xl">
         {/* Back button */}
         <Link 
           href="/blog" 
-          className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors mb-8 group"
+          className="inline-flex items-center gap-2 text-purple-400 hover:text-purple-300 transition-colors mb-6 sm:mb-8 text-sm group"
         >
           <ArrowLeft className="w-4 h-4 group-hover:-translate-x-1 transition-transform" />
           Back to Blog
         </Link>
 
         {/* Header Section */}
-        <div className="bg-zinc-900/50 backdrop-blur-sm p-8 rounded-xl border border-purple-500/20 mb-12">
-          <div className="flex items-center gap-4 text-sm text-purple-400 mb-4">
-            <span className="bg-purple-500/10 px-3 py-1 rounded-full">Next.js</span>
-            <span>•</span>
+        <div className="bg-zinc-900/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-purple-500/20 mb-8 sm:mb-12">
+          <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs sm:text-sm text-purple-400 mb-4">
+            <span className="bg-purple-500/10 px-2 sm:px-3 py-1 rounded-full">Next.js</span>
+            <span className="hidden sm:inline">•</span>
             <span>March 15, 2024</span>
-            <span>•</span>
+            <span className="hidden sm:inline">•</span>
             <span>8 min read</span>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-6">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4 sm:mb-6">
             Building Modern Web Applications with Next.js 13
           </h1>
-          <p className="text-gray-400 text-lg">
+          <p className="text-gray-400 text-sm sm:text-base lg:text-lg">
             Learn how to leverage the power of Next.js 13 to create fast, SEO-friendly web applications with the latest features.
           </p>
         </div>
 
         {/* Table of Contents */}
-        <div className="bg-zinc-900/50 backdrop-blur-sm p-6 rounded-xl border border-purple-500/20 mb-12">
-          <h2 className="text-xl font-semibold text-white mb-4">Table of Contents</h2>
-          <ul className="space-y-2">
+        <div className="bg-zinc-900/50 backdrop-blur-sm p-4 sm:p-6 rounded-xl border border-purple-500/20 mb-8 sm:mb-12">
+          <h2 className="text-lg sm:text-xl font-semibold text-white mb-4">Table of Contents</h2>
+          <ul className="space-y-2 text-sm">
             {[
               'Introduction to Next.js 13',
               'Setting Up Your Development Environment',
@@ -94,7 +94,35 @@ export default function BlogPost({ params }: BlogPostParams) {
         </div>
 
         {/* Main Content */}
-        <div className="prose prose-invert prose-purple max-w-none space-y-12">
+        <div className="prose prose-invert prose-purple max-w-none space-y-8 sm:space-y-12 text-sm sm:text-base">
+          {/* Content sections */}
+          <section className="bg-zinc-900/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-purple-500/20">
+            <h2 className="text-xl sm:text-2xl font-bold text-white mb-4">
+              Introduction to Next.js 13
+            </h2>
+            <p className="text-gray-300 text-sm sm:text-base mb-4">
+              TypeScript has evolved into an essential tool for modern web development, offering powerful type safety and developer experience features.
+            </p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+              <div className="bg-black/30 p-4 sm:p-6 rounded-lg border border-purple-500/10">
+                <h3 className="text-base sm:text-lg font-semibold text-purple-400 mb-3">Key Features</h3>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li>• App Router for enhanced routing</li>
+                  <li>• React Server Components</li>
+                  <li>• Streaming and Suspense</li>
+                </ul>
+              </div>
+              <div className="bg-black/30 p-4 sm:p-6 rounded-lg border border-purple-500/10">
+                <h3 className="text-base sm:text-lg font-semibold text-purple-400 mb-3">Benefits</h3>
+                <ul className="space-y-2 text-sm text-gray-300">
+                  <li>• Improved performance</li>
+                  <li>• Better SEO capabilities</li>
+                  <li>• Enhanced developer experience</li>
+                </ul>
+              </div>
+            </div>
+          </section>
+
           {/* Introduction Section */}
           <section className="bg-zinc-900/50 backdrop-blur-sm p-8 rounded-xl border border-purple-500/20">
             <h2 id="introduction-to-typescript" className="text-2xl font-bold text-white mb-4">
@@ -274,14 +302,14 @@ export default function BlogPost({ params }: BlogPostParams) {
         </div>
 
         {/* Author Bio */}
-        <div className="bg-zinc-900/50 backdrop-blur-sm p-8 rounded-xl border border-purple-500/20 mt-12">
-          <h3 className="text-xl font-bold text-white mb-4">About the Author</h3>
+        <div className="bg-zinc-900/50 backdrop-blur-sm p-6 sm:p-8 rounded-xl border border-purple-500/20 mt-8 sm:mt-12">
+          <h3 className="text-lg sm:text-xl font-bold text-white mb-4">About the Author</h3>
           <div className="flex items-start gap-4">
             <div className="flex-1">
-              <p className="text-gray-300 mb-2">
-                Written by a senior developer with over 5 years of experience in Next.js and React development. Passionate about sharing knowledge and helping others build better web applications.
+              <p className="text-gray-300 text-sm sm:text-base mb-4">
+                Written by a senior developer with expertise in Next.js and React development. Passionate about sharing knowledge and helping others build better web applications.
               </p>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-4 text-sm">
                 <Link href="#" className="text-purple-400 hover:text-purple-300 transition-colors">
                   Twitter
                 </Link>

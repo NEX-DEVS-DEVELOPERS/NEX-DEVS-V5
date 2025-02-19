@@ -163,35 +163,41 @@ export default function BlogPage() {
       <div className="absolute inset-0 bg-gradient-to-b from-purple-900/20 via-transparent to-transparent pointer-events-none" />
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black to-black pointer-events-none" />
       
-      {/* Hero section */}
-      <div className="relative px-6 py-24 mx-auto max-w-7xl">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-6xl font-bold mb-4 inline-flex flex-wrap justify-center gap-4">
-            <span className="text-white">Digital</span>
-            <span className="text-black bg-white px-4 py-1 rounded-lg">Excellence</span>
-          </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Discover in-depth articles, practical tutorials, and expert insights about web development, 
-            design patterns, and emerging technologies. Join thousands of developers leveling up their skills.
-          </p>
-          <p className="text-purple-400 mt-4 text-sm">
-            New articles every week. Stay curious, keep coding.
-          </p>
-          <p className="text-yellow-400 mt-4 text-sm">
-            🔍 Hint: Try typing "unlock-the-matrix" in your console for a surprise!
-          </p>
+      {/* Hero section with improved mobile visibility */}
+      <div className="relative px-4 sm:px-6 pt-24 sm:pt-24 pb-12 sm:pb-24 mx-auto max-w-7xl">
+        <div className="text-center mb-8 sm:mb-12">
+          <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 mb-6">
+            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+              Digital
+            </span>
+            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black bg-white px-4 py-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+              Excellence
+            </span>
+          </div>
+          <div className="max-w-2xl mx-auto px-4">
+            <p className="text-gray-300 text-sm sm:text-base lg:text-lg mb-4">
+              Discover in-depth articles, practical tutorials, and expert insights about web development, 
+              design patterns, and emerging technologies. Join thousands of developers leveling up their skills.
+            </p>
+            <p className="text-purple-400 text-xs sm:text-sm mb-2">
+              New articles every week. Stay curious, keep coding.
+            </p>
+            <p className="text-yellow-400 text-xs sm:text-sm">
+              🔍 Hint: Try typing "unlock-the-matrix" in your console for a surprise!
+            </p>
+          </div>
         </div>
 
-        {/* Blog grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
+        {/* Blog grid with improved responsiveness */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8 mb-12 sm:mb-24">
           {Array.isArray(blogPosts) && blogPosts.map((post) => (
             <BlogCard key={post.slug} {...post} />
           ))}
         </div>
 
-        {/* Testimonials */}
-        <h2 className="text-3xl font-bold text-white mb-8">What Readers Say</h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+        {/* Testimonials with adjusted layout */}
+        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 px-4">What Readers Say</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {Array.isArray(testimonials) && testimonials.map((testimonial, index) => (
             <BlogTestimonial key={index} {...testimonial} />
           ))}

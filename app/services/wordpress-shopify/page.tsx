@@ -218,17 +218,17 @@ export default function WordPressShopifyPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-8"
+            className="text-center space-y-4 sm:space-y-8"
           >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
               Professional WordPress & Shopify
-              <div className="mt-4 md:mt-6 inline-block">
-                <span className="block border border-white rounded-xl px-6 py-3 bg-white text-black font-bold backdrop-blur-sm">
+              <div className="mt-2 sm:mt-4 md:mt-6 inline-block">
+                <span className="block border border-white rounded-xl px-4 sm:px-6 py-2 sm:py-3 bg-white text-black text-xl sm:text-2xl md:text-3xl font-bold backdrop-blur-sm">
                   Development & Optimization
                 </span>
               </div>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 max-w-3xl mx-auto leading-relaxed">
               Elevate your online presence with our expert WordPress and Shopify solutions. 
               From custom development to performance optimization, we deliver results that drive growth.
             </p>
@@ -237,29 +237,29 @@ export default function WordPressShopifyPage() {
       </section>
 
       {/* Services Grid */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <section className="py-12 sm:py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {services.map((service, index) => (
               <motion.div
                 key={service.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
-                className="group relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                className="group relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
                          hover:border-purple-500/50 transition-all duration-300"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent 
                               opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 
                 <div className="relative z-10">
-                  <span className="text-4xl mb-4 block">{service.icon}</span>
-                  <h3 className="text-xl font-semibold text-white mb-3">{service.title}</h3>
-                  <p className="text-gray-400 mb-4">{service.description}</p>
+                  <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block">{service.icon}</span>
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-2 sm:mb-3">{service.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-400 mb-3 sm:mb-4">{service.description}</p>
                   
                   <ul className="space-y-2">
                     {service.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-2 text-gray-300">
+                      <li key={i} className="flex items-center gap-2 text-gray-300 text-sm sm:text-base">
                         <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                         {feature}
                       </li>
@@ -273,42 +273,42 @@ export default function WordPressShopifyPage() {
       </section>
 
       {/* Premium WordPress Themes Section */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white text-center mb-16"
+            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-16"
           >
             Premium WordPress Themes
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {themes.map((theme, index) => (
               <motion.div
                 key={theme.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                className="group relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
                          hover:border-purple-500/50 transition-all duration-300"
               >
                 <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
-                    <span className="text-purple-400 font-bold">${theme.price}</span>
+                  <div className="flex justify-between items-center mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">{theme.name}</h3>
+                    <span className="text-purple-400 font-bold text-sm sm:text-base">${theme.price}</span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {theme.features.map((feature, i) => (
-                      <p key={i} className="text-gray-300 flex items-center gap-2">
+                      <p key={i} className="text-gray-300 flex items-center gap-2 text-sm sm:text-base">
                         <span className="text-purple-400">✓</span>
                         {feature}
                       </p>
                     ))}
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-3 sm:mt-4 flex items-center gap-2">
                     <span className="text-yellow-400">★</span>
-                    <span className="text-gray-300">{theme.rating}/5.0</span>
+                    <span className="text-gray-300 text-sm sm:text-base">{theme.rating}/5.0</span>
                   </div>
                 </div>
               </motion.div>
@@ -318,44 +318,44 @@ export default function WordPressShopifyPage() {
       </section>
 
       {/* Premium Shopify Themes Section */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-12 sm:py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white text-center mb-16"
+            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-16"
           >
             Premium Shopify Themes
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {shopifyThemes.map((theme, index) => (
               <motion.div
                 key={theme.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.1 }}
-                className="group relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                className="group relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
                          hover:border-purple-500/50 transition-all duration-300"
               >
                 <div className="relative z-10">
-                  <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-xl font-semibold text-white">{theme.name}</h3>
-                    <span className="text-purple-400 font-bold">
+                  <div className="flex justify-between items-center mb-3 sm:mb-4">
+                    <h3 className="text-lg sm:text-xl font-semibold text-white">{theme.name}</h3>
+                    <span className="text-purple-400 font-bold text-sm sm:text-base">
                       {theme.price === 0 ? 'Free' : `$${theme.price}`}
                     </span>
                   </div>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {theme.features.map((feature, i) => (
-                      <p key={i} className="text-gray-300 flex items-center gap-2">
+                      <p key={i} className="text-gray-300 flex items-center gap-2 text-sm sm:text-base">
                         <span className="text-purple-400">✓</span>
                         {feature}
                       </p>
                     ))}
                   </div>
-                  <div className="mt-4 flex items-center gap-2">
+                  <div className="mt-3 sm:mt-4 flex items-center gap-2">
                     <span className="text-yellow-400">★</span>
-                    <span className="text-gray-300">{theme.rating}/5.0</span>
+                    <span className="text-gray-300 text-sm sm:text-base">{theme.rating}/5.0</span>
                   </div>
                 </div>
               </motion.div>

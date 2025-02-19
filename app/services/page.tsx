@@ -231,33 +231,33 @@ export default function ServicesPage() {
     <main className="min-h-screen bg-black">
       {/* Hero Section */}
       <div className="h-24"></div> {/* Spacing for navbar */}
-      <section className="relative py-20 overflow-hidden">
+      <section className="relative py-12 sm:py-20 overflow-hidden">
         {/* Background Effects */}
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-500" />
+          <div className="absolute top-0 left-1/3 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/3 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-500" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-6"
+            className="text-center space-y-4 sm:space-y-6"
           >
-            <h1 className="text-5xl font-bold text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
               Our Services
               <motion.span 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="block mt-4"
+                className="block mt-2 sm:mt-4"
               >
-                <span className="bg-white text-black px-6 py-2 rounded-lg inline-block">
+                <span className="bg-white text-black px-4 sm:px-6 py-1 sm:py-2 rounded-lg inline-block text-lg sm:text-xl">
                   Crafting Digital Excellence
                 </span>
               </motion.span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto mt-8">
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8 px-4">
               From concept to deployment, we deliver comprehensive digital solutions
               that help businesses thrive in the modern world.
             </p>
@@ -328,9 +328,9 @@ export default function ServicesPage() {
       )}
 
       {/* Stats Section */}
-      <section className="py-12 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+      <section className="py-8 sm:py-12 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6">
             {stats.map((stat, index) => (
               <motion.div
                 key={stat.label}
@@ -341,10 +341,10 @@ export default function ServicesPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
-                <div className="relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                <div className="relative p-3 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300 text-center">
-                  <h3 className="text-3xl font-bold text-white mb-2">{stat.number}</h3>
-                  <p className="text-gray-400 text-sm">{stat.label}</p>
+                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">{stat.number}</h3>
+                  <p className="text-xs sm:text-sm text-gray-400">{stat.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -353,19 +353,19 @@ export default function ServicesPage() {
       </section>
 
       {/* Service Facts Box */}
-      <section className="py-12 relative">
-        <div className="max-w-7xl mx-auto px-6">
+      <section className="py-8 sm:py-12 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl font-bold text-white text-center mb-12"
+            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-12"
           >
             Service Highlights
           </motion.h2>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+            className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8"
           >
             {serviceFacts.map((service, index) => (
               <motion.div
@@ -377,17 +377,17 @@ export default function ServicesPage() {
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
-                <div className="relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                <div className="relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
-                  <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
                     <span>{service.title === "WordPress & Shopify" ? "🛍️" : 
                            service.title === "Web Development" ? "💻" : "🎨"}</span>
                     {service.title}
                   </h3>
-                  <ul className="space-y-3">
+                  <ul className="space-y-2 sm:space-y-3">
                     {service.facts.map((fact, i) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-300 text-sm">
-                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2" />
+                      <li key={i} className="flex items-start gap-2 sm:gap-3 text-gray-300 text-xs sm:text-sm">
+                        <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5" />
                         <span>{fact}</span>
                       </li>
                     ))}
@@ -400,9 +400,9 @@ export default function ServicesPage() {
       </section>
 
       {/* Services Grid */}
-      <section className="py-20 relative">
-        <div className="max-w-7xl mx-auto px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <section className="py-12 sm:py-20 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-8">
             {services.map((service, index) => (
               <motion.div
                 key={service.title}
@@ -414,10 +414,10 @@ export default function ServicesPage() {
                 <Link href={service.link}>
                   <div className={`absolute inset-0 bg-gradient-to-br ${service.gradient} 
                                 rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500`} />
-                  <div className="relative p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                  <div className="relative p-4 sm:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                                 hover:border-purple-500/50 transition-all duration-300 h-full">
                     <span 
-                      className="text-4xl mb-4 block cursor-pointer transform transition-transform hover:scale-110"
+                      className="text-3xl sm:text-4xl mb-3 sm:mb-4 block cursor-pointer transform transition-transform hover:scale-110"
                       onClick={(e) => {
                         e.preventDefault()
                         handleIconClick(service.title.toLowerCase().split(' ')[0])
@@ -425,19 +425,19 @@ export default function ServicesPage() {
                     >
                       {service.icon}
                     </span>
-                    <h3 className="text-2xl font-semibold text-white mb-3">{service.title}</h3>
-                    <p className="text-gray-400 mb-6">{service.description}</p>
+                    <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3">{service.title}</h3>
+                    <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{service.description}</p>
                     
-                    <ul className="space-y-3 mb-6">
+                    <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
                       {service.features.map((feature, i) => (
-                        <li key={i} className="flex items-center gap-3 text-gray-300">
+                        <li key={i} className="flex items-center gap-2 sm:gap-3 text-gray-300 text-xs sm:text-sm">
                           <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                           {feature}
                         </li>
                       ))}
                     </ul>
 
-                    <div className="inline-flex items-center gap-2 text-purple-400 group-hover:text-purple-300 transition-colors">
+                    <div className="inline-flex items-center gap-2 text-purple-400 group-hover:text-purple-300 transition-colors text-sm sm:text-base">
                       <span>Learn More</span>
                       <span className="group-hover:translate-x-1 transition-transform">→</span>
                     </div>
@@ -450,20 +450,20 @@ export default function ServicesPage() {
       </section>
 
       {/* Work Flow Section */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-12 sm:py-20 relative overflow-hidden">
         <div className="absolute inset-0">
-          <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
-          <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-500" />
+          <div className="absolute top-0 left-1/3 w-[300px] sm:w-[500px] h-[300px] sm:h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
+          <div className="absolute bottom-0 right-1/3 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-500" />
         </div>
 
-        <div className="max-w-7xl mx-auto px-6 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-16"
           >
-            <h2 className="text-3xl font-bold text-white mb-4">How We Work</h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto">
+            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-4">How We Work</h2>
+            <p className="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto px-4">
               Our proven process ensures successful project delivery and exceeds expectations
             </p>
           </motion.div>
@@ -472,7 +472,7 @@ export default function ServicesPage() {
             {/* Connection Line */}
             <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-purple-500/0 via-purple-500/50 to-purple-500/0 hidden lg:block" />
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 sm:gap-8">
               {workflowSteps.map((step, index) => (
                 <motion.div
                   key={step.step}
@@ -482,23 +482,23 @@ export default function ServicesPage() {
                   className="relative group"
                 >
                   {/* Step Number */}
-                  <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-white text-black px-3 py-1 rounded-full text-sm font-bold">
+                  <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 bg-white text-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold">
                     {step.step}
                   </div>
 
-                  <div className="relative p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
-                                hover:border-purple-500/50 transition-all duration-300 mt-6">
+                  <div className="relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                                hover:border-purple-500/50 transition-all duration-300 mt-4 sm:mt-6">
                     <div className="absolute inset-0 bg-gradient-to-br from-purple-500/10 via-transparent to-transparent 
                                   opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                     
                     <div className="relative z-10">
-                      <span className="text-4xl mb-4 block">{step.icon}</span>
-                      <h3 className="text-xl font-semibold text-white mb-2">{step.title}</h3>
-                      <p className="text-gray-400 text-sm mb-4">{step.description}</p>
+                      <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block">{step.icon}</span>
+                      <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">{step.title}</h3>
+                      <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">{step.description}</p>
                       
-                      <ul className="space-y-2">
+                      <ul className="space-y-1.5 sm:space-y-2">
                         {step.details.map((detail, i) => (
-                          <li key={i} className="flex items-center gap-2 text-gray-300 text-sm">
+                          <li key={i} className="flex items-center gap-2 text-gray-300 text-xs sm:text-sm">
                             <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
                             {detail}
                           </li>
@@ -524,11 +524,11 @@ export default function ServicesPage() {
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -50 }}
-              className="fixed bottom-8 right-8 p-4 bg-white/10 backdrop-blur-lg rounded-lg border border-white/20
-                        text-white text-sm max-w-xs z-50"
+              className="fixed bottom-4 sm:bottom-8 right-4 sm:right-8 p-3 sm:p-4 bg-white/10 backdrop-blur-lg rounded-lg border border-white/20
+                        text-white text-xs sm:text-sm max-w-[250px] sm:max-w-xs z-50"
             >
               <div className="flex items-center gap-2">
-                <span className="text-lg">🎉</span>
+                <span className="text-base sm:text-lg">🎉</span>
                 <p>{currentFact}</p>
               </div>
             </motion.div>
@@ -538,7 +538,7 @@ export default function ServicesPage() {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 0.5 }}
-            className="text-center mt-16 text-sm text-gray-500"
+            className="text-center mt-8 sm:mt-16 text-xs sm:text-sm text-gray-500"
           >
             <p>Psst... try clicking the service icons or pressing ↑↑↓↓AB↵ for surprises! 🎮</p>
           </motion.div>

@@ -30,16 +30,16 @@ const designTools = [
     ]
   },
   {
-    name: "Adobe Creative Suite",
-    description: "Comprehensive creative toolkit for advanced graphic design, photo editing, and vector illustrations",
-    icon: "🎯",
+    name: "Sketch",
+    description: "Professional UI/UX design platform known for its powerful vector editing and extensive plugin ecosystem",
+    icon: "💎",
     features: [
-      "Professional Photo Editing",
-      "Vector Illustrations",
-      "Brand Asset Creation",
-      "Video Editing",
-      "Print Design",
-      "Asset Management"
+      "Vector Editing Tools",
+      "Symbol Libraries",
+      "Design System Tools",
+      "Prototyping Features",
+      "Plugin Ecosystem",
+      "Cloud Collaboration"
     ]
   }
 ]
@@ -175,22 +175,22 @@ export default function UIUXDesignPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center space-y-6"
+            className="text-center space-y-4 sm:space-y-6"
           >
-            <h1 className="text-5xl font-bold text-white">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
               UI/UX Design
               <motion.span 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="block mt-4"
+                className="block mt-2 sm:mt-4"
               >
-                <span className="bg-white text-black px-6 py-2 rounded-lg inline-block">
+                <span className="bg-white text-black px-4 sm:px-6 py-1 sm:py-2 rounded-lg inline-block text-lg sm:text-xl">
                   That Delights Users
                 </span>
               </motion.span>
             </h1>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto mt-8">
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8">
               Creating intuitive and beautiful digital experiences with cutting-edge design tools and methodologies
             </p>
           </motion.div>
@@ -198,42 +198,42 @@ export default function UIUXDesignPage() {
       </section>
 
       {/* Design Tools */}
-      <section className="py-20 relative">
+      <section className="py-12 sm:py-20 relative">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-3xl md:text-4xl font-bold text-white text-center mb-16"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-white text-center mb-8 sm:mb-16"
           >
             Our Design Tools
-            <span className="block text-base md:text-lg text-gray-400 mt-4 font-normal">
+            <span className="block text-sm sm:text-base md:text-lg text-gray-400 mt-2 sm:mt-4 font-normal">
               Professional tools for professional results
             </span>
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
             {designTools.map((tool, index) => (
               <motion.div
                 key={tool.name}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: index * 0.2 }}
-                className="group relative p-6 md:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                className="group relative p-4 sm:p-6 md:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
                          hover:border-purple-500/50 transition-all duration-300"
               >
                 <div className="absolute inset-0 bg-gradient-to-b from-purple-500/10 via-transparent to-transparent 
                               opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl" />
                 
                 <div className="relative z-10">
-                  <div className="text-5xl mb-6 transform group-hover:scale-110 transition-transform duration-300">
+                  <div className="text-4xl sm:text-5xl mb-4 sm:mb-6 transform group-hover:scale-110 transition-transform duration-300">
                     {tool.icon}
                   </div>
-                  <h3 className="text-2xl font-semibold text-white mb-3">{tool.name}</h3>
-                  <p className="text-gray-400 mb-6 text-sm md:text-base">{tool.description}</p>
+                  <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3">{tool.name}</h3>
+                  <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{tool.description}</p>
                   
-                  <ul className="space-y-3">
+                  <ul className="space-y-2 sm:space-y-3">
                     {tool.features.map((feature, i) => (
-                      <li key={i} className="flex items-center gap-3 text-gray-300 text-sm md:text-base">
+                      <li key={i} className="flex items-center gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
                         <span className="w-1.5 h-1.5 bg-purple-500 rounded-full flex-shrink-0" />
                         <span>{feature}</span>
                       </li>
@@ -247,7 +247,7 @@ export default function UIUXDesignPage() {
       </section>
 
       {/* Design Process */}
-      <section className="py-20 relative overflow-hidden">
+      <section className="py-12 sm:py-20 relative overflow-hidden">
         <div className="absolute inset-0">
           <div className="absolute top-0 left-1/3 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
           <div className="absolute bottom-0 right-1/3 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-500" />
@@ -257,27 +257,27 @@ export default function UIUXDesignPage() {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-center mb-16"
+            className="text-center mb-8 sm:mb-16"
           >
-            <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-2 sm:mb-4">
               Our Design Process
               <motion.span 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="block mt-4"
+                className="block mt-2 sm:mt-4"
               >
-                <span className="bg-white text-black px-6 py-2 rounded-lg inline-block text-base md:text-lg">
+                <span className="bg-white text-black px-4 sm:px-6 py-1 sm:py-2 rounded-lg inline-block text-sm sm:text-base md:text-lg">
                   From Research to Reality
                 </span>
               </motion.span>
             </h2>
-            <p className="text-xl text-gray-400 max-w-2xl mx-auto mt-8">
+            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8">
               A systematic approach to creating user-centered designs that deliver measurable results
             </p>
           </motion.div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 md:gap-8">
             {designProcess.map((process, index) => (
               <motion.div
                 key={process.title}
@@ -286,17 +286,15 @@ export default function UIUXDesignPage() {
                 transition={{ delay: index * 0.2 }}
                 className="group relative"
               >
-                <div className="absolute inset-0 bg-gradient-to-r from-purple-500/10 to-indigo-500/10 
-                              rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
-                <div className="relative p-6 md:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                <div className="relative p-4 sm:p-6 md:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
-                  <span className="text-4xl mb-4 block transform group-hover:scale-110 transition-transform duration-300">{process.icon}</span>
-                  <h3 className="text-xl md:text-2xl font-semibold text-white mb-2">{process.title}</h3>
-                  <p className="text-gray-400 text-sm md:text-base mb-6">{process.description}</p>
+                  <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block transform group-hover:scale-110 transition-transform duration-300">{process.icon}</span>
+                  <h3 className="text-lg sm:text-xl md:text-2xl font-semibold text-white mb-2">{process.title}</h3>
+                  <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{process.description}</p>
                   
-                  <ul className="space-y-3">
+                  <ul className="space-y-2 sm:space-y-3">
                     {process.steps.map((step, i) => (
-                      <li key={i} className="flex items-start gap-3 text-gray-300 text-sm md:text-base">
+                      <li key={i} className="flex items-start gap-2 sm:gap-3 text-gray-300 text-sm sm:text-base">
                         <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-2 flex-shrink-0" />
                         <span>{step}</span>
                       </li>
