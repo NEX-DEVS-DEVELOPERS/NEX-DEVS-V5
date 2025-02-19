@@ -22,15 +22,23 @@ export default function MobileMenu() {
       scale: 0,
       opacity: 0,
       borderRadius: '100%',
+      transition: {
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        mass: 0.8
+      }
     },
     open: {
       scale: 1,
       opacity: 1,
-      borderRadius: '0%',
+      borderRadius: '30px',
       transition: {
         type: "spring",
-        stiffness: 100,
-        damping: 20
+        stiffness: 80,
+        damping: 20,
+        mass: 1,
+        duration: 0.4
       }
     }
   }
@@ -84,6 +92,7 @@ export default function MobileMenu() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 bg-purple-950/40 backdrop-blur-md z-40"
           />
@@ -143,4 +152,4 @@ export default function MobileMenu() {
       </AnimatePresence>
     </div>
   )
-} 
+}

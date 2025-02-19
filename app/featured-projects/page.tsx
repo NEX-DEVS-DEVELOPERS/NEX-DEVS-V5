@@ -253,42 +253,76 @@ const FeaturedProjectsPage = () => {
     {
       id: "seo",
       title: "SEO/Content Writing",
-      description: "Comprehensive SEO and content strategy",
+      description: "Advanced SEO strategies and semantic content optimization for maximum visibility",
       details: [
-        "Keyword research",
-        "Content optimization",
-        "Technical SEO",
-        "Link building",
-        "Analytics reporting"
+        "Semantic SEO optimization",
+        "Content strategy & planning",
+        "Technical SEO implementation",
+        "Authority link building",
+        "Schema markup integration",
+        "Core Web Vitals optimization",
+        "Voice search optimization",
+        "Local SEO enhancement"
       ],
       metrics: [
         "200% average traffic increase",
         "40% higher engagement",
-        "Top 3 SERP rankings"
+        "Top 3 SERP rankings",
+        "85% semantic search visibility",
+        "95% mobile optimization score",
+        "60% voice search presence"
       ],
       expandedContent: {
-        overview: "Our SEO and content services drive organic traffic and engagement through data-driven strategies.",
+        overview: "Our comprehensive SEO and content services leverage advanced semantic optimization, technical excellence, and data-driven strategies to maximize your digital presence and drive qualified organic traffic.",
         keyFeatures: [
           {
-            title: "Keyword Research",
-            description: "Identifying relevant and high-traffic keywords"
+            title: "Semantic SEO Mastery",
+            description: "Advanced semantic analysis and topic clustering for comprehensive search intent coverage"
           },
           {
-            title: "Content Optimization",
-            description: "Improving site content for better search engine visibility"
+            title: "Technical Excellence",
+            description: "Core Web Vitals optimization, structured data implementation, and advanced schema markup"
           },
           {
-            title: "Technical SEO",
-            description: "Optimizing site structure for better search engine rankings"
+            title: "Content Strategy",
+            description: "Data-driven content planning with semantic keyword research and topic authority building"
+          },
+          {
+            title: "Advanced Analytics",
+            description: "Comprehensive tracking with custom dashboards and AI-powered insights"
+          },
+          {
+            title: "Voice & Mobile SEO",
+            description: "Optimization for voice search queries and mobile-first indexing"
+          },
+          {
+            title: "Local SEO Dominance",
+            description: "Strategic local presence optimization with GBP management and local schema markup"
           }
         ],
-        technologies: ["Google Analytics", "Yoast SEO", "SEMrush", "Ahrefs", "Content Management Systems"],
+        technologies: [
+          "Google Search Console",
+          "Google Analytics 4",
+          "SEMrush",
+          "Ahrefs",
+          "Screaming Frog",
+          "Schema Pro",
+          "MarketMuse",
+          "Surfer SEO",
+          "Mobile-Friendly Test API",
+          "PageSpeed Insights API"
+        ],
         processSteps: [
-          "Keyword Research",
-          "Content Creation",
-          "Technical SEO Implementation",
-          "Link Building",
-          "Analytics Reporting"
+          "Technical SEO Audit",
+          "Semantic Keyword Research",
+          "Content Gap Analysis",
+          "Topic Cluster Planning",
+          "On-Page Optimization",
+          "Schema Implementation",
+          "Content Creation & Enhancement",
+          "Authority Link Building",
+          "Performance Monitoring",
+          "ROI Analysis & Reporting"
         ]
       }
     }
@@ -467,4 +501,4 @@ const FeaturedProjectsPage = () => {
   );
 };
 
-export default FeaturedProjectsPage; 
+export default FeaturedProjectsPage;

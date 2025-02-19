@@ -378,7 +378,9 @@ export default function PricingPage() {
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8 }}
+              transition={{ 
+                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3 
+              }}
               className="absolute -top-12 md:-top-16 -left-4 md:-left-8 w-16 md:w-24 h-16 md:h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm transform -rotate-12 animate-float-smooth"
             >
               <span className="text-2xl md:text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">💻</span>
@@ -386,7 +388,10 @@ export default function PricingPage() {
             <motion.div
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.2 }}
+              transition={{ 
+                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
+                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.2 : 0
+              }}
               className="absolute -top-6 md:-top-8 -right-4 md:-right-8 w-14 md:w-20 h-14 md:h-20 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg backdrop-blur-sm transform rotate-12 animate-float-delayed"
             >
               <span className="text-2xl md:text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">🚀</span>
@@ -396,7 +401,10 @@ export default function PricingPage() {
           <motion.h1 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
+            transition={{ 
+              duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
+              ease: "easeOut" 
+            }}
             className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 md:px-6 py-4 md:py-6 relative z-20 bg-black/40 backdrop-blur-sm rounded-xl inline-block mt-4 md:mt-8"
           >
             Choose Your <span className="inline-block bg-white text-black px-2 md:px-3 py-1 rounded-md">Perfect Plan</span>
@@ -412,7 +420,11 @@ export default function PricingPage() {
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ delay: 0.4, duration: 0.8, ease: "easeOut" }}
+            transition={{ 
+              delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.4 : 0,
+              duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
+              ease: "easeOut" 
+            }}
             className="text-white/80 text-sm md:text-base glow-text-sm max-w-2xl mx-auto px-3 md:px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg"
           >
             Transparent pricing with no hidden fees. Select a plan to view detailed features.
@@ -423,87 +435,106 @@ export default function PricingPage() {
           {pricingPlans.map((plan, index) => (
             <motion.div
               key={plan.title}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{
+                opacity: 0,
+                y: typeof window !== 'undefined' && window.innerWidth > 768 ? 20 : 0
+              }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
-                delay: index * 0.15, 
-                duration: 0.8,
+                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? index * 0.1 : 0, 
+                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.5 : 0.3,
                 ease: "easeOut"
               }}
-              onHoverStart={() => setHoveredPlan(plan.title)}
-              onHoverEnd={() => setHoveredPlan(null)}
-              onClick={() => setSelectedPlan(plan)}
+              onMouseEnter={() => setHoveredPlan(plan.title)}
+              onMouseLeave={() => setHoveredPlan(null)}
               className={`${
                 plan.title.includes('Full-Stack') 
-                  ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40 hover:border-purple-500/70 shadow-lg shadow-purple-500/20' 
-                  : 'bg-black/40 border-purple-500/20 hover:border-purple-500/50'
-              } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer transition-all duration-500 hover:bg-black/60 border group
-              hover:transform hover:scale-[1.02] hover:-translate-y-1 hover:shadow-xl hover:shadow-purple-500/10`}
+                  ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40' 
+                  : 'bg-black/40 border-purple-500/20'
+              } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer border group
+              transition-transform duration-300 ease-out
+              hover:scale-[1.02] hover:border-purple-500/70
+              hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.2)]
+              relative
+              before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br
+              before:from-purple-500/5 before:to-purple-500/0
+              before:transition-opacity before:duration-300
+              hover:before:opacity-100`}
+              onClick={() => setSelectedPlan(plan)}
             >
               <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
-                <span className="text-2xl md:text-4xl animate-float-smooth">{plan.icon}</span>
+                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm transition-colors duration-300 group-hover:text-purple-200">{plan.title}</h3>
+                <span className="text-2xl md:text-4xl transition-transform duration-500 ease-out group-hover:scale-110 group-hover:rotate-[8deg]">{plan.icon}</span>
               </div>
-              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">{plan.price}</p>
-              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
+              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2 transition-colors duration-300 group-hover:text-purple-200">{plan.price}</p>
+              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4 transition-colors duration-300 group-hover:text-gray-300">Timeline: {plan.timeline}</p>
               <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
                 {plan.features.slice(0, 3).map((feature, i) => (
-                  <motion.li 
+                  <li 
                     key={i} 
-                    className="flex items-start md:items-center text-sm md:text-base"
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.1 * i }}
+                    className="flex items-start md:items-center text-sm md:text-base opacity-0 animate-fadeIn group-hover:text-gray-200"
+                    style={{ 
+                      animationDelay: `${i * 100}ms`, 
+                      animationFillMode: 'forwards',
+                      transition: 'transform 0.3s ease-out, color 0.3s ease-out',
+                      transform: `translateX(${hoveredPlan === plan.title ? '4px' : '0px'})`
+                    }}
                   >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 mt-1 md:mt-0 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 mt-1 md:mt-0 flex-shrink-0 transition-colors duration-300 group-hover:text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="leading-tight">{feature}</span>
-                  </motion.li>
+                    <span className="leading-tight transition-transform duration-300 ease-out">{feature}</span>
+                  </li>
                 ))}
               </ul>
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ 
+              <div 
+                className="overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                style={{
+                  maxHeight: hoveredPlan === plan.title ? '200px' : '0',
                   opacity: hoveredPlan === plan.title ? 1 : 0,
-                  height: hoveredPlan === plan.title ? 'auto' : 0
+                  transform: `translateY(${hoveredPlan === plan.title ? '0' : '-10px'})`,
                 }}
-                transition={{ duration: 0.2 }}
-                className="overflow-hidden"
               >
                 <div className="border-t border-purple-500/20 pt-3 md:pt-4 mb-3 md:mb-4">
                   <p className="text-purple-300 font-semibold text-sm md:text-base mb-2">Best For:</p>
                   <div className="flex flex-wrap gap-1.5 md:gap-2">
                     {plan.bestFor.map((item, i) => (
-                      <span key={i} className="text-[10px] md:text-xs bg-purple-500/10 text-purple-300 px-1.5 md:px-2 py-0.5 md:py-1 rounded">
+                      <span 
+                        key={i} 
+                        className="text-[10px] md:text-xs bg-purple-500/10 text-purple-300 px-1.5 md:px-2 py-0.5 md:py-1 rounded
+                        transition-all duration-300 ease-out hover:bg-purple-500/20 hover:text-purple-200"
+                      >
                         {item}
                       </span>
                     ))}
                   </div>
                 </div>
-              </motion.div>
-              <button className="w-full py-2 md:py-3 px-4 md:px-6 text-black bg-white rounded-lg transition-all duration-300 
-                hover:bg-gray-100 font-semibold text-sm md:text-base group-hover:shadow-lg group-hover:shadow-white/20 
-                transform group-hover:scale-[1.02]">
+              </div>
+              <button className="w-full py-2 md:py-3 px-4 md:px-6 text-black bg-white rounded-lg 
+                transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
+                hover:bg-purple-50 font-semibold text-sm md:text-base 
+                group-hover:shadow-lg group-hover:shadow-white/20
+                relative overflow-hidden
+                before:absolute before:inset-0 before:bg-gradient-to-r
+                before:from-transparent before:via-purple-100/50 before:to-transparent
+                before:translate-x-[-200%] group-hover:before:translate-x-[200%]
+                before:transition-transform before:duration-[800ms] before:ease-out
+                group-hover:scale-[1.02]">
                 Learn More
               </button>
             </motion.div>
           ))}
         </div>
 
-        {/* Modal adjustments for mobile */}
+        {/* Modal */}
         {selectedPlan && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
-            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-2 md:p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
+          <div 
+            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-2 md:p-4 modal-overlay overflow-y-auto pt-16 md:pt-32 opacity-0 animate-fadeIn"
+            style={{ animationDuration: '200ms', animationFillMode: 'forwards' }}
           >
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              transition={{ duration: 0.3, ease: "easeOut" }}
-              className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 lg:p-10 w-full max-w-4xl mx-auto relative border border-purple-500/30 shadow-2xl shadow-purple-500/20"
+            <div
+              className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 lg:p-10 w-full max-w-4xl mx-auto relative border border-purple-500/30 shadow-2xl shadow-purple-500/20 opacity-0 animate-scaleIn"
+              style={{ animationDuration: '300ms', animationFillMode: 'forwards', animationDelay: '100ms' }}
             >
               {/* Close button - Repositioned */}
               <button
@@ -582,8 +613,8 @@ export default function PricingPage() {
                   </button>
                 </div>
               </div>
-            </motion.div>
-          </motion.div>
+            </div>
+          </div>
         )}
 
         {/* Testimonials section - Adjusted for mobile */}
@@ -620,4 +651,51 @@ export default function PricingPage() {
       </div>
     </div>
   );
-} 
+}
+
+// Add these keyframes at the end of the file, before the last closing brace
+const styles = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  @keyframes scaleIn {
+    from { 
+      opacity: 0;
+      transform: scale(0.95) translateY(10px);
+    }
+    to { 
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+
+  .animate-fadeIn {
+    animation: fadeIn 0.3s ease-out;
+  }
+
+  .animate-scaleIn {
+    animation: scaleIn 0.3s ease-out;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite;
+  }
+`;
+
+// Add this to your document head
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
+}
