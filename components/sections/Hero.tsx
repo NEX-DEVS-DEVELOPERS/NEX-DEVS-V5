@@ -121,9 +121,12 @@ export default function Hero() {
     <div className="w-full bg-black text-white pt-32 md:pt-32 pb-20 relative overflow-hidden">
       {/* Optimize gradient effects by reducing blur radius */}
       <div className="absolute inset-0">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[64px] animate-pulse" />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[64px] animate-pulse delay-700" />
-        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[64px] animate-pulse delay-1000" />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[32px] will-change-transform" 
+             style={{ animation: 'pulse 4s ease-in-out infinite' }} />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[32px] will-change-transform" 
+             style={{ animation: 'pulse 4s ease-in-out infinite 1s' }} />
+        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[32px] will-change-transform" 
+             style={{ animation: 'pulse 4s ease-in-out infinite 2s' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 relative z-10">
@@ -133,7 +136,7 @@ export default function Hero() {
             variants={fadeInUpVariant}
             initial="hidden"
             animate="visible"
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.2 }}
             className="space-y-4 sm:space-y-6"
           >
             <div className="text-sm bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 text-transparent bg-clip-text">

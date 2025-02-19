@@ -20,7 +20,7 @@ const pricingPlans: PricingPlan[] = [
   {
     title: "WordPress Basic",
     price: "PKR 25,000",
-    description: "Perfect starter package for small businesses and bloggers with essential WordPress features and SEO optimization.",
+    description: "Perfect starter package with essential WordPress features, basic semantic SEO, and E-E-A-T optimization.",
     icon: "🎯",
     timeline: "1-2 weeks",
     bestFor: ["Small Businesses", "Personal Blogs", "Portfolio Sites", "Startups"],
@@ -28,107 +28,99 @@ const pricingPlans: PricingPlan[] = [
       "GeneratePress Theme License",
       "5 Days Revision Period",
       "2 SEO Articles",
-      "Basic Security Package"
+      "Basic Security Package",
+      "Basic E-E-A-T Setup"
     ],
     features: [
-      "GeneratePress Theme Professional Setup",
       "Complete Website Development (Up to 5 Pages)",
       "Mobile-First Responsive Design",
       "Essential Premium Plugins Integration",
       "Speed & Performance Optimization",
-      "2 SEO-Optimized Articles with Research",
-      "Basic XML Sitemap Setup",
-      "Google Analytics Integration",
+      "Basic Semantic SEO Implementation",
+      "Basic E-E-A-T Optimization",
+      "Author Expertise Markup",
+      "Basic Schema Implementation",
+      "Google Analytics 4 Setup",
       "Contact Form Integration",
       "Social Media Integration",
-      "Basic On-Page SEO Setup",
-      "5 Days Post-Launch Support",
-      "Website Security Setup",
-      "1-on-1 Training Session"
+      "Basic Content Structure",
+      "Mobile Usability Optimization",
+      "5 Days Post-Launch Support"
     ]
   },
   {
     title: "WordPress Professional",
     price: "PKR 35,000",
-    description: "Advanced WordPress solution with premium themes, plugins, and comprehensive SEO optimization for growing businesses.",
+    description: "Advanced WordPress solution with comprehensive semantic SEO and E-E-A-T optimization for growing businesses.",
     icon: "⚡",
     timeline: "2-3 weeks",
     bestFor: [
       "Growing Businesses",
       "Content Creators",
       "Online Magazines",
-      "Professional Bloggers"
+      "E-commerce Startups"
     ],
     includes: [
       "Premium Theme License (Foxiz/Pixwell/Phlox)",
       "10 Days Revision Period",
       "Pro Plugins Bundle",
-      "Advanced Security Package"
+      "Advanced Security Package",
+      "Full E-E-A-T Implementation"
     ],
     features: [
-      "Premium Theme Installation & Setup",
       "Complete Website Development (Up to 10 Pages)",
-      "Rank Math Pro SEO Suite Integration",
-      "Elementor Pro Page Builder Setup",
-      "WPForms Pro Integration",
+      "Premium Theme & Elementor Pro Setup",
       "Advanced Performance Optimization",
-      "CDN Integration & Setup",
-      "Complete Schema Markup Implementation",
-      "Advanced XML Sitemap Configuration",
-      "Google Search Console Setup",
-      "Advanced Analytics Integration",
-      "Social Media Widgets Integration",
-      "Custom 404 Error Page",
-      "Database Optimization",
-      "Caching System Implementation",
-      "Advanced Security Measures",
-      "Comprehensive SEO Strategy Document",
-      "2 Hours of Training Sessions"
+      "Comprehensive Semantic SEO",
+      "Advanced E-E-A-T Implementation",
+      "Expert Author Profiles Setup",
+      "Content Entity Optimization",
+      "Topic Cluster Implementation",
+      "Advanced Schema Markup",
+      "Knowledge Graph Optimization",
+      "Content Quality Guidelines",
+      "Trust Signals Integration",
+      "Expertise Demonstration Setup",
+      "Authority Building Features",
+      "Advanced Analytics Integration"
     ]
   },
   {
     title: "WordPress Enterprise",
     price: "PKR 50,000",
-    description: "Complete WordPress solution with all premium features, hosting, extensive SEO optimization, and comprehensive digital presence setup.",
+    description: "Complete WordPress solution with advanced semantic SEO, E-E-A-T mastery, and comprehensive digital presence.",
     icon: "👑",
     timeline: "3-4 weeks",
     bestFor: [
       "Large Businesses",
       "E-commerce Sites",
       "News Portals",
-      "Digital Agencies"
+      "Multi-location Businesses"
     ],
     includes: [
       "All Premium Theme Access ($500+ Value)",
       "Premium Plugins Bundle ($1000+ Value)",
       "1 Year Hostinger Business Hosting",
       "Free Domain Registration",
-      "Premium SSL Certificate"
+      "Premium SSL Certificate",
+      "Enterprise E-E-A-T Package"
     ],
     features: [
       "Unlimited Pages Development",
       "Premium Theme Access (AVADA, FOXIX, PIXWELL)",
-      "WP Rocket Pro Speed Optimization ($170 Value)",
-      "Rank Math Pro SEO Suite ($129/year Value)",
-      "Elementor Pro Page Builder ($59/year Value)",
-      "Smush Pro Image Optimization",
-      "Advanced Forms Pro Integration",
-      "6 Semantically Optimized Articles (2000+ Words Each)",
-      "Professional Backlinks Strategy Document",
-      "Comprehensive Keyword Research",
-      "Complete Technical SEO Setup",
-      "Advanced Security Implementation",
-      "Regular Backup System",
-      "Multi-language Support Setup",
-      "Advanced E-commerce Features",
-      "Custom Gutenberg Blocks",
-      "API Integration for Fast Indexing",
-      "Advanced Analytics Dashboard",
-      "Custom Admin Dashboard",
-      "Priority Support (30 Days)",
-      "4 Hours of Team Training",
-      "Monthly Performance Report",
-      "Complete Technical Documentation"
+      "Enterprise Semantic SEO",
+      "Complete E-E-A-T Mastery",
+      "Advanced Entity Optimization",
+      "Industry Expert Profiles",
+      "Professional Content Guidelines",
+      "Editorial Standards Setup",
+      "Multi-language E-E-A-T",
+      "Advanced Trust Building",
+      "Semantic Content Structure",
+      "Knowledge Panel Optimization",
+      "Brand Entity Development",
+      "Authority Site Architecture",
+      "Comprehensive Analytics Suite"
     ]
   },
   {
@@ -184,70 +176,6 @@ const pricingPlans: PricingPlan[] = [
     ]
   },
   {
-    title: "Full-Stack Enterprise",
-    price: "PKR 80,000",
-    description: "Enterprise-grade full-stack development with premium features, microservices architecture, and advanced security for large-scale applications.",
-    icon: "🚀",
-    timeline: "4-6 weeks",
-    bestFor: ["Enterprises", "Large-scale Apps", "High-traffic Platforms", "Complex Systems"],
-    includes: [
-      "Microservices Architecture",
-      "Multi-Database Support",
-      "Advanced Security",
-      "DevOps Setup"
-    ],
-    features: [
-      "Next.js 14/React Server Components",
-      "Microservices Architecture",
-      "Multi-Database Support",
-      "Advanced Security Features",
-      "CI/CD Pipeline Setup",
-      "Load Balancing",
-      "Auto-scaling Configuration",
-      "Monitoring & Logging",
-      "Disaster Recovery",
-      "Enterprise Documentation"
-    ]
-  },
-  {
-    title: "Shopify/WooCommerce",
-    price: "Starting from PKR 40k-50k",
-    description: "Complete e-commerce solutions with powerful features to grow your online business.",
-    icon: "🛍️",
-    timeline: "1-2 weeks",
-    bestFor: ["Online Stores", "Retailers", "Digital Products"],
-    includes: ["Payment Gateway Setup", "Inventory System", "Order Management"],
-    features: [
-      "Custom Store Design",
-      "Product Setup & Migration",
-      "Payment Gateway Integration",
-      "Inventory Management",
-      "Analytics Integration",
-      "Mobile Commerce Ready",
-      "Multi-currency Support",
-      "Automated Email Marketing"
-    ]
-  },
-  {
-    title: "Figma/Framer",
-    price: "Starting from PKR 40K-50K",
-    description: "Professional UI/UX design services with modern design principles and interactive prototypes.",
-    icon: "✨",
-    timeline: "1 weeks",
-    bestFor: ["Startups", "Design Teams", "Product Managers"],
-    includes: ["Design System", "Component Library", "Prototype Access"],
-    features: [
-      "Custom UI Design",
-      "Interactive Prototypes",
-      "Design System Creation",
-      "Animation & Micro-interactions",
-      "Responsive Layouts",
-      "Design Handoff",
-      "User Flow Mapping",
-      "Accessibility Guidelines"
-    ]
-  },
-  {
     title: "AI Agents/WebApps",
     price: "Starting from PKR 70K",
     description: "Intelligent web applications powered by cutting-edge AI technology.",
@@ -269,20 +197,37 @@ const pricingPlans: PricingPlan[] = [
   {
     title: "SEO/Content Writing",
     price: "Starting from 20K",
-    description: "Strategic content creation and SEO optimization to improve your online presence.",
+    description: "Strategic content creation with semantic SEO and E-E-A-T optimization to establish topical authority.",
     icon: "📝",
     timeline: "Ongoing",
-    bestFor: ["Content Marketers", "Digital Brands", "Online Publications"],
-    includes: ["Monthly Reports", "Keyword Research", "Content Calendar"],
-    features: [
-      "Keyword Research",
-      "Content Strategy",
-      "Technical SEO",
-      "Content Creation",
-      "Performance Tracking",
+    bestFor: [
+      "Content Marketers",
+      "Digital Brands",
+      "Online Publications",
+      "E-commerce Sites"
+    ],
+    includes: [
       "Monthly Reports",
-      "Competitor Analysis",
-      "Link Building Strategy"
+      "Semantic Keyword Research",
+      "E-E-A-T Content Calendar",
+      "SEO Tools Access",
+      "Content Quality Guidelines"
+    ],
+    features: [
+      "Semantic Keyword Research",
+      "E-E-A-T Content Strategy",
+      "Topic Authority Building",
+      "Expert Content Creation",
+      "Entity-Based Optimization",
+      "Knowledge Graph Integration",
+      "Author Expertise Development",
+      "Trust Signal Implementation",
+      "Content Quality Assurance",
+      "Topical Authority Planning",
+      "Entity Relationship Building",
+      "Content Performance Analysis",
+      "Authority Metrics Tracking",
+      "Semantic Content Structure"
     ]
   }
 ];
@@ -452,43 +397,44 @@ export default function PricingPage() {
                   ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40' 
                   : 'bg-black/40 border-purple-500/20'
               } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer border group
-              transition-transform duration-300 ease-out
+              transition-all duration-500 ease-out
               hover:scale-[1.02] hover:border-purple-500/70
+              active:scale-[0.98] md:active:scale-[1.02]
               hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.2)]
-              relative
+              relative touch-manipulation
               before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br
               before:from-purple-500/5 before:to-purple-500/0
-              before:transition-opacity before:duration-300
+              before:transition-opacity before:duration-500 before:ease-out
               hover:before:opacity-100`}
               onClick={() => setSelectedPlan(plan)}
             >
               <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm transition-colors duration-300 group-hover:text-purple-200">{plan.title}</h3>
-                <span className="text-2xl md:text-4xl transition-transform duration-500 ease-out group-hover:scale-110 group-hover:rotate-[8deg]">{plan.icon}</span>
+                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm transition-colors duration-500 group-hover:text-purple-200">{plan.title}</h3>
+                <span className="text-2xl md:text-4xl transition-all duration-500 ease-out group-hover:scale-110 group-hover:rotate-[8deg]">{plan.icon}</span>
               </div>
-              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2 transition-colors duration-300 group-hover:text-purple-200">{plan.price}</p>
-              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4 transition-colors duration-300 group-hover:text-gray-300">Timeline: {plan.timeline}</p>
+              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2 transition-colors duration-500 group-hover:text-purple-200">{plan.price}</p>
+              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4 transition-colors duration-500 group-hover:text-gray-300">Timeline: {plan.timeline}</p>
               <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
                 {plan.features.slice(0, 3).map((feature, i) => (
                   <li 
                     key={i} 
                     className="flex items-start md:items-center text-sm md:text-base opacity-0 animate-fadeIn group-hover:text-gray-200"
                     style={{ 
-                      animationDelay: `${i * 100}ms`, 
+                      animationDelay: `${i * 150}ms`, 
                       animationFillMode: 'forwards',
-                      transition: 'transform 0.3s ease-out, color 0.3s ease-out',
+                      transition: 'all 0.5s ease-out',
                       transform: `translateX(${hoveredPlan === plan.title ? '4px' : '0px'})`
                     }}
                   >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 mt-1 md:mt-0 flex-shrink-0 transition-colors duration-300 group-hover:text-purple-300" fill="currentColor" viewBox="0 0 20 20">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 mt-1 md:mt-0 flex-shrink-0 transition-colors duration-500 group-hover:text-purple-300" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="leading-tight transition-transform duration-300 ease-out">{feature}</span>
+                    <span className="leading-tight transition-all duration-500 ease-out">{feature}</span>
                   </li>
                 ))}
               </ul>
               <div 
-                className="overflow-hidden transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]"
+                className="overflow-hidden transition-all duration-500 ease-out"
                 style={{
                   maxHeight: hoveredPlan === plan.title ? '200px' : '0',
                   opacity: hoveredPlan === plan.title ? 1 : 0,
@@ -502,7 +448,7 @@ export default function PricingPage() {
                       <span 
                         key={i} 
                         className="text-[10px] md:text-xs bg-purple-500/10 text-purple-300 px-1.5 md:px-2 py-0.5 md:py-1 rounded
-                        transition-all duration-300 ease-out hover:bg-purple-500/20 hover:text-purple-200"
+                        transition-all duration-500 ease-out hover:bg-purple-500/20 hover:text-purple-200"
                       >
                         {item}
                       </span>
@@ -511,15 +457,15 @@ export default function PricingPage() {
                 </div>
               </div>
               <button className="w-full py-2 md:py-3 px-4 md:px-6 text-black bg-white rounded-lg 
-                transition-all duration-500 ease-[cubic-bezier(0.4,0,0.2,1)]
-                hover:bg-purple-50 font-semibold text-sm md:text-base 
+                transition-all duration-500 ease-out
+                hover:bg-purple-50 active:bg-purple-100 font-semibold text-sm md:text-base 
                 group-hover:shadow-lg group-hover:shadow-white/20
-                relative overflow-hidden
+                relative overflow-hidden touch-manipulation
                 before:absolute before:inset-0 before:bg-gradient-to-r
                 before:from-transparent before:via-purple-100/50 before:to-transparent
                 before:translate-x-[-200%] group-hover:before:translate-x-[200%]
                 before:transition-transform before:duration-[800ms] before:ease-out
-                group-hover:scale-[1.02]">
+                group-hover:scale-[1.02] active:scale-[0.98] md:active:scale-[1.02]">
                 Learn More
               </button>
             </motion.div>

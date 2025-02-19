@@ -69,11 +69,23 @@
 @layer base {
   * {
     @apply border-border;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  html {
+    overflow-x: hidden;
+    width: 100vw;
+    position: relative;
   }
   body {
     @apply bg-background text-foreground;
     background-color: #000000 !important;
     color: white;
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
+    min-height: 100vh;
   }
 }
 

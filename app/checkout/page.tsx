@@ -334,119 +334,201 @@ function CheckoutPageContent() {
 <html>
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEX-WEBS Invoice</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
         
         body {
             font-family: 'Inter', sans-serif;
             line-height: 1.6;
             color: #fff;
             margin: 0;
-            padding: 20px;
+            padding: 15px;
             background: linear-gradient(135deg, #000000, #1a1a1a);
             min-height: 100vh;
         }
-
-        @media (min-width: 768px) {
-            body {
-                padding: 40px;
-            }
-        }
         
         .invoice-container {
+            width: 100%;
             max-width: 1000px;
             margin: 0 auto;
             background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.95));
-            border-radius: 20px;
+            border-radius: 15px;
             padding: 20px;
             box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
             border: 1px solid rgba(139, 92, 246, 0.2);
             backdrop-filter: blur(10px);
         }
 
-        @media (min-width: 768px) {
-            .invoice-container {
-                padding: 40px;
-            }
-        }
-
         .header {
             display: flex;
             flex-direction: column;
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             padding-bottom: 20px;
             border-bottom: 2px solid rgba(139, 92, 246, 0.3);
         }
 
-        @media (min-width: 768px) {
-            .header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-                margin-bottom: 40px;
-                padding-bottom: 30px;
-            }
+        .logo-section {
+            text-align: center;
+        }
+
+        .logo-section h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #8B5CF6, #6D28D9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 5px;
+        }
+
+        .invoice-info {
+            background: rgba(139, 92, 246, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 15px;
+            text-align: left;
         }
 
         .details-grid {
             display: grid;
             grid-template-columns: 1fr;
             gap: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
         }
 
-        @media (min-width: 768px) {
-            .details-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 40px;
-                margin-bottom: 40px;
-            }
+        .details-section {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 12px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .details-section h2 {
+            font-size: 18px;
+            margin-bottom: 15px;
+            color: #8B5CF6;
+        }
+
+        .contact-info p {
+            font-size: 14px;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .contact-info strong {
+            min-width: 80px;
+            display: inline-block;
+            color: rgba(139, 92, 246, 0.9);
         }
 
         .items-table {
             width: 100%;
             border-collapse: separate;
-            border-spacing: 0 10px;
-            margin: 30px 0;
-            display: block;
-            overflow-x: auto;
+            border-spacing: 0;
+            margin: 20px 0;
+            font-size: 14px;
         }
 
-        @media (min-width: 768px) {
-            .items-table {
-                display: table;
-            }
-        }
-
-        .items-table th,
-        .items-table td {
-            white-space: nowrap;
+        .items-table th {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8B5CF6;
             padding: 12px;
+            text-align: left;
+            font-weight: 600;
         }
 
-        @media (min-width: 768px) {
-            .items-table th,
-            .items-table td {
-                padding: 15px;
-            }
+        .items-table td {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .items-table tr:last-child td {
+            border-bottom: none;
         }
 
         .summary {
-            margin-left: auto;
-            width: 100%;
             background: rgba(139, 92, 246, 0.05);
-            padding: 20px;
+            padding: 15px;
             border-radius: 12px;
+            margin-top: 20px;
             border: 1px solid rgba(139, 92, 246, 0.15);
         }
 
-        @media (min-width: 768px) {
-            .summary {
-                width: 350px;
-                padding: 25px;
-            }
+        .summary-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            font-size: 14px;
+        }
+
+        .total-row {
+            font-size: 20px;
+            font-weight: 700;
+            color: #8B5CF6;
+            border-top: 2px solid rgba(139, 92, 246, 0.3);
+            margin-top: 10px;
+            padding-top: 10px;
+        }
+
+        .terms-section {
+            background: rgba(255, 255, 255, 0.02);
+            padding: 15px;
+            border-radius: 12px;
+            margin-top: 25px;
+            border: 1px solid rgba(139, 92, 246, 0.15);
+        }
+
+        .terms-section h3 {
+            color: #8B5CF6;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .terms-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 15px;
+        }
+
+        .terms-category {
+            background: rgba(139, 92, 246, 0.05);
+            padding: 12px;
+            border-radius: 8px;
+        }
+
+        .terms-category h4 {
+            color: #8B5CF6;
+            font-size: 15px;
+            margin-bottom: 8px;
+        }
+
+        .terms-category ul {
+            list-style-position: inside;
+            margin: 0;
+            padding: 0;
+        }
+
+        .terms-category li {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 13px;
+            margin-bottom: 6px;
+            line-height: 1.4;
+        }
+
+        .footer {
+            text-align: center;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid rgba(139, 92, 246, 0.3);
         }
 
         .payment-methods {
@@ -454,287 +536,105 @@ function CheckoutPageContent() {
             flex-wrap: wrap;
             justify-content: center;
             gap: 10px;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
-        @media (min-width: 768px) {
-            .payment-methods {
-                gap: 20px;
-            }
-        }
-
-        .terms-section {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 30px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
-        }
-
-        .terms-section h3 {
-            color: #8B5CF6;
-            margin: 0 0 15px 0;
-        }
-
-        .terms-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-        }
-
-        @media (min-width: 768px) {
-            .terms-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 30px;
-            }
-        }
-
-        .terms-category {
-            background: rgba(139, 92, 246, 0.05);
-            padding: 15px;
-            border-radius: 8px;
-        }
-
-        .terms-category h4 {
-            color: #8B5CF6;
-            margin: 0 0 10px 0;
-            font-size: 16px;
-        }
-
-        .terms-category ul {
-            margin: 0;
-            padding-left: 20px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 14px;
-        }
-
-        .terms-category li {
-            margin-bottom: 8px;
-        }
-
-        .terms-category li:last-child {
-            margin-bottom: 0;
-        }
-        
-        .logo-section {
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-        }
-        
-        .logo-section h1 {
-            color: #8B5CF6;
-            margin: 0;
-            font-size: 36px;
-            font-weight: 800;
-            letter-spacing: -1px;
-            background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .invoice-info {
-            text-align: right;
-            background: rgba(139, 92, 246, 0.1);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-        }
-        
-        .invoice-info h2 {
-            color: #8B5CF6;
-            margin: 0 0 10px 0;
-            font-size: 24px;
-        }
-        
-        .details-section {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 25px;
-            border-radius: 12px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
-        }
-        
-        .details-section h2 {
-            color: #8B5CF6;
-            margin: 0 0 20px 0;
-            font-size: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .details-section h2 svg {
-            width: 20px;
-            height: 20px;
-        }
-        
-        .contact-info {
-            display: grid;
-            gap: 12px;
-        }
-        
-        .contact-info p {
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: rgba(255, 255, 255, 0.9);
-        }
-        
-        .contact-info strong {
-            color: rgba(139, 92, 246, 0.9);
-            font-weight: 500;
-            min-width: 100px;
-        }
-        
-        .project-details {
-            background: rgba(139, 92, 246, 0.05);
-            padding: 25px;
-            border-radius: 12px;
-            margin: 30px 0;
-            border: 1px solid rgba(139, 92, 246, 0.15);
-        }
-        
-        .items-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0 10px;
-            margin: 30px 0;
-        }
-        
-        .items-table th {
-            background: rgba(139, 92, 246, 0.1);
-            color: #8B5CF6;
-            padding: 15px;
-            text-align: left;
-            font-weight: 600;
-            border-radius: 8px;
-        }
-        
-        .items-table td {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 15px;
-        }
-        
-        .items-table tr td:first-child {
-            border-radius: 8px 0 0 8px;
-        }
-        
-        .items-table tr td:last-child {
-            border-radius: 0 8px 8px 0;
-        }
-        
-        .summary-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 12px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .total-row {
-            font-size: 24px;
-            font-weight: 700;
-            color: #8B5CF6;
-            border-top: 2px solid rgba(139, 92, 246, 0.3);
-            margin-top: 15px;
-            padding-top: 15px;
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 50px;
-            padding-top: 30px;
-            border-top: 2px solid rgba(139, 92, 246, 0.3);
-        }
-        
-        .footer h3 {
-            color: #8B5CF6;
-            margin-bottom: 15px;
-        }
-        
-        .payment-methods {
-            display: flex;
-            justify-content: center;
-            gap: 20px;
-            margin: 20px 0;
-        }
-        
         .payment-method {
             background: rgba(255, 255, 255, 0.05);
-            padding: 10px 20px;
+            padding: 8px 15px;
             border-radius: 8px;
+            font-size: 13px;
             border: 1px solid rgba(139, 92, 246, 0.2);
         }
-        
+
         .timeline-badge {
             display: inline-block;
             background: rgba(139, 92, 246, 0.1);
             color: #8B5CF6;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 500;
-            margin-top: 10px;
-            border: 1px solid rgba(139, 92, 246, 0.2);
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-top: 8px;
         }
-        
-        .discount {
-            color: #10B981;
-            font-weight: 500;
-        }
-        
-        .qr-section {
-            text-align: center;
-            margin-top: 30px;
-        }
-        
-        .qr-code {
-            background: white;
-            padding: 15px;
-            border-radius: 12px;
-            display: inline-block;
-            margin-bottom: 10px;
-        }
-        
+
         .status-badge {
             display: inline-block;
             background: rgba(139, 92, 246, 0.1);
             color: #8B5CF6;
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-weight: 500;
-            margin-bottom: 20px;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            margin: 10px 0;
         }
-        
-        .terms-section {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 20px;
-            border-radius: 12px;
-            margin-top: 30px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
+
+        .contact-support {
+            margin-top: 25px;
+            font-size: 13px;
         }
-        
-        .terms-section h3 {
+
+        .contact-support a {
             color: #8B5CF6;
-            margin: 0 0 15px 0;
+            text-decoration: none;
         }
-        
-        .terms-section ul {
-            margin: 0;
-            padding-left: 20px;
-            color: rgba(255, 255, 255, 0.8);
-        }
-        
+
         .watermark {
             position: fixed;
             bottom: 20px;
             right: 20px;
             opacity: 0.1;
-            font-size: 100px;
+            font-size: 60px;
             font-weight: 800;
             color: #8B5CF6;
             transform: rotate(-45deg);
             pointer-events: none;
+        }
+
+        .discount-text {
+            color: #10B981;
+            font-weight: 500;
+        }
+
+        @media (min-width: 768px) {
+            body {
+                padding: 40px;
+            }
+
+            .invoice-container {
+                padding: 40px;
+            }
+
+            .header {
+                flex-direction: row;
+                justify-content: space-between;
+                align-items: flex-start;
+            }
+
+            .logo-section {
+                text-align: left;
+            }
+
+            .logo-section h1 {
+                font-size: 36px;
+            }
+
+            .details-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 30px;
+            }
+
+            .terms-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 20px;
+            }
+
+            .items-table th,
+            .items-table td {
+                padding: 15px;
+            }
+
+            .watermark {
+                font-size: 100px;
+            }
         }
     </style>
 </head>
@@ -834,7 +734,7 @@ function CheckoutPageContent() {
                 <span>Tax (0%):</span>
                 <span>PKR 0.00</span>
             </div>
-            <div class="summary-row discount">
+            <div class="summary-row discount-text">
                 <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
                 <span>-PKR ${invoice.discount.toLocaleString()}</span>
             </div>
@@ -1258,7 +1158,7 @@ function CheckoutPageContent() {
                             />
                           </div>
                         </div>
-                      <div>
+                        <div>
                           <label className="block text-sm font-medium mb-2">Project Timeline</label>
                           <select
                             value={editedDetails.timeline}
@@ -1289,8 +1189,8 @@ function CheckoutPageContent() {
                         <div>
                           <p><span className="text-gray-400">Name:</span> {invoice?.billingDetails?.name}</p>
                           <p><span className="text-gray-400">Email:</span> {invoice?.billingDetails?.email}</p>
-                      </div>
-                      <div>
+                        </div>
+                        <div>
                           <p><span className="text-gray-400">Phone:</span> {invoice?.billingDetails?.phone}</p>
                           <p><span className="text-gray-400">Address:</span> {invoice?.billingDetails?.address}</p>
                         </div>
@@ -1352,7 +1252,7 @@ function CheckoutPageContent() {
                         <span>Tax (0%):</span>
                         <span>PKR 0.00</span>
                       </div>
-                      <div className="flex justify-between text-green-400">
+                      <div className="flex justify-between text-emerald-400 font-medium">
                         <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
                         <span>-PKR {invoice.discount.toLocaleString()}</span>
                       </div>
