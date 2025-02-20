@@ -694,121 +694,144 @@ function ContactPageContent() {
         </div>
 
         {/* Modern Solutions Section */}
-        <section className="mb-12 md:mb-20 relative z-10 bg-gradient-to-br from-zinc-900/50 via-purple-900/10 to-zinc-900/50 
-        rounded-xl md:rounded-2xl p-4 md:p-8 backdrop-blur-sm border border-white/5
-        transform perspective-1000 hover:scale-[1.02] hover:rotate-1 transition-all duration-500
-        hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 mx-4 md:mx-0">
-          <div className="grid md:grid-cols-2 gap-6 md:gap-12 items-start md:items-center">
-            <div className="space-y-4 md:space-y-6">
-              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-white to-purple-200 bg-clip-text text-transparent leading-tight">
-                Modern Solutions for Modern Businesses
-              </h2>
-              <p className="text-gray-300 text-sm md:text-lg">
-                We create cutting-edge digital solutions that help businesses thrive in the modern world. 
-                Our expertise spans across various technologies and platforms.
-              </p>
-              <ul className="space-y-3 md:space-y-4">
-                {["Responsive Web Applications", "E-commerce Solutions", "Custom CMS Development"].map((item, index) => (
-                  <li key={index} className="flex items-center gap-2 md:gap-3 group">
-                    <span className="text-purple-400 transform group-hover:scale-110 transition-transform text-base md:text-lg">✓</span>
-                    <span className="group-hover:translate-x-1 transition-transform text-gray-300 group-hover:text-white text-sm md:text-base">{item}</span>
-                  </li>
+        <section className="mb-8 md:mb-20 relative z-10 bg-gradient-to-br from-zinc-900/50 via-purple-900/10 to-zinc-900/50 
+        rounded-lg md:rounded-2xl p-4 md:p-8 backdrop-blur-sm border border-white/5
+        transition-all duration-300 ease-in-out
+        hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/20 mx-2 md:mx-0">
+          <div className="grid md:grid-cols-2 gap-4 md:gap-12 items-start md:items-center">
+            <div className="space-y-4 md:space-y-8">
+              <div className="space-y-3 md:space-y-4">
+                <div className="relative inline-block">
+                  <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent leading-tight mb-2
+                    animate-fade-in-up tracking-tight">
+                    NEX-WEBS
+                  </h2>
+                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-xl opacity-75"></div>
+                </div>
+                <h3 className="text-xl sm:text-2xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent leading-tight">
+                  Modern Solutions for Modern Businesses
+                </h3>
+                <p className="text-sm sm:text-base md:text-lg text-gray-400 max-w-xl">
+                  Empowering your digital transformation with cutting-edge solutions.
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3 md:gap-4">
+                {[
+                  {
+                    title: "Web Development Excellence",
+                    description: "Custom solutions built with modern frameworks and best practices",
+                    icon: "🚀"
+                  },
+                  {
+                    title: "E-commerce Innovation",
+                    description: "Scalable and secure online shopping experiences",
+                    icon: "🛍️"
+                  },
+                  {
+                    title: "Digital Transformation",
+                    description: "End-to-end solutions for business modernization",
+                    icon: "💡"
+                  }
+                ].map((item, index) => (
+                  <div 
+                    key={index}
+                    className="group p-3 md:p-4 bg-black/20 rounded-lg border border-white/5 
+                    transition-all duration-500 ease-in-out
+                    hover:border-purple-500/30 hover:bg-purple-900/10 hover:translate-x-1
+                    hover:shadow-lg hover:shadow-purple-500/10"
+                  >
+                    <div className="flex items-start gap-3 md:gap-4">
+                      <span className="text-xl md:text-2xl transition-all duration-500 group-hover:scale-110 group-hover:rotate-12">
+                        {item.icon}
+                      </span>
+                      <div className="space-y-0.5 md:space-y-1">
+                        <h3 className="text-base md:text-lg font-semibold text-white transition-colors duration-300 group-hover:text-purple-300">
+                          {item.title}
+                        </h3>
+                        <p className="text-xs md:text-sm text-gray-400 transition-colors duration-300 group-hover:text-gray-300">
+                          {item.description}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </div>
-            <div className="relative group mt-6 md:mt-0">
-              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-2xl md:blur-3xl group-hover:blur-2xl transition-all"></div>
-              <div className="relative bg-zinc-900/50 p-3 md:p-4 rounded-lg md:rounded-xl border border-purple-500/10 transform hover:scale-105 transition-all duration-300 hover:border-purple-500/30">
-                <div className="aspect-video rounded-lg overflow-hidden flex items-center justify-center relative">
-                  {/* Improved Background Gradients */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-purple-900/30 via-transparent to-blue-900/30"></div>
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(139,92,246,0.1),transparent_60%)]"></div>
-                  
-                  {/* Main Content Container */}
-                  <div className="relative z-10 text-center space-y-4 md:space-y-8 p-4 md:p-8">
-                    {/* Main Title with Clean 3D Effect */}
-                    <div className="relative">
-                      <h3 className="text-3xl md:text-6xl font-bold tracking-tight inline-block
-                        [text-shadow:_0_1px_0_rgb(255_255_255_/_60%),_0_2px_0_rgb(255_255_255_/_40%),_0_3px_0_rgb(255_255_255_/_30%),_0_4px_0_rgb(255_255_255_/_20%),_0_8px_8px_rgba(0,0,0,0.3)]
-                        bg-gradient-to-b from-white via-white to-purple-200 bg-clip-text text-transparent
-                        transform-gpu hover:scale-105 transition-transform duration-500
-                        animate-reveal"
+
+            <div className="relative mt-6 md:mt-0">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-2xl opacity-60"></div>
+              <div className="relative bg-zinc-900/70 p-4 md:p-6 rounded-lg md:rounded-xl border border-purple-500/20 overflow-hidden
+                transition-all duration-500 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20">
+                <div className="relative z-10 space-y-4 md:space-y-6">
+                  {/* Stats Grid */}
+                  <div className="grid grid-cols-2 gap-2 md:gap-4">
+                    {[
+                      { label: "Projects Delivered", value: "200+" },
+                      { label: "Client Satisfaction", value: "98%" },
+                      { label: "Team Experts", value: "20+" },
+                      { label: "Years Experience", value: "5+" }
+                    ].map((stat, index) => (
+                      <div 
+                        key={index}
+                        className="p-2 md:p-4 bg-black/30 rounded-lg border border-purple-500/10 
+                        transition-all duration-500 hover:border-purple-500/30 hover:translate-y-[-2px]
+                        hover:shadow-lg hover:shadow-purple-500/20"
                       >
-                        NEX-WEBS
-                      </h3>
-                      {/* Subtle Glow Effect */}
-                      <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-xl md:blur-2xl opacity-50 group-hover:opacity-75 transition-opacity"></div>
-                    </div>
+                        <div className="text-lg md:text-2xl font-bold text-white mb-0.5 md:mb-1">{stat.value}</div>
+                        <div className="text-xs md:text-sm text-gray-400">{stat.label}</div>
+                      </div>
+                    ))}
+                  </div>
 
-                    {/* Tagline with Refined Animation */}
-                    <h4 className="text-lg md:text-2xl font-semibold inline-block
-                      bg-gradient-to-r from-purple-200 via-white to-purple-200 bg-clip-text text-transparent
-                      [text-shadow:_0_2px_4px_rgba(0,0,0,0.3)]
-                      transform-gpu hover:scale-105 transition-transform duration-500
-                      animate-typing"
-                    >
-                      "Elevate Your Online Presence."
-                    </h4>
-
-                    {/* Services List with Clean Typography */}
-                    <div className="flex flex-wrap justify-center gap-2 md:gap-x-4 text-sm md:text-lg
-                      text-purple-100/90 font-medium tracking-wide overflow-hidden"
-                    >
-                      <span className="animate-reveal">Web Development</span>
-                      <span className="hidden md:inline animate-reveal-delay-1">•</span>
-                      <span className="animate-reveal-delay-1">Design</span>
-                      <span className="hidden md:inline animate-reveal-delay-1">•</span>
-                      <span className="animate-reveal-delay-2">Innovation</span>
-                    </div>
-
-                    {/* Subtitle with Subtle Animation */}
-                    <p className="text-sm md:text-lg text-gray-300
-                      tracking-wide font-medium max-w-2xl mx-auto
-                      [text-shadow:_0_1px_2px_rgba(0,0,0,0.3)]
-                      animate-reveal-delay-2"
-                    >
-                      Transforming Ideas into Digital Excellence
-                    </p>
-
-                    {/* Refined Floating Elements - Show only on larger screens */}
-                    <div className="absolute inset-0 pointer-events-none overflow-hidden hidden md:block">
-                      <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 md:w-2 md:h-2 bg-purple-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute bottom-1/4 right-1/4 w-1.5 h-1.5 md:w-2 md:h-2 bg-blue-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute top-1/2 left-1/3 w-1 h-1 md:w-1.5 md:h-1.5 bg-pink-400/40 rounded-full animate-float-smooth"></div>
-                      <div className="absolute bottom-1/3 right-1/3 w-1 h-1 md:w-1.5 md:h-1.5 bg-purple-400/40 rounded-full animate-float-smooth"></div>
+                  {/* Technologies */}
+                  <div className="space-y-2 md:space-y-3">
+                    <h4 className="text-base md:text-lg font-semibold text-white">Technologies We Excel In</h4>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
+                      {[
+                        "React", "Next.js", "Node.js", "TypeScript",
+                        "Python", "AWS", "Docker", "MongoDB"
+                      ].map((tech, index) => (
+                        <span 
+                          key={index}
+                          className="px-2 md:px-3 py-0.5 md:py-1 text-xs md:text-sm bg-purple-500/10 rounded-full border border-purple-500/20
+                          transition-all duration-300 hover:bg-purple-500/20 hover:border-purple-500/30
+                          hover:translate-y-[-2px] hover:shadow-sm hover:shadow-purple-500/30"
+                        >
+                          {tech}
+                        </span>
+                      ))}
                     </div>
                   </div>
                 </div>
 
-                {/* Refined Border Elements - Adjust sizes for mobile */}
-                <div className="absolute -top-3 md:-top-6 -left-3 md:-left-6 w-8 md:w-12 h-8 md:h-12 border-t-[1px] border-l-[1px] border-purple-500/30 rounded-tl-2xl"></div>
-                <div className="absolute -bottom-3 md:-bottom-6 -right-3 md:-right-6 w-8 md:w-12 h-8 md:h-12 border-b-[1px] border-r-[1px] border-purple-500/30 rounded-br-2xl"></div>
-                <div className="absolute -top-3 md:-top-6 -right-3 md:-right-6 w-8 md:w-12 h-8 md:h-12 border-t-[1px] border-r-[1px] border-blue-500/20 rounded-tr-2xl"></div>
-                <div className="absolute -bottom-3 md:-bottom-6 -left-3 md:-left-6 w-8 md:w-12 h-8 md:h-12 border-b-[1px] border-l-[1px] border-blue-500/20 rounded-bl-2xl"></div>
+                {/* Decorative Elements */}
+                <div className="absolute top-0 right-0 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-br from-purple-500/20 to-transparent rounded-full blur-2xl"></div>
+                <div className="absolute bottom-0 left-0 w-24 md:w-32 h-24 md:h-32 bg-gradient-to-tr from-blue-500/20 to-transparent rounded-full blur-2xl"></div>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Testimonials Section with 3D effects */}
-        <section>
-          <h2 className="text-3xl font-bold text-center mb-8">Client Testimonials</h2>
-          <div className="grid md:grid-cols-3 gap-8">
+        {/* Testimonials Section with updated animations */}
+        <section className="px-2 md:px-0">
+          <h2 className="text-2xl md:text-3xl font-bold text-center mb-6 md:mb-8">Client Testimonials</h2>
+          <div className="grid sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-8">
             {testimonials.map((testimonial, index) => (
               <div key={index} 
-                className="bg-zinc-900/50 p-6 rounded-xl backdrop-blur-sm
-                transform perspective-1000 hover:scale-105 hover:rotate-2
-                transition-all duration-500 hover:shadow-lg hover:shadow-purple-500/20
+                className="bg-zinc-900/50 p-4 md:p-6 rounded-lg md:rounded-xl backdrop-blur-sm
+                transition-all duration-500 ease-in-out
+                hover:shadow-lg hover:shadow-purple-500/20 hover:translate-y-[-4px]
                 border border-white/5 hover:border-purple-500/30">
-                <div className="flex items-center gap-4 mb-4">
-                  <div className="w-12 h-12 rounded-full bg-purple-500/20 
-                    transform group-hover:rotate-12 transition-transform duration-500" />
+                <div className="flex items-center gap-3 md:gap-4 mb-3 md:mb-4">
+                  <div className="w-10 h-10 md:w-12 md:h-12 rounded-full bg-purple-500/20 
+                    transition-all duration-500 hover:bg-purple-500/30" />
                   <div>
-                    <h4 className="font-semibold">{testimonial.name}</h4>
-                    <p className="text-sm text-gray-400">{testimonial.role}</p>
+                    <h4 className="text-sm md:text-base font-semibold">{testimonial.name}</h4>
+                    <p className="text-xs md:text-sm text-gray-400">{testimonial.role}</p>
                   </div>
                 </div>
-                <p className="text-gray-300">{testimonial.content}</p>
+                <p className="text-sm md:text-base text-gray-300">{testimonial.content}</p>
               </div>
             ))}
           </div>

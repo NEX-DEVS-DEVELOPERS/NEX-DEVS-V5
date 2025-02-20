@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaBitcoin, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 
 interface InvoiceDetails {
@@ -76,12 +76,14 @@ const mobileWallets = [
 ];
 
 const paymentMethods = [
-  { id: 'credit-card', icon: FaCreditCard, label: 'Credit Card' },
+  { id: 'credit-card', icon: FaCreditCard, label: 'Credit/Debit Card' },
+  { id: 'american-express', icon: FaCreditCard, label: 'American Express' },
   { id: 'bank-transfer', icon: FaUniversity, label: 'Bank Transfer' },
   { id: 'jazzcash', icon: FaMobileAlt, label: 'JazzCash' },
   { id: 'easypaisa', icon: FaMobileAlt, label: 'Easypaisa' },
   { id: 'paypal', icon: FaPaypal, label: 'PayPal' },
-  { id: 'crypto', icon: FaBitcoin, label: 'Cryptocurrency' },
+  { id: 'apple-pay', icon: FaApplePay, label: 'Apple Pay' },
+  { id: 'google-pay', icon: FaGooglePay, label: 'Google Pay' }
 ];
 
 function CheckoutPageContent() {
@@ -91,6 +93,8 @@ function CheckoutPageContent() {
   const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
   const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [showMessage, setShowMessage] = useState(false);
+  const [buttonShake, setButtonShake] = useState(false);
   const [editedDetails, setEditedDetails] = useState({
     name: '',
     email: '',
@@ -867,29 +871,29 @@ function CheckoutPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white py-20 px-4 sm:px-6">
+    <main className="min-h-screen bg-black text-white py-8 px-4 sm:py-20 sm:px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <button 
             onClick={() => router.back()}
-            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors text-sm sm:text-base"
+            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors text-sm"
           >
             <span>← Back</span>
           </button>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Left Column - Payment Details */}
-          <div className="space-y-4 md:space-y-8">
-            <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              <h2 className="text-xl md:text-2xl font-bold mb-4 md:mb-6">Payment Method</h2>
+          <div className="space-y-6">
+            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Payment Method</h2>
               
-              <div className="space-y-4">
+              <div className="grid gap-3 sm:gap-4">
                 {paymentMethods.map(({ id, icon: Icon, label }) => (
                   <div
                     key={id}
-                    className={`p-4 rounded-lg border cursor-pointer transition-all duration-300 ${
+                    className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all duration-300 ${
                       paymentMethod === id
                         ? 'border-purple-500 bg-purple-500/10'
                         : 'border-white/10 hover:border-white/30'
@@ -897,8 +901,8 @@ function CheckoutPageContent() {
                     onClick={() => setPaymentMethod(id)}
                   >
                     <div className="flex items-center space-x-3">
-                      <Icon className="w-6 h-6" />
-                      <span>{label}</span>
+                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+                      <span className="text-sm sm:text-base">{label}</span>
                     </div>
                   </div>
                 ))}
@@ -907,115 +911,173 @@ function CheckoutPageContent() {
 
             {/* Bank Transfer Details */}
             {paymentMethod === 'bank-transfer' && (
-              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Bank Account Details</h3>
-                <div className="space-y-4 md:space-y-6">
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h3 className="text-lg font-bold mb-4">Bank Account Details</h3>
+                <div className="space-y-4">
                   {pakistaniBanks.map((bank, index) => (
-                    <div key={index} className="p-3 md:p-4 rounded-lg border border-white/10 space-y-2">
-                      <div className="flex justify-between items-center">
-                        <h4 className="font-semibold text-base md:text-lg">{bank.bank}</h4>
+                    <div key={index} className="p-3 sm:p-4 rounded-lg border border-white/10 space-y-2">
+                      <div className="flex justify-between items-center flex-wrap gap-2">
+                        <h4 className="font-semibold text-base">{bank.bank}</h4>
                         <button 
                           onClick={() => navigator.clipboard.writeText(bank.accountNumber)}
-                          className="text-xs md:text-sm text-purple-400 hover:text-purple-300"
+                          className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded"
                         >
                           Copy
                         </button>
                       </div>
-                      <div className="space-y-1 text-xs md:text-sm">
-                        <p><span className="text-gray-400">Account Title:</span> {bank.accountTitle}</p>
-                        <p><span className="text-gray-400">Account Number:</span> {bank.accountNumber}</p>
-                        <p><span className="text-gray-400">IBAN:</span> {bank.iban}</p>
+                      <div className="space-y-1.5 text-sm">
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span className="text-gray-400">Account Title:</span>
+                          <span className="font-medium">{bank.accountTitle}</span>
+                        </p>
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span className="text-gray-400">Account Number:</span>
+                          <span className="font-medium">{bank.accountNumber}</span>
+                        </p>
+                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                          <span className="text-gray-400">IBAN:</span>
+                          <span className="font-medium break-all">{bank.iban}</span>
+                        </p>
                       </div>
                     </div>
                   ))}
-                  <p className="text-xs md:text-sm text-yellow-400 mt-4">
-                    Please send your payment proof to support@nexwebs.com after making the transfer
-                  </p>
                 </div>
               </div>
             )}
 
             {/* Mobile Wallet Details */}
             {(paymentMethod === 'jazzcash' || paymentMethod === 'easypaisa') && (
-              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h3 className="text-lg font-bold mb-4">
                   {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} Details
                 </h3>
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-4">
                   {mobileWallets
                     .filter(wallet => wallet.name.toLowerCase() === paymentMethod)
                     .map((wallet, index) => (
-                      <div key={index} className="p-3 md:p-4 rounded-lg border border-white/10 space-y-2">
-                        <div className="flex justify-between items-center">
-                          <h4 className="font-semibold text-base md:text-lg">{wallet.name}</h4>
+                      <div key={index} className="p-3 sm:p-4 rounded-lg border border-white/10 space-y-2">
+                        <div className="flex justify-between items-center flex-wrap gap-2">
+                          <h4 className="font-semibold text-base">{wallet.name}</h4>
                           <button 
                             onClick={() => navigator.clipboard.writeText(wallet.number)}
-                            className="text-xs md:text-sm text-purple-400 hover:text-purple-300"
+                            className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded"
                           >
                             Copy Number
                           </button>
                         </div>
-                        <div className="space-y-1 text-xs md:text-sm">
-                          <p><span className="text-gray-400">Account Title:</span> {wallet.accountTitle}</p>
-                          <p><span className="text-gray-400">Number:</span> {wallet.number}</p>
+                        <div className="space-y-1.5 text-sm">
+                          <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-gray-400">Account Title:</span>
+                            <span className="font-medium">{wallet.accountTitle}</span>
+                          </p>
+                          <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-gray-400">Number:</span>
+                            <span className="font-medium">{wallet.number}</span>
+                          </p>
                         </div>
                       </div>
                     ))}
-                  <div className="mt-4 space-y-2">
-                    <p className="text-xs md:text-sm text-yellow-400">
+                  <div className="mt-4 space-y-3">
+                    <p className="text-sm text-yellow-400 font-medium">
                       Please follow these steps:
                     </p>
-                    <ol className="text-xs md:text-sm text-gray-300 list-decimal list-inside space-y-1">
-                      <li>Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
-                      <li>Select "Send Money"</li>
-                      <li>Enter the number shown above</li>
-                      <li>Enter amount: PKR ${invoice?.total}</li>
-                      <li>Complete the transaction</li>
-                      <li>Send the transaction ID to support@nexwebs.com</li>
+                    <ol className="text-sm text-gray-300 list-decimal list-inside space-y-2">
+                      <li className="pl-2">Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
+                      <li className="pl-2">Select "Send Money"</li>
+                      <li className="pl-2">Enter the number shown above</li>
+                      <li className="pl-2">Enter amount: PKR {invoice?.total.toLocaleString()}</li>
+                      <li className="pl-2">Complete the transaction</li>
+                      <li className="pl-2">Send the transaction ID to support@nexwebs.com</li>
                     </ol>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* Existing Credit Card Form */}
-            {paymentMethod === 'credit-card' && (
-              <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-lg md:text-xl font-bold mb-3 md:mb-4">Card Details</h3>
+            {/* Credit Card Form */}
+            {(paymentMethod === 'credit-card' || paymentMethod === 'american-express') && (
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                  <h3 className="text-lg font-bold">Card Details</h3>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                      VISA
+                    </div>
+                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                      MASTERCARD
+                    </div>
+                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                      AMEX
+                    </div>
+                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                      DISCOVER
+                    </div>
+                  </div>
+                </div>
                 <form className="space-y-4">
                   <div>
-                    <label className="block text-xs md:text-sm font-medium mb-2">Card Number</label>
-                    <input
-                      type="text"
-                      className="w-full px-3 md:px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
-                      placeholder="1234 5678 9012 3456"
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs md:text-sm font-medium mb-2">Expiry Date</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-2">Card Number</label>
+                    <div className="relative">
                       <input
                         type="text"
-                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
+                        className="w-full px-3 sm:px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base pl-10"
+                        placeholder="1234 5678 9012 3456"
+                      />
+                      <FaCreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <div className="text-xs font-mono text-gray-400 tracking-wider">
+                          {paymentMethod === 'american-express' ? 'AMEX' : 'CARD'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="col-span-2">
+                      <label className="block text-xs sm:text-sm font-medium mb-2">Expiry Date</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
                         placeholder="MM/YY"
                       />
                     </div>
                     <div>
-                      <label className="block text-xs md:text-sm font-medium mb-2">CVV</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
-                        placeholder="123"
-                      />
+                      <label className="block text-xs sm:text-sm font-medium mb-2">CVV</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
+                          placeholder={paymentMethod === 'american-express' ? '4DIG' : 'CVV'}
+                          maxLength={paymentMethod === 'american-express' ? 4 : 3}
+                        />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-help group">
+                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-xs text-gray-300 rounded-lg">
+                            {paymentMethod === 'american-express' 
+                              ? '4 digits on the front of your card'
+                              : '3 digits on the back of your card'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs md:text-sm font-medium mb-2">Name on Card</label>
+                    <label className="block text-xs sm:text-sm font-medium mb-2">Name on Card</label>
                     <input
                       type="text"
-                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm md:text-base"
+                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
                       placeholder="John Doe"
                     />
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2 text-xs text-gray-400">
+                      <FaLock className="w-3 h-3" />
+                      <span>Secured with encryption</span>
+                    </div>
+                    <div className="text-xs text-purple-400">
+                      Powered by NEX-WEBS
+                    </div>
                   </div>
                 </form>
               </div>
@@ -1025,7 +1087,7 @@ function CheckoutPageContent() {
               <label className="block text-sm font-medium mb-2">Project Timeline</label>
               <select
                 name="timeline"
-                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                className="w-full px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm"
                 onChange={(e) => {
                   if (invoice) {
                     generateInvoice(invoice.package);
@@ -1040,51 +1102,51 @@ function CheckoutPageContent() {
           </div>
 
           {/* Right Column - Invoice & Summary */}
-          <div className="space-y-8">
+          <div className="space-y-6">
             {invoice && (
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5"
+                className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5"
               >
-                <div className="flex justify-between items-center mb-4 md:mb-6">
-                  <h2 className="text-xl md:text-2xl font-bold">Invoice Details</h2>
+                <div className="flex justify-between items-center mb-4 sm:mb-6">
+                  <h2 className="text-lg sm:text-xl font-bold">Invoice Details</h2>
                   <div className="flex gap-2">
                     <button
                       onClick={() => downloadInvoice(invoice)}
-                      className="flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs md:text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     >
-                      <FaDownload className="w-3 h-3 md:w-4 md:h-4" />
+                      <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Download</span>
                     </button>
                     <button
                       onClick={() => window.print()}
-                      className="flex items-center gap-2 px-2 md:px-3 py-1 md:py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs md:text-sm font-medium transition-colors"
+                      className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     >
-                      <FaFilePdf className="w-3 h-3 md:w-4 md:h-4" />
+                      <FaFilePdf className="w-3 h-3 sm:w-4 sm:h-4" />
                       <span>Print</span>
                     </button>
                   </div>
                 </div>
 
-                <div className="space-y-4 md:space-y-6">
+                <div className="space-y-4 sm:space-y-6">
                   {/* Company and Invoice Info */}
-                  <div className="grid md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
                     <div>
-                      <h3 className="text-lg md:text-xl font-bold mb-2">NEX-WEBS</h3>
-                      <p className="text-xs md:text-sm text-gray-400">Professional Web Development Services</p>
-                      <p className="text-xs md:text-sm text-gray-400">support@nexwebs.com</p>
+                      <h3 className="text-sm sm:text-base font-bold mb-2">NEX-WEBS</h3>
+                      <p className="text-xs sm:text-sm text-gray-400">Professional Web Development Services</p>
+                      <p className="text-xs sm:text-sm text-gray-400">support@nexwebs.com</p>
                     </div>
                     <div className="space-y-2">
-                      <div className="flex justify-between text-xs md:text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-400">Invoice Number:</span>
                         <span className="font-medium">{invoice.invoiceNumber}</span>
                       </div>
-                      <div className="flex justify-between text-xs md:text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-400">Date:</span>
                         <span>{invoice.date}</span>
                       </div>
-                      <div className="flex justify-between text-xs md:text-sm">
+                      <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-400">Due Date:</span>
                         <span>{invoice.dueDate}</span>
                       </div>
@@ -1114,7 +1176,7 @@ function CheckoutPageContent() {
                     
                     {isEditing ? (
                       <div className="space-y-4">
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Name</label>
                             <input
@@ -1136,7 +1198,7 @@ function CheckoutPageContent() {
                             />
                           </div>
                         </div>
-                        <div className="grid md:grid-cols-2 gap-4">
+                        <div className="grid sm:grid-cols-2 gap-4">
                           <div>
                             <label className="block text-sm font-medium mb-2">Phone</label>
                             <input
@@ -1185,7 +1247,7 @@ function CheckoutPageContent() {
                         </div>
                       </div>
                     ) : (
-                      <div className="grid md:grid-cols-2 gap-4 text-sm">
+                      <div className="grid sm:grid-cols-2 gap-4 text-sm">
                         <div>
                           <p><span className="text-gray-400">Name:</span> {invoice?.billingDetails?.name}</p>
                           <p><span className="text-gray-400">Email:</span> {invoice?.billingDetails?.email}</p>
@@ -1194,7 +1256,7 @@ function CheckoutPageContent() {
                           <p><span className="text-gray-400">Phone:</span> {invoice?.billingDetails?.phone}</p>
                           <p><span className="text-gray-400">Address:</span> {invoice?.billingDetails?.address}</p>
                         </div>
-                        <div className="md:col-span-2">
+                        <div className="sm:col-span-2">
                           <p><span className="text-gray-400">Timeline:</span> <span className="text-purple-400">{invoice?.timeline}</span></p>
                         </div>
                       </div>
@@ -1266,7 +1328,7 @@ function CheckoutPageContent() {
                   </div>
 
                   {/* Payment Instructions */}
-                  <div className="border-t border-white/10 pt-4 text-xs md:text-sm text-gray-400">
+                  <div className="border-t border-white/10 pt-4 text-xs sm:text-sm text-gray-400">
                     <p className="font-medium text-yellow-400 mb-2">Payment Instructions:</p>
                     <ul className="list-disc list-inside space-y-1">
                       <li>Please make the payment within 7 days of invoice date</li>
@@ -1278,17 +1340,248 @@ function CheckoutPageContent() {
               </motion.div>
             )}
 
-            <div className="bg-zinc-900/50 p-4 md:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              <button
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors flex items-center justify-center space-x-2 text-sm md:text-base"
-                onClick={() => {/* Handle payment */}}
-              >
-                <FaLock className="w-3 h-3 md:w-4 md:h-4" />
-                <span>Pay Now</span>
-              </button>
-              <p className="text-xs md:text-sm text-gray-400 text-center mt-3 md:mt-4">
-                Your payment is secured with SSL encryption
-              </p>
+            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+              {/* Payment Note */}
+              <div className="space-y-4">
+                {/* Contact Information Section */}
+                <div className="p-5 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-lg border border-purple-500/20">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                    </svg>
+                    <div className="space-y-3 flex-1">
+                      <div>
+                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Our Support Team Is Here For You</h4>
+                        <p className="text-sm text-gray-300 leading-relaxed mb-4">
+                          Be patient, here's our contact information:
+                        </p>
+                      </div>
+                      <div className="flex flex-col space-y-4">
+                        <div className="flex flex-wrap items-center gap-4">
+                          {['03089080171', '03098795492', '03292425950'].map((number, index) => (
+                            <div 
+                              key={index} 
+                              className="flex items-center space-x-2 bg-black/20 px-4 py-2 rounded-lg"
+                            >
+                              <svg className="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                              </svg>
+                              <span className="text-sm font-medium text-white tracking-wider whitespace-nowrap">{number}</span>
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(number);
+                                  const button = document.getElementById(`copy-btn-${index}`);
+                                  if (button) {
+                                    button.textContent = 'Copied!';
+                                    button.classList.add('bg-green-500/20', 'text-green-400');
+                                    setTimeout(() => {
+                                      button.textContent = 'Copy';
+                                      button.classList.remove('bg-green-500/20', 'text-green-400');
+                                    }, 2000);
+                                  }
+                                }}
+                                id={`copy-btn-${index}`}
+                                className="ml-2 text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 rounded-md transition-all duration-300"
+                              >
+                                Copy
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                        <div className="flex items-center space-x-2 text-sm text-yellow-200/80 bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3">
+                          <svg className="w-4 h-4 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <span>Please call one time after you've completed the payment to confirm your order</span>
+                        </div>
+                        <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3">
+                          <div className="flex items-center space-x-2 text-sm text-gray-300">
+                            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span>Our workers are always ready to assist you 24/7</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <style jsx global>{`
+                        @media (max-width: 768px) {
+                          .flex-wrap {
+                            justify-content: center;
+                          }
+                          
+                          .flex-wrap > div {
+                            width: 100%;
+                            justify-content: space-between;
+                          }
+                        }
+
+                        @keyframes copySuccess {
+                          0% { transform: scale(1); }
+                          50% { transform: scale(1.1); }
+                          100% { transform: scale(1); }
+                        }
+                      `}</style>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <div className="flex items-start space-x-3">
+                      <svg className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      <p className="text-sm text-yellow-200/80">
+                        Since Stripe isn't available in Pakistan, we are actively working on implementing new secure payment methods. Meanwhile, we offer several trusted local payment options for your convenience.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="p-5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                  <div className="flex items-start space-x-3">
+                    <svg className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                    </svg>
+                    <div className="space-y-4 flex-1">
+                      <div>
+                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Payment Instructions</h4>
+                        <p className="text-sm text-gray-300 leading-relaxed">
+                          Please follow these steps to complete your payment:
+                        </p>
+                      </div>
+
+                      <div className="space-y-4">
+                        <div className="bg-black/20 rounded-lg p-3">
+                          <h5 className="text-sm font-medium text-purple-400 mb-2">Step 1: Choose Payment Method</h5>
+                          <ul className="space-y-2 text-sm text-gray-300">
+                            <li className="flex items-start space-x-2">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></span>
+                              <span><span className="text-purple-400 font-medium">Bank Transfer:</span> Use any of our bank accounts (HBL, Meezan Bank, or UBL)</span>
+                            </li>
+                            <li className="flex items-start space-x-2">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></span>
+                              <span><span className="text-purple-400 font-medium">Mobile Wallets:</span> JazzCash (0300-1234567) or Easypaisa (0333-7654321)</span>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <div className="bg-black/20 rounded-lg p-3">
+                          <h5 className="text-sm font-medium text-purple-400 mb-2">Step 2: Send Confirmation</h5>
+                          <p className="text-sm text-gray-300 mb-2">
+                            After payment, please send the following to{' '}
+                            <span className="text-purple-400 font-medium">support.nexweb@gmail.com</span>:
+                          </p>
+                          <ul className="space-y-2 text-sm text-gray-300">
+                            <li className="flex items-center space-x-2">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                              <span>Payment screenshot/confirmation</span>
+                            </li>
+                            <li className="flex items-center space-x-2">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                              <span>Copy of your invoice</span>
+                            </li>
+                            <li className="flex items-center space-x-2">
+                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
+                              <span>Your invoice number: {invoice?.invoiceNumber}</span>
+                            </li>
+                          </ul>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-gray-400 bg-white/5 p-3 rounded-lg">
+                        <strong className="text-purple-400">Note:</strong> Your project development will begin immediately after payment confirmation. We'll send you a confirmation email with next steps within 24 hours.
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-4 relative">
+                {showMessage && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: -20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 20 }}
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
+                  >
+                    <motion.div
+                      initial={{ scale: 0.95 }}
+                      animate={{ scale: 1 }}
+                      className="bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 rounded-xl shadow-2xl border border-purple-500/20 max-w-md w-full mx-4"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="bg-purple-500/10 p-3 rounded-lg">
+                          <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-white mb-2">Payment Method Unavailable</h3>
+                          <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                            Direct card payments are currently unavailable in Pakistan. Please use our secure local payment options listed above.
+                          </p>
+                          <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3 mb-4">
+                            <h4 className="text-sm font-medium text-purple-400 mb-2">Available Payment Methods:</h4>
+                            <ul className="text-sm text-gray-300 space-y-1">
+                              <li className="flex items-center space-x-2">
+                                <FaUniversity className="w-4 h-4 text-purple-400" />
+                                <span>Bank Transfer</span>
+                              </li>
+                              <li className="flex items-center space-x-2">
+                                <FaMobileAlt className="w-4 h-4 text-purple-400" />
+                                <span>JazzCash / Easypaisa</span>
+                              </li>
+                            </ul>
+                          </div>
+                          <div className="flex justify-end space-x-3">
+                            <motion.button
+                              whileHover={{ scale: 1.02, backgroundColor: 'rgb(139, 92, 246)' }}
+                              whileTap={{ scale: 0.98 }}
+                              onClick={() => setShowMessage(false)}
+                              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
+                            >
+                              Use Local Payment Methods
+                            </motion.button>
+                          </div>
+                        </div>
+                      </div>
+                    </motion.div>
+                  </motion.div>
+                )}
+
+                <motion.button
+                  className={`w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
+                  onClick={() => {
+                    setButtonShake(true);
+                    setTimeout(() => setButtonShake(false), 500);
+                    setShowMessage(true);
+                  }}
+                  whileHover={{ 
+                    scale: 1.02,
+                    boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
+                  }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <FaLock className="w-3 h-3 sm:w-4 sm:h-4" />
+                  <span>Pay Now</span>
+                </motion.button>
+
+                <style jsx global>{`
+                  @keyframes shake {
+                    0%, 100% { transform: translateX(0); }
+                    25% { transform: translateX(-3px); }
+                    50% { transform: translateX(3px); }
+                    75% { transform: translateX(-3px); }
+                  }
+                  .animate-shake {
+                    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
+                  }
+                `}</style>
+
+                <p className="text-xs sm:text-sm text-gray-400 text-center mt-3 sm:mt-4">
+                  Your payment is secured with SSL encryption
+                </p>
+              </div>
             </div>
           </div>
         </div>

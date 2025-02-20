@@ -21,37 +21,47 @@ export default function MobileMenu() {
     closed: {
       scale: 0,
       opacity: 0,
-      borderRadius: '100%',
+      x: 30,
+      y: -50,
+      transformOrigin: 'top right',
       transition: {
-        type: "spring",
-        stiffness: 300,
-        damping: 30,
-        mass: 0.8
+        duration: 0.5,
+        ease: [0.32, 0.72, 0, 1]
       }
     },
     open: {
       scale: 1,
       opacity: 1,
-      borderRadius: '30px',
+      x: 0,
+      y: 0,
+      transformOrigin: 'top right',
       transition: {
         type: "spring",
-        stiffness: 80,
-        damping: 20,
-        mass: 1,
-        duration: 0.4
+        stiffness: 100,
+        damping: 25,
+        mass: 1.5
       }
     }
   }
 
   const itemVariants = {
-    closed: { x: -20, opacity: 0 },
+    closed: { 
+      x: -20, 
+      opacity: 0, 
+      transition: { 
+        duration: 0.5, 
+        ease: "easeInOut" 
+      } 
+    },
     open: (i: number) => ({
       x: 0,
       opacity: 1,
       transition: {
         delay: i * 0.1,
         type: "spring",
-        stiffness: 100,
+        stiffness: 60,
+        damping: 20,
+        mass: 1.2
       }
     })
   }
@@ -92,9 +102,9 @@ export default function MobileMenu() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
+            transition={{ duration: 0.15 }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 bg-purple-950/40 backdrop-blur-md z-40"
+            className="fixed inset-0 bg-purple-950/40 backdrop-blur-[2px] z-40"
           />
         )}
       </AnimatePresence>
@@ -106,7 +116,7 @@ export default function MobileMenu() {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-4 right-4 h-[50vh] w-[270px] rounded-[30px] bg-gradient-to-b from-purple-950/85 via-purple-900/80 to-purple-950/85 backdrop-blur-xl z-40 origin-top-right shadow-[-10px_0_30px_rgba(0,0,0,0.2)] overflow-hidden"
+            className="fixed top-4 right-4 h-[60vh] w-[280px] rounded-[30px] bg-gradient-to-b from-purple-950/90 via-purple-900/85 to-purple-950/90 backdrop-blur-md z-40 origin-right shadow-lg will-change-transform touch-manipulation"
           >
             <div className="flex flex-col justify-start h-full px-6 pt-12 pb-8">
               <div className="space-y-4 overflow-y-auto custom-scrollbar">

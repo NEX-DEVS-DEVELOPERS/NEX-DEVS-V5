@@ -72,20 +72,155 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+  
   html {
     scroll-behavior: smooth;
     height: 100%;
+    overflow-x: hidden;
+    scroll-padding-top: 80px;
+    position: relative;
+    width: 100%;
   }
+  
   body {
     @apply bg-background text-foreground;
     background-color: #000000 !important;
     color: white;
     min-height: 100vh;
+    height: 100%;
     display: flex;
     flex-direction: column;
-    position: relative;
+    position: fixed;
+    inset: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    width: 100%;
   }
+
+  #__next {
+    isolation: isolate;
+    position: relative;
+    width: 100%;
+    min-height: 100%;
+    overflow-x: clip;
+  }
+
+  main {
+    position: relative;
+    width: 100%;
+    flex: 1;
+    z-index: 1;
+  }
+
+  /* Lock body when modal is open */
+  body.modal-open {
+    overflow: hidden;
+    padding-right: var(--scrollbar-width);
+  }
+
+  /* Simple Scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(147, 51, 234, 0.2);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(147, 51, 234, 0.4);
+  }
+
+  /* Firefox scrollbar */
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(147, 51, 234, 0.2) transparent;
+  }
+}
+
+/* Simplified animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-10px); 
+  }
+}
+
+@keyframes float-delayed {
+  0%, 100% { 
+    transform: translateY(0); 
+  }
+  50% { 
+    transform: translateY(-8px); 
+  }
+}
+
+@keyframes float-slow {
+  0%, 100% { 
+    transform: translate(0, 0); 
+  }
+  50% { 
+    transform: translate(5px, -5px); 
+  }
+}
+
+@keyframes float-slower {
+  0%, 100% { 
+    transform: translate(0, 0); 
+  }
+  50% { 
+    transform: translate(-5px, -5px); 
+  }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Simplified utility classes */
+.transform-gpu {
+  transform: translateY(0);
+}
+
+.scroll-smooth {
+  scroll-behavior: smooth;
 }
 
 /* Custom utility classes for animations */
@@ -100,20 +235,22 @@
 @keyframes fadeIn {
   from {
     opacity: 0;
+    transform: translate3d(0, 0, 0);
   }
   to {
     opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
 @keyframes slideUp {
   from {
-    transform: translateY(20px);
     opacity: 0;
+    transform: translate3d(0, 20px, 0);
   }
   to {
-    transform: translateY(0);
     opacity: 1;
+    transform: translate3d(0, 0, 0);
   }
 }
 
@@ -328,9 +465,7 @@
 
 /* Optimize animations with transform-gpu */
 .transform-gpu {
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  perspective: 1000px;
+  transform: translate3d(0, 0, 0);
 }
 
 /* Refined keyframes */
@@ -502,4 +637,20 @@
 .hover\:shadow-purple-glow-sm:hover {
   box-shadow: 0 0 20px rgba(147, 51, 234, 0.25),
               0 0 40px rgba(147, 51, 234, 0.15);
+}
+
+/* Performance optimized animations */
+@layer utilities {
+  .transform-gpu {
+    transform: translate3d(0, 0, 0);
+  }
+
+  .will-change-transform {
+    will-change: transform;
+  }
+
+  .backface-hidden {
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
+  }
 }
