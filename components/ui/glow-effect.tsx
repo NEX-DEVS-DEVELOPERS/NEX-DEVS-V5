@@ -1,6 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
+import { useIsMobile } from '@/app/utils/deviceDetection'
 
 interface GlowEffectProps {
   color?: string
@@ -13,14 +14,16 @@ export const GlowEffect = ({
   blur = 100,
   className = ''
 }: GlowEffectProps) => {
+  const isMobile = useIsMobile();
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
-      animate={{ 
+      animate={isMobile ? { opacity: 0.4 } : { 
         opacity: [0.4, 0.6, 0.4],
         scale: [1, 1.1, 1],
       }}
-      transition={{
+      transition={isMobile ? { duration: 0 } : {
         duration: 5,
         repeat: Infinity,
         ease: "easeInOut"

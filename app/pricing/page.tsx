@@ -14,6 +14,13 @@ interface PricingPlan {
   timeline: string;
   bestFor: string[];
   includes: string[];
+  highlightFeatures: string[];
+  additionalInfo: {
+    support: string;
+    deployment: string;
+    maintenance: string;
+    revisions: string;
+  };
 }
 
 const pricingPlans: PricingPlan[] = [
@@ -46,7 +53,20 @@ const pricingPlans: PricingPlan[] = [
       "Basic Content Structure",
       "Mobile Usability Optimization",
       "5 Days Post-Launch Support"
-    ]
+    ],
+    highlightFeatures: [
+      "Complete Website Development",
+      "Mobile-First Responsive Design",
+      "Essential Premium Plugins",
+      "Basic SEO Implementation",
+      "Basic Security Setup"
+    ],
+    additionalInfo: {
+      support: "5 Days Post-Launch Support",
+      deployment: "Basic Hosting Setup",
+      maintenance: "Basic Updates",
+      revisions: "1 Round of Revisions"
+    }
   },
   {
     title: "WordPress Professional",
@@ -83,7 +103,20 @@ const pricingPlans: PricingPlan[] = [
       "Expertise Demonstration Setup",
       "Authority Building Features",
       "Advanced Analytics Integration"
-    ]
+    ],
+    highlightFeatures: [
+      "Premium Theme & Elementor Pro",
+      "Advanced Performance",
+      "Comprehensive SEO",
+      "Expert Author Profiles",
+      "Advanced Analytics"
+    ],
+    additionalInfo: {
+      support: "10 Days Post-Launch Support",
+      deployment: "Premium Hosting Setup",
+      maintenance: "Regular Updates",
+      revisions: "2 Rounds of Revisions"
+    }
   },
   {
     title: "WordPress Enterprise",
@@ -121,7 +154,20 @@ const pricingPlans: PricingPlan[] = [
       "Brand Entity Development",
       "Authority Site Architecture",
       "Comprehensive Analytics Suite"
-    ]
+    ],
+    highlightFeatures: [
+      "Unlimited Pages Development",
+      "Premium Theme Access",
+      "Enterprise SEO Suite",
+      "Multi-language Support",
+      "Advanced Security"
+    ],
+    additionalInfo: {
+      support: "1 Year Premium Support",
+      deployment: "Enterprise Hosting",
+      maintenance: "Priority Updates",
+      revisions: "3 Rounds of Revisions"
+    }
   },
   {
     title: "Full-Stack Basic",
@@ -134,7 +180,9 @@ const pricingPlans: PricingPlan[] = [
       "React/Next.js Frontend",
       "Node.js Backend",
       "MongoDB Database",
-      "Basic Deployment"
+      "Basic Deployment",
+      "3 Months Support",
+      "Basic SEO Setup"
     ],
     features: [
       "Modern React/Next.js Frontend",
@@ -146,8 +194,26 @@ const pricingPlans: PricingPlan[] = [
       "Basic SEO Setup",
       "Performance Optimization",
       "Security Best Practices",
-      "Basic Documentation"
-    ]
+      "Basic Documentation",
+      "User Management System",
+      "RESTful API Development",
+      "Form Handling & Validation",
+      "Error Handling & Logging",
+      "Basic Analytics Integration"
+    ],
+    highlightFeatures: [
+      "Modern React/Next.js Frontend",
+      "Node.js/Express Backend",
+      "MongoDB Database Setup",
+      "Basic User Authentication",
+      "Essential API Endpoints"
+    ],
+    additionalInfo: {
+      support: "3 Months Basic Support",
+      deployment: "Basic Server Setup",
+      maintenance: "Monthly Updates",
+      revisions: "2 Rounds of Revisions"
+    }
   },
   {
     title: "Full-Stack Professional",
@@ -173,7 +239,65 @@ const pricingPlans: PricingPlan[] = [
       "CI/CD Setup",
       "Performance Monitoring",
       "Detailed Documentation"
-    ]
+    ],
+    highlightFeatures: [
+      "Next.js/TypeScript Frontend",
+      "NestJS Backend",
+      "PostgreSQL with Prisma",
+      "Advanced Authentication",
+      "CI/CD Pipeline"
+    ],
+    additionalInfo: {
+      support: "6 Months Premium Support",
+      deployment: "Cloud Infrastructure Setup",
+      maintenance: "Bi-weekly Updates",
+      revisions: "3 Rounds of Revisions"
+    }
+  },
+  {
+    title: "Full-Stack Enterprise",
+    price: "PKR 100,000",
+    description: "Enterprise-grade full-stack solution with advanced features, microservices architecture, and comprehensive DevOps integration.",
+    icon: "👑",
+    timeline: "4-6 weeks",
+    bestFor: ["Large Enterprises", "High-Scale Applications", "Complex Systems", "Enterprise Solutions"],
+    includes: [
+      "Next.js Enterprise Setup",
+      "Microservices Architecture",
+      "Multi-Database Solution",
+      "DevOps Pipeline",
+      "24/7 Support"
+    ],
+    features: [
+      "Enterprise Next.js Architecture",
+      "Microservices Implementation",
+      "Multi-Database Integration",
+      "Advanced Security Features",
+      "Load Balancing Setup",
+      "Auto-Scaling Configuration",
+      "Comprehensive Monitoring",
+      "Performance Optimization",
+      "Advanced Caching System",
+      "CDN Integration",
+      "Disaster Recovery Plan",
+      "High Availability Setup",
+      "Enterprise Authentication",
+      "Advanced Analytics",
+      "24/7 Support Package"
+    ],
+    highlightFeatures: [
+      "Microservices Architecture",
+      "Multi-Database Integration",
+      "Load Balancing & Auto-Scaling",
+      "Advanced Security Suite",
+      "24/7 Support Package"
+    ],
+    additionalInfo: {
+      support: "1 Year Enterprise Support",
+      deployment: "Enterprise Cloud Setup",
+      maintenance: "Weekly Updates",
+      revisions: "Unlimited Revisions"
+    }
   },
   {
     title: "AI Agents/WebApps",
@@ -192,7 +316,20 @@ const pricingPlans: PricingPlan[] = [
       "API Development",
       "Machine Learning Pipeline",
       "Automated Workflows"
-    ]
+    ],
+    highlightFeatures: [
+      "AI Model Integration",
+      "Custom AI Solutions",
+      "Real-time Processing",
+      "Scalable Architecture",
+      "API Development"
+    ],
+    additionalInfo: {
+      support: "6 Months AI Support",
+      deployment: "AI Infrastructure Setup",
+      maintenance: "Model Updates",
+      revisions: "2 Rounds of Fine-tuning"
+    }
   },
   {
     title: "SEO/Content Writing",
@@ -228,7 +365,20 @@ const pricingPlans: PricingPlan[] = [
       "Content Performance Analysis",
       "Authority Metrics Tracking",
       "Semantic Content Structure"
-    ]
+    ],
+    highlightFeatures: [
+      "Semantic Keyword Research",
+      "E-E-A-T Content Strategy",
+      "Topic Authority Building",
+      "Content Quality Assurance",
+      "Performance Analysis"
+    ],
+    additionalInfo: {
+      support: "Ongoing Support",
+      deployment: "Content Calendar Setup",
+      maintenance: "Monthly Content Updates",
+      revisions: "2 Rounds per Content"
+    }
   }
 ];
 
@@ -283,9 +433,7 @@ export default function PricingPage() {
   }, [selectedPlan]);
 
   const handleGetStarted = (plan: PricingPlan) => {
-    // Encode the plan title to be URL-safe
     const encodedPlan = encodeURIComponent(plan.title);
-    // Navigate to contact page with the selected plan
     router.push(`/contact?plan=${encodedPlan}`);
   };
 
@@ -401,73 +549,80 @@ export default function PricingPage() {
               hover:scale-[1.02] hover:border-purple-500/70
               active:scale-[0.98] md:active:scale-[1.02]
               hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.2)]
-              relative touch-manipulation
-              before:absolute before:inset-0 before:rounded-xl before:bg-gradient-to-br
-              before:from-purple-500/5 before:to-purple-500/0
-              before:transition-opacity before:duration-500 before:ease-out
-              hover:before:opacity-100`}
-              onClick={() => setSelectedPlan(plan)}
+              relative touch-manipulation`}
             >
+              {/* Most Popular Badge */}
+              {(plan.title === "WordPress Enterprise" || 
+                plan.title === "Full-Stack Professional" || 
+                plan.title === "AI Agents/WebApps") && (
+                <div className="absolute -top-3 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-2 z-10">
+                  MOST POPULAR
+                </div>
+              )}
               <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm transition-colors duration-500 group-hover:text-purple-200">{plan.title}</h3>
-                <span className="text-2xl md:text-4xl transition-all duration-500 ease-out group-hover:scale-110 group-hover:rotate-[8deg]">{plan.icon}</span>
+                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
+                <span className="text-2xl md:text-4xl">{plan.icon}</span>
               </div>
-              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2 transition-colors duration-500 group-hover:text-purple-200">{plan.price}</p>
-              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4 transition-colors duration-500 group-hover:text-gray-300">Timeline: {plan.timeline}</p>
-              <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
+              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">{plan.price}</p>
+              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
+              
+              {/* Mobile View Additional Details */}
+              <div className="block md:hidden space-y-4 mb-4">
+                <div className="space-y-2">
+                  <p className="text-sm font-medium text-purple-300">Key Features:</p>
+                  <ul className="space-y-1.5">
+                    {plan.highlightFeatures.map((feature, i) => (
+                      <li key={i} className="flex items-start text-xs text-gray-300">
+                        <svg className="w-4 h-4 text-purple-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        {feature}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Desktop Features Preview */}
+              <ul className="hidden md:block text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
                 {plan.features.slice(0, 3).map((feature, i) => (
-                  <li 
-                    key={i} 
-                    className="flex items-start md:items-center text-sm md:text-base opacity-0 animate-fadeIn group-hover:text-gray-200"
-                    style={{ 
-                      animationDelay: `${i * 150}ms`, 
-                      animationFillMode: 'forwards',
-                      transition: 'all 0.5s ease-out',
-                      transform: `translateX(${hoveredPlan === plan.title ? '4px' : '0px'})`
-                    }}
-                  >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 mt-1 md:mt-0 flex-shrink-0 transition-colors duration-500 group-hover:text-purple-300" fill="currentColor" viewBox="0 0 20 20">
+                  <li key={i} className="flex items-center text-sm md:text-base">
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
                       <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                     </svg>
-                    <span className="leading-tight transition-all duration-500 ease-out">{feature}</span>
+                    {feature}
                   </li>
                 ))}
               </ul>
-              <div 
-                className="overflow-hidden transition-all duration-500 ease-out"
-                style={{
-                  maxHeight: hoveredPlan === plan.title ? '200px' : '0',
-                  opacity: hoveredPlan === plan.title ? 1 : 0,
-                  transform: `translateY(${hoveredPlan === plan.title ? '0' : '-10px'})`,
-                }}
-              >
-                <div className="border-t border-purple-500/20 pt-3 md:pt-4 mb-3 md:mb-4">
-                  <p className="text-purple-300 font-semibold text-sm md:text-base mb-2">Best For:</p>
-                  <div className="flex flex-wrap gap-1.5 md:gap-2">
-                    {plan.bestFor.map((item, i) => (
-                      <span 
-                        key={i} 
-                        className="text-[10px] md:text-xs bg-purple-500/10 text-purple-300 px-1.5 md:px-2 py-0.5 md:py-1 rounded
-                        transition-all duration-500 ease-out hover:bg-purple-500/20 hover:text-purple-200"
-                      >
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
+
+              {/* Action Buttons */}
+              <div className="flex flex-col sm:flex-row gap-2">
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setSelectedPlan(plan);
+                  }}
+                  className="flex-1 py-2 md:py-3 px-4 text-white bg-transparent border border-white/20 
+                    rounded-lg transition-all duration-300 hover:bg-white/5 hover:border-white/40
+                    font-semibold text-sm md:text-base"
+                >
+                  Learn More
+                </button>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleGetStarted(plan);
+                  }}
+                  className="flex-1 py-2 md:py-3 px-4 text-black bg-white 
+                    rounded-lg transition-all duration-300 hover:bg-purple-50 active:bg-purple-100
+                    font-semibold text-sm md:text-base flex items-center justify-center gap-2"
+                >
+                  Get Started
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </button>
               </div>
-              <button className="w-full py-2 md:py-3 px-4 md:px-6 text-black bg-white rounded-lg 
-                transition-all duration-500 ease-out
-                hover:bg-purple-50 active:bg-purple-100 font-semibold text-sm md:text-base 
-                group-hover:shadow-lg group-hover:shadow-white/20
-                relative overflow-hidden touch-manipulation
-                before:absolute before:inset-0 before:bg-gradient-to-r
-                before:from-transparent before:via-purple-100/50 before:to-transparent
-                before:translate-x-[-200%] group-hover:before:translate-x-[200%]
-                before:transition-transform before:duration-[800ms] before:ease-out
-                group-hover:scale-[1.02] active:scale-[0.98] md:active:scale-[1.02]">
-                Learn More
-              </button>
             </motion.div>
           ))}
         </div>
@@ -475,42 +630,15 @@ export default function PricingPage() {
         {/* Modal */}
         {selectedPlan && (
           <div 
-            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-2 md:p-4 modal-overlay overflow-y-auto pt-16 md:pt-32 opacity-0 animate-fadeIn"
-            style={{ animationDuration: '200ms', animationFillMode: 'forwards' }}
+            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
+            onClick={() => setSelectedPlan(null)}
           >
             <div
-              className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 lg:p-10 w-full max-w-4xl mx-auto relative border border-purple-500/30 shadow-2xl shadow-purple-500/20 opacity-0 animate-scaleIn"
-              style={{ animationDuration: '300ms', animationFillMode: 'forwards', animationDelay: '100ms' }}
+              className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
+              onClick={(e) => e.stopPropagation()}
             >
-              {/* Close button - Repositioned */}
-              <button
-                onClick={() => setSelectedPlan(null)}
-                className="absolute top-4 right-4 md:top-6 md:right-6 text-purple-400 hover:text-white transition-colors p-2 md:p-3 bg-black/50 rounded-full backdrop-blur-sm z-50 hover:bg-black/70"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-
-              {/* Modal header - Redesigned */}
-              <div className="border-b border-purple-500/20 pb-6 md:pb-8 mb-6 md:mb-8">
-                <div className="flex items-start md:items-center gap-4 md:gap-6">
-                  <div className="bg-gradient-to-br from-purple-500/20 to-purple-900/20 p-3 md:p-4 rounded-xl">
-                    <span className="text-3xl md:text-5xl lg:text-6xl block">{selectedPlan.icon}</span>
-                  </div>
-                  <div className="flex-1">
-                    <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold text-white mb-2 md:mb-3">{selectedPlan.title}</h2>
-                    <div className="flex flex-col md:flex-row md:items-center gap-2 md:gap-4">
-                      <p className="text-xl md:text-2xl text-purple-300 font-semibold">{selectedPlan.price}</p>
-                      <span className="hidden md:block text-purple-400/60">•</span>
-                      <p className="text-sm md:text-base text-purple-400/80">{selectedPlan.timeline}</p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Modal content - Reorganized */}
-              <div className="space-y-6 md:space-y-8 lg:space-y-10">
+              {/* Modal Content */}
+              <div className="space-y-6">
                 {/* Description */}
                 <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
                   <p className="text-gray-300 text-sm md:text-base leading-relaxed">{selectedPlan.description}</p>
@@ -546,14 +674,23 @@ export default function PricingPage() {
                   </div>
                 </div>
 
-                {/* CTA Button */}
-                <div className="pt-4 md:pt-6">
+                {/* Modal Action Buttons */}
+                <div className="flex flex-col sm:flex-row gap-3 mt-6">
+                  <button 
+                    onClick={() => setSelectedPlan(null)}
+                    className="flex-1 py-3 px-6 text-white bg-transparent border border-white/20 
+                      rounded-xl hover:bg-white/5 transition-all duration-200 font-semibold"
+                  >
+                    Back
+                  </button>
                   <button 
                     onClick={() => handleGetStarted(selectedPlan)}
-                    className="w-full py-4 px-6 bg-white text-black rounded-xl hover:bg-gray-100 transition-all duration-200 font-semibold text-base md:text-lg flex items-center justify-center gap-2 group"
+                    className="flex-1 py-3 px-6 bg-white text-black rounded-xl 
+                      hover:bg-purple-50 transition-all duration-200 font-semibold
+                      flex items-center justify-center gap-2"
                   >
                     Get Started
-                    <svg className="w-5 h-5 transform group-hover:translate-x-1 transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                     </svg>
                   </button>

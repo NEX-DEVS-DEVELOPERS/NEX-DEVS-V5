@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { useIsMobile } from '@/app/utils/deviceDetection'
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
+  const isMobile = useIsMobile()
 
   const menuItems = [
     ['Home', '/'],
@@ -18,7 +20,10 @@ export default function MobileMenu() {
   ]
 
   const menuVariants = {
-    closed: {
+    closed: isMobile ? {
+      opacity: 0,
+      display: 'none'
+    } : {
       scale: 0,
       opacity: 0,
       x: 30,
@@ -29,7 +34,13 @@ export default function MobileMenu() {
         ease: [0.32, 0.72, 0, 1]
       }
     },
-    open: {
+    open: isMobile ? {
+      opacity: 1,
+      display: 'block',
+      transition: {
+        duration: 0.3
+      }
+    } : {
       scale: 1,
       opacity: 1,
       x: 0,
@@ -45,7 +56,9 @@ export default function MobileMenu() {
   }
 
   const itemVariants = {
-    closed: { 
+    closed: isMobile ? {
+      opacity: 0
+    } : { 
       x: -20, 
       opacity: 0, 
       transition: { 
@@ -53,7 +66,12 @@ export default function MobileMenu() {
         ease: "easeInOut" 
       } 
     },
-    open: (i: number) => ({
+    open: (i: number) => isMobile ? {
+      opacity: 1,
+      transition: {
+        delay: i * 0.05
+      }
+    } : {
       x: 0,
       opacity: 1,
       transition: {
@@ -63,7 +81,7 @@ export default function MobileMenu() {
         damping: 20,
         mass: 1.2
       }
-    })
+    }
   }
 
   return (

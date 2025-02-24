@@ -654,3 +654,23 @@
     -webkit-backface-visibility: hidden;
   }
 }
+
+/* Mobile Animation Control */
+@media (max-width: 768px) {
+  * {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  .disable-animation-mobile {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+  }
+
+  /* Preserve essential transitions */
+  .preserve-transition {
+    transition: all 0.3s ease !important;
+  }
+}

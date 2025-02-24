@@ -95,6 +95,7 @@ function CheckoutPageContent() {
   const [isEditing, setIsEditing] = useState(false);
   const [showMessage, setShowMessage] = useState(false);
   const [buttonShake, setButtonShake] = useState(false);
+  const [locationData, setLocationData] = useState<any>(null);
   const [editedDetails, setEditedDetails] = useState({
     name: '',
     email: '',
@@ -104,13 +105,25 @@ function CheckoutPageContent() {
   });
 
   useEffect(() => {
+    // Fetch location data when component mounts
+    fetch('/api/location')
+      .then(res => res.json())
+      .then(data => {
+        if (data.success) {
+          setLocationData(data.data);
+        }
+      })
+      .catch(error => console.error('Error fetching location data:', error));
+  }, []);
+
+  useEffect(() => {
     const plan = searchParams.get('plan');
     if (plan) {
       setSelectedPlan(decodeURIComponent(plan));
       // Generate invoice details
       generateInvoice(decodeURIComponent(plan));
     }
-  }, [searchParams]);
+  }, [searchParams, locationData]); // Add locationData as dependency
 
   useEffect(() => {
     if (invoice) {
@@ -154,7 +167,7 @@ function CheckoutPageContent() {
     }
   };
 
-  const generateInvoice = (plan: string) => {
+  const generateInvoice = async (plan: string) => {
     const baseAmount = getBaseAmount(plan);
     
     // Get timeline from the form or use a default value
@@ -163,7 +176,33 @@ function CheckoutPageContent() {
     
     // Calculate surcharge for urgent timeline
     const timelineSurcharge = getTimelineSurcharge(timeline);
-    const surchargeAmount = parseFloat((baseAmount * timelineSurcharge).toFixed(2));
+    
+    // Adjust price based on location if we have location data
+    let adjustedBaseAmount = baseAmount;
+    let currencySymbol = 'PKR';
+    let exchangeRate = 1;
+
+    try {
+      const response = await fetch('/api/location', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ basePrice: baseAmount }),
+      });
+      
+      const result = await response.json();
+      if (result.success) {
+        adjustedBaseAmount = result.data.amount;
+        currencySymbol = result.data.currency;
+        exchangeRate = result.data.exchangeRate;
+      }
+    } catch (error) {
+      console.error('Error adjusting price for location:', error);
+    }
+
+    // Calculate surcharge amount based on adjusted base amount
+    const surchargeAmount = parseFloat((adjustedBaseAmount * timelineSurcharge).toFixed(2));
     
     // Get package details
     const packageDetails = {

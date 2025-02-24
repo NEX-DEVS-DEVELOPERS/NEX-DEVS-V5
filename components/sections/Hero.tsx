@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion"
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo, useCallback } from "react"
+import { useIsMobile } from '@/app/utils/deviceDetection'
 
 // Move static data outside component to prevent recreation
 const expertise = [
@@ -103,6 +104,7 @@ const scaleInVariant = {
 
 export default function Hero() {
   const [showSecretPanel, setShowSecretPanel] = useState(false)
+  const isMobile = useIsMobile()
   const [funFactIndex, setFunFactIndex] = useState(0)
 
   // Memoize handlers
@@ -117,8 +119,24 @@ export default function Hero() {
   // Memoize current fun fact
   const currentFunFact = useMemo(() => funFacts[funFactIndex], [funFactIndex])
 
+  const variants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0 }
+  }
+
+  const mobileVariants = {
+    hidden: { opacity: 0 },
+    visible: { opacity: 1 }
+  }
+
   return (
-    <div className="w-full bg-black text-white pt-32 md:pt-32 pb-20 relative overflow-x-hidden">
+    <motion.section
+      initial="hidden"
+      animate="visible"
+      variants={isMobile ? mobileVariants : variants}
+      transition={{ duration: isMobile ? 0.3 : 0.5 }}
+      className="relative min-h-screen flex flex-col justify-center items-center py-20 px-6 mt-16 sm:mt-20"
+    >
       {/* Optimize gradient effects by reducing blur radius and containing them */}
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[32px] will-change-transform translate-x-0" 
@@ -280,10 +298,10 @@ export default function Hero() {
 
         {/* Right Column - Mobile Optimized */}
         <motion.div 
-          variants={scaleInVariant}
+          variants={isMobile ? mobileVariants : scaleInVariant}
           initial="hidden"
           animate="visible"
-          transition={{ duration: 0.3 }}
+          transition={{ duration: isMobile ? 0.3 : 0.5 }}
           className="flex flex-col gap-4 sm:gap-6"
         >
           {/* Text Showcase Section */}
@@ -446,6 +464,6 @@ export default function Hero() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </motion.section>
   )
 } 
