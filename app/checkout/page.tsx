@@ -4,6 +4,9 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf } from 'react-icons/fa';
 import { motion } from 'framer-motion';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { formatPrice, convertPrice, baseExchangeRates } from '@/app/utils/pricing';
+import type { SupportedCurrency } from '@/app/utils/pricing';
 
 interface InvoiceDetails {
   invoiceNumber: string;
@@ -89,6 +92,7 @@ const paymentMethods = [
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { currency, isExemptCountry, exchangeRate } = useCurrency();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
   const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
@@ -103,6 +107,7 @@ function CheckoutPageContent() {
     address: '',
     timeline: 'Normal (2-4 weeks)'
   });
+  const [timelineOptions, setTimelineOptions] = useState<string>('Normal (2-4 weeks)');
 
   useEffect(() => {
     // Fetch location data when component mounts
@@ -121,7 +126,9 @@ function CheckoutPageContent() {
     if (plan) {
       setSelectedPlan(decodeURIComponent(plan));
       // Generate invoice details
-      generateInvoice(decodeURIComponent(plan));
+      if (selectedPlan) {
+        generateInvoice(selectedPlan);
+      }
     }
   }, [searchParams, locationData]); // Add locationData as dependency
 
@@ -132,23 +139,23 @@ function CheckoutPageContent() {
         email: invoice.billingDetails?.email || '',
         phone: invoice.billingDetails?.phone || '',
         address: invoice.billingDetails?.address || '',
-        timeline: invoice.timeline || 'Normal (2-4 weeks)'
+        timeline: invoice.timeline || 'normal'
       });
     }
   }, [invoice]);
 
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
-      'WordPress Basic': 25000,
-      'WordPress Professional': 35000,
-      'WordPress Enterprise': 50000,
-      'Shopify/WooCommerce': 40000,
-      'Full-Stack Basic': 40000,
-      'Full-Stack Professional': 60000,
-      'Full-Stack Enterprise': 80000,
-      'UI/UX Design': 40000,
-      'Web Apps & AI Solutions': 70000,
-      'SEO & Content Writing': 20000
+      'WordPress Basic': 35000,
+      'WordPress Professional': 45000,
+      'WordPress Enterprise': 65000,
+      'Shopify/WooCommerce': 55000,
+      'Full-Stack Basic': 55000,
+      'Full-Stack Professional': 75000,
+      'Full-Stack Enterprise': 95000,
+      'UI/UX Design': 50000,
+      'Web Apps & AI Solutions': 85000,
+      'SEO & Content Writing': 30000
     };
     
     const matchingKey = Object.keys(prices).find(
@@ -162,214 +169,119 @@ function CheckoutPageContent() {
     switch (timeline) {
       case 'Urgent (1-2 weeks)':
         return 0.20; // 20% surcharge for urgent projects
+      case 'Normal (2-4 weeks)':
+        return 0; // No surcharge for normal timeline
+      case 'Relaxed (4+ weeks)':
+        return -0.05; // 5% discount for relaxed timeline
       default:
         return 0;
     }
   };
 
   const generateInvoice = async (plan: string) => {
-    const baseAmount = getBaseAmount(plan);
-    
-    // Get timeline from the form or use a default value
-    const timelineElement = document.querySelector('select[name="timeline"]') as HTMLSelectElement;
-    const timeline = timelineElement?.value || 'Normal (2-4 weeks)';
-    
-    // Calculate surcharge for urgent timeline
-    const timelineSurcharge = getTimelineSurcharge(timeline);
-    
-    // Adjust price based on location if we have location data
-    let adjustedBaseAmount = baseAmount;
-    let currencySymbol = 'PKR';
-    let exchangeRate = 1;
-
     try {
-      const response = await fetch('/api/location', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ basePrice: baseAmount }),
-      });
+      // Get the base amount in PKR
+      const baseAmount = getBaseAmount(plan);
       
-      const result = await response.json();
-      if (result.success) {
-        adjustedBaseAmount = result.data.amount;
-        currencySymbol = result.data.currency;
-        exchangeRate = result.data.exchangeRate;
+      // Wait for exchangeRate to be available
+      if (!exchangeRate) {
+        console.error('Exchange rate not available');
+        return;
       }
+
+      // Convert amount using the current exchange rate
+      const convertedAmount = Math.round(baseAmount * exchangeRate);
+      
+      // Calculate timeline surcharge
+      const timelineSurchargeRate = getTimelineSurcharge(editedDetails.timeline);
+      const timelineSurchargeAmount = Math.round(convertedAmount * timelineSurchargeRate);
+      
+      // Calculate subtotal (base amount)
+      const subTotal = convertedAmount + timelineSurchargeAmount;
+      
+      // Calculate discount - 20% for all plans except Full-Stack Basic which gets 10%
+      const discountPercentage = selectedPlan === 'Full-Stack Basic' ? 10 : 20;
+      const discountAmount = Math.round((subTotal * discountPercentage) / 100);
+      
+      // Calculate tax (currently 0)
+      const taxRate = 0;
+      const taxAmount = Math.round((subTotal * taxRate) / 100);
+      
+      // Calculate final total including surcharge
+      const total = subTotal - discountAmount + taxAmount;
+
+      const newInvoice: InvoiceDetails = {
+        invoiceNumber: `INV-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        package: plan,
+        timeline: editedDetails.timeline || 'Normal (2-4 weeks)',
+        amount: convertedAmount,
+        discount: discountAmount,
+        subTotal: subTotal,
+        taxRate: taxRate,
+        taxAmount: taxAmount,
+        total: total,
+        currency: currency,
+        items: [
+          {
+            description: `${plan} Package`,
+            quantity: 1,
+            rate: convertedAmount,
+            amount: convertedAmount,
+            features: []
+          }
+        ],
+        billingDetails: invoice?.billingDetails
+      };
+
+      // Add timeline surcharge as a separate line item if applicable
+      if (timelineSurchargeAmount > 0) {
+        newInvoice.items.push({
+          description: 'Urgent Timeline Surcharge (20%)',
+          quantity: 1,
+          rate: timelineSurchargeAmount,
+          amount: timelineSurchargeAmount,
+          details: 'Additional charge for urgent delivery (1-2 weeks)',
+          features: []
+        });
+      }
+
+      setInvoice(newInvoice);
     } catch (error) {
-      console.error('Error adjusting price for location:', error);
+      console.error('Error generating invoice:', error);
     }
-
-    // Calculate surcharge amount based on adjusted base amount
-    const surchargeAmount = parseFloat((adjustedBaseAmount * timelineSurcharge).toFixed(2));
-    
-    // Get package details
-    const packageDetails = {
-      'WordPress Basic': {
-        details: "Professional WordPress Development with GeneratePress theme, 5 pages, and basic SEO setup",
-        features: [
-          "GeneratePress Theme Setup",
-          "Up to 5 Pages Development",
-          "Mobile-First Design",
-          "2 SEO Articles",
-          "5 Days Revision"
-        ]
-      },
-      'WordPress Professional': {
-        details: "Advanced WordPress Development with premium themes and comprehensive SEO optimization",
-        features: [
-          "Premium Theme (Foxiz/Pixwell/Phlox)",
-          "Up to 10 Pages",
-          "Rank Math Pro + Elementor Pro",
-          "Advanced SEO Setup",
-          "10 Days Revision"
-        ]
-      },
-      'WordPress Enterprise': {
-        details: "Complete WordPress solution with all premium features, hosting, and extensive optimization",
-        features: [
-          "All Premium Themes Access",
-          "Unlimited Pages",
-          "Premium Plugin Bundle",
-          "6 SEO Articles + Backlinks",
-          "1 Year Hosting + Domain"
-        ]
-      },
-      'Shopify/WooCommerce': {
-        details: "Complete e-commerce solution with custom design and full functionality",
-        features: [
-          "Custom Store Design",
-          "Product Setup & Migration",
-          "Payment Gateway Integration",
-          "Inventory Management",
-          "Analytics Integration"
-        ]
-      },
-      'Full-Stack Basic': {
-        details: "Entry-level full-stack development with essential features and modern tech stack",
-        features: [
-          "React/Next.js Frontend",
-          "Node.js/Express Backend",
-          "MongoDB Database",
-          "Basic Authentication",
-          "Essential API Endpoints"
-        ]
-      },
-      'Full-Stack Professional': {
-        details: "Advanced full-stack solution with robust features and scalable architecture",
-        features: [
-          "Next.js/TypeScript Frontend",
-          "Node.js/NestJS Backend",
-          "PostgreSQL with Prisma ORM",
-          "OAuth & JWT Authentication",
-          "Comprehensive API Suite"
-        ]
-      },
-      'Full-Stack Enterprise': {
-        details: "Enterprise-grade full-stack development with premium features and microservices architecture",
-        features: [
-          "Next.js 14/React Server Components",
-          "Microservices Architecture",
-          "Multi-Database Support",
-          "Advanced Security Features",
-          "CI/CD Pipeline Setup"
-        ]
-      },
-      'UI/UX Design': {
-        details: "Professional UI/UX design with modern aesthetics and user experience",
-        features: [
-          "Custom UI Design",
-          "Interactive Prototypes",
-          "Design System Creation",
-          "Responsive Layouts",
-          "User Flow Mapping"
-        ]
-      },
-      'Web Apps & AI Solutions': {
-        details: "Advanced web applications with AI integration and automation",
-        features: [
-          "AI Model Integration",
-          "Custom AI Solutions",
-          "Real-time Processing",
-          "Data Analytics",
-          "Machine Learning Pipeline"
-        ]
-      },
-      'SEO & Content Writing': {
-        details: "Comprehensive SEO optimization and content creation services",
-        features: [
-          "Keyword Research",
-          "Content Strategy",
-          "Technical SEO",
-          "Content Creation",
-          "Performance Tracking"
-        ]
-      }
-    };
-
-    const selectedPackage = packageDetails[plan as keyof typeof packageDetails];
-    
-    const items = [
-      {
-        description: plan,
-        details: selectedPackage?.details || "Professional Web Development Service Package",
-        features: selectedPackage?.features || [],
-        quantity: 1,
-        rate: baseAmount,
-        amount: baseAmount
-      }
-    ];
-
-    // Add surcharge as a separate item if applicable
-    if (surchargeAmount > 0) {
-      items.push({
-        description: "Urgent Timeline Surcharge",
-        details: "20% additional charge for urgent delivery (1-2 weeks)",
-        features: [],
-        quantity: 1,
-        rate: surchargeAmount,
-        amount: surchargeAmount
-      });
-    }
-
-    const subTotal = baseAmount + surchargeAmount;
-    const taxRate = 0;
-    const taxAmount = 0;
-    // Calculate discount based on package
-    let discountRate = 0;
-    if (plan === 'WordPress Basic') {
-      discountRate = 0; // No discount
-    } else if (plan === 'Full-Stack Basic') {
-      discountRate = 0.10; // 10% discount
-    } else {
-      discountRate = 0.20; // 20% discount for other packages
-    }
-    const discount = parseFloat((subTotal * discountRate).toFixed(2));
-    const total = parseFloat((subTotal - discount).toFixed(2));
-
-    setInvoice({
-      invoiceNumber: `INV-${Date.now().toString().slice(-6)}`,
-      date: new Date().toLocaleDateString(),
-      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toLocaleDateString(),
-      package: plan,
-      timeline: timeline,
-      amount: baseAmount,
-      subTotal: subTotal,
-      taxRate: taxRate,
-      taxAmount: taxAmount,
-      discount: discount,
-      total: total,
-      currency: 'PKR',
-      items: items,
-      billingDetails: {
-        name: 'Your Name',
-        email: 'your.email@example.com',
-        phone: 'Your Phone',
-        address: 'Your Address'
-      }
-    });
   };
+
+  // Update the timeline selection to show the surcharge more prominently
+  const handleTimelineChange = (value: string) => {
+    setEditedDetails(prev => ({ ...prev, timeline: value }));
+    if (selectedPlan) {
+      generateInvoice(selectedPlan);
+    }
+  };
+
+  // Add a function to display timeline surcharge warning
+  const getTimelineSurchargeWarning = (timeline: string) => {
+    if (timeline === 'Urgent (1-2 weeks)') {
+      return (
+        <div className="mt-2 text-yellow-400 text-sm flex items-center gap-2">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+          <span>20% surcharge applies for urgent timeline</span>
+        </div>
+      );
+    }
+    return null;
+  };
+
+  // Add effect to regenerate invoice when currency or exchange rate changes
+  useEffect(() => {
+    if (selectedPlan && exchangeRate) {
+      generateInvoice(selectedPlan);
+    }
+  }, [currency, exchangeRate, isExemptCountry]);
 
   const downloadInvoice = (invoice: InvoiceDetails) => {
     const invoiceContent = `
@@ -380,503 +292,556 @@ function CheckoutPageContent() {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NEX-WEBS Invoice</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
-        
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
+        :root {
+            --primary-color: #8B5CF6;
+            --text-color: #FFFFFF;
+            --background-color: #000000;
+            --card-background: #1a1a1a;
+            --secondary-background: #27272a;
+            --border-color: rgba(255, 255, 255, 0.1);
+            --green-color: #38a169;
         }
         
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: #fff;
+            color: var(--text-color);
             margin: 0;
-            padding: 15px;
-            background: linear-gradient(135deg, #000000, #1a1a1a);
+            padding: 2rem;
+            background: var(--background-color);
             min-height: 100vh;
         }
         
         .invoice-container {
-            width: 100%;
             max-width: 1000px;
             margin: 0 auto;
-            background: linear-gradient(145deg, rgba(20, 20, 20, 0.95), rgba(30, 30, 30, 0.95));
-            border-radius: 15px;
-            padding: 20px;
-            box-shadow: 0 8px 32px rgba(139, 92, 246, 0.15);
-            border: 1px solid rgba(139, 92, 246, 0.2);
-            backdrop-filter: blur(10px);
+            padding: 3rem;
+            background: var(--card-background);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .watermark {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) rotate(-45deg);
+            font-size: 8rem;
+            opacity: 0.03;
+            color: var(--primary-color);
+            white-space: nowrap;
+            pointer-events: none;
+            user-select: none;
+            z-index: 0;
+        }
+
+        .content {
+            position: relative;
+            z-index: 1;
         }
 
         .header {
             display: flex;
-            flex-direction: column;
-            gap: 20px;
-            margin-bottom: 25px;
-            padding-bottom: 20px;
-            border-bottom: 2px solid rgba(139, 92, 246, 0.3);
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 3rem;
+            gap: 2rem;
         }
 
-        .logo-section {
-            text-align: center;
+        .company-info {
+            flex: 1;
         }
 
-        .logo-section h1 {
-            font-size: 28px;
-            background: linear-gradient(135deg, #8B5CF6, #6D28D9);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 5px;
+        .logo {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
         }
 
-        .invoice-info {
-            background: rgba(139, 92, 246, 0.1);
-            padding: 15px;
+        .company-details {
+            font-size: 0.95rem;
+            color: rgba(255, 255, 255, 0.7);
+            line-height: 1.6;
+        }
+
+        .invoice-details {
+            background: var(--secondary-background);
+            padding: 1.5rem;
             border-radius: 12px;
-            margin-top: 15px;
-            text-align: left;
+            min-width: 300px;
+        }
+
+        .invoice-details h2 {
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            font-size: 1.5rem;
+        }
+
+        .invoice-details p {
+            display: flex;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .invoice-details strong {
+            color: var(--green-color);
         }
 
         .details-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            margin-bottom: 25px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
+            margin: 2rem 0;
         }
 
         .details-section {
-            background: rgba(255, 255, 255, 0.03);
-            padding: 15px;
+            background: var(--secondary-background);
+            padding: 1.5rem;
             border-radius: 12px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
         }
 
-        .details-section h2 {
-            font-size: 18px;
-            margin-bottom: 15px;
-            color: #8B5CF6;
+        .details-section h3 {
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+            font-size: 1.2rem;
         }
 
-        .contact-info p {
-            font-size: 14px;
-            margin-bottom: 8px;
+        .details-row {
             display: flex;
-            align-items: flex-start;
+            justify-content: space-between;
+            margin: 0.5rem 0;
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        .contact-info strong {
-            min-width: 80px;
-            display: inline-block;
-            color: rgba(139, 92, 246, 0.9);
+        .details-row strong {
+            color: var(--text-color);
+            min-width: 120px;
         }
 
-        .items-table {
-            width: 100%;
-            border-collapse: separate;
-            border-spacing: 0;
-            margin: 20px 0;
-            font-size: 14px;
+        .project-info {
+            margin: 2rem 0;
+            background: var(--secondary-background);
+            padding: 1.5rem;
+            border-radius: 12px;
         }
 
-        .items-table th {
-            background: rgba(139, 92, 246, 0.1);
-            color: #8B5CF6;
-            padding: 12px;
-            text-align: left;
+        .project-info h3 {
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+        }
+
+        .project-details {
+            background: var(--secondary-background);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin: 2rem 0;
+        }
+
+        .project-details h3 {
+            color: var(--primary-color);
+            margin: 0 0 1rem 0;
+            font-size: 1.25rem;
             font-weight: 600;
         }
 
-        .items-table td {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 12px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        .project-details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1.5rem;
         }
 
-        .items-table tr:last-child td {
+        .project-detail-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1rem;
+            border-radius: 8px;
+        }
+
+        .project-detail-item h4 {
+            color: var(--text-color);
+            margin: 0 0 0.5rem 0;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .project-detail-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 0.95rem;
+            margin: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 2rem 0;
+            background: var(--secondary-background);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        th {
+            background: rgba(139, 92, 246, 0.1);
+            color: var(--primary-color);
+            font-weight: 600;
+            text-align: left;
+            padding: 1rem;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        tr:last-child td {
             border-bottom: none;
         }
 
         .summary {
-            background: rgba(139, 92, 246, 0.05);
-            padding: 15px;
+            margin-left: auto;
+            width: 350px;
+            background: var(--secondary-background);
+            padding: 1.5rem;
             border-radius: 12px;
-            margin-top: 20px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
         }
 
         .summary-row {
             display: flex;
             justify-content: space-between;
-            padding: 8px 0;
-            font-size: 14px;
+            padding: 0.75rem 0;
+            color: rgba(255, 255, 255, 0.7);
         }
 
-        .total-row {
-            font-size: 20px;
-            font-weight: 700;
-            color: #8B5CF6;
-            border-top: 2px solid rgba(139, 92, 246, 0.3);
-            margin-top: 10px;
-            padding-top: 10px;
+        .total {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: var(--green-color);
+            border-top: 1px solid var(--border-color);
+            padding-top: 1rem;
+            margin-top: 1rem;
         }
 
-        .terms-section {
-            background: rgba(255, 255, 255, 0.02);
-            padding: 15px;
+        .terms {
+            margin-top: 3rem;
+            background: var(--secondary-background);
+            padding: 1.5rem;
             border-radius: 12px;
-            margin-top: 25px;
-            border: 1px solid rgba(139, 92, 246, 0.15);
         }
 
-        .terms-section h3 {
-            color: #8B5CF6;
-            font-size: 16px;
-            margin-bottom: 15px;
+        .terms h3 {
+            color: var(--primary-color);
+            margin: 0 0 1.5rem 0;
+            font-size: 1.25rem;
+            font-weight: 600;
         }
 
         .terms-grid {
             display: grid;
-            grid-template-columns: 1fr;
-            gap: 15px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 2rem;
         }
 
-        .terms-category {
-            background: rgba(139, 92, 246, 0.05);
-            padding: 12px;
-            border-radius: 8px;
-        }
-
-        .terms-category h4 {
-            color: #8B5CF6;
-            font-size: 15px;
-            margin-bottom: 8px;
-        }
-
-        .terms-category ul {
-            list-style-position: inside;
-            margin: 0;
-            padding: 0;
-        }
-
-        .terms-category li {
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 13px;
-            margin-bottom: 6px;
-            line-height: 1.4;
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 2px solid rgba(139, 92, 246, 0.3);
-        }
-
-        .payment-methods {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            margin: 15px 0;
-        }
-
-        .payment-method {
-            background: rgba(255, 255, 255, 0.05);
-            padding: 8px 15px;
-            border-radius: 8px;
-            font-size: 13px;
-            border: 1px solid rgba(139, 92, 246, 0.2);
-        }
-
-        .timeline-badge {
-            display: inline-block;
-            background: rgba(139, 92, 246, 0.1);
-            color: #8B5CF6;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 13px;
-            margin-top: 8px;
-        }
-
-        .status-badge {
-            display: inline-block;
-            background: rgba(139, 92, 246, 0.1);
-            color: #8B5CF6;
-            padding: 6px 12px;
-            border-radius: 6px;
-            font-size: 14px;
-            margin: 10px 0;
-        }
-
-        .contact-support {
-            margin-top: 25px;
-            font-size: 13px;
-        }
-
-        .contact-support a {
-            color: #8B5CF6;
-            text-decoration: none;
-        }
-
-        .watermark {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            opacity: 0.1;
-            font-size: 60px;
-            font-weight: 800;
-            color: #8B5CF6;
-            transform: rotate(-45deg);
-            pointer-events: none;
-        }
-
-        .discount-text {
-            color: #10B981;
+        .terms-section h4 {
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            font-size: 1.1rem;
             font-weight: 500;
         }
 
-        @media (min-width: 768px) {
-            body {
-                padding: 40px;
-            }
+        .terms-section ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+            color: rgba(255, 255, 255, 0.7);
+        }
 
-            .invoice-container {
-                padding: 40px;
-            }
+        .terms-section li {
+            margin: 0.75rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
 
-            .header {
-                flex-direction: row;
-                justify-content: space-between;
-                align-items: flex-start;
-            }
+        .terms-section li:before {
+            content: "•";
+            color: var(--primary-color);
+            position: absolute;
+            left: 0;
+        }
 
-            .logo-section {
-                text-align: left;
-            }
+        .signature {
+            margin-top: 3rem;
+            text-align: right;
+        }
 
-            .logo-section h1 {
-                font-size: 36px;
-            }
+        .signature p {
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 0.5rem;
+        }
 
-            .details-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 30px;
-            }
+        .signature-text {
+            font-family: 'Brush Script MT', cursive;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            margin-top: 1rem;
+        }
 
-            .terms-grid {
-                grid-template-columns: repeat(2, 1fr);
-                gap: 20px;
-            }
+        .security-features {
+            position: absolute;
+            bottom: 2rem;
+            left: 3rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            color: rgba(255, 255, 255, 0.5);
+            font-size: 0.9rem;
+        }
 
-            .items-table th,
-            .items-table td {
-                padding: 15px;
-            }
+        .secure-stamp {
+            position: absolute;
+            right: 3rem;
+            bottom: 3rem;
+            width: 120px;
+            height: 120px;
+            border: 2px solid var(--primary-color);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            transform: rotate(-15deg);
+            opacity: 0.8;
+            background: rgba(139, 92, 246, 0.1);
+        }
 
-            .watermark {
-                font-size: 100px;
-            }
+        .secure-stamp-content {
+            color: var(--primary-color);
+        }
+
+        .secure-stamp-title {
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .secure-stamp-subtitle {
+            font-size: 0.75rem;
         }
     </style>
 </head>
 <body>
     <div class="invoice-container">
         <div class="watermark">NEX-WEBS</div>
-        
-        <div class="header">
-            <div class="logo-section">
-                <h1>NEX-WEBS</h1>
-                <p>Professional Web Development Services</p>
-                <div class="status-badge">INVOICE</div>
-            </div>
-            
-            <div class="invoice-info">
-                <h2>Invoice Details</h2>
-                <p><strong>Invoice No:</strong> ${invoice.invoiceNumber}</p>
-                <p><strong>Date:</strong> ${invoice.date}</p>
-                <p><strong>Due Date:</strong> ${invoice.dueDate}</p>
-            </div>
-        </div>
-
-        <div class="details-grid">
-            <div class="details-section">
-                <h2>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/>
-                    </svg>
-                    Our Details
-                </h2>
-                <div class="contact-info">
-                    <p><strong>Name:</strong> ALI-HASNAAT</p>
-                    <p><strong>Email:</strong> nexwebs.org@gmail.com</p>
-                    <p><strong>Phone:</strong> 0329-2425950</p>
+        <div class="content">
+            <div class="header">
+                <div class="company-info">
+                    <div class="logo">NEX-WEBS</div>
+                    <div class="company-details">
+                        Professional Web Development Services<br>
+                        support@nexwebs.com<br>
+                        +92 329-2425950
+                    </div>
+                </div>
+                
+                <div class="invoice-details">
+                    <h2>Invoice Details</h2>
+                    <p><strong style="color: var(--green-color);">Invoice No:</strong> ${invoice.invoiceNumber}</p>
+                    <p><strong>Date:</strong> ${invoice.date}</p>
+                    <p><strong>Due Date:</strong> ${invoice.dueDate}</p>
+                    <p><strong>Timeline:</strong> ${invoice.timeline}</p>
                 </div>
             </div>
 
-            <div class="details-section">
-                <h2>
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/>
-                    </svg>
-                    Client Details
-                </h2>
-                <div class="contact-info">
-                    <p><strong>Name:</strong> ${invoice.billingDetails?.name}</p>
-                    <p><strong>Email:</strong> ${invoice.billingDetails?.email}</p>
-                    <p><strong>Phone:</strong> ${invoice.billingDetails?.phone}</p>
-                    <p><strong>Address:</strong> ${invoice.billingDetails?.address}</p>
+            <div class="project-info">
+                <h3>Project Information</h3>
+                <div class="project-details">
+                    <h3>Project Details</h3>
+                    <p><strong>Package:</strong> ${invoice.package}</p>
+                    <p><strong>Timeline:</strong> ${invoice.timeline}</p>
+                    <p><strong>Amount:</strong> ${formatPrice(invoice.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
                 </div>
             </div>
-        </div>
 
-        <div class="project-details">
-            <h2>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"/>
-                </svg>
-                Project Information
-            </h2>
-            <div class="contact-info">
-                <p><strong>Package:</strong> ${invoice.package}</p>
-                <p><strong>Timeline:</strong> <span class="timeline-badge">${invoice.timeline}</span></p>
+            <div class="details-grid">
+                <div class="details-section">
+                    <h3>Our Details</h3>
+                    <div class="details-row">
+                        <strong style="color: var(--green-color);">Name:</strong>
+                        <span>ALI-HASNAAT</span>
+                    </div>
+                    <div class="details-row">
+                        <strong>Email:</strong>
+                        <span>nexwebs.org@gmail.com</span>
+                    </div>
+                    <div class="details-row">
+                        <strong>Phone:</strong>
+                        <span>0329-2425950</span>
+                    </div>
+                </div>
+                
+                <div class="details-section">
+                    <h3>Client Details</h3>
+                    <div class="details-row">
+                        <strong>Name:</strong>
+                        <span>${invoice.billingDetails?.name || 'Your Name'}</span>
+                    </div>
+                    <div class="details-row">
+                        <strong>Email:</strong>
+                        <span>${invoice.billingDetails?.email || 'your.email@example.com'}</span>
+                    </div>
+                    <div class="details-row">
+                        <strong>Phone:</strong>
+                        <span>${invoice.billingDetails?.phone || 'Your Phone'}</span>
+                    </div>
+                    <div class="details-row">
+                        <strong>Address:</strong>
+                        <span>${invoice.billingDetails?.address || 'Your Address'}</span>
+                    </div>
+                </div>
             </div>
-        </div>
 
-        <table class="items-table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Quantity</th>
-                    <th>Rate</th>
-                    <th>Amount</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${invoice.items.map(item => `
+            <div className="project-info">
+                
+                <h2 className="project-details bg-zinc-800 p-4 rounded-lg shadow-lg"</h2>
+                    <h4 className="text-md font-semibold">Project Timeline</h4>
+                    <div className="flex flex-col">
+                        <label className="block text-sm font-medium mb-2">Select Timeline</label>
+                        <select
+                            value={editedDetails.timeline}
+                            onChange={(e) => handleTimelineChange(e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
+                        >
+                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) +20% surcharge</option>
+                            <option value="Normal (2-4 weeks)">Normal (2-4 weeks)</option>
+                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks) +5% discount</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-3 p-2 bg-red-500 text-red-300 rounded-lg text-sm">
+                <span className="text-red-600 font-bold">Warning:</span> 
+                <span className="text-yellow-300">Change the timeline according to your liking, please. Otherwise, we will charge you.</span>
+            </div>
+
+            <table>
+                <thead>
                     <tr>
-                        <td>
-                            <strong>${item.description}</strong><br>
-                            <span style="color: rgba(255,255,255,0.6); font-size: 0.9em;">${item.details}</span>
-                        </td>
-                        <td>${item.quantity}</td>
-                        <td>PKR ${item.rate.toLocaleString()}</td>
-                        <td>PKR ${item.amount.toLocaleString()}</td>
+                        <th>Description</th>
+                        <th>Quantity</th>
+                        <th>Rate</th>
+                        <th>Amount</th>
                     </tr>
-                `).join('')}
-            </tbody>
-        </table>
+                </thead>
+                <tbody>
+                    ${invoice.items.map(item => `
+                        <tr>
+                            <td>
+                                ${item.description}
+                                ${item.details ? `<br><small>${item.details}</small>` : ''}
+                            </td>
+                            <td>${item.quantity}</td>
+                            <td>${formatPrice(item.rate, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                            <td>${formatPrice(item.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
 
-        <div class="summary">
-            <div class="summary-row">
-                <span>Subtotal:</span>
-                <span>PKR ${invoice.subTotal.toLocaleString()}</span>
+            <div class="summary">
+                <div class="summary-row">
+                    <span>Subtotal:</span>
+                    <span>${formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Tax (${invoice.taxRate}%):</span>
+                    <span>${formatPrice(invoice.taxAmount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                </div>
+                <div class="summary-row">
+                    <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
+                    <span>-${formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                </div>
+                <div class="summary-row total">
+                    <span>Total:</span>
+                    <span style="color: var(--green-color);">${formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                </div>
             </div>
-            <div class="summary-row">
-                <span>Tax (0%):</span>
-                <span>PKR 0.00</span>
-            </div>
-            <div class="summary-row discount-text">
-                <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
-                <span>-PKR ${invoice.discount.toLocaleString()}</span>
-            </div>
-            <div class="summary-row total-row">
-                <span>Total:</span>
-                <span>PKR ${invoice.total.toLocaleString()}</span>
-            </div>
-        </div>
 
-        <div class="terms-section">
-            <h3>Terms & Conditions</h3>
-            <div class="terms-grid">
-                <div class="terms-category">
-                    <h4>Payment Terms</h4>
-                    <ul>
-                        <li>Payment is due within 7 days of invoice date</li>
-                        <li>50% advance payment required to start the project</li>
-                        <li>Remaining 50% payment before project delivery</li>
-                        <li>All prices are in Pakistani Rupees (PKR)</li>
-                        <li>Late payments will incur a 5% monthly charge</li>
-                    </ul>
-                </div>
-
-                <div class="terms-category">
-                    <h4>Project Terms</h4>
-                    <ul>
-                        <li>Timeline starts after receiving advance payment</li>
-                        <li>Project scope as defined in the package details</li>
-                        <li>Two rounds of revisions included</li>
-                        <li>Additional revisions charged separately</li>
-                        <li>Source code handover upon full payment</li>
-                    </ul>
-                </div>
-
-                <div class="terms-category">
-                    <h4>Delivery & Support</h4>
-                    <ul>
-                        <li>Delivery timeline as specified in project details</li>
-                        <li>30 days of free support after project completion</li>
-                        <li>Bug fixes covered under warranty period</li>
-                        <li>Training session included for website management</li>
-                        <li>24/7 emergency support available</li>
-                    </ul>
-                </div>
-
-                <div class="terms-category">
-                    <h4>Cancellation & Refund</h4>
-                    <ul>
-                        <li>Cancellation fee of 30% if project cancelled after start</li>
-                        <li>No refund on custom development work completed</li>
-                        <li>Refund processing time: 7-14 business days</li>
-                        <li>Project can be put on hold for up to 30 days</li>
-                        <li>Unused hours/services non-refundable</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <h3>Payment Methods</h3>
-            <div class="payment-methods">
-                <div class="payment-method">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                    </svg>
-                    Bank Transfer
-                </div>
-                <div class="payment-method">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    JazzCash
-                </div>
-                <div class="payment-method">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" class="payment-icon">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
-                    </svg>
-                    Easypaisa
+            <div class="terms">
+                <h3>Terms & Conditions</h3>
+                <div className="terms-grid">
+                    <div className="terms-section">
+                        <h4>Payment Terms</h4>
+                        <ul>
+                            <li>Payment is due within 7 days of invoice date</li>
+                            <li>50% advance payment required to start the project</li>
+                            <li>Remaining 50% payment before project delivery</li>
+                            <li>All prices are in ${invoice.currency}</li>
+                            <li>Late payments will incur a 5% monthly charge</li>
+                            <li>Refund requests must be made within 48 hours of payment</li>
+                            <li>Transaction fees are responsibility of the client</li>
+                            <li>Payment plans available for enterprise projects</li>
+                        </ul>
+                    </div>
+                    <div className="terms-section">
+                        <h4>Project Terms</h4>
+                        <ul>
+                            <li>Timeline starts after receiving advance payment</li>
+                            <li>Project scope as defined in the package details</li>
+                            <li>Two rounds of revisions included</li>
+                            <li>Additional revisions charged separately</li>
+                            <li>Source code handover upon full payment</li>
+                            <li>All deliverables will be provided in digital format</li>
+                            <li>Client is responsible for providing necessary content and feedback</li>
+                            <li>Any additional features requested will be quoted separately</li>
+                            <li>Regular progress updates via email/chat</li>
+                            <li>24/7 support during development phase</li>
+                        </ul>
+                    </div>
+                    <div className="terms-section">
+                        <h4>Intellectual Property</h4>
+                        <ul>
+                            <li>Client receives full ownership of final deliverables</li>
+                            <li>Source code rights transfer upon final payment</li>
+                            <li>NEX-WEBS retains right to showcase work in portfolio</li>
+                            <li>Third-party assets licensed separately</li>
+                            <li>Client responsible for content copyright</li>
+                        </ul>
+                    </div>
+                    <div className="terms-section">
+                        <h4>Support & Maintenance</h4>
+                        <ul>
+                            <li>30 days of free support after project completion</li>
+                            <li>Bug fixes covered during support period</li>
+                            <li>Server maintenance not included</li>
+                            <li>Optional maintenance plans available</li>
+                            <li>Emergency support available at premium rates</li>
+                        </ul>
+                    </div>
                 </div>
             </div>
-            
-            <div class="qr-section">
-                <div class="qr-code">
-                    <svg width="100" height="100" viewBox="0 0 100 100">
-                        <!-- Placeholder for QR code -->
-                        <rect width="100" height="100" fill="#000"/>
-                    </svg>
-                </div>
-                <p>Scan to view digital copy</p>
+
+            <div class="signature">
+                <p>Authorized Signature</p>
+                <div class="signature-text">NEX-WEBS</div>
             </div>
-            
-            <div class="contact-support">
-                <p style="color: #8B5CF6; margin-top: 30px; font-weight: 600;">Thank you for choosing NEX-WEBS!</p>
-                <p style="color: rgba(255,255,255,0.6);">
-                    For support: <a href="mailto:nexwebs.org@gmail.com" style="color: #8B5CF6; text-decoration: none;">nexwebs.org@gmail.com</a>
-                </p>
-                <p style="color: rgba(255,255,255,0.6); font-size: 12px; margin-top: 20px;">
-                    This is a computer-generated invoice. No signature required.
-                </p>
+
+            <div class="security-features">
+                <span>🔒 Secured with SSL encryption</span>
+                <span>• Generated on ${new Date().toLocaleString()}</span>
+                <span>• Document ID: ${Math.random().toString(36).substr(2, 9).toUpperCase()}</span>
+            </div>
+
+            <div class="secure-stamp">
+                <div className="secure-stamp-content">
+                    <div className="secure-stamp-title">VERIFIED</div>
+                    <div className="secure-stamp-subtitle">NEX-WEBS</div>
+                </div>
             </div>
         </div>
     </div>
@@ -914,12 +879,17 @@ function CheckoutPageContent() {
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="mb-6 sm:mb-8">
-          <button 
-            onClick={() => router.back()}
-            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors text-sm"
-          >
-            <span>← Back</span>
-          </button>
+          <div className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group">
+            <svg 
+              className="w-4 h-4 md:w-5 md:h-5 transform transition-transform group-hover:-translate-x-1" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-xs md:text-sm font-medium">Back</span>
+          </div>
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
@@ -1024,7 +994,7 @@ function CheckoutPageContent() {
                       <li className="pl-2">Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
                       <li className="pl-2">Select "Send Money"</li>
                       <li className="pl-2">Enter the number shown above</li>
-                      <li className="pl-2">Enter amount: PKR {invoice?.total.toLocaleString()}</li>
+                      <li className="pl-2">Enter amount: PKR ${invoice?.total.toLocaleString()}</li>
                       <li className="pl-2">Complete the transaction</li>
                       <li className="pl-2">Send the transaction ID to support@nexwebs.com</li>
                     </ol>
@@ -1121,23 +1091,6 @@ function CheckoutPageContent() {
                 </form>
               </div>
             )}
-
-            <div>
-              <label className="block text-sm font-medium mb-2">Project Timeline</label>
-              <select
-                name="timeline"
-                className="w-full px-4 py-2.5 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm"
-                onChange={(e) => {
-                  if (invoice) {
-                    generateInvoice(invoice.package);
-                  }
-                }}
-              >
-                <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) (+20% charge)</option>
-                <option value="Normal (2-4 weeks)" selected>Normal (2-4 weeks)</option>
-                <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks)</option>
-              </select>
-            </div>
           </div>
 
           {/* Right Column - Invoice & Summary */}
@@ -1188,6 +1141,12 @@ function CheckoutPageContent() {
                       <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-400">Due Date:</span>
                         <span>{invoice.dueDate}</span>
+                      </div>
+                      <div className="flex justify-between text-xs sm:text-sm">
+                        <span className="text-gray-400">Currency:</span>
+                        <span className="font-medium text-purple-400">
+                          {currency} {!isExemptCountry && currency !== 'PKR' && '(International Rate)'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -1259,21 +1218,16 @@ function CheckoutPageContent() {
                             />
                           </div>
                         </div>
-                        <div>
-                          <label className="block text-sm font-medium mb-2">Project Timeline</label>
+                        <div className="flex flex-col">
+                          <label className="block text-sm font-medium mb-2">Select Timeline</label>
                           <select
                             value={editedDetails.timeline}
-                            onChange={(e) => {
-                              setEditedDetails({...editedDetails, timeline: e.target.value});
-                              if (invoice) {
-                                generateInvoice(invoice.package);
-                              }
-                            }}
-                            className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
+                            onChange={(e) => handleTimelineChange(e.target.value)}
+                            className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
                           >
-                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) (+20% charge)</option>
+                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) +20%</option>
                             <option value="Normal (2-4 weeks)">Normal (2-4 weeks)</option>
-                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks)</option>
+                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks) +5% discount</option>
                           </select>
                         </div>
                         <div className="flex justify-end mt-4">
@@ -1294,9 +1248,6 @@ function CheckoutPageContent() {
                         <div>
                           <p><span className="text-gray-400">Phone:</span> {invoice?.billingDetails?.phone}</p>
                           <p><span className="text-gray-400">Address:</span> {invoice?.billingDetails?.address}</p>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <p><span className="text-gray-400">Timeline:</span> <span className="text-purple-400">{invoice?.timeline}</span></p>
                         </div>
                       </div>
                     )}
@@ -1329,11 +1280,11 @@ function CheckoutPageContent() {
                             <div className="grid grid-cols-2 gap-3 mt-3">
                               <div>
                                 <span className="text-gray-400 text-sm">Rate</span>
-                                <p className="font-medium">PKR {item.rate.toLocaleString()}</p>
+                                <p className="font-medium">{formatPrice(item.rate, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
                               </div>
                               <div>
                                 <span className="text-gray-400 text-sm">Amount</span>
-                                <p className="font-medium">PKR {item.amount.toLocaleString()}</p>
+                                <p className="font-medium">{formatPrice(item.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
                               </div>
                             </div>
                           </div>
@@ -1347,20 +1298,42 @@ function CheckoutPageContent() {
                     <div className="space-y-2">
                       <div className="flex justify-between">
                         <span className="text-gray-400">Sub Total:</span>
-                        <span>PKR {invoice.subTotal.toFixed(2)}</span>
+                        <span>{formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                       </div>
+                      {invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge')) && (
+                        <div className="flex justify-between text-yellow-400">
+                          <span>Urgent Timeline Surcharge (20%):</span>
+                          <span>+{formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        </div>
+                      )}
                       <div className="flex justify-between text-gray-400">
                         <span>Tax (0%):</span>
-                        <span>PKR 0.00</span>
+                        <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                       </div>
                       <div className="flex justify-between text-emerald-400 font-medium">
                         <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
-                        <span>-PKR {invoice.discount.toLocaleString()}</span>
+                        <span>-{formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                       </div>
+                      
+                      {/* Currency Information */}
+                      {!isExemptCountry && currency !== 'PKR' && invoice && (
+                        <div className="mt-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                          <p className="text-sm text-purple-300 mb-2">International Pricing Information:</p>
+                          <ul className="text-xs space-y-1 text-gray-400">
+                            <li>• Base price in PKR: {formatPrice(invoice.subTotal / 1.3, 'PKR', 1, true)}</li>
+                            <li>• International service fee (30%): {formatPrice(invoice.subTotal - (invoice.subTotal / 1.3), invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                            {Boolean(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))) && (
+                              <li>• Urgent delivery surcharge (20%): {formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                            )}
+                            <li>• Current exchange rate: 1 PKR = {baseExchangeRates[currency as SupportedCurrency]} {currency}</li>
+                          </ul>
+                        </div>
+                      )}
+
                       <div className="border-t border-white/10 pt-2 mt-2">
                         <div className="flex justify-between text-xl font-bold">
                           <span>Total:</span>
-                          <span>PKR {invoice.total.toFixed(2)}</span>
+                          <span>{formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                         </div>
                       </div>
                     </div>
@@ -1476,150 +1449,80 @@ function CheckoutPageContent() {
                   </div>
                 </div>
 
-                <div className="p-5 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-                    </svg>
-                    <div className="space-y-4 flex-1">
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Payment Instructions</h4>
-                        <p className="text-sm text-gray-300 leading-relaxed">
-                          Please follow these steps to complete your payment:
-                        </p>
-                      </div>
-
-                      <div className="space-y-4">
-                        <div className="bg-black/20 rounded-lg p-3">
-                          <h5 className="text-sm font-medium text-purple-400 mb-2">Step 1: Choose Payment Method</h5>
-                          <ul className="space-y-2 text-sm text-gray-300">
-                            <li className="flex items-start space-x-2">
-                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></span>
-                              <span><span className="text-purple-400 font-medium">Bank Transfer:</span> Use any of our bank accounts (HBL, Meezan Bank, or UBL)</span>
-                            </li>
-                            <li className="flex items-start space-x-2">
-                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mt-2"></span>
-                              <span><span className="text-purple-400 font-medium">Mobile Wallets:</span> JazzCash (0300-1234567) or Easypaisa (0333-7654321)</span>
-                            </li>
-                          </ul>
-                        </div>
-
-                        <div className="bg-black/20 rounded-lg p-3">
-                          <h5 className="text-sm font-medium text-purple-400 mb-2">Step 2: Send Confirmation</h5>
-                          <p className="text-sm text-gray-300 mb-2">
-                            After payment, please send the following to{' '}
-                            <span className="text-purple-400 font-medium">support.nexweb@gmail.com</span>:
-                          </p>
-                          <ul className="space-y-2 text-sm text-gray-300">
-                            <li className="flex items-center space-x-2">
-                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                              <span>Payment screenshot/confirmation</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                              <span>Copy of your invoice</span>
-                            </li>
-                            <li className="flex items-center space-x-2">
-                              <span className="w-1.5 h-1.5 bg-purple-400 rounded-full"></span>
-                              <span>Your invoice number: {invoice?.invoiceNumber}</span>
-                            </li>
-                          </ul>
-                        </div>
-                      </div>
-
-                      <div className="text-xs text-gray-400 bg-white/5 p-3 rounded-lg">
-                        <strong className="text-purple-400">Note:</strong> Your project development will begin immediately after payment confirmation. We'll send you a confirmation email with next steps within 24 hours.
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-4 relative">
-                {showMessage && (
-                  <motion.div 
-                    initial={{ opacity: 0, y: -20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: 20 }}
-                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-                  >
-                    <motion.div
-                      initial={{ scale: 0.95 }}
-                      animate={{ scale: 1 }}
-                      className="bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 rounded-xl shadow-2xl border border-purple-500/20 max-w-md w-full mx-4"
+                <div className="space-y-4 relative">
+                  {showMessage && (
+                    <motion.div 
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: 20 }}
+                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
                     >
-                      <div className="flex items-start space-x-4">
-                        <div className="bg-purple-500/10 p-3 rounded-lg">
-                          <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                        </div>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-white mb-2">Payment Method Unavailable</h3>
-                          <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                            Direct card payments are currently unavailable in Pakistan. Please use our secure local payment options listed above.
-                          </p>
-                          <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3 mb-4">
-                            <h4 className="text-sm font-medium text-purple-400 mb-2">Available Payment Methods:</h4>
-                            <ul className="text-sm text-gray-300 space-y-1">
-                              <li className="flex items-center space-x-2">
-                                <FaUniversity className="w-4 h-4 text-purple-400" />
-                                <span>Bank Transfer</span>
-                              </li>
-                              <li className="flex items-center space-x-2">
-                                <FaMobileAlt className="w-4 h-4 text-purple-400" />
-                                <span>JazzCash / Easypaisa</span>
-                              </li>
-                            </ul>
+                      <motion.div
+                        initial={{ scale: 0.95 }}
+                        animate={{ scale: 1 }}
+                        className="bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 rounded-xl shadow-2xl border border-purple-500/20 max-w-md w-full mx-4"
+                      >
+                        <div className="flex items-start space-x-4">
+                          <div className="bg-purple-500/10 p-3 rounded-lg">
+                            <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
                           </div>
-                          <div className="flex justify-end space-x-3">
-                            <motion.button
-                              whileHover={{ scale: 1.02, backgroundColor: 'rgb(139, 92, 246)' }}
-                              whileTap={{ scale: 0.98 }}
-                              onClick={() => setShowMessage(false)}
-                              className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
-                            >
-                              Use Local Payment Methods
-                            </motion.button>
+                          <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-white mb-2">Payment Method Unavailable</h3>
+                            <p className="text-gray-300 text-sm leading-relaxed mb-4">
+                              Direct card payments are currently unavailable in Pakistan. Please use our secure local payment options listed above.
+                            </p>
+                            <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3 mb-4">
+                              <h4 className="text-sm font-medium text-purple-400 mb-2">Available Payment Methods:</h4>
+                              <ul className="text-sm text-gray-300 space-y-1">
+                                <li className="flex items-center space-x-2">
+                                  <FaUniversity className="w-4 h-4 text-purple-400" />
+                                  <span>Bank Transfer</span>
+                                </li>
+                                <li className="flex items-center space-x-2">
+                                  <FaMobileAlt className="w-4 h-4 text-purple-400" />
+                                  <span>JazzCash / Easypaisa</span>
+                                </li>
+                              </ul>
+                            </div>
+                            <div className="flex justify-end space-x-3">
+                              <motion.button
+                                whileHover={{ scale: 1.02, backgroundColor: 'rgb(139, 92, 246)' }}
+                                whileTap={{ scale: 0.98 }}
+                                onClick={() => setShowMessage(false)}
+                                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
+                              >
+                                Use Local Payment Methods
+                              </motion.button>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      </motion.div>
                     </motion.div>
-                  </motion.div>
-                )}
+                  )}
 
-                <motion.button
-                  className={`w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
-                  onClick={() => {
-                    setButtonShake(true);
-                    setTimeout(() => setButtonShake(false), 500);
-                    setShowMessage(true);
-                  }}
-                  whileHover={{ 
-                    scale: 1.02,
-                    boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
-                  }}
-                  whileTap={{ scale: 0.98 }}
-                >
-                  <FaLock className="w-3 h-3 sm:w-4 sm:h-4" />
-                  <span>Pay Now</span>
-                </motion.button>
+                  <motion.button
+                    className={`w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
+                    onClick={() => {
+                      setButtonShake(true);
+                      setTimeout(() => setButtonShake(false), 500);
+                      setShowMessage(true);
+                    }}
+                    whileHover={{ 
+                      scale: 1.02,
+                      boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
+                    }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <FaLock className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>Pay Now</span>
+                  </motion.button>
 
-                <style jsx global>{`
-                  @keyframes shake {
-                    0%, 100% { transform: translateX(0); }
-                    25% { transform: translateX(-3px); }
-                    50% { transform: translateX(3px); }
-                    75% { transform: translateX(-3px); }
-                  }
-                  .animate-shake {
-                    animation: shake 0.4s cubic-bezier(.36,.07,.19,.97) both;
-                  }
-                `}</style>
-
-                <p className="text-xs sm:text-sm text-gray-400 text-center mt-3 sm:mt-4">
-                  Your payment is secured with SSL encryption
-                </p>
+                  <p className="text-xs sm:text-sm text-gray-400 text-center mt-3 sm:mt-4">
+                    Your payment is secured with SSL encryption
+                  </p>
+                </div>
               </div>
             </div>
           </div>
@@ -1639,4 +1542,4 @@ export default function CheckoutPage() {
       <CheckoutPageContent />
     </Suspense>
   );
-} 
+}

@@ -4,10 +4,15 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { useCurrency } from '@/app/contexts/CurrencyContext';
+import { SupportedCurrency, getLocationData, formatPrice, currencySymbols } from '@/app/utils/pricing';
+import CurrencySelector from '@/app/components/CurrencySelector';
+import LoadingScreen from '@/app/components/LoadingScreen';
+import PricingPlans from '../components/PricingPlans';
 
 interface PricingPlan {
   title: string;
-  price: string;
+  basePrice: number;
   features: string[];
   description: string;
   icon: string;
@@ -26,7 +31,7 @@ interface PricingPlan {
 const pricingPlans: PricingPlan[] = [
   {
     title: "WordPress Basic",
-    price: "PKR 25,000",
+    basePrice: 35000,
     description: "Perfect starter package with essential WordPress features, basic semantic SEO, and E-E-A-T optimization.",
     icon: "🎯",
     timeline: "1-2 weeks",
@@ -70,7 +75,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "WordPress Professional",
-    price: "PKR 35,000",
+    basePrice: 45000,
     description: "Advanced WordPress solution with comprehensive semantic SEO and E-E-A-T optimization for growing businesses.",
     icon: "⚡",
     timeline: "2-3 weeks",
@@ -120,7 +125,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "WordPress Enterprise",
-    price: "PKR 50,000",
+    basePrice: 65000,
     description: "Complete WordPress solution with advanced semantic SEO, E-E-A-T mastery, and comprehensive digital presence.",
     icon: "👑",
     timeline: "3-4 weeks",
@@ -171,7 +176,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Basic",
-    price: "PKR 40,000",
+    basePrice: 55000,
     description: "Entry-level full-stack development package with essential features and modern tech stack for startups and small businesses.",
     icon: "💻",
     timeline: "2-3 weeks",
@@ -217,7 +222,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Professional",
-    price: "PKR 60,000",
+    basePrice: 75000,
     description: "Advanced full-stack solution with robust features, TypeScript integration, and scalable architecture for growing businesses.",
     icon: "⚡",
     timeline: "3-4 weeks",
@@ -256,7 +261,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Enterprise",
-    price: "PKR 100,000",
+    basePrice: 95000,
     description: "Enterprise-grade full-stack solution with advanced features, microservices architecture, and comprehensive DevOps integration.",
     icon: "👑",
     timeline: "4-6 weeks",
@@ -301,7 +306,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "AI Agents/WebApps",
-    price: "Starting from PKR 70K",
+    basePrice: 85000,
     description: "Intelligent web applications powered by cutting-edge AI technology.",
     icon: "🤖",
     timeline: "1-2 weeks",
@@ -333,7 +338,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "SEO/Content Writing",
-    price: "Starting from 20K",
+    basePrice: 30000,
     description: "Strategic content creation with semantic SEO and E-E-A-T optimization to establish topical authority.",
     icon: "📝",
     timeline: "Ongoing",
@@ -379,8 +384,59 @@ const pricingPlans: PricingPlan[] = [
       maintenance: "Monthly Content Updates",
       revisions: "2 Rounds per Content"
     }
+  },
+  {
+    title: "UI/UX Design",
+    basePrice: 50000,
+    description: "Professional UI/UX design services with modern aesthetics, user research, and comprehensive design systems.",
+    icon: "🎨",
+    timeline: "2-3 weeks",
+    bestFor: [
+      "Digital Products",
+      "Web Applications",
+      "Mobile Apps",
+      "SaaS Platforms"
+    ],
+    includes: [
+      "Complete Design System",
+      "User Research Report",
+      "Interactive Prototypes",
+      "Design Documentation",
+      "Brand Guidelines"
+    ],
+    features: [
+      "User Research & Analysis",
+      "Information Architecture",
+      "Wireframing & Prototyping",
+      "Visual Design & Branding",
+      "Design System Creation",
+      "User Flow Optimization",
+      "Responsive Design",
+      "Interactive Prototypes",
+      "Usability Testing",
+      "Design Documentation",
+      "Design Handoff Support",
+      "Design QA Process",
+      "Accessibility Guidelines",
+      "Animation Guidelines",
+      "Design Asset Library"
+    ],
+    highlightFeatures: [
+      "Complete Design System",
+      "Interactive Prototypes",
+      "User Research",
+      "Responsive Design",
+      "Design Documentation"
+    ],
+    additionalInfo: {
+      support: "3 Months Design Support",
+      deployment: "Design System Setup",
+      maintenance: "Monthly Design Updates",
+      revisions: "3 Rounds of Revisions"
+    }
   }
 ];
+
 
 // Add testimonials data
 const testimonials = [
@@ -408,37 +464,46 @@ export default function PricingPage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
+  const { currency, exchangeRate, isBaseCurrency, isExemptCountry, setCurrency } = useCurrency();
+  const [showLoadingScreen, setShowLoadingScreen] = useState(true);
 
-  // Handle keyboard and click events
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && selectedPlan) {
-        setSelectedPlan(null);
+    const detectLocation = async () => {
+      try {
+        setShowLoadingScreen(true);
+        // Get location data and set currency
+        const locationData = await getLocationData('');
+        setCurrency(locationData.currency as SupportedCurrency);
+      } catch (error) {
+        console.error('Error detecting location:', error);
+        // Default to PKR if detection fails
+        setCurrency('PKR');
+      } finally {
+        setShowLoadingScreen(false);
       }
     };
 
-    const handleClickOutside = (e: MouseEvent) => {
-      if (selectedPlan && (e.target as HTMLElement).classList.contains('modal-overlay')) {
-        setSelectedPlan(null);
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    window.addEventListener('click', handleClickOutside);
-
-    return () => {
-      window.removeEventListener('keydown', handleKeyDown);
-      window.removeEventListener('click', handleClickOutside);
-    };
-  }, [selectedPlan]);
+    detectLocation();
+  }, [setCurrency]);
 
   const handleGetStarted = (plan: PricingPlan) => {
     const encodedPlan = encodeURIComponent(plan.title);
     router.push(`/contact?plan=${encodedPlan}`);
   };
 
+  // Function to format the price based on the selected currency
+  const getFormattedPrice = (basePrice: number): string => {
+    // Only apply international markup if not an exempt country and not using base currency
+    const shouldApplyMarkup = !isExemptCountry && !isBaseCurrency;
+    return formatPrice(basePrice, currency, exchangeRate, !shouldApplyMarkup);
+  };
+
+  if (showLoadingScreen) {
+    return <LoadingScreen />;
+  }
+
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden pt-24 md:pt-52">
+    <div className="min-h-screen bg-black relative overflow-hidden pt-16 md:pt-32">
       {/* Enhanced Glow Effects */}
       <div className="absolute inset-0 pointer-events-none overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-float-smooth opacity-50 md:opacity-100"></div>
@@ -464,8 +529,51 @@ export default function PricingPage() {
         </button>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 md:pt-16 pb-20 relative z-20">
+      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-20 relative z-20">
         <div className="text-center mb-8 md:mb-16 relative z-10">
+          {/* Project Title */}
+          <motion.h2
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="text-lg md:text-xl text-purple-400 font-semibold mb-4"
+          >
+            NEX-WEBS DEVELOPMENT
+          </motion.h2>
+
+          {/* Currency Info Banner */}
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="max-w-3xl mx-auto mb-6"
+          >
+            <div className="bg-[#1a1042] rounded-xl p-4 border border-purple-500/20">
+              <div className="flex flex-col items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <span className="text-xl">💱</span>
+                  <h3 className="text-purple-300 font-semibold">Multi-Currency Support</h3>
+                  <span className="text-xl">💱</span>
+                </div>
+                <p className="text-gray-300 text-sm text-center">
+                  We accept payments in multiple currencies including USD, GBP, AED, and PKR. Our base prices are in PKR with automatic currency conversion at current market rates.
+                </p>
+                <div className="flex justify-center gap-3">
+                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">USD $</span>
+                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">GBP £</span>
+                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">AED د.إ</span>
+                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">PKR ₨</span>
+                </div>
+                <div className="text-yellow-500/90 text-sm flex items-center gap-2">
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  International clients are subject to a 30% service fee
+                </div>
+              </div>
+            </div>
+          </motion.div>
+
           {/* Floating Mockups - Adjusted for mobile */}
           <div className="relative w-full max-w-lg mx-auto mb-8 md:mb-12 mt-8 md:mt-12">
             <motion.div
@@ -510,6 +618,18 @@ export default function PricingPage() {
               ✨
             </motion.span>
           </motion.h1>
+
+          {/* Currency Selector - Centered */}
+          <motion.div
+            className="flex flex-col items-center justify-center space-y-2 mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CurrencySelector />
+            <p className="text-gray-400 text-xs">YOUR LOCATION IS AUTOMATICALLY SET</p>
+          </motion.div>
+
           <motion.p 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -522,6 +642,17 @@ export default function PricingPage() {
           >
             Transparent pricing with no hidden fees. Select a plan to view detailed features.
           </motion.p>
+
+          {/* Price increase notice - Only show for non-exempt countries */}
+          {!isExemptCountry && !isBaseCurrency && (
+            <motion.p 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-purple-400 text-sm mt-2"
+            >
+              * Prices include a 30% increase for international clients
+            </motion.p>
+          )}
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4">
@@ -534,9 +665,8 @@ export default function PricingPage() {
               }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
-                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? index * 0.1 : 0, 
-                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.5 : 0.3,
-                ease: "easeOut"
+                delay: index * 0.1,
+                duration: 0.3
               }}
               onMouseEnter={() => setHoveredPlan(plan.title)}
               onMouseLeave={() => setHoveredPlan(null)}
@@ -563,28 +693,53 @@ export default function PricingPage() {
                 <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
                 <span className="text-2xl md:text-4xl">{plan.icon}</span>
               </div>
-              <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">{plan.price}</p>
-              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
-              
-              {/* Mobile View Additional Details */}
-              <div className="block md:hidden space-y-4 mb-4">
-                <div className="space-y-2">
-                  <p className="text-sm font-medium text-purple-300">Key Features:</p>
-                  <ul className="space-y-1.5">
-                    {plan.highlightFeatures.map((feature, i) => (
-                      <li key={i} className="flex items-start text-xs text-gray-300">
-                        <svg className="w-4 h-4 text-purple-400 mr-2 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                        </svg>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
+
+              {/* Price Section with Breakdown */}
+              <div className="relative group">
+                <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">
+                  {getFormattedPrice(plan.basePrice)}
+                </p>
+                
+                {/* Price Breakdown Tooltip */}
+                <div className={`absolute left-0 w-full transform scale-95 opacity-0 
+                  group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-20
+                  ${hoveredPlan === plan.title ? 'pointer-events-auto' : 'pointer-events-none'}`}
+                >
+                  <div className="bg-black/90 border border-purple-500/20 rounded-lg p-4 shadow-xl backdrop-blur-sm mt-2">
+                    <div className="space-y-2 text-sm">
+                      <p className="flex justify-between items-center">
+                        <span className="text-gray-400">Base Price (PKR):</span>
+                        <span className="text-white">₨{plan.basePrice.toLocaleString()}</span>
+                      </p>
+                      {!isExemptCountry && !isBaseCurrency && (
+                        <>
+                          <p className="flex justify-between items-center">
+                            <span className="text-gray-400">International Fee (30%):</span>
+                            <span className="text-purple-400">
+                              {currencySymbols[currency]}{(plan.basePrice * 0.3 * exchangeRate).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                            </span>
+                          </p>
+                          <p className="flex justify-between items-center">
+                            <span className="text-gray-400">Exchange Rate:</span>
+                            <span className="text-gray-300">1 PKR = {exchangeRate.toFixed(4)} {currency}</span>
+                          </p>
+                          <div className="border-t border-purple-500/20 mt-2 pt-2">
+                            <p className="flex justify-between items-center font-medium">
+                              <span className="text-white">Final Price:</span>
+                              <span className="text-purple-400">{getFormattedPrice(plan.basePrice)}</span>
+                            </p>
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
 
-              {/* Desktop Features Preview */}
-              <ul className="hidden md:block text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
+              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
+
+              {/* Features Preview */}
+              <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
                 {plan.features.slice(0, 3).map((feature, i) => (
                   <li key={i} className="flex items-center text-sm md:text-base">
                     <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
@@ -598,10 +753,7 @@ export default function PricingPage() {
               {/* Action Buttons */}
               <div className="flex flex-col sm:flex-row gap-2">
                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setSelectedPlan(plan);
-                  }}
+                  onClick={() => setSelectedPlan(plan)}
                   className="flex-1 py-2 md:py-3 px-4 text-white bg-transparent border border-white/20 
                     rounded-lg transition-all duration-300 hover:bg-white/5 hover:border-white/40
                     font-semibold text-sm md:text-base"
@@ -609,10 +761,7 @@ export default function PricingPage() {
                   Learn More
                 </button>
                 <button 
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleGetStarted(plan);
-                  }}
+                  onClick={() => handleGetStarted(plan)}
                   className="flex-1 py-2 md:py-3 px-4 text-black bg-white 
                     rounded-lg transition-all duration-300 hover:bg-purple-50 active:bg-purple-100
                     font-semibold text-sm md:text-base flex items-center justify-center gap-2"
@@ -637,11 +786,12 @@ export default function PricingPage() {
               className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Modal Content */}
               <div className="space-y-6">
-                {/* Description */}
                 <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
                   <p className="text-gray-300 text-sm md:text-base leading-relaxed">{selectedPlan.description}</p>
+                  <p className="text-purple-300 text-lg md:text-xl mt-4">
+                    {getFormattedPrice(selectedPlan.basePrice)}
+                  </p>
                 </div>
 
                 {/* Features Grid */}
@@ -699,86 +849,7 @@ export default function PricingPage() {
             </div>
           </div>
         )}
-
-        {/* Testimonials section - Adjusted for mobile */}
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="mt-12 md:mt-20 max-w-6xl mx-auto px-4"
-        >
-          <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-white text-center mb-8 md:mb-12 glow-text-purple-sm">
-            What Our Clients Say
-          </h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6 lg:gap-8">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.1, duration: 0.3 }}
-                className="bg-gradient-to-br from-purple-500/10 to-transparent backdrop-blur-sm rounded-xl p-4 md:p-6 border border-purple-500/20 transition-colors duration-200 hover:border-purple-500/40"
-              >
-                <div className="flex items-start mb-3 md:mb-4">
-                  <span className="text-2xl md:text-3xl mr-2 md:mr-3">{testimonial.icon}</span>
-                  <p className="text-gray-300 italic text-sm md:text-base">{testimonial.text}</p>
-                </div>
-                <div className="mt-3 md:mt-4">
-                  <p className="text-white font-medium text-sm md:text-base">{testimonial.author}</p>
-                  <p className="text-purple-400 text-xs md:text-sm">{testimonial.role}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
       </div>
     </div>
   );
-}
-
-// Add these keyframes at the end of the file, before the last closing brace
-const styles = `
-  @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-  }
-
-  @keyframes scaleIn {
-    from { 
-      opacity: 0;
-      transform: scale(0.95) translateY(10px);
-    }
-    to { 
-      opacity: 1;
-      transform: scale(1) translateY(0);
-    }
-  }
-
-  @keyframes shimmer {
-    0% {
-      transform: translateX(-100%);
-    }
-    100% {
-      transform: translateX(100%);
-    }
-  }
-
-  .animate-fadeIn {
-    animation: fadeIn 0.3s ease-out;
-  }
-
-  .animate-scaleIn {
-    animation: scaleIn 0.3s ease-out;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s infinite;
-  }
-`;
-
-// Add this to your document head
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
 }

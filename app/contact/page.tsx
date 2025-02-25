@@ -69,6 +69,7 @@ const testimonials = [
 const packages = [
   {
     name: "WordPress Basic",
+    price: "35000",
     features: [
       "GeneratePress Theme Setup",
       "Up to 5 Pages Development",
@@ -85,6 +86,7 @@ const packages = [
   },
   {
     name: "WordPress Professional",
+    price: "45000",
     features: [
       "Premium Theme (Foxiz/Pixwell/Phlox)",
       "Up to 10 Pages Development",
@@ -101,6 +103,7 @@ const packages = [
   },
   {
     name: "WordPress Enterprise",
+    price: "65000",
     features: [
       "All Premium Themes Access",
       "Unlimited Pages Development",
@@ -274,6 +277,7 @@ function ContactPageContent() {
   }, [searchParams]);
 
   const handleTimelineChange = (timeline: string) => {
+    const timelineValue = timeline === 'urgent' ? 'urgent' : timeline === 'relaxed' ? 'relaxed' : 'normal';
     setSelectedTimeline(timeline);
     setFormData(prev => ({ ...prev, timeline }));
     
@@ -282,11 +286,16 @@ function ContactPageContent() {
       const basePrice = packages.find(p => p.name === selectedPlan)?.price || '';
       let newPrice = basePrice;
       
-      if (timeline === 'urgent') {
+      if (timelineValue === 'urgent') {
         // Add 20% for urgent timeline
         const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
         const rushFee = Math.round(numericPrice * 0.2);
         newPrice = `${basePrice} + ${rushFee}k Rush Fee`;
+      } else if (timelineValue === 'relaxed') {
+        // Apply 5% discount for relaxed timeline
+        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
+        const discount = Math.round(numericPrice * 0.05);
+        newPrice = `${basePrice} - ${discount}k Discount`;
       }
       
       setAdjustedPrice(newPrice);
@@ -647,19 +656,36 @@ function ContactPageContent() {
                 <select 
                   className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                   required
-                  value={formData.timeline}
+                  value={selectedTimeline}
                   onChange={(e) => {
                     const timeline = e.target.value;
+                    setSelectedTimeline(timeline);
                     setFormData(prev => ({ ...prev, timeline }));
-                    handleTimelineChange(timeline);
+                    // Update pricing based on timeline
+                    if (selectedPlan) {
+                      const basePrice = packages.find(p => p.name === selectedPlan)?.price || '';
+                      let newPrice = basePrice;
+                      if (timeline === 'urgent') {
+                        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
+                        const rushFee = Math.round(numericPrice * 0.2);
+                        newPrice = `${basePrice} + ${rushFee}k Rush Fee`;
+                      } else if (timeline === 'relaxed') {
+                        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
+                        const discount = Math.round(numericPrice * 0.05);
+                        newPrice = `${basePrice} - ${discount}k Discount`;
+                      }
+                      
+                      setAdjustedPrice(newPrice);
+                    }
                   }}
                 >
                   <option value="">Select Timeline</option>
-                  <option value="urgent">Urgent (1-2 weeks) +20% Rush Fee</option>
-                  <option value="normal">Normal (2-4 weeks)</option>
-                  <option value="relaxed">Relaxed (4+ weeks)</option>
+                  <option value="urgent">Urgent Delivery (1-2 weeks) (+20% surcharge)</option>
+                  <option value="normal">Normal (2-3 weeks)</option>
+                  <option value="relaxed">Relaxed (4+ weeks) (-5% discount)</option>
                 </select>
               </div>
+              <p className="text-sm text-gray-300 mt-2">Selected Timeline: {selectedTimeline}</p>
               <div>
                 <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Project Details</label>
                 <textarea
@@ -851,4 +877,4 @@ export default function ContactPage() {
       <ContactPageContent />
     </Suspense>
   );
-} 
+}
