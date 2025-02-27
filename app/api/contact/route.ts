@@ -34,8 +34,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(
         { 
           success: false, 
-          message: 'Email configuration error', 
-          error: 'Server email configuration is incomplete' 
+          message: 'Server configuration error. Please try again later or contact support.', 
+          error: 'Email configuration is incomplete' 
         },
         { status: 500 }
       );
@@ -49,17 +49,27 @@ export async function POST(req: NextRequest) {
     
     // Create a transporter object using SMTP transport
     const transporter = nodemailer.createTransport({
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true, // use SSL
+      service: 'gmail',  // Using Gmail service instead of direct SMTP
       auth: {
         user: 'nexwebs.org@gmail.com',
         pass: emailPassword,
       },
-      tls: {
-        rejectUnauthorized: false
-      }
     });
+
+    // Verify SMTP connection configuration
+    try {
+      await transporter.verify();
+    } catch (error) {
+      console.error('SMTP Verification Error:', error);
+      return NextResponse.json(
+        { 
+          success: false, 
+          message: 'Email service is temporarily unavailable. Please try again later.', 
+          error: 'SMTP verification failed' 
+        },
+        { status: 500 }
+      );
+    }
     
     // Format the email content with all the form data
     const mailOptions = {
@@ -251,6 +261,7 @@ export async function POST(req: NextRequest) {
                   <span class="price-label">Base Price:</span>
                   <span class="price-value">${formatPrice(basePrice * exchangeRate, currency)}</span>
                 </div>
+                
                 ${rushFee ? `
                 <div class="price-row">
                   <span class="price-label">Rush Fee (20%):</span>
@@ -290,12 +301,7 @@ export async function POST(req: NextRequest) {
       `,
     };
 
-    console.log('Attempting to send email with config:', {
-      host: 'smtp.gmail.com',
-      port: 465,
-      secure: true,
-      user: 'nexwebs.org@gmail.com'
-    });
+    console.log('Attempting to send email...');
     
     // Send the email
     const info = await transporter.sendMail(mailOptions);
@@ -326,7 +332,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(
       { 
         success: false, 
-        message: 'Failed to send email', 
+        message: 'Failed to send email. Please try again later.', 
         error: error instanceof Error ? error.message : 'Unknown error',
         details: error instanceof Error ? error.stack : undefined
       },
