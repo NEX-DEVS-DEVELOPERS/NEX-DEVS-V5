@@ -47,25 +47,34 @@ export async function POST(req: NextRequest) {
     const formattedDiscount = discount ? formatPrice(discount, currency as SupportedCurrency) : null;
     const formattedInternationalFee = formatPrice(internationalFee, currency as SupportedCurrency);
     
-    // Create a transporter object using SMTP transport
+    // Create a transporter object using SMTP transport with secure settings
     const transporter = nodemailer.createTransport({
-      service: 'gmail',  // Using Gmail service instead of direct SMTP
+      host: 'smtp.gmail.com',
+      port: 465,
+      secure: true, // Use SSL
       auth: {
         user: 'nexwebs.org@gmail.com',
         pass: emailPassword,
       },
+      tls: {
+        // Required for Vercel deployment
+        rejectUnauthorized: true,
+        minVersion: "TLSv1.2"
+      }
     });
 
     // Verify SMTP connection configuration
     try {
       await transporter.verify();
+      console.log('SMTP connection verified successfully');
     } catch (error) {
       console.error('SMTP Verification Error:', error);
       return NextResponse.json(
         { 
           success: false, 
           message: 'Email service is temporarily unavailable. Please try again later.', 
-          error: 'SMTP verification failed' 
+          error: 'SMTP verification failed',
+          details: error instanceof Error ? error.message : 'Unknown error'
         },
         { status: 500 }
       );
@@ -73,7 +82,10 @@ export async function POST(req: NextRequest) {
     
     // Format the email content with all the form data
     const mailOptions = {
-      from: 'NEX-WEBS Contact Form <nexwebs.org@gmail.com>',
+      from: {
+        name: 'NEX-WEBS Contact Form',
+        address: 'nexwebs.org@gmail.com'
+      },
       to: 'nexwebs.org@gmail.com',
       subject: `NEX-WEBS | New Contact Form Submission - ${name}`,
       html: `
@@ -303,21 +315,26 @@ export async function POST(req: NextRequest) {
 
     console.log('Attempting to send email...');
     
-    // Send the email
-    const info = await transporter.sendMail(mailOptions);
-    
-    console.log('Email sent successfully:', {
-      messageId: info.messageId,
-      response: info.response,
-      accepted: info.accepted,
-      rejected: info.rejected
-    });
-    
-    // Return success response
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Email sent successfully' 
-    });
+    try {
+      // Send the email
+      const info = await transporter.sendMail(mailOptions);
+      
+      console.log('Email sent successfully:', {
+        messageId: info.messageId,
+        response: info.response,
+        accepted: info.accepted,
+        rejected: info.rejected
+      });
+      
+      // Return success response
+      return NextResponse.json({ 
+        success: true, 
+        message: 'Email sent successfully' 
+      });
+    } catch (sendError) {
+      console.error('Error sending email:', sendError);
+      throw sendError; // Re-throw to be caught by outer try-catch
+    }
     
   } catch (error) {
     console.error('Detailed error sending email:', {
