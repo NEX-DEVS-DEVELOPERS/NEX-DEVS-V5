@@ -3,6 +3,8 @@ import nodemailer from 'nodemailer';
 import { formatPrice, isBasicPackage, currencySymbols, SupportedCurrency } from '@/app/utils/pricing';
 
 export async function POST(req: NextRequest) {
+  console.log('Starting contact form submission process...');
+  
   try {
     // Parse the request body
     const formData = await req.json();
@@ -25,6 +27,8 @@ export async function POST(req: NextRequest) {
       internationalFee 
     } = formData;
     
+    console.log('Form data received:', { name, email, selectedPlan, timeline });
+    
     // Email password from environment variable
     const emailPassword = process.env.EMAIL_PASSWORD;
     
@@ -40,6 +44,8 @@ export async function POST(req: NextRequest) {
         { status: 500 }
       );
     }
+
+    console.log('Email configuration verified');
 
     // Format prices for display
     const formattedFinalPrice = formatPrice(finalPrice, currency as SupportedCurrency);
