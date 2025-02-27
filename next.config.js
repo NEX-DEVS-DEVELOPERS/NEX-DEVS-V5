@@ -32,6 +32,15 @@ const nextConfig = {
   output: 'standalone',
   env: {
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  },
+  // Add server configuration
+  serverRuntimeConfig: {
+    // Will only be available on the server side
+    EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  },
+  publicRuntimeConfig: {
+    // Will be available on both server and client
+    NODE_ENV: process.env.NODE_ENV,
   }
 }
 
