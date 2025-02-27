@@ -89,7 +89,7 @@ const pricingPlans: PricingPlan[] = [
 
 const PricingPlans: React.FC = () => {
   const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
-  const { currency, isPakistan } = useCurrency();
+  const { currency, isExemptCountry } = useCurrency();
   const { getTimelineMultiplier } = useTimeline();
 
   // Separate new plan from others
@@ -97,7 +97,7 @@ const PricingPlans: React.FC = () => {
   const regularPlans = pricingPlans.filter(plan => !plan.isNew);
 
   return (
-    <div className="space-y-12">
+    <div className="space-y-12 pt-4 md:pt-0">
       {/* New Plan - Full Width */}
       {newPlan && (
         <motion.div
@@ -190,8 +190,15 @@ const PricingPlans: React.FC = () => {
               </div>
 
               <div className="mb-6">
-                <div className="text-3xl font-bold text-white mb-2">
-                  {formatPrice(plan.basePrice, currency, 1, isPakistan, plan.title)}
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-3xl font-bold text-white">
+                    {formatPrice(plan.basePrice, currency, 1, isExemptCountry, plan.title)}
+                  </div>
+                  {['USD', 'GBP', 'AED'].includes(currency) && (
+                    <span className="bg-purple-500 text-white text-[10px] md:text-xs px-1.5 py-0.5 rounded-full font-medium animate-pulse">
+                      UPDATED
+                    </span>
+                  )}
                 </div>
                 <p className="text-purple-200/70">{plan.description}</p>
               </div>

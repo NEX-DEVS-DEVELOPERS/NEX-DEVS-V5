@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,13 @@ import CurrencySelector from '@/app/components/CurrencySelector';
 import LoadingScreen from '@/app/components/LoadingScreen';
 import PricingPlans from '../components/PricingPlans';
 import TransitionEffect from '../components/TransitionEffect';
+import dynamic from 'next/dynamic';
+
+// Properly type the dynamic import for framer-motion
+const DynamicTransitionEffect = dynamic(() => import('../components/TransitionEffect'), {
+  ssr: false,
+  loading: () => null
+});
 
 // Add these type definitions at the top of the file
 type PricingFeature = string;
@@ -501,8 +508,8 @@ interface PlanModalProps {
   getFormattedPrice: (basePrice: number) => string;
 }
 
-// Update the PricingCard component
-const PricingCard: React.FC<PricingCardProps> = React.memo(({ 
+// Optimize the PricingCard component with memo
+const PricingCard = memo(({ 
   plan, 
   onSelect, 
   onGetStarted, 
@@ -513,12 +520,12 @@ const PricingCard: React.FC<PricingCardProps> = React.memo(({
   isExemptCountry,
   isBaseCurrency,
   getFormattedPrice
-}) => {
+}: PricingCardProps) => {
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }} // Reduce animation duration
       onMouseEnter={() => onHover(plan.title)}
       onMouseLeave={() => onHover(null)}
       className={`${
@@ -528,7 +535,7 @@ const PricingCard: React.FC<PricingCardProps> = React.memo(({
       } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer border group
       transition-transform duration-200 ease-out
       hover:scale-[1.02] hover:border-purple-500/70
-      active:scale-[0.98] relative touch-manipulation`}
+      active:scale-[0.98] relative touch-manipulation will-change-transform`} // Add will-change-transform
     >
       {/* Most Popular Badge */}
       {(plan.title === "WordPress Enterprise" || 
@@ -545,51 +552,57 @@ const PricingCard: React.FC<PricingCardProps> = React.memo(({
 
       {/* Price Section with Breakdown */}
       <div className="relative group">
-        <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">
-          {getFormattedPrice(plan.basePrice)}
-        </p>
+        <div className="flex items-center gap-2">
+          <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">
+            {getFormattedPrice(plan.basePrice)}
+          </p>
+          {['USD', 'GBP', 'AED'].includes(currency) && (
+            <span className="bg-purple-500 text-white text-[10px] md:text-xs px-1.5 py-0.5 rounded-full font-medium animate-pulse">
+              UPDATED
+            </span>
+          )}
+        </div>
         
-        {/* Price Breakdown Tooltip */}
-        <div className={`absolute left-0 w-full transform scale-95 opacity-0 
-          group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-20
-          ${hoveredPlan === plan.title ? 'pointer-events-auto' : 'pointer-events-none'}`}
-        >
-          <div className="bg-black/90 border border-purple-500/20 rounded-lg p-4 shadow-xl backdrop-blur-sm mt-2">
-            <div className="space-y-2 text-sm">
-              <p className="flex justify-between items-center">
-                <span className="text-gray-400">Base Price (PKR):</span>
-                <span className="text-white">₨{plan.basePrice.toLocaleString()}</span>
-              </p>
-              {!isExemptCountry && !isBaseCurrency && (
-                <>
-                  <p className="flex justify-between items-center">
-                    <span className="text-gray-400">International Fee (30%):</span>
-                    <span className="text-purple-400">
-                      {currencySymbols[currency]}{(plan.basePrice * 0.3 * exchangeRate).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                    </span>
-                  </p>
-                  <p className="flex justify-between items-center">
-                    <span className="text-gray-400">Exchange Rate:</span>
-                    <span className="text-gray-300">1 PKR = {exchangeRate.toFixed(4)} {currency}</span>
-                  </p>
-                  <div className="border-t border-purple-500/20 mt-2 pt-2">
-                    <p className="flex justify-between items-center font-medium">
-                      <span className="text-white">Final Price:</span>
-                      <span className="text-purple-400">{getFormattedPrice(plan.basePrice)}</span>
+        {/* Price Breakdown Tooltip - Optimized to only render when needed */}
+        {hoveredPlan === plan.title && (
+          <div className="absolute left-0 w-full transform scale-100 opacity-100 transition-all duration-200 z-20 pointer-events-auto">
+            <div className="bg-black/90 border border-purple-500/20 rounded-lg p-4 shadow-xl backdrop-blur-sm mt-2">
+              <div className="space-y-2 text-sm">
+                <p className="flex justify-between items-center">
+                  <span className="text-gray-400">Base Price (PKR):</span>
+                  <span className="text-white">₨{plan.basePrice.toLocaleString()}</span>
+                </p>
+                {!isExemptCountry && !isBaseCurrency && (
+                  <>
+                    <p className="flex justify-between items-center">
+                      <span className="text-gray-400">International Fee (30%):</span>
+                      <span className="text-purple-400">
+                        {currencySymbols[currency]}{(plan.basePrice * 0.3 * exchangeRate).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                      </span>
                     </p>
-                  </div>
-                </>
-              )}
+                    <p className="flex justify-between items-center">
+                      <span className="text-gray-400">Exchange Rate:</span>
+                      <span className="text-gray-300">1 PKR = {exchangeRate.toFixed(4)} {currency}</span>
+                    </p>
+                    <div className="border-t border-purple-500/20 mt-2 pt-2">
+                      <p className="flex justify-between items-center font-medium">
+                        <span className="text-white">Final Price:</span>
+                        <span className="text-purple-400">{getFormattedPrice(plan.basePrice)}</span>
+                      </p>
+                    </div>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
 
       <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
 
-      {/* Features Preview */}
+      {/* Features Preview - Show only 3 features to improve performance */}
       <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
-        {plan.features.slice(0, 3).map((feature: PricingFeature, i: number) => (
+        {plan.features.slice(0, 3).map((feature, i) => (
           <li key={i} className="flex items-center text-sm md:text-base">
             <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
               <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
@@ -627,21 +640,31 @@ const PricingCard: React.FC<PricingCardProps> = React.memo(({
 
 PricingCard.displayName = 'PricingCard';
 
-// Update the PlanModal component
-const PlanModal: React.FC<PlanModalProps> = React.memo(({ 
+// Optimize the PlanModal component
+const PlanModal = memo(({ 
   plan, 
   onClose, 
   onGetStarted,
   getFormattedPrice 
-}) => {
+}: PlanModalProps) => {
   if (!plan) return null;
+
+  // Group features into batches to improve performance
+  const featureBatches = useMemo(() => {
+    const batchSize = 6;
+    const batches = [];
+    for (let i = 0; i < plan.features.length; i += batchSize) {
+      batches.push(plan.features.slice(i, i + batchSize));
+    }
+    return batches;
+  }, [plan.features]);
 
   return (
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      transition={{ duration: 0.2 }}
+      transition={{ duration: 0.15 }} // Reduced duration
       className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
       onClick={onClose}
     >
@@ -657,21 +680,25 @@ const PlanModal: React.FC<PlanModalProps> = React.memo(({
             </p>
           </div>
 
-          {/* Features Grid */}
+          {/* Features Grid - Optimized with batched rendering */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {plan.features.map((feature: PricingFeature, index: number) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: index * 0.05 }}
-                className="flex items-start bg-purple-500/5 rounded-lg p-3 md:p-4 group hover:bg-purple-500/10 transition-colors duration-200"
-              >
-                <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-3 flex-shrink-0 mt-0.5 group-hover:text-purple-300 transition-colors duration-200" fill="currentColor" viewBox="0 0 20 20">
-                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                </svg>
-                <span className="text-gray-300 text-sm md:text-base group-hover:text-white transition-colors duration-200">{feature}</span>
-              </motion.div>
+            {featureBatches.map((batch, batchIndex) => (
+              <React.Fragment key={batchIndex}>
+                {batch.map((feature, index) => (
+                  <motion.div
+                    key={batchIndex * 6 + index}
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.03 * batchIndex }} // Reduced delay 
+                    className="flex items-start bg-purple-500/5 rounded-lg p-3 md:p-4 group hover:bg-purple-500/10 transition-colors duration-200"
+                  >
+                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-3 flex-shrink-0 mt-0.5 group-hover:text-purple-300 transition-colors duration-200" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-gray-300 text-sm md:text-base group-hover:text-white transition-colors duration-200">{feature}</span>
+                  </motion.div>
+                ))}
+              </React.Fragment>
             ))}
           </div>
 
@@ -679,7 +706,7 @@ const PlanModal: React.FC<PlanModalProps> = React.memo(({
           <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
             <h3 className="text-white font-semibold mb-4 text-base md:text-lg">Best For:</h3>
             <div className="flex flex-wrap gap-2">
-              {plan.bestFor.map((item: BestForItem, i: number) => (
+              {plan.bestFor.map((item, i) => (
                 <span key={i} className="text-sm bg-purple-500/10 text-purple-300 px-3 py-1.5 rounded-full">
                   {item}
                 </span>
@@ -690,7 +717,7 @@ const PlanModal: React.FC<PlanModalProps> = React.memo(({
           {/* Modal Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <button 
-              onClick={() => onClose()}
+              onClick={onClose}
               className="flex-1 py-3 px-6 text-white bg-transparent border border-white/20 
                 rounded-xl hover:bg-white/5 transition-all duration-200 font-semibold"
             >
@@ -730,7 +757,7 @@ export default function PricingPage() {
     setCurrency 
   } = useCurrency();
 
-  // Update type definitions for callbacks
+  // Memoize expensive calculations
   const getFormattedPrice = useCallback((basePrice: number): string => {
     const shouldApplyMarkup = !isBaseCurrency;
     return formatPrice(basePrice, currency, exchangeRate, !shouldApplyMarkup);
@@ -741,7 +768,7 @@ export default function PricingPage() {
     
     if (!isMobile) {
       setShowExitTransition(true);
-      await new Promise(resolve => setTimeout(resolve, 1800));
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Reduced from 1800
     }
     
     const encodedPlan = encodeURIComponent(plan.title);
@@ -757,10 +784,14 @@ export default function PricingPage() {
 
     const detectLocation = async () => {
       try {
+        // Prevent layout shifts by using a small delay
         const locationData = await getLocationData('');
         if (mounted) {
           setCurrency(locationData.currency as SupportedCurrency);
-          setShowLoadingScreen(false);
+          // Delay hiding loading screen to prevent jank
+          requestAnimationFrame(() => {
+            if (mounted) setShowLoadingScreen(false);
+          });
         }
       } catch (error) {
         console.error('Error detecting location:', error);
@@ -778,9 +809,9 @@ export default function PricingPage() {
     };
   }, [setCurrency]);
 
-  // Memoize the pricing cards list with proper types
+  // Memoize the pricing cards list for better performance
   const pricingCardsList = useMemo(() => (
-    pricingPlans.map((plan: PricingPlan) => (
+    pricingPlans.map((plan) => (
       <PricingCard
         key={plan.title}
         plan={plan}
@@ -805,16 +836,18 @@ export default function PricingPage() {
     <>
       <AnimatePresence>
         {showExitTransition && (
-          <TransitionEffect isExit message="See you soon!" />
+          <Suspense fallback={null}>
+            <DynamicTransitionEffect isExit message="See you soon!" />
+          </Suspense>
         )}
       </AnimatePresence>
       
-      <div className="min-h-screen bg-black relative overflow-hidden pt-16 md:pt-32">
-        {/* Enhanced Glow Effects */}
+      <div className="min-h-screen bg-black relative overflow-hidden pt-20 md:pt-32">
+        {/* Enhanced Glow Effects - Reduced complexity for better performance */}
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-float-smooth opacity-50 md:opacity-100"></div>
-          <div className="absolute bottom-0 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-float-delayed opacity-50 md:opacity-100"></div>
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse opacity-50 md:opacity-100"></div>
+          <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[120px] opacity-50 md:opacity-100 will-change-transform"></div>
+          <div className="absolute bottom-0 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-600/10 rounded-full blur-[120px] opacity-50 md:opacity-100 will-change-transform"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] bg-purple-700/5 rounded-full blur-[150px] opacity-50 md:opacity-100 will-change-transform"></div>
         </div>
 
         {/* Back Button - Adjusted for mobile */}
@@ -837,21 +870,21 @@ export default function PricingPage() {
 
         <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-20 relative z-20">
           <div className="text-center mb-8 md:mb-16 relative z-10">
-            {/* Project Title */}
+            {/* Project Title - Simplified animation */}
             <motion.h2
-              initial={{ opacity: 0, y: -20 }}
+              initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.3 }}
               className="text-lg md:text-xl text-purple-400 font-semibold mb-4"
             >
               NEX-WEBS DEVELOPMENT
             </motion.h2>
 
-            {/* Currency Info Banner */}
+            {/* Currency Info Banner - Simplified animations */}
             <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.2 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
               className="max-w-3xl mx-auto mb-6"
             >
               <div className="bg-[#1a1042] rounded-xl p-4 border border-purple-500/20">
@@ -880,63 +913,105 @@ export default function PricingPage() {
               </div>
             </motion.div>
 
-            {/* Floating Mockups - Adjusted for mobile */}
+            {/* Enhanced Floating Mockups with Animations */}
             <div className="relative w-full max-w-lg mx-auto mb-8 md:mb-12 mt-8 md:mt-12">
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3 
+                initial={{ opacity: 0, y: 20, rotate: -12 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: [0, -10, 0],
+                  rotate: [-12, -8, -12]
                 }}
-                className="absolute -top-12 md:-top-16 -left-4 md:-left-8 w-16 md:w-24 h-16 md:h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm transform -rotate-12 animate-float-smooth"
+                transition={{ 
+                  opacity: { duration: 0.3 },
+                  y: { 
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  },
+                  rotate: {
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="absolute -top-12 md:-top-16 -left-4 md:-left-8 w-16 md:w-24 h-16 md:h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm"
               >
                 <span className="text-2xl md:text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">💻</span>
               </motion.div>
+              
               <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-                  delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.2 : 0
+                initial={{ opacity: 0, y: -20, rotate: 12 }}
+                animate={{ 
+                  opacity: 1, 
+                  y: [0, 10, 0],
+                  rotate: [12, 8, 12]
                 }}
-                className="absolute -top-6 md:-top-8 -right-4 md:-right-8 w-14 md:w-20 h-14 md:h-20 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg backdrop-blur-sm transform rotate-12 animate-float-delayed"
+                transition={{ 
+                  opacity: { duration: 0.3 },
+                  y: { 
+                    duration: 3.5,
+                    repeat: Infinity,
+                    ease: "easeInOut",
+                    delay: 0.5
+                  },
+                  rotate: {
+                    duration: 4.5,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="absolute -top-6 md:-top-8 -right-4 md:-right-8 w-14 md:w-20 h-14 md:h-20 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg backdrop-blur-sm"
               >
                 <span className="text-2xl md:text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">🚀</span>
               </motion.div>
             </div>
 
             <motion.h1 
-              initial={{ opacity: 0, y: -20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-                ease: "easeOut" 
-              }}
-              className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 md:px-6 py-4 md:py-6 relative z-20 bg-black/40 backdrop-blur-sm rounded-xl inline-block mt-4 md:mt-8"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+              className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 md:px-6 py-4 md:py-6 relative z-30 bg-black/40 backdrop-blur-sm rounded-xl inline-block"
             >
               Choose Your <span className="inline-block bg-white text-black px-2 md:px-3 py-1 rounded-md">Perfect Plan</span>
               <motion.span
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
-                className="absolute -top-4 -right-4 text-xl md:text-2xl transform rotate-12"
+                initial={{ opacity: 0, rotate: 12, y: 0 }}
+                animate={{ 
+                  opacity: 1,
+                  y: [-2, 2, -2],
+                  rotate: [12, 15, 12]
+                }}
+                transition={{
+                  opacity: { duration: 0.3 },
+                  y: {
+                    duration: 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  },
+                  rotate: {
+                    duration: 3,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
+                }}
+                className="absolute -top-4 -right-4 text-xl md:text-2xl"
               >
                 ✨
               </motion.span>
             </motion.h1>
 
-            {/* Currency Selector - Centered */}
+            {/* Simplified Currency Selector */}
             <motion.div
               className="flex flex-col items-center justify-center space-y-2 mb-8 px-4 w-full"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ duration: 0.3 }}
             >
               <CurrencySelector />
               <motion.p 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.3, duration: 0.3 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
                 className="text-gray-400 text-xs mt-1"
               >
                 YOUR LOCATION IS AUTOMATICALLY SET
@@ -946,15 +1021,33 @@ export default function PricingPage() {
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ 
-                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.4 : 0,
-                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-                ease: "easeOut" 
-              }}
+              transition={{ duration: 0.3 }}
               className="text-white/80 text-sm md:text-base glow-text-sm max-w-2xl mx-auto px-3 md:px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg"
             >
               Transparent pricing with no hidden fees. Select a plan to view detailed features.
             </motion.p>
+
+            {/* Updated Pricing Notice for USD, GBP, AED - Conditionally render */}
+            {['USD', 'GBP', 'AED'].includes(currency) && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3 }}
+                className="max-w-3xl mx-auto mt-6 md:mt-8"
+              >
+                <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-500/30 rounded-xl p-4 shadow-lg backdrop-blur-sm">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold animate-pulse">
+                      UPDATED
+                    </div>
+                    <h3 className="text-lg font-semibold text-white">Pricing Update Notice</h3>
+                  </div>
+                  <p className="text-purple-100 mt-2 text-sm">
+                    We've updated our pricing for {currency} to reflect current market conditions. The new rates provide better value while maintaining our premium service quality.
+                  </p>
+                </div>
+              </motion.div>
+            )}
 
             {/* Price increase notice - Only show for non-exempt countries */}
             {!isExemptCountry && !isBaseCurrency && (

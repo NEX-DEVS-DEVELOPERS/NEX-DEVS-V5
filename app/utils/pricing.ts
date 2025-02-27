@@ -10,20 +10,20 @@ interface GeoLocation {
 export type SupportedCurrency = 'PKR' | 'USD' | 'GBP' | 'INR' | 'AED';
 
 // Base exchange rates (to be updated with real-time rates)
-export const baseExchangeRates: Record<SupportedCurrency, number> = {
-  PKR: 1,
-  USD: 0.0045, // Adjusted to increase price by ~$20
-  GBP: 0.0036, // Adjusted to increase price by equivalent of ~$20
-  INR: 0.43,   // Unchanged
-  AED: 0.025,  // Adjusted to increase price by equivalent of ~$20
+export const baseExchangeRates: { [key in SupportedCurrency]: number } = {
+  PKR: 1,      // Base currency
+  USD: 0.0036, // 1 PKR = 0.0036 USD (1 USD = ~278 PKR)
+  INR: 0.30,   // 1 PKR = 0.30 INR (1 INR = ~3.33 PKR)
+  GBP: 0.0028, // 1 PKR = 0.0028 GBP (1 GBP = ~357 PKR)
+  AED: 0.013   // 1 PKR = 0.013 AED (1 AED = ~77 PKR)
 };
 
-export const currencySymbols: Record<SupportedCurrency, string> = {
+export const currencySymbols: { [key in SupportedCurrency]: string } = {
   PKR: '₨',
   USD: '$',
   GBP: '£',
-  INR: '₹',
   AED: 'د.إ',
+  INR: '₹'
 };
 
 export const getExchangeRates = async (currency: string): Promise<number> => {
@@ -121,11 +121,15 @@ export const getRealTimeExchangeRates = async (): Promise<Record<SupportedCurren
 
 // Function to get timeline surcharge percentage
 export const getTimelineSurcharge = (timeline: string): number => {
-  switch (timeline) {
-    case 'Urgent (1-2 weeks)':
-      return 0.20; // 20% surcharge for urgent projects
+  switch (timeline.toLowerCase()) {
+    case 'urgent':
+    case 'urgent (1-2 weeks)':
+      return 0.2; // 20% surcharge for urgent delivery
+    case 'relaxed':
+    case 'relaxed (4+ weeks)':
+      return -0.05; // 5% discount for relaxed timeline
     default:
-      return 0;
+      return 0; // No surcharge for normal timeline
   }
 };
 
@@ -143,15 +147,30 @@ export const getPriceBreakdown = (
   // Add timeline surcharge to base price
   const priceWithTimeline = basePrice + timelineSurcharge;
   
-  // Only apply international markup for non-exempt countries and non-PKR currency
-  const internationalMarkup = (!isExemptCountry && currency !== 'PKR') ? priceWithTimeline * 0.3 : 0;
-  const subtotal = priceWithTimeline + internationalMarkup;
+  // Apply international pricing adjustments
+  let internationalMarkup = 0;
+  let internationalDiscount = 0;
+  let pkrDiscount = 0;
+  
+  if (currency === 'PKR') {
+    // Apply 20% discount for PKR users
+    pkrDiscount = priceWithTimeline * 0.2;
+  } else if (!isExemptCountry) {
+    // Apply 10% international fee
+    internationalMarkup = priceWithTimeline * 0.1;
+    // Apply 20% international discount
+    internationalDiscount = priceWithTimeline * 0.2;
+  }
+  
+  const subtotal = priceWithTimeline + internationalMarkup - internationalDiscount - pkrDiscount;
   const convertedAmount = subtotal * exchangeRate;
 
   return {
     basePrice,
     timelineSurcharge,
     internationalMarkup,
+    internationalDiscount,
+    pkrDiscount,
     subtotal,
     convertedAmount,
     currency,

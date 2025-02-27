@@ -67,10 +67,42 @@ const testimonials = [
   }
 ];
 
-const packages = [
+interface Package {
+  name: string;
+  price: string;
+  features: string[];
+  hasDiscount: boolean;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  phone: string;
+  address: string;
+  timeline: string;
+  details: string;
+}
+
+const exchangeRates = {
+  PKR: 1,      // Base currency
+  USD: 0.0036, // 1 PKR = 0.0036 USD (1 USD = ~278 PKR)
+  INR: 0.30,   // 1 PKR = 0.30 INR (1 INR = ~3.33 PKR)
+  GBP: 0.0028, // 1 PKR = 0.0028 GBP (1 GBP = ~357 PKR)
+  AED: 0.013   // 1 PKR = 0.013 AED (1 AED = ~77 PKR)
+};
+
+const currencySymbols = {
+  PKR: 'Rs',
+  USD: '$',
+  INR: '₹',
+  GBP: '£',
+  AED: 'د.إ'
+};
+
+const packages: Package[] = [
   {
     name: "WordPress Basic",
-    price: "35000",
+    price: "38500",
     features: [
       "GeneratePress Theme Setup",
       "Up to 5 Pages Development",
@@ -87,7 +119,7 @@ const packages = [
   },
   {
     name: "WordPress Professional",
-    price: "45000",
+    price: "49500",
     features: [
       "Premium Theme (Foxiz/Pixwell/Phlox)",
       "Up to 10 Pages Development",
@@ -104,7 +136,7 @@ const packages = [
   },
   {
     name: "WordPress Enterprise",
-    price: "65000",
+    price: "71500",
     features: [
       "All Premium Themes Access",
       "Unlimited Pages Development",
@@ -120,23 +152,8 @@ const packages = [
     hasDiscount: true
   },
   {
-    name: "Shopify/WooCommerce",
-    features: [
-      "Custom Store Design",
-      "Product Setup & Migration",
-      "Payment Gateway Integration",
-      "Inventory Management",
-      "Analytics Integration",
-      "Mobile Commerce Ready",
-      "Multi-currency Support",
-      "Automated Email Marketing",
-      "Order Management System",
-      "Security Implementation"
-    ],
-    hasDiscount: true
-  },
-  {
     name: "Full-Stack Basic",
+    price: "60500",
     features: [
       "Modern React/Next.js Frontend",
       "Node.js/Express Backend",
@@ -153,6 +170,7 @@ const packages = [
   },
   {
     name: "Full-Stack Professional",
+    price: "82500",
     features: [
       "Next.js/TypeScript Frontend",
       "Node.js/NestJS Backend",
@@ -169,6 +187,7 @@ const packages = [
   },
   {
     name: "Full-Stack Enterprise",
+    price: "104500",
     features: [
       "Next.js 14/React Server Components",
       "Microservices Architecture",
@@ -184,7 +203,23 @@ const packages = [
     hasDiscount: true
   },
   {
+    name: "AI Agents/WebApps",
+    price: "93500",
+    features: [
+      "AI Model Integration",
+      "Custom AI Solutions",
+      "Real-time Processing",
+      "Data Analytics",
+      "Scalable Architecture",
+      "API Development",
+      "Machine Learning Pipeline",
+      "Automated Workflows"
+    ],
+    hasDiscount: true
+  },
+  {
     name: "UI/UX Design",
+    price: "55000",
     features: [
       "Custom UI Design",
       "Interactive Prototypes",
@@ -196,38 +231,6 @@ const packages = [
       "Design Handoff",
       "Style Guide",
       "Design Documentation"
-    ],
-    hasDiscount: true
-  },
-  {
-    name: "Web Apps & AI Solutions",
-    features: [
-      "AI Model Integration",
-      "Custom AI Solutions",
-      "Real-time Processing",
-      "Data Analytics",
-      "Machine Learning Pipeline",
-      "API Development",
-      "Scalable Architecture",
-      "Automated Workflows",
-      "Performance Monitoring",
-      "Technical Support"
-    ],
-    hasDiscount: true
-  },
-  {
-    name: "SEO & Content Writing",
-    features: [
-      "Keyword Research",
-      "Content Strategy",
-      "Technical SEO",
-      "Content Creation",
-      "Performance Tracking",
-      "Monthly Reports",
-      "Competitor Analysis",
-      "Link Building Strategy",
-      "Analytics Setup",
-      "Content Calendar"
     ],
     hasDiscount: true
   }
@@ -246,14 +249,79 @@ const fadeInScale = {
   }
 };
 
+const SuccessMessage = ({ message, onClose }: { message: string; onClose: () => void }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="fixed inset-0 flex items-center justify-center z-50 px-4 sm:px-0"
+  >
+    <motion.div
+      className="bg-black/90 text-white px-6 sm:px-8 py-6 rounded-2xl shadow-2xl border border-green-500/20 flex flex-col items-center space-y-4 w-[90%] sm:w-auto min-w-[280px] max-w-[90vw] sm:max-w-md mx-auto backdrop-blur-sm relative"
+    >
+      <button
+        onClick={onClose}
+        className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
+      >
+        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ 
+          type: "spring",
+          stiffness: 200,
+          damping: 15
+        }}
+        className="bg-green-500 rounded-full p-3"
+      >
+        <motion.svg 
+          className="w-8 h-8 text-black" 
+          fill="none" 
+          stroke="currentColor" 
+          viewBox="0 0 24 24"
+        >
+          <motion.path
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ duration: 0.5 }}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={3}
+            d="M5 13l4 4L19 7"
+          />
+        </motion.svg>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        className="text-center space-y-2"
+      >
+        <h3 className="text-xl font-bold text-green-500">Message Sent Successfully!</h3>
+        <p className="text-gray-300">{message}</p>
+      </motion.div>
+    </motion.div>
+  </motion.div>
+);
+
 function ContactPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [selectedTimeline, setSelectedTimeline] = useState('');
+  const [selectedCurrency, setSelectedCurrency] = useState<string>('');
+  const [isInternational, setIsInternational] = useState(false);
+  const [currencyLocked, setCurrencyLocked] = useState(false);
+  const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [adjustedPrice, setAdjustedPrice] = useState('');
   const [showDiscountBanner, setShowDiscountBanner] = useState(true);
   const [showEntranceTransition, setShowEntranceTransition] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -262,9 +330,25 @@ function ContactPageContent() {
     timeline: '',
     details: ''
   });
+  const [charCount, setCharCount] = useState(0);
+  const MAX_CHARS = 200;
 
   useEffect(() => {
+    // Get user's country code (you can use a geolocation service here)
+    // For now, we'll assume any non-PKR selection means international
     const plan = searchParams.get('plan');
+    const currency = searchParams.get('currency');
+    
+    if (currency) {
+      setSelectedCurrency(currency);
+      setCurrencyLocked(true);
+      setIsInternational(currency !== 'PKR');
+    } else {
+      // Default to PKR for local users, USD for international
+      setSelectedCurrency('PKR');
+      setIsInternational(false);
+    }
+
     if (plan) {
       const selectedPackage = packages.find(p => p.name === decodeURIComponent(plan));
       setSelectedPlan(plan);
@@ -277,51 +361,144 @@ function ContactPageContent() {
     }
   }, [searchParams]);
 
+  const handleCurrencyChange = (currency: string) => {
+    if (!currencyLocked) {
+      setSelectedCurrency(currency);
+      setIsInternational(currency !== 'PKR');
+      setExchangeRate(exchangeRates[currency as keyof typeof exchangeRates]);
+    }
+  };
+
+  const calculatePrice = (basePrice: number, timeline: string, currency: string): { 
+    finalPrice: number;
+    rushFee?: number;
+    discount?: number;
+    internationalFee?: number;
+    internationalDiscount?: number;
+    pkrDiscount?: number;
+  } => {
+    const rate = exchangeRates[currency as keyof typeof exchangeRates];
+    let priceInForeignCurrency = basePrice * rate;
+    
+    // Calculate timeline adjustments first
+    let rushFee: number | undefined;
+    let discount: number | undefined;
+    let internationalFee: number | undefined;
+    let internationalDiscount: number | undefined;
+    let pkrDiscount: number | undefined;
+    
+    // Apply timeline adjustments to base price
+    if (timeline === 'urgent') {
+      rushFee = priceInForeignCurrency * 0.2; // 20% rush fee
+      priceInForeignCurrency += rushFee;
+    } else if (timeline === 'relaxed') {
+      discount = priceInForeignCurrency * 0.05; // 5% discount
+      priceInForeignCurrency -= discount;
+    }
+    
+    // Apply PKR discount or international fees
+    if (currency === 'PKR') {
+      pkrDiscount = priceInForeignCurrency * 0.2; // 20% PKR discount
+      priceInForeignCurrency -= pkrDiscount;
+    } else {
+      internationalFee = priceInForeignCurrency * 0.1; // 10% international fee
+      internationalDiscount = priceInForeignCurrency * 0.2; // 20% international discount
+      priceInForeignCurrency = priceInForeignCurrency + internationalFee - internationalDiscount;
+    }
+    
+    return {
+      finalPrice: Number(priceInForeignCurrency.toFixed(2)),
+      rushFee: rushFee ? Number(rushFee.toFixed(2)) : undefined,
+      discount: discount ? Number(discount.toFixed(2)) : undefined,
+      internationalFee: internationalFee ? Number(internationalFee.toFixed(2)) : undefined,
+      internationalDiscount: internationalDiscount ? Number(internationalDiscount.toFixed(2)) : undefined,
+      pkrDiscount: pkrDiscount ? Number(pkrDiscount.toFixed(2)) : undefined
+    };
+  };
+
+  const formatPrice = (price: number, currency: string): string => {
+    const symbol = currencySymbols[currency as keyof typeof currencySymbols];
+    return `${symbol}${price.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  };
+
   const handleTimelineChange = (timeline: string) => {
-    const timelineValue = timeline === 'urgent' ? 'urgent' : timeline === 'relaxed' ? 'relaxed' : 'normal';
     setSelectedTimeline(timeline);
     setFormData(prev => ({ ...prev, timeline }));
     
-    // Update pricing based on timeline
     if (selectedPlan) {
-      const basePrice = packages.find(p => p.name === selectedPlan)?.price || '';
-      let newPrice = basePrice;
-      
-      if (timelineValue === 'urgent') {
-        // Add 20% for urgent timeline
-        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
-        const rushFee = Math.round(numericPrice * 0.2);
-        newPrice = `${basePrice} + ${rushFee}k Rush Fee`;
-      } else if (timelineValue === 'relaxed') {
-        // Apply 5% discount for relaxed timeline
-        const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
-        const discount = Math.round(numericPrice * 0.05);
-        newPrice = `${basePrice} - ${discount}k Discount`;
+      const selectedPackage = packages.find(p => p.name === selectedPlan);
+      if (selectedPackage?.price) {
+        const basePrice = parseInt(selectedPackage.price);
+        const priceDetails = calculatePrice(basePrice, timeline, selectedCurrency);
+        setAdjustedPrice(priceDetails.finalPrice.toString());
       }
-      
-      setAdjustedPrice(newPrice);
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Add form validation
+    setSuccessMessage('');
+    setErrorMessage('');
+    
     if (!formData.name || !formData.email || !formData.timeline || !formData.details) {
-      alert('Please fill in all required fields');
+      setErrorMessage('Please fill in all required fields');
       return;
     }
 
-    // Here you would typically send the form data to your backend
-    console.log('Form submitted:', {
-      ...formData,
-      selectedPlan,
-      adjustedPrice
-    });
+    try {
+      setIsLoading(true);
 
-    // Redirect to checkout if a plan is selected
-    if (selectedPlan) {
-      router.push(`/checkout?plan=${encodeURIComponent(selectedPlan)}&timeline=${encodeURIComponent(formData.timeline)}`);
+      const selectedPackage = packages.find(p => p.name === selectedPlan);
+      const basePrice = selectedPackage ? parseInt(selectedPackage.price) : 0;
+      
+      // Calculate all price components
+      const priceDetails = calculatePrice(basePrice, formData.timeline, selectedCurrency);
+
+      const payload = {
+        ...formData,
+        selectedPlan: selectedPlan || '',
+        currency: selectedCurrency,
+        exchangeRate: exchangeRates[selectedCurrency as keyof typeof exchangeRates],
+        basePrice,
+        finalPrice: priceDetails.finalPrice,
+        rushFee: priceDetails.rushFee,
+        discount: priceDetails.discount,
+        internationalFee: priceDetails.internationalFee,
+        internationalDiscount: priceDetails.internationalDiscount
+      };
+
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        setSuccessMessage('We will get back to you within 24 hours! 🚀');
+        setFormData({
+          name: '',
+          email: '',
+          phone: '',
+          address: '',
+          timeline: '',
+          details: ''
+        });
+        setSelectedPlan(null);
+        setSelectedTimeline('');
+        setAdjustedPrice('');
+      } else {
+        setErrorMessage(result.message || 'Failed to send message. Please try again later.');
+      }
+    } catch (error) {
+      console.error('Error submitting form:', error);
+      setErrorMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -564,6 +741,25 @@ function ContactPageContent() {
                 </h3>
               </div>
               <form onSubmit={handleSubmit} className="space-y-4 md:space-y-6">
+                {/* Success Message */}
+                {successMessage && (
+                  <AnimatePresence>
+                    <SuccessMessage message={successMessage} onClose={() => setSuccessMessage('')} />
+                  </AnimatePresence>
+                )}
+
+                {/* Error Message */}
+                {errorMessage && (
+                  <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 text-sm mb-4">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      <span>{errorMessage}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div>
                     <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Name</label>
@@ -605,6 +801,26 @@ function ContactPageContent() {
                       onChange={(e) => setFormData(prev => ({ ...prev, address: e.target.value }))}
                     />
                   </div>
+                </div>
+                <div>
+                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Currency</label>
+                  <select 
+                    className={`w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 
+                      focus:border-purple-500 focus:ring-1 focus:ring-purple-500 
+                      ${currencyLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    value={selectedCurrency}
+                    onChange={(e) => handleCurrencyChange(e.target.value)}
+                    disabled={currencyLocked}
+                  >
+                    {!isInternational && <option value="PKR">PKR - Pakistani Rupee</option>}
+                    <option value="USD">USD - US Dollar</option>
+                    <option value="INR">INR - Indian Rupee</option>
+                    <option value="GBP">GBP - British Pound</option>
+                    <option value="AED">AED - UAE Dirham</option>
+                  </select>
+                  {currencyLocked && (
+                    <p className="text-xs text-gray-400 mt-1">Currency locked based on selection from pricing page</p>
+                  )}
                 </div>
                 <div>
                   <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Package</label>
@@ -660,27 +876,7 @@ function ContactPageContent() {
                     className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
                     required
                     value={selectedTimeline}
-                    onChange={(e) => {
-                      const timeline = e.target.value;
-                      setSelectedTimeline(timeline);
-                      setFormData(prev => ({ ...prev, timeline }));
-                      // Update pricing based on timeline
-                      if (selectedPlan) {
-                        const basePrice = packages.find(p => p.name === selectedPlan)?.price || '';
-                        let newPrice = basePrice;
-                        if (timeline === 'urgent') {
-                          const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
-                          const rushFee = Math.round(numericPrice * 0.2);
-                          newPrice = `${basePrice} + ${rushFee}k Rush Fee`;
-                        } else if (timeline === 'relaxed') {
-                          const numericPrice = parseInt(basePrice.replace(/[^0-9]/g, ''));
-                          const discount = Math.round(numericPrice * 0.05);
-                          newPrice = `${basePrice} - ${discount}k Discount`;
-                        }
-                        
-                        setAdjustedPrice(newPrice);
-                      }
-                    }}
+                    onChange={(e) => handleTimelineChange(e.target.value)}
                   >
                     <option value="">Select Timeline</option>
                     <option value="urgent">Urgent Delivery (1-2 weeks) (+20% surcharge)</option>
@@ -691,29 +887,181 @@ function ContactPageContent() {
                 <p className="text-sm text-gray-300 mt-2">Selected Timeline: {selectedTimeline}</p>
                 <div>
                   <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Project Details</label>
-                  <textarea
-                    className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
-                    rows={4}
-                    placeholder="Tell us about your project requirements, goals, and any specific features you need..."
-                    required
-                    value={formData.details}
-                    onChange={(e) => setFormData(prev => ({ ...prev, details: e.target.value }))}
-                  />
+                  <div className="relative">
+                    <textarea
+                      className={`w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border 
+                        ${charCount > MAX_CHARS ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-zinc-700 focus:border-purple-500 focus:ring-purple-500'} 
+                        focus:ring-1`}
+                      rows={4}
+                      placeholder="Tell us about your project requirements, goals, and any specific features you need..."
+                      required
+                      maxLength={MAX_CHARS}
+                      value={formData.details}
+                      onChange={(e) => {
+                        setFormData(prev => ({ ...prev, details: e.target.value }));
+                        setCharCount(e.target.value.length);
+                      }}
+                    />
+                    <div className={`absolute bottom-2 right-2 text-xs transition-all duration-300 
+                      ${charCount > MAX_CHARS ? 'text-red-400' : charCount > MAX_CHARS * 0.8 ? 'text-yellow-400' : 'text-gray-400'}`}>
+                      <span className="font-medium">{charCount}</span>
+                      <span className="text-gray-500">/{MAX_CHARS}</span>
+                    </div>
+                    
+                    {/* Character limit notifications */}
+                    {charCount === MAX_CHARS && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="absolute -top-16 right-0 w-64 bg-emerald-900/90 border border-emerald-500/50 
+                          text-emerald-100 p-3 rounded-lg shadow-lg backdrop-blur-sm"
+                      >
+                        <div className="flex items-start gap-2">
+                          <svg className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                          </svg>
+                          <div>
+                            <p className="text-sm font-medium mb-1">Character limit reached</p>
+                            <p className="text-xs text-emerald-300/90">
+                              No worries! You can send up to 3 separate messages for detailed requirements.
+                            </p>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {charCount > MAX_CHARS && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="absolute -top-12 right-0 text-red-400 whitespace-nowrap bg-red-900/50 px-3 py-1.5 rounded-lg text-xs border border-red-500/30"
+                      >
+                        <div className="flex items-center gap-1.5">
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                          </svg>
+                          <span>Please reduce the text length</span>
+                        </div>
+                      </motion.div>
+                    )}
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div>
+                    <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Currency</label>
+                    <select 
+                      className={`w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 
+                        focus:border-purple-500 focus:ring-1 focus:ring-purple-500 
+                        ${currencyLocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      value={selectedCurrency}
+                      onChange={(e) => handleCurrencyChange(e.target.value)}
+                      disabled={currencyLocked}
+                    >
+                      {!isInternational && <option value="PKR">PKR - Pakistani Rupee</option>}
+                      <option value="USD">USD - US Dollar</option>
+                      <option value="INR">INR - Indian Rupee</option>
+                      <option value="GBP">GBP - British Pound</option>
+                      <option value="AED">AED - UAE Dirham</option>
+                    </select>
+                    {currencyLocked && (
+                      <p className="text-xs text-gray-400 mt-1">Currency locked based on selection from pricing page</p>
+                    )}
+                  </div>
+                  
+                  {selectedPlan && selectedTimeline && (
+                    <div className="bg-zinc-800 p-4 rounded-lg border border-zinc-700">
+                      <h4 className="text-sm font-medium mb-2">Price Breakdown</h4>
+                      <div className="space-y-1 text-sm">
+                        {(() => {
+                          const basePrice = parseInt(packages.find(p => p.name === selectedPlan)?.price || '0');
+                          const priceDetails = calculatePrice(basePrice, selectedTimeline, selectedCurrency);
+                          
+                          return (
+                            <>
+                              <p className="flex justify-between text-gray-300">
+                                <span>Base Price:</span>
+                                <span>{formatPrice(basePrice * exchangeRate, selectedCurrency)}</span>
+                              </p>
+                              {priceDetails.rushFee && (
+                                <p className="flex justify-between text-red-400">
+                                  <span>Rush Fee (20%):</span>
+                                  <span>+{formatPrice(priceDetails.rushFee, selectedCurrency)}</span>
+                                </p>
+                              )}
+                              {priceDetails.discount && (
+                                <p className="flex justify-between text-green-400">
+                                  <span>Discount (5%):</span>
+                                  <span>-{formatPrice(priceDetails.discount, selectedCurrency)}</span>
+                                </p>
+                              )}
+                              {priceDetails.pkrDiscount && (
+                                <p className="flex justify-between text-green-400">
+                                  <span>PKR Discount (20%):</span>
+                                  <span>-{formatPrice(priceDetails.pkrDiscount, selectedCurrency)}</span>
+                                </p>
+                              )}
+                              {priceDetails.internationalFee && (
+                                <p className="flex justify-between text-purple-400">
+                                  <span>International Fee (10%):</span>
+                                  <span>+{formatPrice(priceDetails.internationalFee, selectedCurrency)}</span>
+                                </p>
+                              )}
+                              {priceDetails.internationalDiscount && (
+                                <p className="flex justify-between text-green-400">
+                                  <span>International Discount (20%):</span>
+                                  <span>-{formatPrice(priceDetails.internationalDiscount, selectedCurrency)}</span>
+                                </p>
+                              )}
+                              <div className="border-t border-zinc-700 mt-2 pt-2">
+                                <p className="flex justify-between font-medium">
+                                  <span>Final Price:</span>
+                                  <span>{formatPrice(priceDetails.finalPrice, selectedCurrency)}</span>
+                                </p>
+                              </div>
+                            </>
+                          );
+                        })()}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 <div className="space-y-3 md:space-y-4">
                   <button
                     type="button"
                     onClick={() => router.push(`/checkout?plan=${encodeURIComponent(selectedPlan || '')}`)}
                     className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm md:text-base font-medium py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors"
+                    disabled={isLoading}
                   >
                     Proceed to Checkout
                   </button>
-                  <button
+                  <motion.button
                     type="submit"
-                    className="w-full bg-white hover:bg-gray-100 text-black text-sm md:text-base font-medium py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors"
+                    className="w-full bg-white hover:bg-gray-100 text-black text-sm md:text-base font-medium py-2 md:py-3 px-4 md:px-6 rounded-lg transition-colors flex items-center justify-center"
+                    disabled={isLoading}
+                    whileTap={{ scale: 0.95 }}
                   >
-                    Send Message
-                  </button>
+                    {isLoading ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-black" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Sending...
+                      </>
+                    ) : (
+                      <span className="flex items-center">
+                        Send Message
+                        <motion.span
+                          className="ml-2"
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.2 }}
+                        >
+                          →
+                        </motion.span>
+                      </span>
+                    )}
+                  </motion.button>
                 </div>
                 <p className="text-xs md:text-sm text-gray-400 text-center">
                   We typically respond within 24 hours

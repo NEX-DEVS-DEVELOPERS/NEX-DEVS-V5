@@ -167,16 +167,16 @@ function CheckoutPageContent() {
 
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
-      'WordPress Basic': 35000,
-      'WordPress Professional': 45000,
-      'WordPress Enterprise': 65000,
-      'Shopify/WooCommerce': 55000,
-      'Full-Stack Basic': 55000,
-      'Full-Stack Professional': 75000,
-      'Full-Stack Enterprise': 95000,
-      'UI/UX Design': 50000,
-      'Web Apps & AI Solutions': 85000,
-      'SEO & Content Writing': 30000
+      'WordPress Basic': 38500,
+      'WordPress Professional': 49500,
+      'WordPress Enterprise': 71500,
+      'Shopify/WooCommerce': 60500,
+      'Full-Stack Basic': 60500,
+      'Full-Stack Professional': 82500,
+      'Full-Stack Enterprise': 104500,
+      'UI/UX Design': 55000,
+      'Web Apps & AI Solutions': 93500,
+      'SEO & Content Writing': 33000
     };
     
     const matchingKey = Object.keys(prices).find(
@@ -207,6 +207,11 @@ function CheckoutPageContent() {
     return surcharge;
   };
 
+  const getInternationalTransactionFee = (currency: string, amount: number): number => {
+    const internationalCurrencies = ['USD', 'INR', 'AED', 'GBP'];
+    return internationalCurrencies.includes(currency) ? Math.round(amount * 0.10) : 0;
+  };
+
   const generateInvoice = async (plan: string) => {
     try {
       const baseAmount = getBaseAmount(plan);
@@ -225,7 +230,11 @@ function CheckoutPageContent() {
       const discountAmount = Math.round((subTotal * discountPercentage) / 100);
       const taxRate = 0;
       const taxAmount = Math.round((subTotal * taxRate) / 100);
-      const total = subTotal + timelineSurchargeAmount - discountAmount + taxAmount;
+      
+      // Calculate international transaction fee
+      const internationalFee = getInternationalTransactionFee(currency, subTotal);
+      
+      const total = subTotal + timelineSurchargeAmount - discountAmount + taxAmount + internationalFee;
 
       const newInvoice: InvoiceDetails = {
         invoiceNumber: `INV-${Date.now()}`,
@@ -270,6 +279,18 @@ function CheckoutPageContent() {
           ...timelineItem,
           quantity: 1,
           rate: Math.abs(timelineSurchargeAmount),
+          features: []
+        });
+      }
+
+      // Add international transaction fee if applicable
+      if (internationalFee > 0) {
+        newInvoice.items.push({
+          description: 'International Transaction Fee',
+          details: '10% fee for international transactions',
+          quantity: 1,
+          rate: internationalFee,
+          amount: internationalFee,
           features: []
         });
       }
@@ -1123,7 +1144,7 @@ function CheckoutPageContent() {
   };
 
   return (
-    <main className="min-h-screen bg-black text-white py-8 px-4 sm:py-20 sm:px-6">
+    <main className="min-h-screen bg-black text-white py-8 px-4 pt-20 sm:pt-28 sm:py-20 sm:px-6">
       <div className="max-w-6xl mx-auto">
         {/* Back Button */}
         <div className="mb-6 sm:mb-8">
@@ -1139,6 +1160,21 @@ function CheckoutPageContent() {
             <span className="text-xs md:text-sm font-medium">Back</span>
           </div>
         </div>
+        
+        {/* Updated Pricing Notice */}
+        {['USD', 'GBP', 'AED'].includes(currency) && (
+          <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-500/30 rounded-xl p-4 mt-4 md:mt-0 mb-6 shadow-lg">
+            <div className="flex items-center gap-2">
+              <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold animate-pulse">
+                UPDATED
+              </div>
+              <h3 className="text-lg font-semibold text-white">Pricing Update Notice</h3>
+            </div>
+            <p className="text-purple-100 mt-2 text-sm">
+              We've updated our pricing for {currency} to reflect current market conditions. The new rates provide better value while maintaining our premium service quality.
+            </p>
+          </div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
           {/* Left Column - Project Timeline and Payment Details */}
@@ -1352,9 +1388,9 @@ function CheckoutPageContent() {
                       <li className="pl-2">Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
                       <li className="pl-2">Select "Send Money"</li>
                       <li className="pl-2">Enter the number shown above</li>
-                      <li className="pl-2">Enter amount: PKR ${invoice?.total.toLocaleString()}</li>
+                      <li className="pl-2">Enter amount: (for-pak-PKR) ($-GBP-AED)-{invoice?.total.toLocaleString()}</li>
                       <li className="pl-2">Complete the transaction</li>
-                      <li className="pl-2">Send the transaction ID to support@nexwebs.com</li>
+                      <li className="pl-2">Send the transaction ID to support@nex-web-official.com</li>
                     </ol>
                   </div>
                 </div>
@@ -1503,7 +1539,13 @@ function CheckoutPageContent() {
                       <div className="flex justify-between text-xs sm:text-sm">
                         <span className="text-gray-400">Currency:</span>
                         <span className="font-medium text-purple-400">
-                          {currency} {!isExemptCountry && currency !== 'PKR' && '(International Rate)'}
+                          {currency} 
+                          {!isExemptCountry && currency !== 'PKR' && ' (International Rate)'}
+                          {['USD', 'GBP', 'AED'].includes(currency) && (
+                            <span className="bg-purple-500 text-white text-xs px-1.5 py-0.5 rounded ml-2 animate-pulse">
+                              UPDATED
+                            </span>
+                          )}
                         </span>
                       </div>
                     </div>

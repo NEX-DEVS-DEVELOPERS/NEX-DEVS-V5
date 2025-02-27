@@ -10,7 +10,14 @@ import type { Metadata } from 'next'
 import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
 
-const inter = Inter({ subsets: ["latin"] })
+// Optimize font loading - add display: 'swap' to show text with fallback font while custom font loads
+const inter = Inter({ 
+  subsets: ["latin"],
+  display: 'swap',
+  preload: true,
+  fallback: ['system-ui', 'sans-serif'],
+  variable: '--font-inter',
+})
 
 export const metadata: Metadata = {
   title: "Ali Hasnaat - Website Developer",
@@ -34,10 +41,19 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" />
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="manifest" href="/manifest.json" />
+        {/* Preload critical fonts */}
+        <link
+          rel="preconnect"
+          href="https://fonts.gstatic.com"
+          crossOrigin="anonymous"
+        />
       </head>
       <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col")}>
         <ThemeProvider
