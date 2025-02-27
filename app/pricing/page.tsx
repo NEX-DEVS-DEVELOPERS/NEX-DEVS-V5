@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
@@ -9,15 +9,20 @@ import { SupportedCurrency, getLocationData, formatPrice, currencySymbols } from
 import CurrencySelector from '@/app/components/CurrencySelector';
 import LoadingScreen from '@/app/components/LoadingScreen';
 import PricingPlans from '../components/PricingPlans';
+import TransitionEffect from '../components/TransitionEffect';
 
-interface PricingPlan {
+// Add these type definitions at the top of the file
+type PricingFeature = string;
+type BestForItem = string;
+
+interface PricingPlanBase {
   title: string;
   basePrice: number;
-  features: string[];
+  features: PricingFeature[];
   description: string;
   icon: string;
   timeline: string;
-  bestFor: string[];
+  bestFor: BestForItem[];
   includes: string[];
   highlightFeatures: string[];
   additionalInfo: {
@@ -28,10 +33,13 @@ interface PricingPlan {
   };
 }
 
+// Extend the existing PricingPlan interface
+interface PricingPlan extends PricingPlanBase {}
+
 const pricingPlans: PricingPlan[] = [
   {
     title: "WordPress Basic",
-    basePrice: 35000,
+    basePrice: 38500,
     description: "Perfect starter package with essential WordPress features, basic semantic SEO, and E-E-A-T optimization.",
     icon: "🎯",
     timeline: "1-2 weeks",
@@ -75,7 +83,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "WordPress Professional",
-    basePrice: 45000,
+    basePrice: 49500,
     description: "Advanced WordPress solution with comprehensive semantic SEO and E-E-A-T optimization for growing businesses.",
     icon: "⚡",
     timeline: "2-3 weeks",
@@ -125,7 +133,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "WordPress Enterprise",
-    basePrice: 65000,
+    basePrice: 71500,
     description: "Complete WordPress solution with advanced semantic SEO, E-E-A-T mastery, and comprehensive digital presence.",
     icon: "👑",
     timeline: "3-4 weeks",
@@ -176,7 +184,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Basic",
-    basePrice: 55000,
+    basePrice: 60500,
     description: "Entry-level full-stack development package with essential features and modern tech stack for startups and small businesses.",
     icon: "💻",
     timeline: "2-3 weeks",
@@ -222,7 +230,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Professional",
-    basePrice: 75000,
+    basePrice: 82500,
     description: "Advanced full-stack solution with robust features, TypeScript integration, and scalable architecture for growing businesses.",
     icon: "⚡",
     timeline: "3-4 weeks",
@@ -261,7 +269,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "Full-Stack Enterprise",
-    basePrice: 95000,
+    basePrice: 104500,
     description: "Enterprise-grade full-stack solution with advanced features, microservices architecture, and comprehensive DevOps integration.",
     icon: "👑",
     timeline: "4-6 weeks",
@@ -306,7 +314,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "AI Agents/WebApps",
-    basePrice: 85000,
+    basePrice: 93500,
     description: "Intelligent web applications powered by cutting-edge AI technology.",
     icon: "🤖",
     timeline: "1-2 weeks",
@@ -338,7 +346,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "SEO/Content Writing",
-    basePrice: 30000,
+    basePrice: 33000,
     description: "Strategic content creation with semantic SEO and E-E-A-T optimization to establish topical authority.",
     icon: "📝",
     timeline: "Ongoing",
@@ -387,7 +395,7 @@ const pricingPlans: PricingPlan[] = [
   },
   {
     title: "UI/UX Design",
-    basePrice: 50000,
+    basePrice: 55000,
     description: "Professional UI/UX design services with modern aesthetics, user research, and comprehensive design systems.",
     icon: "🎨",
     timeline: "2-3 weeks",
@@ -460,396 +468,522 @@ const testimonials = [
   }
 ];
 
+// Add these type definitions at the top of the file
+interface Feature {
+  text: string;
+  id: number;
+}
+
+interface BestFor {
+  text: string;
+  id: number;
+}
+
+// Update PricingCardProps
+interface PricingCardProps {
+  plan: PricingPlan;
+  onSelect: (plan: PricingPlan) => void;
+  onGetStarted: (plan: PricingPlan) => Promise<void>;
+  hoveredPlan: string | null;
+  onHover: (planTitle: string | null) => void;
+  currency: SupportedCurrency;
+  exchangeRate: number;
+  isExemptCountry: boolean;
+  isBaseCurrency: boolean;
+  getFormattedPrice: (basePrice: number) => string;
+}
+
+// Update PlanModalProps
+interface PlanModalProps {
+  plan: PricingPlan;
+  onClose: () => void;
+  onGetStarted: (plan: PricingPlan) => Promise<void>;
+  getFormattedPrice: (basePrice: number) => string;
+}
+
+// Update the PricingCard component
+const PricingCard: React.FC<PricingCardProps> = React.memo(({ 
+  plan, 
+  onSelect, 
+  onGetStarted, 
+  hoveredPlan, 
+  onHover,
+  currency,
+  exchangeRate,
+  isExemptCountry,
+  isBaseCurrency,
+  getFormattedPrice
+}) => {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      onMouseEnter={() => onHover(plan.title)}
+      onMouseLeave={() => onHover(null)}
+      className={`${
+        plan.title.includes('Full-Stack') 
+          ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40' 
+          : 'bg-black/40 border-purple-500/20'
+      } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer border group
+      transition-transform duration-200 ease-out
+      hover:scale-[1.02] hover:border-purple-500/70
+      active:scale-[0.98] relative touch-manipulation`}
+    >
+      {/* Most Popular Badge */}
+      {(plan.title === "WordPress Enterprise" || 
+        plan.title === "Full-Stack Professional" || 
+        plan.title === "AI Agents/WebApps") && (
+        <div className="absolute -top-3 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-2 z-10">
+          MOST POPULAR
+        </div>
+      )}
+      <div className="flex items-center justify-between mb-3 md:mb-4">
+        <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
+        <span className="text-2xl md:text-4xl">{plan.icon}</span>
+      </div>
+
+      {/* Price Section with Breakdown */}
+      <div className="relative group">
+        <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">
+          {getFormattedPrice(plan.basePrice)}
+        </p>
+        
+        {/* Price Breakdown Tooltip */}
+        <div className={`absolute left-0 w-full transform scale-95 opacity-0 
+          group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-20
+          ${hoveredPlan === plan.title ? 'pointer-events-auto' : 'pointer-events-none'}`}
+        >
+          <div className="bg-black/90 border border-purple-500/20 rounded-lg p-4 shadow-xl backdrop-blur-sm mt-2">
+            <div className="space-y-2 text-sm">
+              <p className="flex justify-between items-center">
+                <span className="text-gray-400">Base Price (PKR):</span>
+                <span className="text-white">₨{plan.basePrice.toLocaleString()}</span>
+              </p>
+              {!isExemptCountry && !isBaseCurrency && (
+                <>
+                  <p className="flex justify-between items-center">
+                    <span className="text-gray-400">International Fee (30%):</span>
+                    <span className="text-purple-400">
+                      {currencySymbols[currency]}{(plan.basePrice * 0.3 * exchangeRate).toLocaleString(undefined, {maximumFractionDigits: 2})}
+                    </span>
+                  </p>
+                  <p className="flex justify-between items-center">
+                    <span className="text-gray-400">Exchange Rate:</span>
+                    <span className="text-gray-300">1 PKR = {exchangeRate.toFixed(4)} {currency}</span>
+                  </p>
+                  <div className="border-t border-purple-500/20 mt-2 pt-2">
+                    <p className="flex justify-between items-center font-medium">
+                      <span className="text-white">Final Price:</span>
+                      <span className="text-purple-400">{getFormattedPrice(plan.basePrice)}</span>
+                    </p>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
+
+      {/* Features Preview */}
+      <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
+        {plan.features.slice(0, 3).map((feature: PricingFeature, i: number) => (
+          <li key={i} className="flex items-center text-sm md:text-base">
+            <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+              <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+            </svg>
+            {feature}
+          </li>
+        ))}
+      </ul>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-2">
+        <button 
+          onClick={() => onSelect(plan)}
+          className="flex-1 py-2 md:py-3 px-4 text-white bg-transparent border border-white/20 
+            rounded-lg transition-all duration-300 hover:bg-white/5 hover:border-white/40
+            font-semibold text-sm md:text-base"
+        >
+          Learn More
+        </button>
+        <button 
+          onClick={() => onGetStarted(plan)}
+          className="flex-1 py-2 md:py-3 px-4 text-black bg-white 
+            rounded-lg transition-all duration-300 hover:bg-purple-50 active:bg-purple-100
+            font-semibold text-sm md:text-base flex items-center justify-center gap-2"
+        >
+          Get Started
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
+        </button>
+      </div>
+    </motion.div>
+  );
+});
+
+PricingCard.displayName = 'PricingCard';
+
+// Update the PlanModal component
+const PlanModal: React.FC<PlanModalProps> = React.memo(({ 
+  plan, 
+  onClose, 
+  onGetStarted,
+  getFormattedPrice 
+}) => {
+  if (!plan) return null;
+
+  return (
+    <motion.div 
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
+      onClick={onClose}
+    >
+      <div
+        className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="space-y-6">
+          <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
+            <p className="text-gray-300 text-sm md:text-base leading-relaxed">{plan.description}</p>
+            <p className="text-purple-300 text-lg md:text-xl mt-4">
+              {getFormattedPrice(plan.basePrice)}
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+            {plan.features.map((feature: PricingFeature, index: number) => (
+              <motion.div
+                key={index}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="flex items-start bg-purple-500/5 rounded-lg p-3 md:p-4 group hover:bg-purple-500/10 transition-colors duration-200"
+              >
+                <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-3 flex-shrink-0 mt-0.5 group-hover:text-purple-300 transition-colors duration-200" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                <span className="text-gray-300 text-sm md:text-base group-hover:text-white transition-colors duration-200">{feature}</span>
+              </motion.div>
+            ))}
+          </div>
+
+          {/* Best For Section */}
+          <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
+            <h3 className="text-white font-semibold mb-4 text-base md:text-lg">Best For:</h3>
+            <div className="flex flex-wrap gap-2">
+              {plan.bestFor.map((item: BestForItem, i: number) => (
+                <span key={i} className="text-sm bg-purple-500/10 text-purple-300 px-3 py-1.5 rounded-full">
+                  {item}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Modal Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <button 
+              onClick={() => onClose()}
+              className="flex-1 py-3 px-6 text-white bg-transparent border border-white/20 
+                rounded-xl hover:bg-white/5 transition-all duration-200 font-semibold"
+            >
+              Back
+            </button>
+            <button 
+              onClick={() => onGetStarted(plan)}
+              className="flex-1 py-3 px-6 bg-white text-black rounded-xl 
+                hover:bg-purple-50 transition-all duration-200 font-semibold
+                flex items-center justify-center gap-2"
+            >
+              Get Started
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+});
+
+PlanModal.displayName = 'PlanModal';
+
 export default function PricingPage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
-  const { currency, exchangeRate, isBaseCurrency, isExemptCountry, setCurrency } = useCurrency();
+  const [showExitTransition, setShowExitTransition] = useState(false);
   const [showLoadingScreen, setShowLoadingScreen] = useState(true);
+  const { 
+    currency, 
+    exchangeRate, 
+    isBaseCurrency, 
+    isExemptCountry, 
+    setCurrency 
+  } = useCurrency();
+
+  // Update type definitions for callbacks
+  const getFormattedPrice = useCallback((basePrice: number): string => {
+    const shouldApplyMarkup = !isBaseCurrency;
+    return formatPrice(basePrice, currency, exchangeRate, !shouldApplyMarkup);
+  }, [currency, exchangeRate, isBaseCurrency]);
+
+  const handleGetStarted = useCallback(async (plan: PricingPlan) => {
+    const isMobile = window.innerWidth < 768;
+    
+    if (!isMobile) {
+      setShowExitTransition(true);
+      await new Promise(resolve => setTimeout(resolve, 1800));
+    }
+    
+    const encodedPlan = encodeURIComponent(plan.title);
+    router.push(`/contact?plan=${encodedPlan}`);
+  }, [router]);
+
+  const handleHover = useCallback((planTitle: string | null) => {
+    setHoveredPlan(planTitle);
+  }, []);
 
   useEffect(() => {
+    let mounted = true;
+
     const detectLocation = async () => {
       try {
-        setShowLoadingScreen(true);
-        // Get location data and set currency
         const locationData = await getLocationData('');
-        setCurrency(locationData.currency as SupportedCurrency);
+        if (mounted) {
+          setCurrency(locationData.currency as SupportedCurrency);
+          setShowLoadingScreen(false);
+        }
       } catch (error) {
         console.error('Error detecting location:', error);
-        // Default to PKR if detection fails
-        setCurrency('PKR');
-      } finally {
-        setShowLoadingScreen(false);
+        if (mounted) {
+          setCurrency('PKR');
+          setShowLoadingScreen(false);
+        }
       }
     };
 
     detectLocation();
+
+    return () => {
+      mounted = false;
+    };
   }, [setCurrency]);
 
-  const handleGetStarted = (plan: PricingPlan) => {
-    const encodedPlan = encodeURIComponent(plan.title);
-    router.push(`/contact?plan=${encodedPlan}`);
-  };
-
-  // Function to format the price based on the selected currency
-  const getFormattedPrice = (basePrice: number): string => {
-    // Only apply international markup if not an exempt country and not using base currency
-    const shouldApplyMarkup = !isExemptCountry && !isBaseCurrency;
-    return formatPrice(basePrice, currency, exchangeRate, !shouldApplyMarkup);
-  };
+  // Memoize the pricing cards list with proper types
+  const pricingCardsList = useMemo(() => (
+    pricingPlans.map((plan: PricingPlan) => (
+      <PricingCard
+        key={plan.title}
+        plan={plan}
+        onSelect={setSelectedPlan}
+        onGetStarted={handleGetStarted}
+        hoveredPlan={hoveredPlan}
+        onHover={handleHover}
+        currency={currency}
+        exchangeRate={exchangeRate}
+        isExemptCountry={isExemptCountry}
+        isBaseCurrency={isBaseCurrency}
+        getFormattedPrice={getFormattedPrice}
+      />
+    ))
+  ), [hoveredPlan, currency, exchangeRate, isExemptCountry, isBaseCurrency, handleGetStarted, handleHover, getFormattedPrice]);
 
   if (showLoadingScreen) {
     return <LoadingScreen />;
   }
 
   return (
-    <div className="min-h-screen bg-black relative overflow-hidden pt-16 md:pt-32">
-      {/* Enhanced Glow Effects */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-float-smooth opacity-50 md:opacity-100"></div>
-        <div className="absolute bottom-0 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-float-delayed opacity-50 md:opacity-100"></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse opacity-50 md:opacity-100"></div>
-      </div>
+    <>
+      <AnimatePresence>
+        {showExitTransition && (
+          <TransitionEffect isExit message="See you soon!" />
+        )}
+      </AnimatePresence>
+      
+      <div className="min-h-screen bg-black relative overflow-hidden pt-16 md:pt-32">
+        {/* Enhanced Glow Effects */}
+        <div className="absolute inset-0 pointer-events-none overflow-hidden">
+          <div className="absolute top-0 left-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-500/10 rounded-full blur-[120px] animate-float-smooth opacity-50 md:opacity-100"></div>
+          <div className="absolute bottom-0 right-1/4 w-[300px] md:w-[500px] h-[300px] md:h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-float-delayed opacity-50 md:opacity-100"></div>
+          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] md:w-[800px] h-[500px] md:h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse opacity-50 md:opacity-100"></div>
+        </div>
 
-      {/* Back Button - Adjusted for mobile */}
-      <div className="fixed top-4 md:top-20 left-4 md:left-8 z-50">
-        <button 
-          onClick={() => setSelectedPlan(null)}
-          className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
-        >
-          <svg 
-            className="w-4 h-4 md:w-5 md:h-5 transform transition-transform group-hover:-translate-x-1" 
-            fill="none" 
-            stroke="currentColor" 
-            viewBox="0 0 24 24"
+        {/* Back Button - Adjusted for mobile */}
+        <div className="fixed top-4 md:top-20 left-4 md:left-8 z-50">
+          <button 
+            onClick={() => setSelectedPlan(null)}
+            className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
           >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="text-xs md:text-sm font-medium">Back</span>
-        </button>
-      </div>
+            <svg 
+              className="w-4 h-4 md:w-5 md:h-5 transform transition-transform group-hover:-translate-x-1" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+            </svg>
+            <span className="text-xs md:text-sm font-medium">Back</span>
+          </button>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-20 relative z-20">
-        <div className="text-center mb-8 md:mb-16 relative z-10">
-          {/* Project Title */}
-          <motion.h2
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="text-lg md:text-xl text-purple-400 font-semibold mb-4"
-          >
-            NEX-WEBS DEVELOPMENT
-          </motion.h2>
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-20 relative z-20">
+          <div className="text-center mb-8 md:mb-16 relative z-10">
+            {/* Project Title */}
+            <motion.h2
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="text-lg md:text-xl text-purple-400 font-semibold mb-4"
+            >
+              NEX-WEBS DEVELOPMENT
+            </motion.h2>
 
-          {/* Currency Info Banner */}
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-            className="max-w-3xl mx-auto mb-6"
-          >
-            <div className="bg-[#1a1042] rounded-xl p-4 border border-purple-500/20">
-              <div className="flex flex-col items-center gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="text-xl">💱</span>
-                  <h3 className="text-purple-300 font-semibold">Multi-Currency Support</h3>
-                  <span className="text-xl">💱</span>
-                </div>
-                <p className="text-gray-300 text-sm text-center">
-                  We accept payments in multiple currencies including USD, GBP, AED, and PKR. Our base prices are in PKR with automatic currency conversion at current market rates.
-                </p>
-                <div className="flex justify-center gap-3">
-                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">USD $</span>
-                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">GBP £</span>
-                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">AED د.إ</span>
-                  <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">PKR ₨</span>
-                </div>
-                <div className="text-yellow-500/90 text-sm flex items-center gap-2">
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  International clients are subject to a 30% service fee
+            {/* Currency Info Banner */}
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+              className="max-w-3xl mx-auto mb-6"
+            >
+              <div className="bg-[#1a1042] rounded-xl p-4 border border-purple-500/20">
+                <div className="flex flex-col items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xl">💱</span>
+                    <h3 className="text-purple-300 font-semibold">Multi-Currency Support</h3>
+                    <span className="text-xl">💱</span>
+                  </div>
+                  <p className="text-gray-300 text-sm text-center">
+                    We accept payments in multiple currencies including USD, GBP, AED, and PKR. Our base prices are in PKR with automatic currency conversion at current market rates.
+                  </p>
+                  <div className="flex justify-center gap-3">
+                    <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">USD $</span>
+                    <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">GBP £</span>
+                    <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">AED د.إ</span>
+                    <span className="bg-purple-900/30 text-purple-200 px-4 py-1 rounded-lg">PKR ₨</span>
+                  </div>
+                  <div className="text-yellow-500/90 text-sm flex items-center gap-2">
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    International clients are subject to a 30% service fee
+                  </div>
                 </div>
               </div>
-            </div>
-          </motion.div>
-
-          {/* Floating Mockups - Adjusted for mobile */}
-          <div className="relative w-full max-w-lg mx-auto mb-8 md:mb-12 mt-8 md:mt-12">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ 
-                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3 
-              }}
-              className="absolute -top-12 md:-top-16 -left-4 md:-left-8 w-16 md:w-24 h-16 md:h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm transform -rotate-12 animate-float-smooth"
-            >
-              <span className="text-2xl md:text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">💻</span>
             </motion.div>
-            <motion.div
+
+            {/* Floating Mockups - Adjusted for mobile */}
+            <div className="relative w-full max-w-lg mx-auto mb-8 md:mb-12 mt-8 md:mt-12">
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3 
+                }}
+                className="absolute -top-12 md:-top-16 -left-4 md:-left-8 w-16 md:w-24 h-16 md:h-24 bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg backdrop-blur-sm transform -rotate-12 animate-float-smooth"
+              >
+                <span className="text-2xl md:text-4xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">💻</span>
+              </motion.div>
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ 
+                  duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
+                  delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.2 : 0
+                }}
+                className="absolute -top-6 md:-top-8 -right-4 md:-right-8 w-14 md:w-20 h-14 md:h-20 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg backdrop-blur-sm transform rotate-12 animate-float-delayed"
+              >
+                <span className="text-2xl md:text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">🚀</span>
+              </motion.div>
+            </div>
+
+            <motion.h1 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ 
                 duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.2 : 0
+                ease: "easeOut" 
               }}
-              className="absolute -top-6 md:-top-8 -right-4 md:-right-8 w-14 md:w-20 h-14 md:h-20 bg-gradient-to-r from-pink-500/20 to-purple-500/20 rounded-lg backdrop-blur-sm transform rotate-12 animate-float-delayed"
+              className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 md:px-6 py-4 md:py-6 relative z-20 bg-black/40 backdrop-blur-sm rounded-xl inline-block mt-4 md:mt-8"
             >
-              <span className="text-2xl md:text-3xl absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">🚀</span>
-            </motion.div>
-          </div>
+              Choose Your <span className="inline-block bg-white text-black px-2 md:px-3 py-1 rounded-md">Perfect Plan</span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.5, duration: 0.5 }}
+                className="absolute -top-4 -right-4 text-xl md:text-2xl transform rotate-12"
+              >
+                ✨
+              </motion.span>
+            </motion.h1>
 
-          <motion.h1 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-              ease: "easeOut" 
-            }}
-            className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 glow-text-purple px-4 md:px-6 py-4 md:py-6 relative z-20 bg-black/40 backdrop-blur-sm rounded-xl inline-block mt-4 md:mt-8"
-          >
-            Choose Your <span className="inline-block bg-white text-black px-2 md:px-3 py-1 rounded-md">Perfect Plan</span>
-            <motion.span
-              initial={{ opacity: 0, scale: 0 }}
+            {/* Currency Selector - Centered */}
+            <motion.div
+              className="flex flex-col items-center justify-center space-y-2 mb-8 px-4 w-full"
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="absolute -top-4 -right-4 text-xl md:text-2xl transform rotate-12"
+              transition={{ duration: 0.3 }}
             >
-              ✨
-            </motion.span>
-          </motion.h1>
+              <CurrencySelector />
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3, duration: 0.3 }}
+                className="text-gray-400 text-xs mt-1"
+              >
+                YOUR LOCATION IS AUTOMATICALLY SET
+              </motion.p>
+            </motion.div>
 
-          {/* Currency Selector - Centered */}
-          <motion.div
-            className="flex flex-col items-center justify-center space-y-2 mb-8"
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.3 }}
-          >
-            <CurrencySelector />
-            <p className="text-gray-400 text-xs">YOUR LOCATION IS AUTOMATICALLY SET</p>
-          </motion.div>
-
-          <motion.p 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ 
-              delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.4 : 0,
-              duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
-              ease: "easeOut" 
-            }}
-            className="text-white/80 text-sm md:text-base glow-text-sm max-w-2xl mx-auto px-3 md:px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg"
-          >
-            Transparent pricing with no hidden fees. Select a plan to view detailed features.
-          </motion.p>
-
-          {/* Price increase notice - Only show for non-exempt countries */}
-          {!isExemptCountry && !isBaseCurrency && (
             <motion.p 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              className="text-purple-400 text-sm mt-2"
-            >
-              * Prices include a 30% increase for international clients
-            </motion.p>
-          )}
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4">
-          {pricingPlans.map((plan, index) => (
-            <motion.div
-              key={plan.title}
-              initial={{
-                opacity: 0,
-                y: typeof window !== 'undefined' && window.innerWidth > 768 ? 20 : 0
-              }}
-              animate={{ opacity: 1, y: 0 }}
               transition={{ 
-                delay: index * 0.1,
-                duration: 0.3
+                delay: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.4 : 0,
+                duration: typeof window !== 'undefined' && window.innerWidth > 768 ? 0.8 : 0.3,
+                ease: "easeOut" 
               }}
-              onMouseEnter={() => setHoveredPlan(plan.title)}
-              onMouseLeave={() => setHoveredPlan(null)}
-              className={`${
-                plan.title.includes('Full-Stack') 
-                  ? 'bg-gradient-to-br from-purple-900/20 to-black border-purple-500/40' 
-                  : 'bg-black/40 border-purple-500/20'
-              } backdrop-blur-sm rounded-xl p-4 md:p-6 cursor-pointer border group
-              transition-all duration-500 ease-out
-              hover:scale-[1.02] hover:border-purple-500/70
-              active:scale-[0.98] md:active:scale-[1.02]
-              hover:shadow-[0_0_20px_-5px_rgba(147,51,234,0.2)]
-              relative touch-manipulation`}
+              className="text-white/80 text-sm md:text-base glow-text-sm max-w-2xl mx-auto px-3 md:px-4 py-2 bg-black/20 backdrop-blur-sm rounded-lg"
             >
-              {/* Most Popular Badge */}
-              {(plan.title === "WordPress Enterprise" || 
-                plan.title === "Full-Stack Professional" || 
-                plan.title === "AI Agents/WebApps") && (
-                <div className="absolute -top-3 -right-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs font-bold px-3 py-1 rounded-full shadow-lg transform rotate-2 z-10">
-                  MOST POPULAR
-                </div>
-              )}
-              <div className="flex items-center justify-between mb-3 md:mb-4">
-                <h3 className="text-lg md:text-2xl font-bold text-white glow-text-purple-sm">{plan.title}</h3>
-                <span className="text-2xl md:text-4xl">{plan.icon}</span>
-              </div>
+              Transparent pricing with no hidden fees. Select a plan to view detailed features.
+            </motion.p>
 
-              {/* Price Section with Breakdown */}
-              <div className="relative group">
-                <p className="text-purple-300 text-base md:text-xl mb-1 md:mb-2">
-                  {getFormattedPrice(plan.basePrice)}
-                </p>
-                
-                {/* Price Breakdown Tooltip */}
-                <div className={`absolute left-0 w-full transform scale-95 opacity-0 
-                  group-hover:scale-100 group-hover:opacity-100 transition-all duration-200 z-20
-                  ${hoveredPlan === plan.title ? 'pointer-events-auto' : 'pointer-events-none'}`}
-                >
-                  <div className="bg-black/90 border border-purple-500/20 rounded-lg p-4 shadow-xl backdrop-blur-sm mt-2">
-                    <div className="space-y-2 text-sm">
-                      <p className="flex justify-between items-center">
-                        <span className="text-gray-400">Base Price (PKR):</span>
-                        <span className="text-white">₨{plan.basePrice.toLocaleString()}</span>
-                      </p>
-                      {!isExemptCountry && !isBaseCurrency && (
-                        <>
-                          <p className="flex justify-between items-center">
-                            <span className="text-gray-400">International Fee (30%):</span>
-                            <span className="text-purple-400">
-                              {currencySymbols[currency]}{(plan.basePrice * 0.3 * exchangeRate).toLocaleString(undefined, {maximumFractionDigits: 2})}
-                            </span>
-                          </p>
-                          <p className="flex justify-between items-center">
-                            <span className="text-gray-400">Exchange Rate:</span>
-                            <span className="text-gray-300">1 PKR = {exchangeRate.toFixed(4)} {currency}</span>
-                          </p>
-                          <div className="border-t border-purple-500/20 mt-2 pt-2">
-                            <p className="flex justify-between items-center font-medium">
-                              <span className="text-white">Final Price:</span>
-                              <span className="text-purple-400">{getFormattedPrice(plan.basePrice)}</span>
-                            </p>
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <p className="text-gray-400 text-xs md:text-sm mb-3 md:mb-4">Timeline: {plan.timeline}</p>
-
-              {/* Features Preview */}
-              <ul className="text-gray-300 space-y-2 md:space-y-3 mb-4 md:mb-6">
-                {plan.features.slice(0, 3).map((feature, i) => (
-                  <li key={i} className="flex items-center text-sm md:text-base">
-                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    {feature}
-                  </li>
-                ))}
-              </ul>
-
-              {/* Action Buttons */}
-              <div className="flex flex-col sm:flex-row gap-2">
-                <button 
-                  onClick={() => setSelectedPlan(plan)}
-                  className="flex-1 py-2 md:py-3 px-4 text-white bg-transparent border border-white/20 
-                    rounded-lg transition-all duration-300 hover:bg-white/5 hover:border-white/40
-                    font-semibold text-sm md:text-base"
-                >
-                  Learn More
-                </button>
-                <button 
-                  onClick={() => handleGetStarted(plan)}
-                  className="flex-1 py-2 md:py-3 px-4 text-black bg-white 
-                    rounded-lg transition-all duration-300 hover:bg-purple-50 active:bg-purple-100
-                    font-semibold text-sm md:text-base flex items-center justify-center gap-2"
-                >
-                  Get Started
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </button>
-              </div>
-            </motion.div>
-          ))}
-        </div>
-
-        {/* Modal */}
-        {selectedPlan && (
-          <div 
-            className="fixed inset-0 bg-black/90 flex items-start justify-center z-[100] p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
-            onClick={() => setSelectedPlan(null)}
-          >
-            <div
-              className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-md rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
-              onClick={(e) => e.stopPropagation()}
-            >
-              <div className="space-y-6">
-                <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
-                  <p className="text-gray-300 text-sm md:text-base leading-relaxed">{selectedPlan.description}</p>
-                  <p className="text-purple-300 text-lg md:text-xl mt-4">
-                    {getFormattedPrice(selectedPlan.basePrice)}
-                  </p>
-                </div>
-
-                {/* Features Grid */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  {selectedPlan.features.map((feature, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-start bg-purple-500/5 rounded-lg p-3 md:p-4 group hover:bg-purple-500/10 transition-colors duration-200"
-                    >
-                      <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-3 flex-shrink-0 mt-0.5 group-hover:text-purple-300 transition-colors duration-200" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <span className="text-gray-300 text-sm md:text-base group-hover:text-white transition-colors duration-200">{feature}</span>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* Best For Section */}
-                <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
-                  <h3 className="text-white font-semibold mb-4 text-base md:text-lg">Best For:</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {selectedPlan.bestFor.map((item, i) => (
-                      <span key={i} className="text-sm bg-purple-500/10 text-purple-300 px-3 py-1.5 rounded-full">
-                        {item}
-                      </span>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Modal Action Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 mt-6">
-                  <button 
-                    onClick={() => setSelectedPlan(null)}
-                    className="flex-1 py-3 px-6 text-white bg-transparent border border-white/20 
-                      rounded-xl hover:bg-white/5 transition-all duration-200 font-semibold"
-                  >
-                    Back
-                  </button>
-                  <button 
-                    onClick={() => handleGetStarted(selectedPlan)}
-                    className="flex-1 py-3 px-6 bg-white text-black rounded-xl 
-                      hover:bg-purple-50 transition-all duration-200 font-semibold
-                      flex items-center justify-center gap-2"
-                  >
-                    Get Started
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                    </svg>
-                  </button>
-                </div>
-              </div>
-            </div>
+            {/* Price increase notice - Only show for non-exempt countries */}
+            {!isExemptCountry && !isBaseCurrency && (
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="text-purple-400 text-sm mt-2"
+              >
+                * Prices include a 30% increase for international clients
+              </motion.p>
+            )}
           </div>
-        )}
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4">
+            {pricingCardsList}
+          </div>
+
+          <AnimatePresence>
+            {selectedPlan && (
+              <PlanModal
+                plan={selectedPlan}
+                onClose={() => setSelectedPlan(null)}
+                onGetStarted={handleGetStarted}
+                getFormattedPrice={getFormattedPrice}
+              />
+            )}
+          </AnimatePresence>
+        </div>
       </div>
-    </div>
+    </>
   );
 }

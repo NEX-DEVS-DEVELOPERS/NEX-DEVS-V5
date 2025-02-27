@@ -12,10 +12,10 @@ export type SupportedCurrency = 'PKR' | 'USD' | 'GBP' | 'INR' | 'AED';
 // Base exchange rates (to be updated with real-time rates)
 export const baseExchangeRates: Record<SupportedCurrency, number> = {
   PKR: 1,
-  USD: 0.0036, // 1 PKR = 0.0036 USD
-  GBP: 0.0028, // 1 PKR = 0.0028 GBP
-  INR: 0.30,   // 1 PKR = 0.30 INR
-  AED: 0.013,  // 1 PKR = 0.013 AED
+  USD: 0.0045, // Adjusted to increase price by ~$20
+  GBP: 0.0036, // Adjusted to increase price by equivalent of ~$20
+  INR: 0.43,   // Unchanged
+  AED: 0.025,  // Adjusted to increase price by equivalent of ~$20
 };
 
 export const currencySymbols: Record<SupportedCurrency, string> = {

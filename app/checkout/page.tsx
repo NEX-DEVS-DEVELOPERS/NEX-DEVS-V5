@@ -100,14 +100,16 @@ function CheckoutPageContent() {
   const [showMessage, setShowMessage] = useState(false);
   const [buttonShake, setButtonShake] = useState(false);
   const [locationData, setLocationData] = useState<any>(null);
+  const [selectedTimeline, setSelectedTimeline] = useState<string>('Normal Time (2-3 weeks)');
   const [editedDetails, setEditedDetails] = useState({
     name: '',
     email: '',
     phone: '',
     address: '',
-    timeline: 'Normal (2-4 weeks)'
+    timeline: 'Normal Time (2-3 weeks)'
   });
-  const [timelineOptions, setTimelineOptions] = useState<string>('Normal (2-4 weeks)');
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
     // Fetch location data when component mounts
@@ -144,6 +146,25 @@ function CheckoutPageContent() {
     }
   }, [invoice]);
 
+  // Set default timeline
+  useEffect(() => {
+    if (!editedDetails.timeline) {
+      setEditedDetails(prev => ({ ...prev, timeline: 'Normal Time (2-3 weeks)' }));
+    }
+  }, []);
+
+  useEffect(() => {
+    // Check if device is mobile
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
       'WordPress Basic': 35000,
@@ -166,56 +187,52 @@ function CheckoutPageContent() {
   };
 
   const getTimelineSurcharge = (timeline: string): number => {
+    console.log('Calculating surcharge for timeline:', timeline);
+    let surcharge = 0;
+    
     switch (timeline) {
-      case 'Urgent (1-2 weeks)':
-        return 0.20; // 20% surcharge for urgent projects
-      case 'Normal (2-4 weeks)':
-        return 0; // No surcharge for normal timeline
-      case 'Relaxed (4+ weeks)':
-        return -0.05; // 5% discount for relaxed timeline
+      case 'Urgent Project (1-2 weeks)':
+        surcharge = 0.20; // 20% surcharge
+        break;
+      case 'Relaxed (4 weeks)':
+        surcharge = -0.05; // 5% discount (negative surcharge)
+        break;
+      case 'Normal Time (2-3 weeks)':
       default:
-        return 0;
+        surcharge = 0; // no surcharge
+        break;
     }
+    
+    console.log('Calculated surcharge:', surcharge);
+    return surcharge;
   };
 
   const generateInvoice = async (plan: string) => {
     try {
-      // Get the base amount in PKR
       const baseAmount = getBaseAmount(plan);
       
-      // Wait for exchangeRate to be available
       if (!exchangeRate) {
         console.error('Exchange rate not available');
         return;
       }
 
-      // Convert amount using the current exchange rate
       const convertedAmount = Math.round(baseAmount * exchangeRate);
-      
-      // Calculate timeline surcharge
-      const timelineSurchargeRate = getTimelineSurcharge(editedDetails.timeline);
+      const currentTimeline = editedDetails.timeline;
+      const timelineSurchargeRate = getTimelineSurcharge(currentTimeline);
       const timelineSurchargeAmount = Math.round(convertedAmount * timelineSurchargeRate);
-      
-      // Calculate subtotal (base amount)
-      const subTotal = convertedAmount + timelineSurchargeAmount;
-      
-      // Calculate discount - 20% for all plans except Full-Stack Basic which gets 10%
-      const discountPercentage = selectedPlan === 'Full-Stack Basic' ? 10 : 20;
+      const subTotal = convertedAmount;
+      const discountPercentage = plan === 'Full-Stack Basic' ? 10 : 20;
       const discountAmount = Math.round((subTotal * discountPercentage) / 100);
-      
-      // Calculate tax (currently 0)
       const taxRate = 0;
       const taxAmount = Math.round((subTotal * taxRate) / 100);
-      
-      // Calculate final total including surcharge
-      const total = subTotal - discountAmount + taxAmount;
+      const total = subTotal + timelineSurchargeAmount - discountAmount + taxAmount;
 
       const newInvoice: InvoiceDetails = {
         invoiceNumber: `INV-${Date.now()}`,
         date: new Date().toISOString().split('T')[0],
         dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
         package: plan,
-        timeline: editedDetails.timeline || 'Normal (2-4 weeks)',
+        timeline: currentTimeline,
         amount: convertedAmount,
         discount: discountAmount,
         subTotal: subTotal,
@@ -235,14 +252,24 @@ function CheckoutPageContent() {
         billingDetails: invoice?.billingDetails
       };
 
-      // Add timeline surcharge as a separate line item if applicable
-      if (timelineSurchargeAmount > 0) {
+      // Add timeline adjustment only if there is a surcharge or discount
+      if (timelineSurchargeAmount !== 0) {
+        const timelineItem = currentTimeline === 'Urgent Project (1-2 weeks)' 
+          ? {
+              description: 'Urgent Timeline Surcharge (1-2 weeks)',
+              details: 'Additional charge for urgent delivery (1-2 weeks): 20% of base price',
+              amount: timelineSurchargeAmount
+            }
+          : {
+              description: 'Timeline Discount - Relaxed (4 weeks)',
+              details: 'Discount for relaxed delivery timeline (4 weeks): 5% of base price',
+              amount: timelineSurchargeAmount
+            };
+
         newInvoice.items.push({
-          description: 'Urgent Timeline Surcharge (20%)',
+          ...timelineItem,
           quantity: 1,
-          rate: timelineSurchargeAmount,
-          amount: timelineSurchargeAmount,
-          details: 'Additional charge for urgent delivery (1-2 weeks)',
+          rate: Math.abs(timelineSurchargeAmount),
           features: []
         });
       }
@@ -255,15 +282,92 @@ function CheckoutPageContent() {
 
   // Update the timeline selection to show the surcharge more prominently
   const handleTimelineChange = (value: string) => {
+    console.log('Timeline change initiated:', value);
+    
+    // Update both states synchronously
+    setSelectedTimeline(value);
     setEditedDetails(prev => ({ ...prev, timeline: value }));
+    
+    // Only generate new invoice if we have a selected plan
     if (selectedPlan) {
-      generateInvoice(selectedPlan);
+      console.log('Generating new invoice for plan:', selectedPlan, 'with timeline:', value);
+      const baseAmount = getBaseAmount(selectedPlan);
+      
+      if (!exchangeRate) {
+        console.error('Exchange rate not available');
+        return;
+      }
+
+      const convertedAmount = Math.round(baseAmount * exchangeRate);
+      const timelineSurchargeRate = getTimelineSurcharge(value);
+      const timelineSurchargeAmount = Math.round(convertedAmount * timelineSurchargeRate);
+      const subTotal = convertedAmount;
+      const discountPercentage = selectedPlan === 'Full-Stack Basic' ? 10 : 20;
+      const discountAmount = Math.round((subTotal * discountPercentage) / 100);
+      const total = subTotal + timelineSurchargeAmount - discountAmount;
+
+      console.log('Calculated amounts:', {
+        baseAmount,
+        convertedAmount,
+        timelineSurchargeRate,
+        timelineSurchargeAmount,
+        total
+      });
+
+      const newInvoice: InvoiceDetails = {
+        invoiceNumber: `INV-${Date.now()}`,
+        date: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        package: selectedPlan,
+        timeline: value,
+        amount: convertedAmount,
+        subTotal: subTotal,
+        discount: discountAmount,
+        total: total,
+        currency: currency,
+        taxRate: 0,
+        taxAmount: 0,
+        items: [
+          {
+            description: `${selectedPlan} Package`,
+            quantity: 1,
+            rate: convertedAmount,
+            amount: convertedAmount,
+            features: []
+          }
+        ],
+        billingDetails: invoice?.billingDetails || {
+          name: editedDetails.name,
+          email: editedDetails.email,
+          phone: editedDetails.phone,
+          address: editedDetails.address
+        }
+      };
+
+      // Add timeline adjustment item if applicable
+      if (timelineSurchargeAmount !== 0) {
+        newInvoice.items.push({
+          description: value === 'Urgent Project (1-2 weeks)' 
+            ? 'Urgent Timeline Surcharge (1-2 weeks)'
+            : 'Timeline Discount - Relaxed (4 weeks)',
+          quantity: 1,
+          rate: Math.abs(timelineSurchargeAmount),
+          amount: timelineSurchargeAmount,
+          details: value === 'Urgent Project (1-2 weeks)'
+            ? 'Additional charge for urgent delivery (1-2 weeks): 20% of base price'
+            : 'Discount for relaxed delivery timeline (4 weeks): 5% of base price',
+          features: []
+        });
+      }
+
+      console.log('Setting new invoice:', newInvoice);
+      setInvoice(newInvoice);
     }
   };
 
   // Add a function to display timeline surcharge warning
   const getTimelineSurchargeWarning = (timeline: string) => {
-    if (timeline === 'Urgent (1-2 weeks)') {
+    if (timeline === 'Urgent Project (1-2 weeks)') {
       return (
         <div className="mt-2 text-yellow-400 text-sm flex items-center gap-2">
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -283,7 +387,7 @@ function CheckoutPageContent() {
     }
   }, [currency, exchangeRate, isExemptCountry]);
 
-  const downloadInvoice = (invoice: InvoiceDetails) => {
+  const downloadInvoice = (invoiceData: InvoiceDetails) => {
     const invoiceContent = `
 <!DOCTYPE html>
 <html>
@@ -436,42 +540,23 @@ function CheckoutPageContent() {
         }
 
         .project-details {
-            background: var(--secondary-background);
+            background: rgba(0, 0, 0, 0.2);
             padding: 1.5rem;
             border-radius: 12px;
-            margin: 2rem 0;
         }
 
-        .project-details h3 {
-            color: var(--primary-color);
-            margin: 0 0 1rem 0;
-            font-size: 1.25rem;
-            font-weight: 600;
+        .timeline-item {
+                color: ${invoiceData.timeline === 'Urgent Project (1-2 weeks)' ? '#fbbf24' : 
+                       invoiceData.timeline === 'Relaxed (4 weeks)' ? '#10b981' : '#8b5cf6'};
+            font-weight: bold;
         }
 
-        .project-details-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 1.5rem;
-        }
-
-        .project-detail-item {
+        .timeline-description {
+            margin-top: 0.5rem;
+            padding: 0.75rem;
             background: rgba(0, 0, 0, 0.2);
-            padding: 1rem;
             border-radius: 8px;
-        }
-
-        .project-detail-item h4 {
-            color: var(--text-color);
-            margin: 0 0 0.5rem 0;
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .project-detail-item p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.95rem;
-            margin: 0;
+            color: rgba(255, 255, 255, 0.8);
         }
 
         table {
@@ -528,50 +613,67 @@ function CheckoutPageContent() {
         .terms {
             margin-top: 3rem;
             background: var(--secondary-background);
-            padding: 1.5rem;
-            border-radius: 12px;
+            padding: 2rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
         }
 
         .terms h3 {
             color: var(--primary-color);
-            margin: 0 0 1.5rem 0;
-            font-size: 1.25rem;
+            margin: 0 0 2rem 0;
+            font-size: 1.5rem;
             font-weight: 600;
+            text-align: center;
         }
 
-        .terms-grid {
+        .terms .grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
             gap: 2rem;
         }
 
-        .terms-section h4 {
-            color: var(--text-color);
+        @media (max-width: 768px) {
+            .terms .grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .terms-box {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(139, 92, 246, 0.2);
+        }
+
+        .terms-box h4 {
+            color: var(--primary-color);
             margin: 0 0 1rem 0;
-            font-size: 1.1rem;
+            font-size: 1.2rem;
             font-weight: 500;
         }
 
-        .terms-section ul {
-            list-style-type: none;
+        .terms-box ul {
+            list-style: none;
             padding: 0;
             margin: 0;
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.8);
         }
 
-        .terms-section li {
+        .terms-box li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
             margin: 0.75rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-            font-size: 0.95rem;
             line-height: 1.5;
         }
 
-        .terms-section li:before {
-            content: "•";
+        .terms-box li span:first-child {
             color: var(--primary-color);
-            position: absolute;
-            left: 0;
+            margin-top: 0.25rem;
+        }
+
+        .terms-box li span:last-child {
+            flex: 1;
         }
 
         .signature {
@@ -632,40 +734,72 @@ function CheckoutPageContent() {
         .secure-stamp-subtitle {
             font-size: 0.75rem;
         }
+
+            @media print {
+                .mobile-warning {
+                    display: none;
+                }
+            }
+
+            .mobile-warning {
+                background: #2D1657;
+                color: #fff;
+                padding: 1rem;
+                margin: -2rem -2rem 2rem -2rem;
+                text-align: center;
+                border-radius: 16px 16px 0 0;
+                border-bottom: 1px solid rgba(139, 92, 246, 0.3);
+                font-family: 'Segoe UI', sans-serif;
+            }
+            
+            .mobile-warning strong {
+                color: #8B5CF6;
+                display: block;
+                margin-bottom: 0.5rem;
+            }
+            
+            .mobile-warning p {
+                margin: 0;
+                font-size: 0.9rem;
+                line-height: 1.5;
+            }
+
+        @media print {
+            .mobile-warning {
+                display: none;
+            }
+        }
     </style>
 </head>
 <body>
     <div class="invoice-container">
-        <div class="watermark">NEX-WEBS</div>
+            ${isMobile ? `
+                <div class="mobile-warning">
+                    <strong>⚠️ Mobile Device Detected</strong>
+                    <p>For the best viewing experience, please open this invoice on a laptop or desktop computer.</p>
+                </div>
+            ` : ''}
+        <div class="watermark">INVOICE</div>
         <div class="content">
             <div class="header">
                 <div class="company-info">
                     <div class="logo">NEX-WEBS</div>
                     <div class="company-details">
-                        Professional Web Development Services<br>
-                        support@nexwebs.com<br>
-                        +92 329-2425950
+                        <p>Professional Web Development Services</p>
+                        <p>Pakistan</p>
+                        <p>nexwebs.org@gmail.com</p>
+                        <p>0329-2425950</p>
                     </div>
                 </div>
                 
                 <div class="invoice-details">
-                    <h2>Invoice Details</h2>
-                    <p><strong style="color: var(--green-color);">Invoice No:</strong> ${invoice.invoiceNumber}</p>
-                    <p><strong>Date:</strong> ${invoice.date}</p>
-                    <p><strong>Due Date:</strong> ${invoice.dueDate}</p>
-                    <p><strong>Timeline:</strong> ${invoice.timeline}</p>
+                    <h2>INVOICE</h2>
+                        <p><strong>Invoice #:</strong> <span>${invoiceData.invoiceNumber}</span></p>
+                        <p><strong>Date:</strong> <span>${invoiceData.date}</span></p>
+                        <p><strong>Due Date:</strong> <span>${invoiceData.dueDate}</span></p>
                 </div>
             </div>
-
-            <div class="project-info">
-                <h3>Project Information</h3>
-                <div class="project-details">
-                    <h3>Project Details</h3>
-                    <p><strong>Package:</strong> ${invoice.package}</p>
-                    <p><strong>Timeline:</strong> ${invoice.timeline}</p>
-                    <p><strong>Amount:</strong> ${formatPrice(invoice.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
-                </div>
-            </div>
+             </div>
 
             <div class="details-grid">
                 <div class="details-section">
@@ -688,46 +822,51 @@ function CheckoutPageContent() {
                     <h3>Client Details</h3>
                     <div class="details-row">
                         <strong>Name:</strong>
-                        <span>${invoice.billingDetails?.name || 'Your Name'}</span>
+                            <span>${invoiceData.billingDetails?.name || 'Your Name'}</span>
                     </div>
                     <div class="details-row">
                         <strong>Email:</strong>
-                        <span>${invoice.billingDetails?.email || 'your.email@example.com'}</span>
+                            <span>${invoiceData.billingDetails?.email || 'your.email@example.com'}</span>
                     </div>
                     <div class="details-row">
                         <strong>Phone:</strong>
-                        <span>${invoice.billingDetails?.phone || 'Your Phone'}</span>
+                            <span>${invoiceData.billingDetails?.phone || 'Your Phone'}</span>
                     </div>
                     <div class="details-row">
                         <strong>Address:</strong>
-                        <span>${invoice.billingDetails?.address || 'Your Address'}</span>
+                            <span>${invoiceData.billingDetails?.address || 'Your Address'}</span>
                     </div>
                 </div>
             </div>
+
+            <div class="project-info">
+                <h3>Project Information</h3>
+                <div class="project-details">
+                        <p><strong>Package:</strong> ${invoiceData.package}</p>
+                        <p><strong>Timeline:</strong> ${invoiceData.timeline}</p>
+                        <p><strong>Amount:</strong> ${formatPrice(invoiceData.amount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</p>
+                </div>
+            </div>
+
+            <div class="project-info">
+                <h3>Project Timeline</h3>
+                <div class="project-details">
+                    <p><strong>Selected Timeline:</strong> 
+                            <span class="timeline-item">${invoiceData.timeline}</span>
+                    </p>
+                    
+                    <div class="timeline-description">
+                            ${invoiceData.timeline === 'Urgent Project (1-2 weeks)' 
+                          ? 'Accelerated development schedule with priority resource allocation. 20% surcharge applies.' 
+                              : invoiceData.timeline === 'Normal Time (2-3 weeks)' 
+                              ? 'Standard development timeline with balanced resource allocation.' 
+                              : 'Relaxed development schedule with extended planning and review periods. 5% discount applies.'}
+                    </div>
+                </div>
+           
 
             <div className="project-info">
-                
-                <h2 className="project-details bg-zinc-800 p-4 rounded-lg shadow-lg"</h2>
-                    <h4 className="text-md font-semibold">Project Timeline</h4>
-                    <div className="flex flex-col">
-                        <label className="block text-sm font-medium mb-2">Select Timeline</label>
-                        <select
-                            value={editedDetails.timeline}
-                            onChange={(e) => handleTimelineChange(e.target.value)}
-                            className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
-                        >
-                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) +20% surcharge</option>
-                            <option value="Normal (2-4 weeks)">Normal (2-4 weeks)</option>
-                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks) +5% discount</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-
-            <div className="mt-3 p-2 bg-red-500 text-red-300 rounded-lg text-sm">
-                <span className="text-red-600 font-bold">Warning:</span> 
-                <span className="text-yellow-300">Change the timeline according to your liking, please. Otherwise, we will charge you.</span>
-            </div>
+             
 
             <table>
                 <thead>
@@ -739,88 +878,179 @@ function CheckoutPageContent() {
                     </tr>
                 </thead>
                 <tbody>
-                    ${invoice.items.map(item => `
+                        ${invoiceData.items.map(item => `
                         <tr>
                             <td>
                                 ${item.description}
                                 ${item.details ? `<br><small>${item.details}</small>` : ''}
                             </td>
                             <td>${item.quantity}</td>
-                            <td>${formatPrice(item.rate, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</td>
-                            <td>${formatPrice(item.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                                <td>${formatPrice(item.rate, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                                <td>${formatPrice(item.amount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
                         </tr>
                     `).join('')}
+                    
+                        ${invoiceData.timeline === 'Urgent Project (1-2 weeks)' ? `
+                        <tr>
+                            <td>
+                                Urgent Timeline Surcharge (1-2 weeks)
+                                <br><small>Additional charge for urgent delivery: 20% of base price</small>
+                            </td>
+                            <td>1</td>
+                                <td>${formatPrice(getTimelineSurcharge(invoiceData.timeline) * invoiceData.amount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                                <td>${formatPrice(getTimelineSurcharge(invoiceData.timeline) * invoiceData.amount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                        </tr>
+                        ` : invoiceData.timeline === 'Normal Time (2-3 weeks)' ? `
+                        <tr>
+                            <td>
+                                Timeline - Normal (2-3 weeks)
+                                <br><small>Standard delivery timeline</small>
+                            </td>
+                            <td>1</td>
+                                <td>${formatPrice(0, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                                <td>${formatPrice(0, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                        </tr>
+                    ` : `
+                        <tr>
+                            <td>
+                                Timeline Discount - Relaxed (4 weeks)
+                                <br><small>Discount for relaxed delivery timeline: 5% of base price</small>
+                            </td>
+                            <td>1</td>
+                                <td>-${formatPrice(Math.abs(getTimelineSurcharge(invoiceData.timeline) * invoiceData.amount), invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                                <td>-${formatPrice(Math.abs(getTimelineSurcharge(invoiceData.timeline) * invoiceData.amount), invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+                        </tr>
+                    `}
                 </tbody>
             </table>
 
             <div class="summary">
                 <div class="summary-row">
                     <span>Subtotal:</span>
-                    <span>${formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        <span>${formatPrice(invoiceData.subTotal, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
                 <div class="summary-row">
-                    <span>Tax (${invoice.taxRate}%):</span>
-                    <span>${formatPrice(invoice.taxAmount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        <span>Tax (${invoiceData.taxRate}%):</span>
+                        <span>${formatPrice(invoiceData.taxAmount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
                 <div class="summary-row">
                     <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
-                    <span>-${formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        <span>-${formatPrice(invoiceData.discount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
                 <div class="summary-row total">
                     <span>Total:</span>
-                    <span style="color: var(--green-color);">${formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        <span style="color: var(--green-color);">${formatPrice(invoiceData.total, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
             </div>
 
             <div class="terms">
-                <h3>Terms & Conditions</h3>
-                <div className="terms-grid">
-                    <div className="terms-section">
-                        <h4>Payment Terms</h4>
-                        <ul>
-                            <li>Payment is due within 7 days of invoice date</li>
-                            <li>50% advance payment required to start the project</li>
-                            <li>Remaining 50% payment before project delivery</li>
-                            <li>All prices are in ${invoice.currency}</li>
-                            <li>Late payments will incur a 5% monthly charge</li>
-                            <li>Refund requests must be made within 48 hours of payment</li>
-                            <li>Transaction fees are responsibility of the client</li>
-                            <li>Payment plans available for enterprise projects</li>
+                <h3 class="text-2xl font-bold text-purple-400 mb-6">Terms & Conditions</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="terms-box bg-zinc-900/80 p-6 rounded-xl border border-purple-500/20">
+                        <h4 class="text-lg font-semibold text-purple-400 mb-4">Payment Terms</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Payment due within 7 days of invoice date</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">50% advance payment required to start</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Remaining 50% before project delivery</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                    <span class="text-gray-300">All prices in ${invoiceData.currency}</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">5% monthly charge on late payments</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Refund requests within 48 hours of payment</span>
+                            </li>
                         </ul>
                     </div>
-                    <div className="terms-section">
-                        <h4>Project Terms</h4>
-                        <ul>
-                            <li>Timeline starts after receiving advance payment</li>
-                            <li>Project scope as defined in the package details</li>
-                            <li>Two rounds of revisions included</li>
-                            <li>Additional revisions charged separately</li>
-                            <li>Source code handover upon full payment</li>
-                            <li>All deliverables will be provided in digital format</li>
-                            <li>Client is responsible for providing necessary content and feedback</li>
-                            <li>Any additional features requested will be quoted separately</li>
-                            <li>Regular progress updates via email/chat</li>
-                            <li>24/7 support during development phase</li>
+
+                    <div class="terms-box bg-zinc-900/80 p-6 rounded-xl border border-purple-500/20">
+                        <h4 class="text-lg font-semibold text-purple-400 mb-4">Project Terms</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Timeline starts after advance payment</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Project scope as defined in package</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Two revision rounds included</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Additional revisions charged separately</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Source code handover upon full payment</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">24/7 support during development</span>
+                            </li>
                         </ul>
                     </div>
-                    <div className="terms-section">
-                        <h4>Intellectual Property</h4>
-                        <ul>
-                            <li>Client receives full ownership of final deliverables</li>
-                            <li>Source code rights transfer upon final payment</li>
-                            <li>NEX-WEBS retains right to showcase work in portfolio</li>
-                            <li>Third-party assets licensed separately</li>
-                            <li>Client responsible for content copyright</li>
+
+                    <div class="terms-box bg-zinc-900/80 p-6 rounded-xl border border-purple-500/20">
+                        <h4 class="text-lg font-semibold text-purple-400 mb-4">Intellectual Property</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Client receives full ownership of deliverables</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Source code rights transfer after payment</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Third-party assets licensed separately</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Client responsible for content copyright</span>
+                            </li>
                         </ul>
                     </div>
-                    <div className="terms-section">
-                        <h4>Support & Maintenance</h4>
-                        <ul>
-                            <li>30 days of free support after project completion</li>
-                            <li>Bug fixes covered during support period</li>
-                            <li>Server maintenance not included</li>
-                            <li>Optional maintenance plans available</li>
-                            <li>Emergency support available at premium rates</li>
+
+                    <div class="terms-box bg-zinc-900/80 p-6 rounded-xl border border-purple-500/20">
+                        <h4 class="text-lg font-semibold text-purple-400 mb-4">Support & Maintenance</h4>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">30 days free support after completion</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Bug fixes covered in support period</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Server maintenance not included</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Optional maintenance plans available</span>
+                            </li>
+                            <li class="flex items-start gap-2">
+                                <span class="text-purple-400 mt-1">•</span>
+                                <span class="text-gray-300">Emergency support at premium rates</span>
+                            </li>
                         </ul>
                     </div>
                 </div>
@@ -853,7 +1083,7 @@ function CheckoutPageContent() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `Invoice-${invoice.invoiceNumber}.html`;
+    a.download = `Invoice-${invoiceData.invoiceNumber}.html`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
@@ -872,6 +1102,24 @@ function CheckoutPageContent() {
       });
     }
     setIsEditing(false);
+  };
+
+  const handleDownloadClick = () => {
+    setShowConfirmDialog(true);
+  };
+
+  const handleConfirmDownload = () => {
+    setShowConfirmDialog(false);
+    if (invoice) {
+      downloadInvoice(invoice);
+    }
+  };
+
+  const handlePayClick = () => {
+    setButtonShake(true);
+    setTimeout(() => setButtonShake(false), 500);
+    const modal = document.getElementById('angryWarningModal');
+    if (modal) modal.classList.remove('hidden');
   };
 
   return (
@@ -893,8 +1141,118 @@ function CheckoutPageContent() {
         </div>
 
         <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* Left Column - Payment Details */}
+          {/* Left Column - Project Timeline and Payment Details */}
           <div className="space-y-6">
+            {/* Project Timeline Section */}
+            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Project Timeline</h2>
+              
+              <div className="space-y-3 sm:space-y-4">
+                {/* Urgent Timeline Option */}
+                <div 
+                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                    selectedTimeline === 'Urgent Project (1-2 weeks)'
+                      ? 'border-yellow-500 bg-yellow-500/10'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                  onClick={() => handleTimelineChange('Urgent Project (1-2 weeks)')}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedTimeline === 'Urgent Project (1-2 weeks)'
+                          ? 'border-yellow-500'
+                          : 'border-gray-500'
+                      }`}>
+                        {selectedTimeline === 'Urgent Project (1-2 weeks)' && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-yellow-400">Urgent Project</h3>
+                        <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded font-medium">+20% Charge</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">Delivery in 1-2 weeks</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Normal Timeline Option */}
+                <div 
+                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                    selectedTimeline === 'Normal Time (2-3 weeks)'
+                      ? 'border-purple-500 bg-purple-500/10'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                  onClick={() => handleTimelineChange('Normal Time (2-3 weeks)')}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedTimeline === 'Normal Time (2-3 weeks)'
+                          ? 'border-purple-500'
+                          : 'border-gray-500'
+                      }`}>
+                        {selectedTimeline === 'Normal Time (2-3 weeks)' && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-purple-400">Normal Time</h3>
+                        <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">Standard</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">Delivery in 2-3 weeks</p>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Relaxed Timeline Option */}
+                <div 
+                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                    selectedTimeline === 'Relaxed (4 weeks)'
+                      ? 'border-green-500 bg-green-500/10'
+                      : 'border-white/10 hover:border-white/30'
+                  }`}
+                  onClick={() => handleTimelineChange('Relaxed (4 weeks)')}
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5">
+                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                        selectedTimeline === 'Relaxed (4 weeks)'
+                          ? 'border-green-500'
+                          : 'border-gray-500'
+                      }`}>
+                        {selectedTimeline === 'Relaxed (4 weeks)' && (
+                          <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <h3 className="font-semibold text-green-400">Relaxed</h3>
+                        <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded font-medium">5% Discount</span>
+                      </div>
+                      <p className="text-sm text-gray-400 mt-1">Delivery in 4 weeks</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="mt-4 bg-zinc-800/50 p-3 rounded-lg text-sm text-gray-300">
+                <div className="flex items-start gap-2">
+                  <svg className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p>Choose a timeline that suits your project needs. Your selection will affect the final price.</p>
+                </div>
+              </div>
+            </div>
+
+            {/* Payment Method Section */}
             <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
               <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Payment Method</h2>
               
@@ -1105,7 +1463,7 @@ function CheckoutPageContent() {
                   <h2 className="text-lg sm:text-xl font-bold">Invoice Details</h2>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => downloadInvoice(invoice)}
+                      onClick={handleDownloadClick}
                       className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs sm:text-sm font-medium transition-colors"
                     >
                       <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -1225,9 +1583,9 @@ function CheckoutPageContent() {
                             onChange={(e) => handleTimelineChange(e.target.value)}
                             className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
                           >
-                            <option value="Urgent (1-2 weeks)">Urgent (1-2 weeks) +20%</option>
-                            <option value="Normal (2-4 weeks)">Normal (2-4 weeks)</option>
-                            <option value="Relaxed (4+ weeks)">Relaxed (4+ weeks) +5% discount</option>
+                            <option value="Urgent Project (1-2 weeks)">Urgent Project (1-2 weeks) +20%</option>
+                            <option value="Normal Time (2-3 weeks)">Normal Time (2-3 weeks)</option>
+                            <option value="Relaxed (4 weeks)">Relaxed (4 weeks) +5% discount</option>
                           </select>
                         </div>
                         <div className="flex justify-end mt-4">
@@ -1300,12 +1658,27 @@ function CheckoutPageContent() {
                         <span className="text-gray-400">Sub Total:</span>
                         <span>{formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                       </div>
-                      {invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge')) && (
+                      
+                      {/* Timeline Adjustments */}
+                      {editedDetails.timeline === 'Urgent Project (1-2 weeks)' && (
                         <div className="flex justify-between text-yellow-400">
                           <span>Urgent Timeline Surcharge (20%):</span>
-                          <span>+{formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                          <span>+{formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                         </div>
                       )}
+                      {editedDetails.timeline === 'Normal Time (2-3 weeks)' && (
+                        <div className="flex justify-between text-gray-400">
+                          <span>Timeline - Normal (2-3 weeks):</span>
+                          <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        </div>
+                      )}
+                      {editedDetails.timeline === 'Relaxed (4 weeks)' && (
+                        <div className="flex justify-between text-green-400">
+                          <span>Timeline Discount - Relaxed (4 weeks):</span>
+                          <span>{formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                        </div>
+                      )}
+                      
                       <div className="flex justify-between text-gray-400">
                         <span>Tax (0%):</span>
                         <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
@@ -1322,8 +1695,11 @@ function CheckoutPageContent() {
                           <ul className="text-xs space-y-1 text-gray-400">
                             <li>• Base price in PKR: {formatPrice(invoice.subTotal / 1.3, 'PKR', 1, true)}</li>
                             <li>• International service fee (30%): {formatPrice(invoice.subTotal - (invoice.subTotal / 1.3), invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
-                            {Boolean(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))) && (
-                              <li>• Urgent delivery surcharge (20%): {formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline Surcharge'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                            {Boolean(invoice.items.find(item => item.description.includes('Urgent Timeline'))) && (
+                              <li>• Urgent delivery surcharge (20%): {formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                            )}
+                            {Boolean(invoice.items.find(item => item.description.includes('Timeline Discount'))) && (
+                              <li>• Relaxed timeline discount (5%): {formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
                             )}
                             <li>• Current exchange rate: 1 PKR = {baseExchangeRates[currency as SupportedCurrency]} {currency}</li>
                           </ul>
@@ -1356,178 +1732,240 @@ function CheckoutPageContent() {
               {/* Payment Note */}
               <div className="space-y-4">
                 {/* Contact Information Section */}
-                <div className="p-5 bg-gradient-to-br from-purple-500/10 to-purple-600/10 rounded-lg border border-purple-500/20">
-                  <div className="flex items-start space-x-3">
-                    <svg className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                    </svg>
-                    <div className="space-y-3 flex-1">
-                      <div>
-                        <h4 className="text-sm font-semibold text-purple-400 mb-2">Our Support Team Is Here For You</h4>
-                        <p className="text-sm text-gray-300 leading-relaxed mb-4">
-                          Be patient, here's our contact information:
-                        </p>
-                      </div>
-                      <div className="flex flex-col space-y-4">
-                        <div className="flex flex-wrap items-center gap-4">
+                <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/5 rounded-xl p-6 border border-purple-500/20 backdrop-blur-sm">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <span className="text-purple-400">📞</span>
+                    Our Support Team Is Here For You
+                  </h3>
+                  <p className="text-gray-300 mb-4">Be patient, here's our contact information:</p>
+                  <div className="space-y-3">
                           {['03089080171', '03098795492', '03292425950'].map((number, index) => (
-                            <div 
-                              key={index} 
-                              className="flex items-center space-x-2 bg-black/20 px-4 py-2 rounded-lg"
-                            >
-                              <svg className="w-4 h-4 text-purple-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
-                              </svg>
-                              <span className="text-sm font-medium text-white tracking-wider whitespace-nowrap">{number}</span>
+                      <div key={index} className="flex items-center justify-between bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
+                        <span className="text-white font-medium">{number}</span>
                               <button 
-                                onClick={() => {
-                                  navigator.clipboard.writeText(number);
-                                  const button = document.getElementById(`copy-btn-${index}`);
-                                  if (button) {
-                                    button.textContent = 'Copied!';
-                                    button.classList.add('bg-green-500/20', 'text-green-400');
-                                    setTimeout(() => {
-                                      button.textContent = 'Copy';
-                                      button.classList.remove('bg-green-500/20', 'text-green-400');
-                                    }, 2000);
-                                  }
-                                }}
-                                id={`copy-btn-${index}`}
-                                className="ml-2 text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 hover:bg-purple-500/20 rounded-md transition-all duration-300"
+                          onClick={() => navigator.clipboard.writeText(number)}
+                          className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded transition-colors"
                               >
                                 Copy
                               </button>
                             </div>
                           ))}
                         </div>
-                        <div className="flex items-center space-x-2 text-sm text-yellow-200/80 bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3">
-                          <svg className="w-4 h-4 text-yellow-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                          <span>Please call one time after you've completed the payment to confirm your order</span>
-                        </div>
-                        <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3">
-                          <div className="flex items-center space-x-2 text-sm text-gray-300">
-                            <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                            <span>Our workers are always ready to assist you 24/7</span>
+                  
+                  <div className="mt-6 bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
+                    <div className="flex items-start gap-3">
+                      <span className="text-yellow-500 text-xl">⚠️</span>
+                      <p className="text-yellow-200/90 text-sm">
+                        Please call one time after you've completed the payment to confirm your order
+                      </p>
                           </div>
                         </div>
                       </div>
 
-                      <style jsx global>{`
-                        @media (max-width: 768px) {
-                          .flex-wrap {
-                            justify-content: center;
-                          }
-                          
-                          .flex-wrap > div {
-                            width: 100%;
-                            justify-content: space-between;
-                          }
-                        }
-
-                        @keyframes copySuccess {
-                          0% { transform: scale(1); }
-                          50% { transform: scale(1.1); }
-                          100% { transform: scale(1); }
-                        }
-                      `}</style>
+                <div className="bg-gradient-to-br from-red-900/20 to-red-800/5 rounded-xl p-6 border border-red-500/20 backdrop-blur-sm">
+                  <div className="flex items-start gap-3">
+                    <span className="text-red-500 text-xl mt-1">⚡</span>
+                    <div className="space-y-2">
+                      <p className="text-gray-300 text-sm">
+                        Since Stripe isn't available in Pakistan, we are actively working on implementing new secure payment methods. 
+                        Meanwhile, we offer several trusted local payment options for your convenience.
+                      </p>
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {['Bank Transfer', 'JazzCash', 'EasyPaisa'].map((method, index) => (
+                          <span key={index} className="text-xs bg-red-500/10 text-red-300 px-3 py-1 rounded-full border border-red-500/20">
+                            {method}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
                     </div>
                   </div>
 
-                  <div className="p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                    <div className="flex items-start space-x-3">
-                      <svg className="w-5 h-5 text-yellow-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                      </svg>
-                      <p className="text-sm text-yellow-200/80">
-                        Since Stripe isn't available in Pakistan, we are actively working on implementing new secure payment methods. Meanwhile, we offer several trusted local payment options for your convenience.
-                      </p>
+                {/* International Payment Methods */}
+                <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/5 rounded-xl p-6 border border-blue-500/20 backdrop-blur-sm">
+                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                    <span className="text-blue-400">🌐</span>
+                    International Payment Methods
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {/* PayPal */}
+                    <div className="bg-blue-500/5 rounded-lg p-4 border border-blue-500/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-[#003087] p-2 rounded-lg">
+                            <FaPaypal className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-white">PayPal</h4>
+                            <p className="text-xs text-gray-400">Send to: nexwebs.org@gmail.com</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText('nexwebs.org@gmail.com')}
+                          className="text-xs text-blue-400 hover:text-blue-300 px-2 py-1 bg-blue-500/10 rounded transition-colors"
+                        >
+                          Copy Email
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Apple Pay */}
+                    <div className="bg-zinc-500/5 rounded-lg p-4 border border-zinc-500/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-black p-2 rounded-lg">
+                            <FaApplePay className="w-6 h-6 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-white">Apple Pay</h4>
+                            <p className="text-xs text-gray-400">ID: nexwebs@apple.pay</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText('nexwebs@apple.pay')}
+                          className="text-xs text-gray-400 hover:text-gray-300 px-2 py-1 bg-zinc-500/10 rounded transition-colors"
+                        >
+                          Copy ID
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Google Pay */}
+                    <div className="bg-[#4285f4]/5 rounded-lg p-4 border border-[#4285f4]/20">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="bg-white p-2 rounded-lg">
+                            <FaGooglePay className="w-6 h-6 text-[#4285f4]" />
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-white">Google Pay</h4>
+                            <p className="text-xs text-gray-400">UPI: nexwebs@gpay</p>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={() => navigator.clipboard.writeText('nexwebs@gpay')}
+                          className="text-xs text-[#4285f4] hover:text-blue-300 px-2 py-1 bg-[#4285f4]/10 rounded transition-colors"
+                        >
+                          Copy UPI
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-4 bg-blue-500/5 rounded-lg p-3 border border-blue-500/20">
+                      <div className="flex items-start gap-2">
+                        <span className="text-blue-400 text-sm">ℹ️</span>
+                        <p className="text-xs text-gray-400">
+                          International payments are subject to a 30% service fee. After payment, please send the transaction ID to support@nexwebs.com for verification.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
+              </div>
 
-                <div className="space-y-4 relative">
-                  {showMessage && (
-                    <motion.div 
-                      initial={{ opacity: 0, y: -20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: 20 }}
-                      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm"
-                    >
-                      <motion.div
-                        initial={{ scale: 0.95 }}
-                        animate={{ scale: 1 }}
-                        className="bg-gradient-to-br from-zinc-900 to-zinc-950 p-8 rounded-xl shadow-2xl border border-purple-500/20 max-w-md w-full mx-4"
-                      >
-                        <div className="flex items-start space-x-4">
-                          <div className="bg-purple-500/10 p-3 rounded-lg">
-                            <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
+              {/* Warning modal */}
+              <div id="angryWarningModal" className="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50">
+                <div className="bg-gradient-to-br from-red-900/30 to-black p-8 rounded-2xl border border-red-500/20 max-w-md w-full mx-4">
+                  <div className="text-center space-y-4">
+                    <div className="bg-red-500/10 rounded-full p-4 w-16 h-16 mx-auto flex items-center justify-center">
+                      <span className="text-4xl">⚠️</span>
                           </div>
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-white mb-2">Payment Method Unavailable</h3>
-                            <p className="text-gray-300 text-sm leading-relaxed mb-4">
-                              Direct card payments are currently unavailable in Pakistan. Please use our secure local payment options listed above.
-                            </p>
-                            <div className="bg-purple-500/5 border border-purple-500/10 rounded-lg p-3 mb-4">
-                              <h4 className="text-sm font-medium text-purple-400 mb-2">Available Payment Methods:</h4>
-                              <ul className="text-sm text-gray-300 space-y-1">
-                                <li className="flex items-center space-x-2">
-                                  <FaUniversity className="w-4 h-4 text-purple-400" />
-                                  <span>Bank Transfer</span>
-                                </li>
-                                <li className="flex items-center space-x-2">
-                                  <FaMobileAlt className="w-4 h-4 text-purple-400" />
-                                  <span>JazzCash / Easypaisa</span>
-                                </li>
-                              </ul>
+                    <h3 className="text-xl font-bold text-red-400">Payment Not Available</h3>
+                    <div className="space-y-2">
+                      <p className="text-gray-300">
+                        We currently don't accept Stripe payments in Pakistan.
+                      </p>
+                      <p className="text-sm text-gray-400">
+                        Please use one of our secure local payment methods listed above:
+                      </p>
+                      <div className="flex justify-center gap-2 mt-2">
+                        {['Bank Transfer', 'JazzCash', 'EasyPaisa'].map((method, index) => (
+                          <span key={index} className="text-xs bg-red-500/10 text-red-300 px-3 py-1 rounded-full border border-red-500/20">
+                            {method}
+                          </span>
+                        ))}
                             </div>
-                            <div className="flex justify-end space-x-3">
-                              <motion.button
-                                whileHover={{ scale: 1.02, backgroundColor: 'rgb(139, 92, 246)' }}
-                                whileTap={{ scale: 0.98 }}
-                                onClick={() => setShowMessage(false)}
-                                className="px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg transition-colors"
-                              >
-                                Use Local Payment Methods
-                              </motion.button>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        const modal = document.getElementById('angryWarningModal');
+                        if (modal) modal.classList.add('hidden');
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-zinc-800 to-zinc-900 hover:from-zinc-700 hover:to-zinc-800 text-white rounded-lg font-medium transition-all duration-200 border border-red-500/20"
+                    >
+                      I Understand
+                    </button>
                             </div>
                           </div>
                         </div>
-                      </motion.div>
-                    </motion.div>
-                  )}
 
+              {/* Add click handler for pay button */}
+              <div className="flex justify-end mt-6">
                   <motion.button
-                    className={`w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
-                    onClick={() => {
-                      setButtonShake(true);
-                      setTimeout(() => setButtonShake(false), 500);
-                      setShowMessage(true);
-                    }}
-                    whileHover={{ 
-                      scale: 1.02,
-                      boxShadow: '0 0 20px rgba(139, 92, 246, 0.3)'
-                    }}
+                  className={`pay-button w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
+                  whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
+                  onClick={handlePayClick}
                   >
                     <FaLock className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Pay Now</span>
                   </motion.button>
+              </div>
 
                   <p className="text-xs sm:text-sm text-gray-400 text-center mt-3 sm:mt-4">
                     Your payment is secured with SSL encryption
                   </p>
-                </div>
-              </div>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {showConfirmDialog && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-zinc-900 p-6 rounded-xl border border-purple-500/20 max-w-md w-full mx-4">
+            <div className="text-center mb-6">
+              <svg className="w-12 h-12 text-purple-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <h3 className="text-xl font-bold text-white mb-2">Download Invoice</h3>
+              <p className="text-gray-300 text-sm mb-4">
+                Please note that this invoice contains important information about your project terms and conditions.
+              </p>
+              <div className="mt-2 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                <p className="text-yellow-400 text-sm font-medium mb-2">
+                  ⚠️ Important Notice
+                </p>
+                <p className="text-gray-300 text-sm">
+                  This invoice serves as your official proof of agreement and payment evidence. Please ensure all details are accurate and keep it securely for your records.
+                </p>
+              </div>
+              {isMobile && (
+                <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <p className="text-yellow-400 text-sm">
+                    ⚠️ You are on a mobile device. For the best viewing experience, we recommend opening the invoice on a laptop or desktop computer.
+                  </p>
+                </div>
+              )}
+            </div>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleConfirmDownload}
+                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+              >
+                I Understand, Continue
+              </button>
+              <button
+                onClick={() => setShowConfirmDialog(false)}
+                className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </main>
   );
 }

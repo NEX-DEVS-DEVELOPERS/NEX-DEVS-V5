@@ -9,7 +9,7 @@ interface InvoiceCalculatorProps {
 
 const InvoiceCalculator: React.FC<InvoiceCalculatorProps> = ({ basePrice }) => {
   const { timeline, getTimelineMultiplier } = useTimeline();
-  const { currency, isPakistan } = useCurrency();
+  const { currency } = useCurrency(); // Removed isPakistan since it doesn't exist
 
   const timelineMultiplier = getTimelineMultiplier();
   const adjustedPrice = basePrice * timelineMultiplier;
@@ -19,19 +19,16 @@ const InvoiceCalculator: React.FC<InvoiceCalculatorProps> = ({ basePrice }) => {
     <div className="space-y-2 text-gray-200">
       <div className="flex justify-between">
         <span>Base Price:</span>
-        <span>{formatPrice(basePrice, currency, isPakistan)}</span>
+        <span>{formatPrice(basePrice, currency)}</span>
       </div>
       {timeline !== 'normal' && (
         <div className="flex justify-between text-sm">
           <span>{timeline === 'urgent' ? 'Urgency Charge' : 'Timeline Discount'}:</span>
           <span className={timeline === 'urgent' ? 'text-red-400' : 'text-green-400'}>
-            {timeline === 'urgent' ? '+' : '-'}{formatPrice(Math.abs(difference), currency, isPakistan)}
+            {timeline === 'urgent' ? '+' : '-'}{formatPrice(Math.abs(difference), currency)}
           </span>
-        </div>
-      )}
-      <div className="flex justify-between font-semibold border-t border-gray-700 pt-2 mt-2">
         <span>Total:</span>
-        <span>{formatPrice(adjustedPrice, currency, isPakistan)}</span>
+        <span>{formatPrice(adjustedPrice, currency)}</span>
       </div>
     </div>
   );

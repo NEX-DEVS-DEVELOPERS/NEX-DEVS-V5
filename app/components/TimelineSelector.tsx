@@ -20,7 +20,7 @@ const TimelineSelector: React.FC = () => {
       >
         <option value="urgent">Urgent (1-2 weeks) (+20% charge)</option>
         <option value="normal">Normal (2-4 weeks)</option>
-        <option value="relaxed">Relaxed (4+ weeks) (-5% discount)</option>
+        <option value="relaxed">Relaxed (4+ weeks) (+5% discount)</option>
       </select>
     </div>
   );

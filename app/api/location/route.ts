@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLocationData, adjustPriceForCountry } from '@/app/utils/pricing';
+import { getLocationData } from '@/app/utils/pricing';
 
 export async function GET(request: NextRequest) {
   try {
@@ -31,14 +31,10 @@ export async function POST(request: NextRequest) {
     const forwardedFor = request.headers.get('x-forwarded-for');
     const ip = forwardedFor ? forwardedFor.split(',')[0] : request.ip || '';
     const locationData = await getLocationData(ip);
-    
-    // Adjust price based on location
-    const adjustedPrice = adjustPriceForCountry(
-      basePrice,
-      locationData.country,
-      locationData.currency,
-      locationData.exchangeRate
-    );
+    const adjustedPrice = {
+      amount: basePrice * locationData.exchangeRate,
+      currency: locationData.currency
+    };
     
     return NextResponse.json({
       success: true,
