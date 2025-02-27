@@ -29,6 +29,10 @@ const nextConfig = {
       logLevel: 'error'
     }
   },
+  output: 'standalone',
+  env: {
+    EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+  }
 }
 
 module.exports = nextConfig 
