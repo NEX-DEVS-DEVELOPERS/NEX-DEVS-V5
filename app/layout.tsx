@@ -9,6 +9,7 @@ import { EasterEggProvider } from "@/context/EasterEggContext"
 import type { Metadata } from 'next'
 import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
+import MobilePopup from './components/MobilePopup'
 
 // Optimize font loading - add display: 'swap' to show text with fallback font while custom font loads
 const inter = Inter({ 
@@ -65,6 +66,7 @@ export default function RootLayout({
           <CurrencyProvider>
             <TimelineProvider>
               <EasterEggProvider>
+                <MobilePopup />
                 <Navbar />
                 <EasterEggCounter />
                 <div className="flex-1">

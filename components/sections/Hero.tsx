@@ -465,11 +465,7 @@ export default function Hero() {
         )}
       </AnimatePresence>
 
-      {isMobile && (
-        <div className="text-center text-sm text-gray-800 bg-white p-4 rounded shadow-md border border-gray-300 mt-4">
-          <p>Preview this website in laptop or desktop view. The animations and effects are off for mobile users for a better experience.</p>
-        </div>
-      )}
+     
     </motion.section>
   )
 } 
