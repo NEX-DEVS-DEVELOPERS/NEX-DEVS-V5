@@ -2,6 +2,7 @@
 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 const services = [
   {
@@ -41,7 +42,7 @@ const services = [
     subFeatures: [
       {
         title: 'AI Content Tools',
-        items: ['Smart SEO Optimization', 'Auto-Generated Meta Tags', 'Content Performance Analysis']
+        items: ['Smart SEO Optimization', 'Ai Agent for content creation', 'Content Performance Analysis']
       },
       {
         title: 'Automation Suite',
@@ -177,16 +178,35 @@ const services = [
 export default function WelcomeScreen({ onComplete }: { onComplete: () => void }) {
   const [currentSlide, setCurrentSlide] = useState(-1);
   const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
+    // Add a small delay before showing the content to ensure smooth animation
+    const timer = setTimeout(() => {
+      setCurrentSlide(-1);
+    }, 100);
+    return () => clearTimeout(timer);
   }, []);
+
+  // Add close button handler
+  const handleClose = () => {
+    // Set localStorage to indicate welcome screen was shown
+    localStorage.setItem('welcomeScreenShown', 'true');
+    onComplete();
+  };
+
+  // Handle completion with localStorage
+  const handleCompletion = () => {
+    localStorage.setItem('welcomeScreenShown', 'true');
+    onComplete();
+  };
 
   if (!mounted) return null;
 
   const handleNext = () => {
     if (currentSlide === services.length - 1) {
-      onComplete();
+      handleCompletion();
     } else {
       setCurrentSlide(prev => prev + 1);
     }
@@ -197,6 +217,11 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
       return;
     }
     setCurrentSlide(prev => prev - 1);
+  };
+
+  const handleHomeRedirect = () => {
+    onComplete(); // Call onComplete first to ensure proper state management
+    window.location.href = '/';  // Then redirect
   };
 
   return (
@@ -238,6 +263,7 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative max-w-4xl w-full mx-4"
           >
             <div className="bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 sm:p-12 overflow-hidden">
@@ -252,7 +278,7 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
                   className="text-center"
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ duration: 0.8, delay: 0.3, ease: "easeOut" }}
                 >
                   <motion.h1 
                     className="text-4xl sm:text-6xl md:text-7xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400"
@@ -264,44 +290,63 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
                       ]
                     }}
                     transition={{
-                      duration: 2,
+                      duration: 3,
                       repeat: Infinity,
-                      repeatType: "reverse"
+                      repeatType: "reverse",
+                      ease: "easeInOut"
                     }}
                   >
                     Welcome to NEX-WEBS
                   </motion.h1>
                   <div className="relative">
-                    <motion.span
-                      className="text-2xl sm:text-3xl text-white mb-4 max-w-2xl mx-auto font-semibold relative"
-                      style={{}}
-                      animate={{
-                        textShadow: [
-                          "0 0 25px rgba(147, 51, 234, 0.7)",
-                          "0 0 45px rgba(147, 51, 234, 0.5)",
-                          "0 0 25px rgba(147, 51, 234, 0.7)"
-                        ]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        repeatType: "reverse"
-                      }}
-                    >
-                      AI is the Future
-                    </motion.span>
-                    <span>, and We're Here to Build It Together</span>
                     <motion.div
-                      className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 rounded-lg blur-lg"
-                      animate={{
-                        opacity: [0.3, 0.6, 0.3]
-                      }}
-                      transition={{
-                        duration: 2,
-                      }}
-                    />
+                      className="text-2xl sm:text-4xl md:text-5xl text-white mb-4 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-2"
+                    >
+                      <motion.span
+                        className="bg-clip-text text-transparent bg-gradient-to-r from-purple-400 via-blue-400 to-purple-400"
+                        style={{
+                          textShadow: "0 0 20px rgba(168, 85, 247, 0.5)"
+                        }}
+                        animate={{
+                          backgroundPosition: ["0% center", "100% center", "0% center"],
+                          textShadow: [
+                            "0 0 20px rgba(168, 85, 247, 0.5)",
+                            "0 0 35px rgba(168, 85, 247, 0.8)",
+                            "0 0 20px rgba(168, 85, 247, 0.5)"
+                          ]
+                        }}
+                        transition={{
+                          duration: 8,
+                          repeat: Infinity,
+                          repeatType: "reverse",
+                          ease: "linear"
+                        }}
+                      >
+                        AI is the Future
+                      </motion.span>
+                      <motion.span 
+                        className="text-base sm:text-xl md:text-2xl text-gray-300 font-normal"
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5, duration: 0.8 }}
+                      >
+                        and We're Here to Build It Together
+                      </motion.span>
+                      <motion.div
+                        className="absolute -inset-x-8 -inset-y-4 bg-gradient-to-r from-purple-500/20 via-blue-500/20 to-purple-500/20 rounded-lg blur-xl"
+                        animate={{
+                          opacity: [0.3, 0.6, 0.3],
+                          scale: [1, 1.05, 1]
+                        }}
+                        transition={{
+                          duration: 4,
+                          repeat: Infinity,
+                          repeatType: "reverse"
+                        }}
+                      />
+                    </motion.div>
                   </div>
-                  <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-3xl mx-auto">
+                  <p className="text-lg sm:text-xl text-gray-300 mb-8 max-w-3xl mx-auto mt-6">
                     Transform your digital presence with our 
                     <span className="text-purple-400 font-semibold"> cutting-edge AI solutions </span>
                     and innovative web technologies

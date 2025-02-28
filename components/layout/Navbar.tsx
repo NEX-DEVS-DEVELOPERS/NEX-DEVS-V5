@@ -9,6 +9,14 @@ import { useIsMobile } from '@/app/utils/deviceDetection'
 export default function Navbar() {
   const isMobile = useIsMobile()
 
+  const handleNavClick = (e: React.MouseEvent, href: string) => {
+    if (href === '/') {
+      // Force a hard redirect for the home link
+      window.location.href = '/';
+      e.preventDefault();
+    }
+  };
+
   return (
     <motion.nav 
       initial={{ y: -100, opacity: 0 }}
@@ -38,7 +46,11 @@ export default function Navbar() {
               whileHover={isMobile ? {} : { y: -3 }}
               className="preserve-transition"
             >
-              <Link href={href} className="hover:text-gray-300">
+              <Link 
+                href={href} 
+                className="hover:text-gray-300"
+                onClick={(e) => handleNavClick(e, href)}
+              >
                 {text}
               </Link>
             </motion.div>

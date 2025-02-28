@@ -2,8 +2,14 @@ import Link from 'next/link'
 import { motion } from 'framer-motion'
 
 export default function Logo() {
+  const handleLogoClick = (e: React.MouseEvent) => {
+    // Force a hard redirect to the root URL
+    window.location.href = '/';
+    e.preventDefault();
+  };
+
   return (
-    <Link href="/">
+    <Link href="/" onClick={handleLogoClick}>
       <motion.div 
         className="flex items-center gap-6 px-5 py-2.5 group cursor-pointer relative rounded-full"
         initial={{ background: 'rgba(255, 255, 255, 0)' }}
