@@ -34,6 +34,13 @@ export const metadata: Metadata = {
     title: "Ali Hasnaat - Website Developer",
     description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
   },
+  icons: {
+    icon: [
+      { url: '/icons/favicon.svg', type: 'image/svg+xml' },
+    ],
+    shortcut: '/icons/favicon.svg',
+    apple: '/icons/favicon.svg',
+  },
 }
 
 export default function RootLayout({
@@ -45,9 +52,9 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning className={inter.variable}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+        <link rel="shortcut icon" href="/icons/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/icons/favicon.svg" />
         <link rel="manifest" href="/manifest.json" />
         {/* Preload critical fonts */}
         <link

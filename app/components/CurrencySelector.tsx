@@ -14,6 +14,9 @@ const currencyFlags: Record<SupportedCurrency, string> = {
   AED: '🇦🇪'
 };
 
+// Add this type definition
+type RestrictedCurrency = 'GBP' | 'AED' | 'INR';
+
 const CurrencySelector = () => {
   const { currency, setCurrency, exchangeRate, exchangeRates, isExemptCountry } = useCurrency();
   const [showDropdown, setShowDropdown] = useState(false);
@@ -34,6 +37,9 @@ const CurrencySelector = () => {
 
   const currencies: SupportedCurrency[] = ['PKR', 'USD', 'GBP', 'INR', 'AED'];
 
+  // Add this near the top of the component
+  const restrictedCurrencies: RestrictedCurrency[] = ['GBP', 'AED', 'INR'];
+
   const getCurrencyName = (code: SupportedCurrency): string => {
     const names: Record<SupportedCurrency, string> = {
       PKR: 'Pakistani Rupee',
@@ -46,6 +52,12 @@ const CurrencySelector = () => {
   };
 
   const handleCurrencyChange = (newCurrency: SupportedCurrency) => {
+    // If user is trying to change from a restricted currency
+    if (restrictedCurrencies.includes(currency as RestrictedCurrency)) {
+      setShowInternationalWarning(true);
+      return;
+    }
+
     if (newCurrency === 'PKR' && !hasChangedToPKR && ['USD', 'GBP', 'INR', 'AED'].includes(currency)) {
       setCurrentCurrency(currency);
       setShowPakistanVerification(true);
@@ -65,8 +77,8 @@ const CurrencySelector = () => {
       return;
     }
     
-    // For international users, show the international warning
-    if (!isExemptCountry && currency !== 'PKR') {
+    // Check if current currency is restricted
+    if (restrictedCurrencies.includes(currency as RestrictedCurrency)) {
       setShowInternationalWarning(true);
       return;
     }
@@ -86,54 +98,74 @@ const CurrencySelector = () => {
     return !isExemptCountry && currency !== 'PKR';
   };
 
-  // Optimize animations for better performance
+  // Update the dropdownVariants with smoother animations
   const dropdownVariants = {
     hidden: { 
       opacity: 0,
-      y: -10,
-      scale: 0.99,
-      transformOrigin: "top center"
+      y: -8,
+      scaleY: 0.95,
+      transformOrigin: "top"
     },
     visible: {
       opacity: 1,
       y: 0,
-      scale: 1,
+      scaleY: 1,
       transition: {
-        duration: 0.2,
-        ease: [0.16, 1, 0.3, 1], // Optimized spring-like easing
-        staggerChildren: 0.03,
-        delayChildren: 0.02
+        type: "spring",
+        stiffness: 150,
+        damping: 15,
+        mass: 0.5,
+        staggerChildren: 0.035,
+        delayChildren: 0.03
       }
     },
     exit: {
       opacity: 0,
-      y: -8,
-      scale: 0.98,
+      y: -4,
+      scaleY: 0.98,
       transition: {
-        duration: 0.15,
-        ease: [0.36, 0, 0.66, -0.56]
+        type: "tween",
+        duration: 0.2,
+        ease: [0.32, 0, 0.67, 0]
       }
     }
   };
 
+  // Update itemVariants for smoother individual item animations
   const itemVariants = {
-    hidden: { opacity: 0, x: -10 },
+    hidden: { 
+      opacity: 0,
+      x: -8,
+      y: 4
+    },
     visible: (i: number) => ({
       opacity: 1,
       x: 0,
+      y: 0,
       transition: {
-        delay: i * 0.03,
-        duration: 0.2,
-        ease: [0.16, 1, 0.3, 1]
+        type: "spring",
+        stiffness: 170,
+        damping: 18,
+        mass: 0.6,
+        delay: i * 0.04
       }
     }),
     hover: {
-      scale: 1.02,
-      x: 4,
+      x: 6,
       backgroundColor: "rgba(139, 92, 246, 0.15)",
       transition: {
-        duration: 0.15,
-        ease: "easeOut"
+        type: "spring",
+        stiffness: 400,
+        damping: 25,
+        mass: 0.5
+      }
+    },
+    tap: {
+      scale: 0.98,
+      transition: {
+        type: "spring",
+        stiffness: 400,
+        damping: 20
       }
     }
   };
@@ -195,6 +227,29 @@ const CurrencySelector = () => {
     setIsLocked(true);
     setShowBreakdown(true);
     setTimeout(() => setShowBreakdown(false), 5000);
+  };
+
+  // Add these helper functions
+  const getCurrencyRegion = (curr: SupportedCurrency): string => {
+    const regions: Record<SupportedCurrency, string> = {
+      GBP: 'United Kingdom',
+      AED: 'United Arab Emirates',
+      INR: 'India',
+      PKR: 'Pakistan',
+      USD: 'United States'
+    };
+    return regions[curr];
+  };
+
+  const getCurrencySymbol = (curr: SupportedCurrency): string => {
+    const symbols: Record<SupportedCurrency, string> = {
+      GBP: '£',
+      AED: 'د.إ',
+      INR: '₹',
+      PKR: '₨',
+      USD: '$'
+    };
+    return symbols[curr];
   };
 
   return (
@@ -846,18 +901,7 @@ const CurrencySelector = () => {
                     <div className="relative">
                       <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-blue-500/30 to-blue-500/20 rounded-lg blur"></div>
                       <div className="relative flex items-center space-x-2 px-4 py-2">
-                        <motion.div
-                          animate={{
-                            scale: [1, 1.2, 1],
-                            opacity: [0.5, 1, 0.5]
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                          className="w-2 h-2 bg-blue-500 rounded-full"
-                        />
+                        <span className="text-2xl">{currencyFlags[currency]}</span>
                         <h3 className="text-lg font-semibold bg-gradient-to-r from-blue-200 to-blue-400 bg-clip-text text-transparent">
                           Location Restricted
                         </h3>
@@ -867,23 +911,12 @@ const CurrencySelector = () => {
 
                   <div className="bg-blue-500/5 rounded-lg p-4 border border-blue-500/10">
                     <div className="flex items-start space-x-3">
-                      <motion.div
-                        animate={{
-                          rotate: [0, 10, -10, 0],
-                          scale: [1, 1.1, 1]
-                        }}
-                        transition={{
-                          duration: 2,
-                          repeat: Infinity,
-                          ease: "easeInOut"
-                        }}
-                        className="text-2xl mt-0.5 flex items-center justify-center"
-                      >
-                        <span className="mr-1">⚠️</span><span>🔒</span>
-                      </motion.div>
-                      <p className="text-gray-300 text-sm">
-                        <span className="text-blue-300 font-semibold">Currency changes are not allowed for international users.</span> Your location has been automatically detected and the appropriate currency has been set for your region.
-                      </p>
+                      <div className="flex-shrink-0 mt-1">⚠️</div>
+                      <div className="space-y-2">
+                        <p className="text-gray-300 text-sm">
+                          Currency changes are not allowed for users in {getCurrencyRegion(currency as SupportedCurrency)}. Your location has been automatically detected and {currency} ({getCurrencySymbol(currency)}) has been set as your currency.
+                        </p>
+                      </div>
                     </div>
                   </div>
 
@@ -894,26 +927,26 @@ const CurrencySelector = () => {
                       </svg>
                       Important Information
                     </h4>
-                    <div className="space-y-2">
-                      <div className="flex items-start space-x-2">
+                    <ul className="space-y-2">
+                      <li className="flex items-start space-x-2">
                         <span className="text-blue-500 text-xs mt-1">•</span>
                         <p className="text-gray-300 text-xs">
-                          Our system has detected your location and set the appropriate currency
+                          Our system has detected your location and set {currency} as your currency
                         </p>
-                      </div>
-                      <div className="flex items-start space-x-2">
+                      </li>
+                      <li className="flex items-start space-x-2">
                         <span className="text-blue-500 text-xs mt-1">•</span>
                         <p className="text-gray-300 text-xs">
                           International transactions include a 30% service fee for payment processing
                         </p>
-                      </div>
-                      <div className="flex items-start space-x-2">
+                      </li>
+                      <li className="flex items-start space-x-2">
                         <span className="text-blue-500 text-xs mt-1">•</span>
                         <p className="text-gray-300 text-xs">
                           For special currency requirements, please contact our support team
                         </p>
-                      </div>
-                    </div>
+                      </li>
+                    </ul>
                   </div>
 
                   <button
@@ -935,13 +968,24 @@ const CurrencySelector = () => {
               initial="hidden"
               animate="visible"
               exit="exit"
-              className="absolute left-0 right-0 top-full mt-2 z-50 w-full rounded-xl bg-gradient-to-b from-zinc-900/95 to-black/95 
-                border border-purple-500/20 shadow-xl backdrop-blur-md overflow-hidden"
+              className="absolute left-0 right-0 top-full mt-2 z-50 w-full rounded-xl 
+                bg-gradient-to-b from-zinc-900/95 to-black/95 
+                border border-purple-500/20 shadow-xl backdrop-blur-md
+                overflow-hidden"
               style={{ 
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 15px -5px rgba(139, 92, 246, 0.3)"
+                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 15px -5px rgba(139, 92, 246, 0.3)",
+                maxHeight: "280px", // Set a max height to enable scrolling
               }}
             >
-              <div className="p-2 space-y-1">
+              <div 
+                className="p-2 space-y-1.5 overflow-y-auto overscroll-contain"
+                style={{
+                  scrollbarWidth: 'thin',
+                  scrollbarColor: 'rgba(139, 92, 246, 0.3) transparent',
+                  maxHeight: "inherit",
+                  scrollBehavior: "smooth",
+                }}
+              >
                 {currencies.map((curr, index) => (
                   <motion.button
                     key={curr}
@@ -950,88 +994,54 @@ const CurrencySelector = () => {
                     initial="hidden"
                     animate="visible"
                     whileHover="hover"
+                    whileTap="tap"
                     onClick={() => handleCurrencyChange(curr)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg text-left transition-all
+                    className={`w-full flex items-center justify-between p-3 rounded-lg text-left
+                      transition-all duration-200 ease-out
                       ${currency === curr
                         ? 'bg-purple-500/20 text-purple-300 backdrop-blur-sm'
                         : 'hover:bg-zinc-800/50 text-gray-300 hover:text-white'
-                      }`}
+                      }
+                      group relative overflow-hidden`}
                   >
-                    <div className="flex items-center space-x-3">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent 
+                      translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" 
+                    />
+                    <div className="flex items-center space-x-3 relative z-10">
                       <motion.span 
-                        className="text-2xl filter drop-shadow-lg"
-                        whileHover={{ 
-                          scale: 1.1,
-                          rotate: [0, 5, 0, -5, 0],
-                          transition: { 
-                            duration: 0.6,
-                            ease: "easeInOut"
-                          }
+                        className="text-2xl"
+                        animate={{ 
+                          scale: [1, 1.1, 1],
+                          rotate: [0, -5, 5, 0],
+                          transition: { duration: 0.4, delay: index * 0.06 }
                         }}
                       >
                         {currencyFlags[curr]}
                       </motion.span>
-                      <div>
-                        <div className="font-medium">{curr}</div>
-                        <div className="text-xs text-gray-400">{getCurrencyName(curr)}</div>
-                      </div>
+                      <span className="font-medium">{getCurrencyName(curr)}</span>
                     </div>
-                    {currency === curr && (
-                      <motion.div
-                        initial={{ scale: 0, rotate: -45 }}
-                        animate={{ scale: 1, rotate: 0 }}
-                        transition={{ 
-                          type: "spring", 
-                          stiffness: 400, 
-                          damping: 17 
-                        }}
-                      >
-                        <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </motion.div>
-                    )}
+                    <div className="flex items-center space-x-2 text-sm opacity-60">
+                      <span>{currencySymbols[curr]}</span>
+                      {currency === curr && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          transition={{
+                            type: "spring",
+                            stiffness: 400,
+                            damping: 17,
+                            delay: index * 0.04
+                          }}
+                        >
+                          <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                        </motion.div>
+                      )}
+                    </div>
                   </motion.button>
                 ))}
               </div>
-
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ 
-                  opacity: 1, 
-                  y: 0,
-                  transition: {
-                    delay: 0.2,
-                    duration: 0.3
-                  }
-                }}
-                className="border-t border-purple-500/10 p-3 bg-purple-500/5"
-              >
-                <div className="text-xs space-y-1.5">
-                  <motion.div 
-                    className="flex items-center text-purple-300"
-                    whileHover={{ x: 3 }}
-                    transition={{ duration: 0.2 }}
-                  >
-                    <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-                    </svg>
-                    <span>Exchange Rate: 1 PKR = {exchangeRates[currency].toFixed(4)} {currency}</span>
-                  </motion.div>
-                  {shouldShowInternationalFee() && (
-                    <motion.div 
-                      className="flex items-center text-yellow-400/80"
-                      whileHover={{ x: 3 }}
-                      transition={{ duration: 0.2 }}
-                    >
-                      <svg className="w-3 h-3 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                      </svg>
-                      <span>Includes 30% international service fee</span>
-                    </motion.div>
-                  )}
-                </div>
-              </motion.div>
             </motion.div>
           )}
 

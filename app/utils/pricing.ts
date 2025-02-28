@@ -37,8 +37,8 @@ export const getExchangeRates = async (currency: string): Promise<number> => {
 
 export const getLocationData = async (ip: string): Promise<GeoLocation> => {
   try {
-    const response = await fetch(`https://ipapi.co/${ip}/json/`);
-    const data = await response.json();
+    const response = await axios.get(`https://api.ipapi.is/${ip}`);
+    const data = response.data;
     
     // Map specific countries to their currencies
     const countryCurrencyMap: Record<string, SupportedCurrency> = {
@@ -49,19 +49,21 @@ export const getLocationData = async (ip: string): Promise<GeoLocation> => {
     };
 
     // If country is in our specific list, use their currency, otherwise use USD
-    const currency = countryCurrencyMap[data.country_code] || 'USD';
+    const countryCode = data.location?.country_code || 'Unknown';
+    const currency = countryCurrencyMap[countryCode] || 'USD';
 
     // Only apply international rate for countries not in our specific list
-    const isExemptCountry = ['PK', 'GB', 'IN', 'AE'].includes(data.country_code);
+    const isExemptCountry = ['PK', 'GB', 'IN', 'AE'].includes(countryCode);
 
     return {
-      country: data.country_code,
+      country: countryCode,
       currency,
       exchangeRate: baseExchangeRates[currency as SupportedCurrency],
       isExemptCountry
     };
   } catch (error) {
     console.error('Error fetching location data:', error);
+    // Fallback to PKR with default values if API fails
     return {
       country: 'Unknown',
       currency: 'PKR' as SupportedCurrency,
