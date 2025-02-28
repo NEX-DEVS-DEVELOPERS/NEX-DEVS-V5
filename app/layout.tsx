@@ -10,6 +10,7 @@ import type { Metadata } from 'next'
 import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
 import MobilePopup from './components/MobilePopup'
+import { Analytics } from "@vercel/analytics/react"
 
 // Optimize font loading - add display: 'swap' to show text with fallback font while custom font loads
 const inter = Inter({ 
@@ -80,6 +81,7 @@ export default function RootLayout({
                   {children}
                 </div>
                 <Footer />
+                <Analytics />
               </EasterEggProvider>
             </TimelineProvider>
           </CurrencyProvider>
