@@ -1,6 +1,91 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M16 0C7.164 0 0 7.164 0 16s7.164 16 16 16 16-7.164 16-16S24.836 0 16 0zm0 2c7.732 0 14 6.268 14 14s-6.268 14-14 14S2 23.732 2 16 8.268 2 16 2z" fill="white"/>
-  <path d="M16 6c-5.523 0-10 4.477-10 10s4.477 10 10 10 10-4.477 10-10S21.523 6 16 6zm0 2c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8z" fill="white"/>
-  <path d="M16 12c-2.209 0-4 1.791-4 4s1.791 4 4 4 4-1.791 4-4-1.791-4-4-4zm0 2c1.105 0 2 .895 2 2s-.895 2-2 2-2-.895-2-2 .895-2 2-2z" fill="white"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Enhanced gradients -->
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0a0a0a"/>
+      <stop offset="100%" style="stop-color:#2d1a45"/>
+    </linearGradient>
+    
+    <linearGradient id="nGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#9333ea"/>
+      <stop offset="100%" style="stop-color:#7c3aed"/>
+    </linearGradient>
+    
+    <!-- Enhanced glow effect -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4" result="blur"/>
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0.6   0 0 0 0 0.2   0 0 0 0 1  0 0 0 0.8 0"/>
+      <feMerge>
+        <feMergeNode/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <!-- Shine effect -->
+    <linearGradient id="shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:rgba(255,255,255,0.2)"/>
+      <stop offset="50%" style="stop-color:rgba(255,255,255,0)"/>
+      <stop offset="100%" style="stop-color:rgba(255,255,255,0.2)"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Base circle with gradient -->
+  <circle cx="256" cy="256" r="246" fill="url(#bgGradient)" stroke="url(#nGradient)" stroke-width="12"/>
+
+  <!-- Modern 'N' symbol -->
+  <g filter="url(#glow)">
+    <!-- Left vertical line -->
+    <path 
+      d="M170 160C170 160 170 352 170 352" 
+      stroke="url(#nGradient)" 
+      stroke-width="36" 
+      stroke-linecap="round"
+    />
+    
+    <!-- Diagonal line with curve -->
+    <path 
+      d="M170 160C170 160 342 352 342 352" 
+      stroke="url(#nGradient)" 
+      stroke-width="36" 
+      stroke-linecap="round"
+    />
+    
+    <!-- Right vertical line -->
+    <path 
+      d="M342 352C342 352 342 160 342 160" 
+      stroke="url(#nGradient)" 
+      stroke-width="36" 
+      stroke-linecap="round"
+    />
+  </g>
+
+  <!-- Decorative elements -->
+  <circle 
+    cx="256" 
+    cy="256" 
+    r="200" 
+    stroke="url(#shine)" 
+    stroke-width="2" 
+    stroke-dasharray="4 12" 
+    opacity="0.4"
+  />
+  
+  <!-- Modern geometric accents -->
+  <path 
+    d="M120 120L150 150" 
+    stroke="url(#nGradient)" 
+    stroke-width="3" 
+    opacity="0.6"
+  />
+  <path 
+    d="M392 392L362 362" 
+    stroke="url(#nGradient)" 
+    stroke-width="3" 
+    opacity="0.6"
+  />
+  
+  <!-- Subtle corner accents -->
+  <circle cx="170" cy="160" r="8" fill="url(#nGradient)" opacity="0.8"/>
+  <circle cx="342" cy="352" r="8" fill="url(#nGradient)" opacity="0.8"/>
 </svg> 

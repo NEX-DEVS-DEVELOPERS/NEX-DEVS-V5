@@ -653,6 +653,15 @@
     backface-visibility: hidden;
     -webkit-backface-visibility: hidden;
   }
+
+  .bg-grid-white\/5 {
+    background-image: linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                     linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  }
+  
+  .bg-grid-16 {
+    background-size: 32px 32px;
+  }
 }
 
 /* Mobile Animation Control */
@@ -673,4 +682,23 @@
   .preserve-transition {
     transition: all 0.3s ease !important;
   }
+}
+
+/* Add smooth transitions */
+.transition-all {
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+}
+
+/* Enhanced backdrop blur */
+.backdrop-blur-md {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Gradient text enhancement */
+.bg-clip-text {
+  -webkit-background-clip: text;
+  background-clip: text;
 }

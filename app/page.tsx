@@ -4,10 +4,11 @@ import Hero from "@/components/sections/Hero"
 // import Work from "@/components/sections/Work"
 // import Footer from "@/components/sections/Footer"
 import Link from 'next/link'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import Image from 'next/image'
 import { useEffect, useState, useCallback } from 'react'
 import { useEasterEggs } from '@/context/EasterEggContext'
+import WelcomeScreen from './components/WelcomeScreen'
 
 // Easter Egg: Hidden message in source code
 /**
@@ -64,6 +65,7 @@ export default function Home() {
   const [terminalInput, setTerminalInput] = useState("")
   const [counterPosition, setCounterPosition] = useState({ x: 16, y: 16 }) // Start from top-left with padding
   const [isDragging, setIsDragging] = useState(false)
+  const [showWelcome, setShowWelcome] = useState(true)
   const [terminalOutput, setTerminalOutput] = useState<string[]>([
     "Welcome to the secret terminal! Try these commands:",
     "$ help - Show available commands",
@@ -374,11 +376,23 @@ export default function Home() {
   }
 
   return (
-    <motion.main 
+    <main className="min-h-screen bg-black">
+      <AnimatePresence mode="wait">
+        {showWelcome ? (
+          <motion.div
+            key="welcome"
+            initial={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8 }}
+          >
+            <WelcomeScreen onComplete={() => setShowWelcome(false)} />
+          </motion.div>
+        ) : (
+          <motion.div
+            key="main"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-      className="min-h-screen bg-black"
+            transition={{ duration: 0.8 }}
     >
       {/* Floating Hint Button */}
       <motion.button
@@ -811,9 +825,9 @@ export default function Home() {
           </div>
         </div>
       </section>
-
-      {/* <Details />
-      <Work /> */}
-    </motion.main>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </main>
   )
 }

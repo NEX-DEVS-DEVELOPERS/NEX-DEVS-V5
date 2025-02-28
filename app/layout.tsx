@@ -22,17 +22,17 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "Ali Hasnaat - Website Developer",
+  title: "NEX-WEBS - Professional Web Solutions",
   description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
   metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
   openGraph: {
-    title: "Ali Hasnaat - Website Developer",
+    title: "NEX-WEBS - Professional Web Solutions",
     description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: "Ali Hasnaat - Website Developer",
+    title: "NEX-WEBS - Professional Web Solutions",
     description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
   },
   icons: {
