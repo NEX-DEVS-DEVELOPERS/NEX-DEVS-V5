@@ -378,23 +378,23 @@ export default function Home() {
 
   // Check if this is the first visit and handle mounting
   useEffect(() => {
-    setMounted(true)
-    // Check if welcome screen should be shown
-    const hasVisitedBefore = localStorage.getItem('welcomeScreenShown')
-    setShowWelcome(!hasVisitedBefore)
+    setMounted(true);
+    // Remove welcomeScreenShown from localStorage to ensure welcome screen shows on every reload
+    localStorage.removeItem('welcomeScreenShown');
+    setShowWelcome(true);
 
     // Add event listener for storage changes (for cross-tab synchronization)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'welcomeScreenShown') {
-        setShowWelcome(!e.newValue)
+        setShowWelcome(!e.newValue);
       }
-    }
-    window.addEventListener('storage', handleStorageChange)
+    };
+    window.addEventListener('storage', handleStorageChange);
 
     return () => {
-      window.removeEventListener('storage', handleStorageChange)
-    }
-  }, [])
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
   // Handle welcome screen completion
   const handleWelcomeComplete = () => {

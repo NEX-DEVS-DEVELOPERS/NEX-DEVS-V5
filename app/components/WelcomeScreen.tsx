@@ -266,6 +266,19 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
             transition={{ duration: 0.6, ease: "easeOut" }}
             className="relative max-w-4xl w-full mx-4"
           >
+            {/* Add close button */}
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              whileHover={{ scale: 1.1 }}
+              onClick={handleClose}
+              className="absolute top-4 right-4 z-50 w-8 h-8 flex items-center justify-center
+                       bg-white/10 hover:bg-white/20 rounded-full backdrop-blur-sm
+                       border border-white/20 hover:border-white/40 transition-all duration-300"
+            >
+              <span className="text-white/80 text-lg">×</span>
+            </motion.button>
+
             <div className="bg-gradient-to-br from-black/40 to-black/60 backdrop-blur-md rounded-2xl border border-white/10 p-8 sm:p-12 overflow-hidden">
               {/* Decorative elements */}
               <div className="absolute inset-0">
