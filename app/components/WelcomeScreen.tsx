@@ -202,7 +202,7 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
     onComplete();
   };
 
-  if (!mounted) return null;
+  if (!mounted || localStorage.getItem('welcomeScreenShown')) return null;
 
   const handleNext = () => {
     if (currentSlide === services.length - 1) {
@@ -216,12 +216,13 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
     if (currentSlide === -1) {
       return;
     }
+    // Add back animation logic here
     setCurrentSlide(prev => prev - 1);
   };
 
   const handleHomeRedirect = () => {
-    onComplete(); // Call onComplete first to ensure proper state management
-    window.location.href = '/';  // Then redirect
+    localStorage.removeItem('welcomeScreenShown'); // Reset the flag to show welcome screen on reload
+    window.location.href = '/';  // Redirect to home
   };
 
   return (
@@ -249,6 +250,19 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
                 left: `${Math.random() * 100}%`,
                 animationDelay: `${Math.random() * 5}s`,
                 animationDuration: `${5 + Math.random() * 5}s`
+              }}
+            />
+          ))}
+          {/* Additional star effects - now only white dots */}
+          {[...Array(30)].map((_, i) => (
+            <div
+              key={i}
+              className="absolute w-2 h-2 bg-white rounded-full animate-float"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+                animationDelay: `${Math.random() * 5}s`,
+                animationDuration: `${2 + Math.random() * 2}s`
               }}
             />
           ))}
@@ -409,7 +423,7 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
 
               <div className="relative z-10">
                 <h3 className="text-lg sm:text-2xl md:text-3xl font-bold mb-2 text-white/90 drop-shadow-lg">
-                  {services[currentSlide].id}. {services[currentSlide].title}
+                  {services[currentSlide].id}. {services[currentSlide].title} {services[currentSlide].title === 'AI Agents' ? <motion.span className="text-red-500 animate-pulse text-lg font-bold">(HOT TOPIC)</motion.span> : services[currentSlide].title === 'Web Applications' ? <motion.span className="text-red-500 animate-pulse text-lg font-bold">(HOT TOPIC)</motion.span> : ''}
                 </h3>
                 <p className="text-xs sm:text-base text-white/85 mb-3 sm:mb-6 max-w-3xl drop-shadow">
                   {services[currentSlide].description}
@@ -530,14 +544,18 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
                 {/* Navigation Controls - Mobile Optimized */}
                 <div className="flex flex-col sm:flex-row justify-between items-center gap-2 sm:gap-0 mt-2 sm:mt-0">
                   <div className="flex gap-2 sm:gap-3 items-center order-2 sm:order-1 w-full sm:w-auto">
-                    <button
+                    <motion.button
                       onClick={handleBack}
+                      initial={{ opacity: 0, x: -50 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -50 }}
+                      transition={{ duration: 0.5 }}
                       className="group px-2 sm:px-3 py-1 sm:py-1.5 bg-white/10 backdrop-blur-sm rounded-lg text-white/80 text-xs sm:text-sm font-medium
                                border border-white/10 hover:bg-white/20 transform hover:scale-105 
                                transition-all duration-300 flex items-center gap-1 sm:gap-2 flex-1 sm:flex-none justify-center"
                     >
                       ← Back
-                    </button>
+                    </motion.button>
                     <span className="text-[10px] sm:text-xs text-white/70">
                       {currentSlide + 1} of {services.length}
                     </span>
@@ -604,4 +622,4 @@ export default function WelcomeScreen({ onComplete }: { onComplete: () => void }
       </AnimatePresence>
     </div>
   );
-} 
+}
