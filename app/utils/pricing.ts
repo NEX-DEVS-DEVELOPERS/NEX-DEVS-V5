@@ -12,10 +12,19 @@ export type SupportedCurrency = 'PKR' | 'USD' | 'GBP' | 'INR' | 'AED';
 // Base exchange rates (to be updated with real-time rates)
 export const baseExchangeRates: { [key in SupportedCurrency]: number } = {
   PKR: 1,      // Base currency
-  USD: 0.0036, // 1 PKR = 0.0036 USD (1 USD = ~278 PKR)
-  INR: 0.30,   // 1 PKR = 0.30 INR (1 INR = ~3.33 PKR)
-  GBP: 0.0028, // 1 PKR = 0.0028 GBP (1 GBP = ~357 PKR)
-  AED: 0.013   // 1 PKR = 0.013 AED (1 AED = ~77 PKR)
+  USD: 0.00357, // 1 PKR = 0.00357 USD (1 USD = ~280 PKR)
+  GBP: 0.0028,  // 1 PKR = 0.0028 GBP (1 GBP = ~357 PKR)
+  INR: 0.296,   // 1 PKR = 0.296 INR (1 INR = ~3.38 PKR)
+  AED: 0.013    // 1 PKR = 0.013 AED (1 AED = ~77 PKR)
+};
+
+// Fixed prices for Mobile App Development in each currency
+const mobileAppPrices: { [key in SupportedCurrency]: number } = {
+  USD: 439,
+  GBP: 346,
+  INR: 36390,
+  AED: 1612,
+  PKR: 122920
 };
 
 export const currencySymbols: { [key in SupportedCurrency]: string } = {
@@ -86,6 +95,12 @@ export const formatPrice = (
   isExemptCountry: boolean = false,
   packageName?: string
 ): string => {
+  // Special case for Mobile App Development plan
+  if (packageName === "Mobile App Development") {
+    const fixedPrice = mobileAppPrices[currency];
+    return `${currencySymbols[currency]}${fixedPrice.toLocaleString()}`;
+  }
+
   // Apply 5% discount for basic packages
   let discountedAmount = amount;
   if (packageName && isBasicPackage(packageName)) {

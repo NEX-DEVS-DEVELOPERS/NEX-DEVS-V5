@@ -47,19 +47,19 @@ interface BankAccount {
 const pakistaniBanks: BankAccount[] = [
   {
     bank: "HBL",
-    accountTitle: "NEX-WEBS",
+    accountTitle: "NEX-DEVS",
     accountNumber: "1234-5678-9012-3456",
     iban: "PK36HABB0000123456789012"
   },
   {
     bank: "Meezan Bank",
-    accountTitle: "NEX-WEBS",
+    accountTitle: "NEX-DEVS",
     accountNumber: "9876-5432-1098-7654",
     iban: "PK36MEZN0000987654321098"
   },
   {
     bank: "UBL",
-    accountTitle: "NEX-WEBS",
+    accountTitle: "NEX-DEVS",
     accountNumber: "4567-8901-2345-6789",
     iban: "PK36UNIL0000456789012345"
   }
@@ -69,12 +69,12 @@ const mobileWallets = [
   {
     name: "JazzCash",
     number: "0300-1234567",
-    accountTitle: "NEX-WEBS"
+    accountTitle: "NEX-DEVS"
   },
   {
     name: "Easypaisa",
     number: "0333-7654321",
-    accountTitle: "NEX-WEBS"
+    accountTitle: "NEX-DEVS"
   }
 ];
 
@@ -415,7 +415,7 @@ function CheckoutPageContent() {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NEX-WEBS Invoice</title>
+    <title>NEX-DEVS Invoice</title>
     <style>
         :root {
             --primary-color: #8B5CF6;
@@ -804,7 +804,7 @@ function CheckoutPageContent() {
         <div class="content">
             <div class="header">
                 <div class="company-info">
-                    <div class="logo">NEX-WEBS</div>
+                    <div class="logo">NEX-DEVS</div>
                     <div class="company-details">
                         <p>Professional Web Development Services</p>
                         <p>Pakistan</p>

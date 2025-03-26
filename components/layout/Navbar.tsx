@@ -31,11 +31,11 @@ export default function Navbar() {
         <div className="hidden md:flex items-center space-x-8">
           {[
             ['Home', '/'],
-            ['Services', '/services'],
-            ['About', '/about'],
-            ['Work', '/work'],
-            ['Blog', '/blog'],
-            ['Contact', '/contact'],
+            ['What we offer', '/services'],
+            ['About Me', '/about'],
+            ['My Projects', '/work'],
+            ['My Blogs', '/blog'],
+            ['Contact/Checkout', '/contact'],
             ['Pricing', '/pricing']
           ].map(([text, href], index) => (
             <motion.div

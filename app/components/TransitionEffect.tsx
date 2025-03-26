@@ -1,5 +1,6 @@
 'use client';
 
+import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useIsMobile } from '@/app/utils/deviceDetection';
@@ -7,422 +8,251 @@ import { useIsMobile } from '@/app/utils/deviceDetection';
 interface TransitionEffectProps {
   isExit?: boolean;
   message?: string;
+  className?: string;
 }
 
-const transactionMessages = [
-  { title: "Preparing your journey...", subtitle: "Thank you for choosing NEX-WEBS ❤️", emoji: "🚀" },
-  { title: "We're honored to serve you!", subtitle: "Your trust means everything to us ✨", emoji: "🙏" },
-  { title: "Thank you for your business!", subtitle: "We'll exceed your expectations 💫", emoji: "💝" },
-  { title: "See you soon!", subtitle: "We can't wait to create something amazing together ✨", emoji: "🌟" }
+// Modern transition messages with personality
+const messages = [
+  {
+    greeting: "Welcome to Excellence! ✨",
+    message: "Your vision, our expertise",
+    details: "Crafting your digital masterpiece...",
+    emoji: "🎨",
+    contact: "Our team is ready to assist you"
+  },
+  {
+    greeting: "Innovation Begins Here! 🌟",
+    message: "Where creativity meets technology",
+    details: "Preparing your unique experience...",
+    emoji: "💫",
+    contact: "Reach out anytime for support"
+  },
+  {
+    greeting: "Let's Create Magic! ⚡",
+    message: "Your success story starts now",
+    details: "Building something extraordinary...",
+    emoji: "✨",
+    contact: "We're just a message away"
+  }
 ];
 
-// Enhanced emoji collection for more celebratory feel
-const floatingEmojis = ["✨", "🌟", "💫", "🎉", "🎊", "🎈", "🥳", "💝", "🌈"];
+// Geometric shapes for dynamic background
+const shapes = [
+  "M0,25 L25,0 L50,25 L25,50 Z", // Diamond
+  "M10,0 L40,0 L50,25 L25,50 L0,25 Z", // Pentagon
+  "M25,0 L50,25 L25,50 L0,25 Z", // Square Diamond
+];
 
-// Add celebration particles
-const celebrationParticles = Array.from({ length: 20 }, (_, i) => ({
-  id: i,
-  emoji: ["🎉", "✨", "💫", "⭐", "🌟"][Math.floor(Math.random() * 5)]
-}));
-
-// Optimize page transition variants for faster initial load
-const pageTransitionVariants = {
-  initial: { opacity: 0 },
-  animate: { opacity: 1 },
-  exit: { opacity: 0 },
-  transition: { duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-};
-
-const overlayVariants = {
-  initial: (isExit: boolean) => ({
-    scaleY: isExit ? 0 : 1,
-    opacity: 0
-  }),
-  animate: (isExit: boolean) => ({
-    scaleY: isExit ? 1 : 0,
-    opacity: 1,
-    transition: {
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  }),
-  exit: {
-    scaleY: 0,
-    opacity: 0,
-    transition: {
-      duration: 0.3,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  }
-};
-
-const contentVariants = {
-  initial: { opacity: 0, y: 10, scale: 0.98 },
-  animate: { 
-    opacity: 1, 
-    y: 0, 
-    scale: 1,
-    transition: {
-      duration: 0.3,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  },
-  exit: { 
-    opacity: 0, 
-    y: -10, 
-    scale: 0.98,
-    transition: {
-      duration: 0.2,
-      ease: [0.22, 1, 0.36, 1]
-    }
-  }
-};
-
-// Optimize floating emoji variants for better performance
-const floatingEmojiVariants = {
-  initial: {
-    opacity: 0,
-    y: 0,
-    scale: 0.8
-  },
-  animate: {
-    opacity: [0, 0.7, 0],
-    y: [0, -100],
-    scale: [0.8, 1, 0.8],
-    transition: {
-      duration: 2,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      ease: "easeInOut"
-    }
-  }
-};
-
-// Optimize celebration particle variants
-const celebrationParticleVariants = {
-  initial: { 
-    opacity: 0,
-    scale: 0.8
-  },
-  animate: {
-    opacity: [0, 1, 0],
-    scale: [0.8, 1, 0.8],
-    transition: {
-      duration: 1.5,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      ease: "easeOut"
-    }
-  }
-};
-
-// Optimize sparkle variants
-const sparkleVariants = {
-  initial: { 
-    opacity: 0,
-    scale: 0.8
-  },
-  animate: {
-    opacity: [0, 0.8, 0],
-    scale: [0.8, 1, 0.8],
-    transition: {
-      duration: 1,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      ease: "easeInOut"
-    }
-  }
-};
-
-// Optimize loading dots variants
-const loadingDotsVariants = {
-  initial: { 
-    scale: 1, 
-    opacity: 0.4 
-  },
-  animate: {
-    scale: [1, 1.1, 1],
-    opacity: [0.4, 0.7, 0.4],
-    transition: {
-      duration: 0.8,
-      repeat: Infinity,
-      repeatType: "reverse" as const,
-      ease: "easeInOut"
-    }
-  }
-};
-
-export default function TransitionEffect({ isExit = false, message = 'Welcome' }: TransitionEffectProps) {
-  const [isVisible, setIsVisible] = useState(true);
+const TransitionEffect = ({ isExit = false }: TransitionEffectProps) => {
   const [messageIndex, setMessageIndex] = useState(0);
+  const [progress, setProgress] = useState(0);
   const isMobile = useIsMobile();
 
   useEffect(() => {
-    if (!isExit) {
-      const timer = setTimeout(() => {
-        setIsVisible(false);
-      }, 600); // Reduced from 800ms
-      return () => clearTimeout(timer);
-    }
+    const messageInterval = setInterval(() => {
+      setMessageIndex((prev) => (prev + 1) % messages.length);
+    }, 3000);
 
-    if (isExit) {
-      const interval = setInterval(() => {
-        setMessageIndex((prev) => (prev + 1) % transactionMessages.length);
-      }, 800); // Reduced from 1000ms
-      return () => clearInterval(interval);
-    }
-  }, [isExit]);
+    // Progress animation
+    const duration = 2000; // 2 seconds
+    const increment = 1000 / 60; // 60fps
+    const step = 100 / (duration / increment);
 
-  if (!isVisible && !isExit) return null;
+    const progressInterval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) return 100;
+        return prev + step;
+      });
+    }, increment);
+
+    return () => {
+      clearInterval(messageInterval);
+      clearInterval(progressInterval);
+    };
+  }, []);
+
   if (isMobile) return null;
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key="transition-effect"
+        key="transition-container"
         className="fixed inset-0 z-[9999] flex items-center justify-center overflow-hidden"
-        {...pageTransitionVariants}
+        initial={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+        animate={{ opacity: 1, backdropFilter: 'blur(20px)' }}
+        exit={{ opacity: 0, backdropFilter: 'blur(0px)' }}
+        transition={{ duration: 0.8, ease: "easeInOut" }}
       >
-        {/* Enhanced backdrop blur with optimized animations */}
+        {/* Subtle background overlay */}
         <motion.div
-          className="absolute inset-0 backdrop-blur-lg bg-gradient-to-br from-black via-purple-950 to-black"
+          className="absolute inset-0 bg-black/40"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
+          transition={{ duration: 0.8 }}
         />
 
-        {/* Optimized gradient overlay */}
-        <motion.div
-          className="absolute inset-0 opacity-30"
-          animate={{
-            background: [
-              'radial-gradient(circle at 50% 50%, rgba(88, 28, 135, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)',
-              'radial-gradient(circle at 50% 50%, rgba(126, 34, 206, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)',
-              'radial-gradient(circle at 50% 50%, rgba(88, 28, 135, 0.2) 0%, rgba(0, 0, 0, 0.8) 70%)'
-            ]
-          }}
-          transition={{
-            duration: 3,
-            repeat: Infinity,
-            repeatType: "reverse",
-            ease: "linear"
-          }}
-        />
+        {/* Subtle floating particles */}
+        {[...Array(10)].map((_, i) => (
+          <motion.div
+            key={`particle-${i}`}
+            className="absolute w-1 h-1 rounded-full bg-white/10"
+            style={{
+              top: `${Math.random() * 100}%`,
+              left: `${Math.random() * 100}%`,
+            }}
+            animate={{
+              y: [0, -30, 0],
+              opacity: [0.1, 0.3, 0.1],
+              scale: [1, 1.2, 1],
+            }}
+            transition={{
+              duration: 2 + Math.random() * 2,
+              repeat: Infinity,
+              repeatType: "reverse",
+              ease: "easeInOut"
+            }}
+          />
+        ))}
 
-        {/* Main overlay with optimized animations */}
+        {/* Main content container with glass effect */}
         <motion.div
-          custom={isExit}
-          variants={overlayVariants}
-          initial="initial"
-          animate="animate"
-          exit="exit"
-          className="absolute inset-0 origin-bottom bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-purple-900/20 via-black/80 to-black/90"
+          className="relative z-10 max-w-2xl px-8 py-10 rounded-2xl bg-white/5 backdrop-blur-xl border border-white/10"
+          initial={{ opacity: 0, y: 20, scale: 0.95 }}
+          animate={{ opacity: 1, y: 0, scale: 1 }}
+          exit={{ opacity: 0, y: -20, scale: 0.95 }}
+          transition={{ duration: 0.5 }}
         >
-          {/* Optimized purple glow effects */}
-          <div className="absolute inset-0">
+          {/* Message content with enhanced animations */}
+          <motion.div
+            key={messageIndex}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.5 }}
+            className="space-y-8"
+          >
+            {/* Animated emoji with subtle glow */}
             <motion.div
-              className="absolute w-[800px] h-[800px] left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 opacity-20"
-              style={{
-                background: "radial-gradient(circle, rgba(147,51,234,0.2) 0%, rgba(0,0,0,0) 70%)",
-                willChange: "transform, opacity"
-              }}
+              className="relative"
               animate={{
-                scale: [1, 1.1, 1],
-                opacity: [0.1, 0.2, 0.1]
+                y: [0, -10, 0],
+                rotate: [-3, 3, -3],
               }}
               transition={{
-                duration: 3,
+                duration: 2,
                 repeat: Infinity,
                 repeatType: "reverse",
-                ease: "linear"
+                ease: "easeInOut"
               }}
-            />
-          </div>
+            >
+              <div className="absolute inset-0 blur-xl opacity-30 bg-white/10" />
+              <div className="relative text-7xl mb-6 transform hover:scale-110 transition-transform duration-300">
+                {messages[messageIndex].emoji}
+              </div>
+            </motion.div>
 
-          {/* Optimized floating emojis */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {floatingEmojis.slice(0, 6).map((emoji, index) => (
-              <motion.div
-                key={index}
-                style={{ 
-                  position: 'absolute',
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
-                  willChange: "transform, opacity"
+            {/* Text content with subtle effects */}
+            <div className="space-y-4">
+              <motion.h2 
+                className="text-5xl font-bold text-white/90"
+                animate={{
+                  scale: [0.98, 1, 0.98],
                 }}
-                variants={floatingEmojiVariants}
-                initial="initial"
-                animate="animate"
-                transition={{ 
-                  delay: index * 0.1,
-                  duration: 2 + Math.random()
-                }}
-                className="text-2xl md:text-3xl"
-              >
-                {emoji}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Optimized celebration particles */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {celebrationParticles.slice(0, 12).map((particle) => (
-              <motion.div
-                key={particle.id}
-                style={{
-                  position: 'absolute',
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
-                  willChange: "transform, opacity"
-                }}
-                variants={celebrationParticleVariants}
-                initial="initial"
-                animate="animate"
                 transition={{
-                  delay: Math.random(),
-                  duration: 1.5
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
                 }}
-                className="text-xl md:text-2xl"
               >
-                {particle.emoji}
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Optimized sparkle effects */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none">
-            {Array.from({ length: 10 }).map((_, i) => (
-              <motion.div
-                key={i}
-                style={{
-                  position: 'absolute',
-                  x: Math.random() * window.innerWidth,
-                  y: Math.random() * window.innerHeight,
-                  background: 'radial-gradient(circle, rgba(255,255,255,0.8) 0%, rgba(255,255,255,0) 70%)',
-                  width: '6px',
-                  height: '6px',
-                  borderRadius: '50%',
-                  willChange: "transform, opacity"
-                }}
-                variants={sparkleVariants}
-                initial="initial"
-                animate="animate"
-                transition={{
-                  delay: Math.random(),
-                  duration: 0.8
-                }}
-              />
-            ))}
-          </div>
-
-          {/* Enhanced content container with darker glass effect */}
-          <motion.div
-            variants={contentVariants}
-            initial="initial"
-            animate="animate"
-            exit="exit"
-            className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-[10000] w-full max-w-xl px-4"
-          >
-            <div className="relative backdrop-blur-xl bg-gradient-to-b from-purple-950/20 via-black/30 to-purple-950/20 
-              rounded-2xl p-8 border border-purple-500/20
-              shadow-[0_8px_32px_rgba(147,51,234,0.2)]
-              before:absolute before:inset-0 before:bg-gradient-to-b before:from-white/[0.05] before:to-transparent before:rounded-2xl before:-z-10">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={messageIndex}
-                  variants={contentVariants}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  className="text-center space-y-4"
-                >
-                  {/* Enhanced emoji animation */}
-                  <motion.div
-                    initial={{ scale: 0, rotate: -180 }}
-                    animate={{ 
-                      scale: [0, 1.2, 1],
-                      rotate: [-180, 0],
-                      y: [0, -20, 0]
-                    }}
-                    transition={{ 
-                      type: "spring",
-                      stiffness: 200,
-                      damping: 15,
-                      duration: 1
-                    }}
-                    className="text-5xl md:text-6xl mb-4 relative"
-                  >
-                    {/* Add floating celebration emojis around main emoji */}
-                    <div className="absolute -inset-4 flex items-center justify-center">
-                      <motion.div
-                        animate={{
-                          rotate: [0, 360],
-                          scale: [1, 1.1, 1]
-                        }}
-                        transition={{
-                          duration: 4,
-                          repeat: Infinity,
-                          repeatType: "reverse"
-                        }}
-                        className="flex items-center justify-center gap-2"
-                      >
-                        {["✨", "🎉", "✨"].map((emoji, i) => (
-                          <span key={i} className="text-2xl opacity-60">{emoji}</span>
-                        ))}
-                      </motion.div>
-                    </div>
-                    {isExit ? transactionMessages[messageIndex].emoji : "👋"}
-                  </motion.div>
-
-                  {/* Enhanced text animations */}
-                  <motion.h2 
-                    className="text-4xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-purple-200 to-white"
-                    animate={{
-                      scale: [1, 1.02, 1],
-                      opacity: [0.9, 1, 0.9]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      repeatType: "reverse"
-                    }}
-                  >
-                    {isExit ? transactionMessages[messageIndex].title : message}
-                  </motion.h2>
-
-                  {isExit && (
-                    <motion.p
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -10 }}
-                      className="text-purple-200 font-medium"
-                    >
-                      {transactionMessages[messageIndex].subtitle}
-                    </motion.p>
-                  )}
-
-                  {/* Enhanced loading indicator with purple glow */}
-                  <div className="flex justify-center items-center gap-2 mt-6">
-                    {[0, 1, 2].map((i) => (
-                      <motion.div
-                        key={i}
-                        style={{ willChange: "transform, opacity" }}
-                        transition={{ delay: i * 0.2 }}
-                        variants={loadingDotsVariants}
-                        initial="initial"
-                        animate="animate"
-                        className="w-2 h-2 rounded-full bg-gradient-to-r from-purple-600 to-purple-800
-                          shadow-[0_0_12px_rgba(147,51,234,0.7)]"
-                      />
-                    ))}
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+                {messages[messageIndex].greeting}
+              </motion.h2>
+              <motion.p 
+                className="text-2xl text-white/70 font-light"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+              >
+                {messages[messageIndex].message}
+              </motion.p>
+              <motion.p 
+                className="text-base text-white/50"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+              >
+                {messages[messageIndex].details}
+              </motion.p>
             </div>
+
+            {/* Subtle progress bar */}
+            <div className="w-full h-px bg-white/10 rounded-full overflow-hidden">
+              <motion.div
+                className="h-full bg-white/30"
+                initial={{ width: '0%' }}
+                animate={{ width: `${progress}%` }}
+                transition={{ duration: 0.1, ease: "linear" }}
+              />
+            </div>
+
+            {/* Loading indicator with subtle pulse */}
+            <motion.div className="flex justify-center gap-3">
+              {[0, 1, 2].map((i) => (
+                <motion.div
+                  key={i}
+                  className="w-2 h-2 rounded-full bg-white/30"
+                  animate={{
+                    scale: [1, 1.2, 1],
+                    opacity: [0.3, 0.6, 0.3],
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                    delay: i * 0.2,
+                    ease: "easeInOut"
+                  }}
+                />
+              ))}
+            </motion.div>
+            
+            {/* Contact information */}
+            <motion.div 
+              className="mt-6 pt-6 border-t border-white/10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.7 }}
+            >
+              <motion.p className="text-white/60 text-center mb-2">
+                {messages[messageIndex].contact}
+              </motion.p>
+              <div className="flex justify-center gap-4 mt-3">
+                <motion.a 
+                  href="mailto:contact@nex-webs.com"
+                  className="text-white/70 hover:text-white transition-colors flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                  </svg>
+                  <span>Email Us</span>
+                </motion.a>
+                <motion.a 
+                  href="/contact"
+                  className="text-white/70 hover:text-white transition-colors flex items-center gap-2"
+                  whileHover={{ scale: 1.05 }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                  </svg>
+                  <span>Contact Page</span>
+                </motion.a>
+              </div>
+            </motion.div>
           </motion.div>
         </motion.div>
       </motion.div>
     </AnimatePresence>
   );
-} 
+};
+
+export default TransitionEffect; 

@@ -1,5 +1,6 @@
 'use client'
 import Hero from "@/components/sections/Hero"
+import TrustedCompanies from "@/components/sections/TrustedCompanies"
 // import Details from "@/components/sections/Details"
 // import Work from "@/components/sections/Work"
 // import Footer from "@/components/sections/Footer"
@@ -379,6 +380,8 @@ export default function Home() {
   // Check if this is the first visit and handle mounting
   useEffect(() => {
     setMounted(true);
+    
+    // Always show welcome screen on refresh
     // Remove welcomeScreenShown from localStorage to ensure welcome screen shows on every reload
     localStorage.removeItem('welcomeScreenShown');
     setShowWelcome(true);
@@ -409,13 +412,19 @@ export default function Home() {
         {showWelcome && (
           <motion.div
             key="welcome"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.8 }}
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.02 }}
+            transition={{ 
+              duration: 0.8, 
+              ease: [0.22, 1, 0.36, 1],
+              scale: {
+                duration: 1.2
+              }
+            }}
             className="fixed inset-0 z-50"
           >
-            <WelcomeScreen onComplete={handleWelcomeComplete} />
+            <WelcomeScreen onComplete={handleWelcomeComplete} initialDirection={-1} />
           </motion.div>
         )}
         <motion.div
@@ -433,7 +442,8 @@ export default function Home() {
             className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-purple-500/20 
                        rounded-full border border-purple-500/30 backdrop-blur-sm
                        hover:bg-purple-500/30 transition-all duration-300
-                       text-white/80 hover:text-white flex items-center gap-2"
+                       text-white/80 hover:text-white flex items-center gap-2
+                       hidden sm:flex"
           >
             <span className="text-lg">🎲</span>
             <span className="text-sm">Find Easter Eggs</span>
@@ -491,6 +501,7 @@ export default function Home() {
           )}
 
           <Hero />
+          <TrustedCompanies />
 
           {/* Services Section */}
           <section className="py-12 sm:py-20 relative overflow-hidden">

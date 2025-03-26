@@ -81,7 +81,7 @@ export default function Footer() {
         <div className="inline-flex items-center space-x-2 mb-6 sm:mb-8 transform-gpu">
           <span className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-purple-500 to-purple-300 bg-clip-text text-transparent will-change-transform">NEX-</span>
           <span className="text-2xl sm:text-3xl font-bold bg-white text-black px-2 sm:px-3 py-1 rounded-md will-change-transform">
-            WEBS
+            DEVS
           </span>
         </div>
       </div>

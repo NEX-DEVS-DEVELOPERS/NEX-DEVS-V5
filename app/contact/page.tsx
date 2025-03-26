@@ -4,7 +4,6 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub, FaTwitter, FaWhatsapp, FaClock, FaGlobe, FaCode, FaPalette, FaRocket, FaMobile, FaWordpress, FaShoppingCart } from 'react-icons/fa';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import TransitionEffect from '../components/TransitionEffect';
 
 // Add glowing dots component
 const GlowingDot = ({ className = "", size = "small" }) => (
@@ -236,7 +235,7 @@ const packages: Package[] = [
   }
 ];
 
-// Add this animation variant near the top of the file
+// Add these animation variants near the top of the file
 const fadeInScale = {
   initial: { opacity: 0, scale: 0.9 },
   animate: { 
@@ -249,63 +248,176 @@ const fadeInScale = {
   }
 };
 
-const SuccessMessage = ({ message, onClose }: { message: string; onClose: () => void }) => (
-  <motion.div
-    initial={{ opacity: 0, y: -20 }}
-    animate={{ opacity: 1, y: 0 }}
-    exit={{ opacity: 0, y: -20 }}
-    className="fixed inset-0 flex items-center justify-center z-50 px-4 sm:px-0"
-  >
+// Add the Confetti component
+const Confetti = () => {
+  const confettiColors = ['#10B981', '#34D399', '#6EE7B7', '#A7F3D0'];
+  const particles = Array.from({ length: 50 });
+
+  return (
+    <div className="fixed inset-0 pointer-events-none z-50">
+      {particles.map((_, index) => (
+        <motion.div
+          key={index}
+          initial={{
+            opacity: 1,
+            scale: 0,
+            x: Math.random() * window.innerWidth,
+            y: -20,
+            rotate: Math.random() * 360
+          }}
+          animate={{
+            opacity: 0,
+            scale: 1,
+            x: Math.random() * window.innerWidth,
+            y: window.innerHeight + 20,
+            rotate: Math.random() * 360
+          }}
+          transition={{
+            duration: Math.random() * 2 + 1,
+            ease: "easeOut",
+            delay: Math.random() * 0.5
+          }}
+          className="absolute w-2 h-2"
+          style={{
+            backgroundColor: confettiColors[Math.floor(Math.random() * confettiColors.length)],
+            borderRadius: Math.random() > 0.5 ? '50%' : '0%',
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+const SuccessMessage = ({ message, onClose }: { message: string; onClose: () => void }) => {
+  const [showConfetti, setShowConfetti] = React.useState(false);
+
+  React.useEffect(() => {
+    setShowConfetti(true);
+    const timer = setTimeout(() => setShowConfetti(false), 3000);
+    return () => clearTimeout(timer);
+  }, []);
+
+  return (
     <motion.div
-      className="bg-black/90 text-white px-6 sm:px-8 py-6 rounded-2xl shadow-2xl border border-green-500/20 flex flex-col items-center space-y-4 w-[90%] sm:w-auto min-w-[280px] max-w-[90vw] sm:max-w-md mx-auto backdrop-blur-sm relative"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 flex items-center justify-center z-50 px-4 sm:px-0 backdrop-blur-sm bg-black/20"
     >
-      <button
-        onClick={onClose}
-        className="absolute top-2 right-2 text-gray-400 hover:text-white transition-colors"
-      >
-        <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-      </button>
+      {showConfetti && <Confetti />}
       <motion.div
-        initial={{ scale: 0 }}
-        animate={{ scale: 1 }}
+        initial={{ scale: 0.9, opacity: 0, y: 20 }}
+        animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ 
-          type: "spring",
-          stiffness: 200,
-          damping: 15
+          type: "spring", 
+          stiffness: 200, 
+          damping: 20,
+          duration: 0.6 
         }}
-        className="bg-green-500 rounded-full p-3"
+        className="bg-emerald-950/90 text-white px-8 py-6 rounded-xl shadow-xl border border-emerald-800 
+          flex flex-col items-center space-y-4 w-[90%] sm:w-auto min-w-[320px] max-w-[90vw] sm:max-w-md mx-auto relative
+          backdrop-blur-xl"
       >
-        <motion.svg 
-          className="w-8 h-8 text-black" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
+        {/* Decorative elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-emerald-600/10 via-emerald-500/5 to-emerald-400/10 rounded-xl"></div>
+        <div className="absolute -inset-0.5 bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 blur-xl opacity-50 rounded-xl"></div>
+        
+        <button
+          onClick={onClose}
+          className="absolute top-3 right-3 text-emerald-400/80 hover:text-emerald-300 transition-colors"
         >
-          <motion.path
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 0.5 }}
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={3}
-            d="M5 13l4 4L19 7"
-          />
-        </motion.svg>
-      </motion.div>
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2 }}
-        className="text-center space-y-2"
-      >
-        <h3 className="text-xl font-bold text-green-500">Message Sent Successfully!</h3>
-        <p className="text-gray-300">{message}</p>
+          <motion.svg 
+            className="w-5 h-5" 
+            fill="none" 
+            stroke="currentColor" 
+            viewBox="0 0 24 24"
+            whileHover={{ rotate: 90 }}
+            transition={{ duration: 0.2 }}
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </motion.svg>
+        </button>
+
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ 
+            type: "spring",
+            stiffness: 300,
+            damping: 20,
+            delay: 0.1
+          }}
+          className="relative"
+        >
+          <div className="absolute inset-0 bg-emerald-500/20 rounded-full blur-xl"></div>
+          <motion.div 
+            className="relative bg-gradient-to-br from-emerald-500/20 to-emerald-400/20 rounded-full p-3 border border-emerald-400/30
+              shadow-lg shadow-emerald-500/20"
+            whileHover={{ scale: 1.05 }}
+            transition={{ duration: 0.2 }}
+          >
+            <motion.svg 
+              className="w-8 h-8 text-emerald-400" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <motion.path
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut" }}
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M5 13l4 4L19 7"
+              />
+            </motion.svg>
+          </motion.div>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="text-center space-y-2 relative z-10"
+        >
+          <motion.h3 
+            className="text-xl font-semibold bg-gradient-to-r from-emerald-400 to-emerald-300 bg-clip-text text-transparent"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+          >
+            Message Sent Successfully
+          </motion.h3>
+          <motion.p 
+            className="text-emerald-200/90 text-sm"
+            initial={{ opacity: 0, y: 5 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+          >
+            {message}
+          </motion.p>
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="w-full pt-2 relative z-10"
+        >
+          <div className="h-1 w-full bg-emerald-900/50 rounded-full overflow-hidden backdrop-blur-sm">
+            <motion.div
+              initial={{ width: "0%" }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 3, ease: "easeInOut" }}
+              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
+            />
+          </div>
+        </motion.div>
       </motion.div>
     </motion.div>
-  </motion.div>
-);
+  );
+};
 
 function ContactPageContent() {
   const searchParams = useSearchParams();
@@ -318,7 +430,6 @@ function ContactPageContent() {
   const [exchangeRate, setExchangeRate] = useState<number>(1);
   const [adjustedPrice, setAdjustedPrice] = useState('');
   const [showDiscountBanner, setShowDiscountBanner] = useState(true);
-  const [showEntranceTransition, setShowEntranceTransition] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
@@ -504,7 +615,6 @@ function ContactPageContent() {
 
   return (
     <>
-      <TransitionEffect message="Welcome!" />
       <main className="min-h-screen bg-black text-white overflow-hidden">
         {/* Back Button - Add this at the top of the main content */}
         <div className="fixed top-32 md:top-36 left-4 md:left-8 z-50">
@@ -564,7 +674,7 @@ function ContactPageContent() {
                       <span className="animate-bounce hidden md:inline">🎉</span>
                     </div>
                     <div className="text-sm md:text-lg font-bold mt-1">
-                      Use Code: <span className="bg-black text-yellow-400 px-2 md:px-4 py-1 rounded-full">NEX-WEBS20%</span>
+                      Use Code: <span className="bg-black text-yellow-400 px-2 md:px-4 py-1 rounded-full">NEX-DEVS20%</span>
                     </div>
                   </div>
                 </motion.div>
@@ -603,7 +713,7 @@ function ContactPageContent() {
                         <span className="text-2xl md:text-4xl animate-spin-slow">✨</span>
                       </div>
                       <div className="bg-yellow-400 text-black px-4 md:px-6 py-2 md:py-3 rounded-full font-black text-sm md:text-xl inline-block">
-                        20% OFF - Use Code: NEX-WEBS20%
+                        20% OFF - Use Code: NEX-DEVS20%
                       </div>
                     </div>
                   </div>
@@ -644,8 +754,7 @@ function ContactPageContent() {
                   className="group bg-gradient-to-br from-zinc-900/50 via-purple-900/10 to-zinc-900/50 p-6 rounded-lg backdrop-blur-sm 
                   border border-white/5 hover:border-purple-500/30 transition-all duration-500 
                   hover:-translate-y-2 hover:translate-x-1 hover:rotate-2
-                  hover:shadow-lg hover:shadow-purple-500/10
-                  transform perspective-1000 hover:scale-105"
+                  hover:shadow-lg hover:shadow-purple-500/10"
                 >
                   <div className="text-purple-400 group-hover:text-purple-300 transition-colors mb-4 transform group-hover:rotate-12 duration-500">
                     {area.icon}
@@ -1081,7 +1190,7 @@ function ContactPageContent() {
                   <div className="relative inline-block">
                     <h2 className="text-3xl sm:text-4xl md:text-6xl font-bold bg-gradient-to-r from-white via-purple-200 to-white bg-clip-text text-transparent leading-tight mb-2
                       animate-fade-in-up tracking-tight">
-                      NEX-WEBS
+                      NEX-DEVS
                     </h2>
                     <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/20 to-blue-500/20 blur-xl opacity-75"></div>
                   </div>

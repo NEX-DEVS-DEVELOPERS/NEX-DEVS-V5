@@ -22,7 +22,7 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "NEX-WEBS - Professional Web Solutions",
+  title: "NEX-DEVS - Professional Web/App Solutions",
   description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
   metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
   openGraph: {
@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: "NEX-WEBS - Professional Web Solutions",
+    title: "NEX-DEVS - Professional Web Solutions",
     description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
   },
   icons: {

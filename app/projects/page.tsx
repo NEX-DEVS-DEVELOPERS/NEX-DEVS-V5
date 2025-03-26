@@ -173,6 +173,199 @@ const LoadingDots = () => (
   </div>
 );
 
+// Adding 'NEWLY ADDED' text to project names in NewSection
+const NewSection = () => (
+  <section className="max-w-7xl mx-auto mb-16">
+    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-800/40 to-blue-800/40 border border-purple-600/30 p-8">
+      <div className="relative z-10">
+        <div className="flex items-center gap-3 mb-6">
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-400 to-blue-400 bg-clip-text text-transparent">
+            New Projects
+          </h2>
+          <span className="px-3 py-1 rounded-full text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30 animate-pulse">
+            Recently Added
+          </span>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {/* 3D Portfolio Website Card */}
+          <div className="group relative p-6 rounded-lg bg-gray-800/50 border border-purple-600/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-gray-800/60 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+            
+            {/* Project Status Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-purple-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-purple-500"></span>
+                </span>
+                In Development
+              </span>
+              <span className="text-xs text-gray-400">Updated 2 days ago</span>
+            </div>
+
+            <h3 className="text-2xl font-bold text-purple-300 mb-3 group-hover:text-purple-200 transition-colors">
+              NEWLY ADDED: 3D Portfolio Website
+            </h3>
+            
+            {/* Project Description */}
+            <div className="space-y-3 mb-4">
+              <p className="text-base text-gray-300">A 3D website showcasing immersive experiences with interactive elements and stunning animations.</p>
+              
+              {/* Features List */}
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Interactive 3D models and animations
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Custom shader effects
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Responsive 3D environments
+                </li>
+              </ul>
+            </div>
+
+            {/* Technology Stack */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">Three.js</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">React Three Fiber</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-yellow-500/20 text-yellow-300 border border-yellow-500/30">GSAP</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-red-500/20 text-red-300 border border-red-500/30">WebGL</span>
+            </div>
+
+            {/* Progress Bar */}
+            <div className="mb-6">
+              <div className="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Development Progress</span>
+                <span>99%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-[99%] h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Link href="https://3d-portfolio-showcase.vercel.app" className="px-4 py-2 rounded-md bg-purple-600 text-white no-underline hover:bg-purple-700 transition-colors flex items-center gap-2">
+                <span>Live Preview</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </Link>
+              <Link href="https://github.com/your-username/3d-portfolio" className="px-4 py-2 rounded-md bg-gray-700 text-white no-underline hover:bg-gray-600 transition-colors flex items-center gap-2">
+                <span>Source Code</span>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.137 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+
+          {/* Fullstack Dashboard Card */}
+          <div className="group relative p-6 rounded-lg bg-gray-800/50 border border-purple-600/20 shadow-lg transition-all duration-300 hover:shadow-xl hover:bg-gray-800/60 backdrop-blur-sm">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-blue-600/10 opacity-0 group-hover:opacity-100 transition-opacity rounded-lg" />
+            
+            {/* Project Status Badge */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-300 border border-blue-500/30">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                Beta Testing
+              </span>
+              <span className="text-xs text-gray-400">Updated 5 days ago</span>
+            </div>
+
+            <h3 className="text-2xl font-bold text-purple-300 mb-3 group-hover:text-purple-200 transition-colors">
+              NEWLY ADDED: Fullstack Dashboard
+            </h3>
+            
+            {/* Project Description */}
+            <div className="space-y-3 mb-4">
+              <p className="text-base text-gray-300">A complete dashboard solution with authentication, analytics, and real-time data visualization.</p>
+              
+              {/* Features List */}
+              <ul className="space-y-2 text-sm text-gray-400">
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  OAuth 2.0 Authentication
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Real-time Analytics
+                </li>
+                <li className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Data Visualization
+                </li>
+              </ul>
+            </div>
+
+            {/* Technology Stack */}
+            <div className="flex flex-wrap gap-2 mb-6">
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-black/50 text-white border border-white/20">Next.js 14</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">Tailwind CSS</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-orange-500/20 text-orange-300 border border-orange-500/30">Prisma</span>
+              <span className="px-2 py-1 rounded-md text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">MongoDB</span>
+            </div>
+
+            {/* Progress Bar for Fullstack Dashboard */}
+            <div className="mb-6">
+              <div className="flex justify-between text-xs text-gray-400 mb-1">
+                <span>Development Progress</span>
+                <span>50%</span>
+              </div>
+              <div className="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                <div className="w-1/2 h-full bg-gradient-to-r from-purple-500 to-blue-500 rounded-full" />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <Link href="https://fullstack-dashboard.vercel.app" className="px-4 py-2 rounded-md bg-purple-600 text-white no-underline hover:bg-purple-700 transition-colors flex items-center gap-2">
+                <span>Live Preview</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </Link>
+              <Link href="https://github.com/your-username/fullstack-dashboard" className="px-4 py-2 rounded-md bg-gray-700 text-white no-underline hover:bg-gray-600 transition-colors flex items-center gap-2">
+                <span>Source Code</span>
+                <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                  <path fillRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.865 8.17 6.839 9.49.5.092.682-.217.682-.482 0-.237-.008-.866-.013-1.7-2.782.604-3.369-1.34-3.369-1.34-.454-1.156-1.11-1.462-1.11-1.462-.908-.62.069-.608.069-.608 1.003.07 1.531 1.03 1.531 1.03.892 1.529 2.341 1.087 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.11-4.555-4.943 0-1.091.39-1.984 1.029-2.683-.103-.253-.446-1.27.098-2.647 0 0 .84-.269 2.75 1.025A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.294 2.747-1.025 2.747-1.025.546 1.377.203 2.394.1 2.647.64.699 1.028 1.592 1.028 2.683 0 3.842-2.339 4.687-4.566 4.935.359.309.678.919.678 1.852 0 1.336-.012 2.415-.012 2.743 0 .267.18.578.688.48C19.137 20.167 22 16.418 22 12c0-5.523-4.477-10-10-10z" clipRule="evenodd" />
+                </svg>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+// Adding smooth scrolling behavior to the body
+const GlobalStyles = () => (
+  <style jsx global>{`
+    body {
+      scroll-behavior: smooth;
+    }
+  `}</style>
+);
+
 export default function ProjectsPage() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [easterEggCount, setEasterEggCount] = useState(0)
@@ -214,6 +407,7 @@ export default function ProjectsPage() {
 
   return (
     <div className="min-h-screen pt-24 px-6 bg-[#0a0a0a]">
+      <GlobalStyles />
       {/* Hero Section */}
       <motion.section 
         initial={{ opacity: 0 }}
@@ -239,57 +433,8 @@ export default function ProjectsPage() {
           )}
       </motion.section>
 
-      {/* Project Stats Section - Optimized rendering */}
-      <section className="max-w-7xl mx-auto mb-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-          <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_0_15px_rgba(147,51,234,0.2)] hover:shadow-[0_0_25px_rgba(147,51,234,0.3)] transition-all duration-300 group">
-            <pre className="text-purple-400 text-xs mb-4 opacity-70 font-mono leading-none hidden md:block select-none">
-              {AsciiDecorations.rocket}
-            </pre>
-            <div className="flex flex-col">
-              <h3 className="text-2xl sm:text-3xl md:text-4xl font-bold text-purple-300 mb-2 group-hover:text-purple-200 bg-gradient-to-r from-purple-300 to-purple-100 bg-clip-text text-transparent">15+</h3>
-              <p className="text-gray-400 group-hover:text-gray-300 text-xs sm:text-sm">Completed Projects</p>
-              </div>
-          </div>
-          <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_0_15px_rgba(59,130,246,0.2)] hover:shadow-[0_0_25px_rgba(59,130,246,0.3)] transition-all duration-300 group">
-            <pre className="text-blue-400 text-xs mb-4 opacity-70 font-mono leading-none hidden md:block select-none">
-              {AsciiDecorations.laptop}
-            </pre>
-            <div className="flex flex-col">
-              <h3 className="text-3xl sm:text-4xl font-bold text-blue-300 mb-2 group-hover:text-blue-200 bg-gradient-to-r from-blue-300 to-blue-100 bg-clip-text text-transparent">5+</h3>
-              <p className="text-gray-400 group-hover:text-gray-300 text-sm sm:text-base">Years Experience</p>
-        </div>
-          </div>
-          <div className="p-6 rounded-xl bg-white/5 backdrop-blur-md border border-white/10 shadow-[0_0_15px_rgba(147,51,234,0.2)] hover:shadow-[0_0_25px_rgba(147,51,234,0.3)] transition-all duration-300 group sm:col-span-2 md:col-span-1">
-            <pre className="text-purple-400 text-xs mb-4 opacity-70 font-mono leading-none hidden md:block select-none">
-              {AsciiDecorations.diamond}
-            </pre>
-            <div className="flex flex-col">
-              <h3 className="text-3xl sm:text-4xl font-bold text-purple-300 mb-2 group-hover:text-purple-200 bg-gradient-to-r from-purple-300 to-purple-100 bg-clip-text text-transparent">100%</h3>
-              <p className="text-gray-400 group-hover:text-gray-300 text-sm sm:text-base">Client Satisfaction</p>
-          </div>
-          </div>
-        </div>
-      </section>
-
-      {/* Category Filter - Optimized with reduced effects */}
-      <section className="max-w-7xl mx-auto mb-12">
-        <div className="flex flex-wrap gap-4">
-          {categories.map((category) => (
-            <button 
-              key={category}
-              onClick={() => setSelectedCategory(category)}
-              className={`px-6 py-2 rounded-full transition-colors duration-200 ${
-                selectedCategory === category
-                  ? 'bg-purple-500/20 text-white border border-purple-500/50'
-                  : 'bg-white/5 text-gray-300 border border-white/10 hover:bg-white/10'
-              }`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </section>
+      {/* New Section (Below Featured Project) */}
+      <NewSection />
 
       {/* Featured Project */}
       <section className="max-w-7xl mx-auto mb-16">
@@ -336,7 +481,7 @@ export default function ProjectsPage() {
                 <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Website authority metrics</p>
               </div>
               <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">�� Backlink Checker</h3>
+                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🔗 Backlink Checker</h3>
                 <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Analyze backlink profile</p>
               </div>
               <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">

@@ -88,7 +88,6 @@ const pricingPlans: PricingPlan[] = [
 ];
 
 const PricingPlans: React.FC = () => {
-  const [hoveredPlan, setHoveredPlan] = useState<string | null>(null);
   const { currency, isExemptCountry } = useCurrency();
   const { getTimelineMultiplier } = useTimeline();
 
@@ -103,6 +102,7 @@ const PricingPlans: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
           className="relative p-8 rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-900/20 border border-purple-500/30 backdrop-blur-sm"
         >
           <TimelineSelector />
@@ -156,14 +156,10 @@ const PricingPlans: React.FC = () => {
         {regularPlans.map((plan) => (
           <motion.div
             key={plan.id}
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className={`relative ${
-              hoveredPlan === plan.id ? 'scale-105' : 'scale-100'
-            } transition-all duration-300`}
-            onMouseEnter={() => setHoveredPlan(plan.id)}
-            onMouseLeave={() => setHoveredPlan(null)}
+            transition={{ duration: 0.3 }}
+            className={`relative transition-transform duration-150 will-change-transform`}
           >
             <div className={`
               rounded-2xl p-8
@@ -172,7 +168,8 @@ const PricingPlans: React.FC = () => {
                 : 'bg-gradient-to-br from-black/80 to-purple-900/20 border-purple-500/20'
               }
               border backdrop-blur-lg
-              ${hoveredPlan === plan.id ? 'shadow-xl shadow-purple-500/10' : 'shadow-lg shadow-purple-500/5'}
+              hover:shadow-xl hover:shadow-purple-500/10 
+              transition-shadow duration-150 
             `}>
               {plan.popular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">

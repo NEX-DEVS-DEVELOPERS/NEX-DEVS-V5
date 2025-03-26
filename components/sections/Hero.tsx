@@ -4,8 +4,9 @@ import { Button } from "@/components/ui/button"
 import { motion, AnimatePresence } from "framer-motion"
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo, useCallback } from "react"
+import { useState, useMemo, useCallback, useEffect } from "react"
 import { useIsMobile } from '@/app/utils/deviceDetection'
+import TrustedBy from './TrustedBy'
 
 // Move static data outside component to prevent recreation
 const expertise = [
@@ -30,9 +31,16 @@ const expertise = [
     icon: "📝"
   },
   {
-    title: "AI & Web Apps",
+    title: "AI AGENTS & WEB APP",
     description: "Custom AI agents and web applications",
-    icon: "🤖"
+    icon: "🤖",
+    isTrending: true // Flag to indicate this is trending
+  },
+  {
+    title: "MOBILE APP Development",
+    description: "Cross-platform native mobile experiences",
+    icon: "📱",
+    isNew: true // Flag to indicate this is newly added
   }
 ]
 
@@ -91,21 +99,148 @@ const funFacts = [
   }
 ]
 
-// Pre-define animation variants
+// Update the tech skills data with the requested percentages
+const techSkills = [
+  {
+    category: "Fullstack",
+    skills: [
+      { name: "NEXTJS", level: 99, icon: "⚛️" },
+      { name: "REACT", level: 84, icon: "⚛️" },
+      { name: "REACT NATIVE", level: 81, icon: "📱" }
+    ]
+  },
+  {
+    category: "Languages",
+    skills: [
+      { name: "TYPESCRIPT", level: 95, icon: "📘" },
+      { name: "JAVASCRIPT", level: 95, icon: "💛" },
+      { name: "PYTHON", level: 85, icon: "🐍" },
+      { name: "PHP", level: 82, icon: "🐘" }
+    ]
+  },
+  {
+    category: "UI Libraries",
+    skills: [
+      { name: "SPLINE", level: 88, icon: "🎮" },
+      { name: "THREE.JS", level: 85, icon: "🌟" },
+      { name: "TAILWIND", level: 92, icon: "🎨" },
+      { name: "SHADCN", level: 90, icon: "✨" },
+      { name: "V0 BY VERCEL", level: 86, icon: "⚡" }
+    ]
+  },
+  {
+    category: "Mobile Development",
+    skills: [
+      { name: "FLUTTER", level: 79, icon: "📱" },
+      { name: "LYNX", level: 73, icon: "📱" },
+      { name: "REACT EXPO", level: 90, icon: "📱" }
+    ]
+  },
+  {
+    category: "Frontend",
+    skills: [
+      { name: "HTML", level: 95, icon: "🌐" },
+      { name: "CSS", level: 95, icon: "🎨" },
+      { name: "JS", level: 95, icon: "💛" }
+    ]
+  },
+  {
+    category: "Backend",
+    skills: [
+      { name: "NODE", level: 90, icon: "📦" },
+      { name: "MYSQL", level: 85, icon: "🛢️" },
+      { name: "POSTGRES", level: 85, icon: "🛢️" }
+    ]
+  },
+  {
+    category: "DevOps & Tools",
+    skills: [
+      { name: "DOCKER", level: 88, icon: "🐳" },
+      { name: "GIT", level: 92, icon: "📝" }
+    ]
+  }
+]
+
+// Pre-define animation variants with optimized values
 const fadeInUpVariant = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0 }
+  hidden: { opacity: 0, y: 10 },
+  visible: { 
+    opacity: 1, 
+    y: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
 }
 
 const scaleInVariant = {
-  hidden: { opacity: 0, scale: 0.95 },
-  visible: { opacity: 1, scale: 1 }
+  hidden: { opacity: 0, scale: 0.98 },
+  visible: { 
+    opacity: 1, 
+    scale: 1,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  }
+}
+
+// Define sparkle animation with reduced complexity
+const sparkleVariants = {
+  animate: {
+    scale: [1, 1.1, 1],
+    opacity: [0.6, 1, 0.6],
+    transition: {
+      duration: 2.5,
+      repeat: Infinity,
+      repeatType: "loop" as const,
+      ease: "linear"
+    }
+  }
+}
+
+// Optimize bounce animation
+const bounceVariants = {
+  animate: {
+    y: [0, -3, 0],
+    transition: {
+      duration: 2,
+      repeat: Infinity,
+      repeatType: "loop" as const,
+      ease: "linear"
+    }
+  }
+}
+
+// Add optimized skill card animation
+const skillCardVariants = {
+  hidden: { opacity: 0, x: 10 },
+  visible: { 
+    opacity: 1, 
+    x: 0,
+    transition: {
+      duration: 0.2,
+      ease: "easeOut"
+    }
+  },
+  exit: { 
+    opacity: 0, 
+    x: -10,
+    transition: {
+      duration: 0.15,
+      ease: "easeIn"
+    }
+  }
 }
 
 export default function Hero() {
   const [showSecretPanel, setShowSecretPanel] = useState(false)
   const isMobile = useIsMobile()
   const [funFactIndex, setFunFactIndex] = useState(0)
+  const [activeSkillSet, setActiveSkillSet] = useState(0)
+  // Add new state for auto animation toggle
+  const [isAutoAnimating, setIsAutoAnimating] = useState(true)
 
   // Memoize handlers
   const nextFunFact = useCallback(() => {
@@ -116,8 +251,69 @@ export default function Hero() {
     setShowSecretPanel(prev => !prev)
   }, [])
 
+  // Add carousel navigation
+  const nextSkillSet = useCallback(() => {
+    setActiveSkillSet((prev) => (prev + 1) % techSkills.length)
+  }, [])
+
+  const prevSkillSet = useCallback(() => {
+    setActiveSkillSet((prev) => (prev - 1 + techSkills.length) % techSkills.length)
+  }, [])
+
+  // Add auto-animation toggle handler
+  const toggleAutoAnimation = useCallback(() => {
+    setIsAutoAnimating(prev => !prev)
+  }, [])
+
+  // Add another callback to manually navigate in vertical direction
+  const nextVerticalSkillSet = useCallback(() => {
+    setActiveSkillSet((prev) => (prev + 1) % techSkills.length)
+  }, [])
+
+  const prevVerticalSkillSet = useCallback(() => {
+    setActiveSkillSet((prev) => (prev - 1 + techSkills.length) % techSkills.length)
+  }, [])
+
+  // Auto advance carousel every 6 seconds, only if auto-animation is enabled
+  useEffect(() => {
+    if (!isAutoAnimating) return;
+    
+    let animationFrameId: number;
+    let lastTime = performance.now();
+    const interval = 6000; // 6 seconds
+    
+    const animate = (currentTime: number) => {
+      if (currentTime - lastTime >= interval) {
+        nextSkillSet();
+        lastTime = currentTime;
+      }
+      animationFrameId = requestAnimationFrame(animate);
+    };
+    
+    animationFrameId = requestAnimationFrame(animate);
+    
+    // Add a check to pause animation when tab is not visible
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        cancelAnimationFrame(animationFrameId);
+      } else {
+        lastTime = performance.now();
+        animationFrameId = requestAnimationFrame(animate);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      cancelAnimationFrame(animationFrameId);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [nextSkillSet, isAutoAnimating]);
+
   // Memoize current fun fact
   const currentFunFact = useMemo(() => funFacts[funFactIndex], [funFactIndex])
+  // Memoize current skill set
+  const currentSkillSet = useMemo(() => techSkills[activeSkillSet], [activeSkillSet])
 
   const variants = {
     hidden: { opacity: 0, y: 20 },
@@ -137,14 +333,14 @@ export default function Hero() {
       transition={{ duration: isMobile ? 0.3 : 0.5 }}
       className="relative min-h-screen flex flex-col justify-center items-center py-20 px-6 mt-16 sm:mt-20"
     >
-      {/* Optimize gradient effects by reducing blur radius and containing them */}
+      {/* Optimize gradient effects by reducing blur radius and using will-change */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[32px] will-change-transform translate-x-0" 
-             style={{ animation: 'pulse 4s ease-in-out infinite' }} />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[32px] will-change-transform translate-x-0" 
-             style={{ animation: 'pulse 4s ease-in-out infinite 1s' }} />
-        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[32px] will-change-transform" 
-             style={{ animation: 'pulse 4s ease-in-out infinite 2s' }} />
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[24px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)' }} />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[24px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)' }} />
+        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[24px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)' }} />
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 relative z-10 overflow-x-hidden">
@@ -184,6 +380,18 @@ export default function Hero() {
                 <span className="border-2 border-white text-white px-4 sm:px-6 py-2 rounded-lg text-sm sm:text-base tracking-widest hover:bg-white hover:text-black transition-all duration-300 cursor-default inline-block">
                   FULLSTACK DEVELOPER
                 </span>
+                <motion.div 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.2 }}
+                  className="relative inline-flex items-center ml-2 group"
+                >
+                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 to-violet-500/20 rounded-full blur-sm transform group-hover:scale-110 transition-transform duration-300"></div>
+                  <span className="relative px-2 py-0.5 text-[10px] font-medium bg-black/50 text-purple-300 rounded-full border border-purple-500/30 backdrop-blur-sm
+                                 group-hover:text-purple-200 group-hover:border-purple-500/50 transition-all duration-300 tracking-wider flex items-center gap-1">
+                    <span className="animate-pulse">✨</span> VIBE CODER
+                  </span>
+                </motion.div>
               </div>
             </h1>
 
@@ -304,45 +512,127 @@ export default function Hero() {
           transition={{ duration: isMobile ? 0.3 : 0.5 }}
           className="flex flex-col gap-4 sm:gap-6"
         >
-          {/* Text Showcase Section */}
+          {/* Replace the Text Showcase Section with Tech Skills Carousel */}
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="relative h-[250px] sm:h-[300px] group"
+            className="relative h-[240px] sm:h-[280px] w-full group"
           >
-            <div className="absolute inset-0 border border-white/20 rounded-2xl overflow-hidden">
-              <div className="h-full w-full p-4 sm:p-8 bg-gradient-to-br from-white/5 to-white/10 
-                            backdrop-blur-sm group-hover:from-white/10 group-hover:to-white/15 
-                            transition-all duration-500">
+            <div className="absolute inset-0 rounded-[24px] overflow-hidden bg-gradient-to-b from-white/[0.15] to-white/[0.05]">
+              <div className="h-full w-full p-4 sm:p-5 backdrop-blur-xl backdrop-saturate-150
+                            bg-white/[0.02] transition-all duration-500">
                 <div className="h-full flex flex-col justify-between">
-                  <div className="space-y-3 sm:space-y-4">
-                    <h3 className="text-xl sm:text-2xl font-bold text-white group-hover:text-white transition-colors">
-                      Transforming Ideas
-                      <span className="block text-gray-400 group-hover:text-white transition-colors">
-                        Into Digital Reality
-                      </span>
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-base sm:text-lg font-medium flex items-center gap-2">
+                      <span className="text-white/90">{currentSkillSet.category}</span>
                     </h3>
-                    <p className="text-sm sm:text-base text-gray-400 group-hover:text-gray-200 transition-colors">
-                      Specialized in crafting modern web experiences 
-                      that combine aesthetics with functionality
-                    </p>
+                    <div className="flex gap-2 items-center">
+                      <button 
+                        onClick={toggleAutoAnimation}
+                        className={`text-xs px-3 py-1 rounded-md transition-all flex items-center gap-1.5
+                                    ${isAutoAnimating 
+                                      ? 'bg-[#8b5cf6]/20 text-[#8b5cf6] hover:bg-[#8b5cf6]/30' 
+                                      : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                        aria-label={isAutoAnimating ? "Turn off auto-slide" : "Turn on auto-slide"}
+                      >
+                        <span className={`text-xs ${isAutoAnimating ? 'text-[#8b5cf6]' : 'text-white/70'}`}>
+                          {isAutoAnimating ? '⟳' : '⟳'}
+                        </span>
+                        <span className="text-xs font-medium">
+                          {isAutoAnimating ? 'Auto' : 'Manual'}
+                        </span>
+                      </button>
+                      <div className="flex gap-1.5">
+                        <button 
+                          onClick={prevSkillSet}
+                          className="p-1.5 rounded-md bg-white/10 hover:bg-white/20
+                                   active:scale-95 transition-all group"
+                          aria-label="Previous skill set"
+                        >
+                          <span className="text-base text-white/70 group-hover:text-white transition-colors">←</span>
+                        </button>
+                        <button 
+                          onClick={nextSkillSet}
+                          className="p-1.5 rounded-md bg-white/10 hover:bg-white/20
+                                   active:scale-95 transition-all group"
+                          aria-label="Next skill set"
+                        >
+                          <span className="text-base text-white/70 group-hover:text-white transition-colors">→</span>
+                        </button>
+                      </div>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full bg-white/5 border 
-                                 border-white/10 text-gray-300 group-hover:border-white/50 
-                                 group-hover:bg-white group-hover:text-black transition-all">
-                      Modern Stack
-                    </span>
-                    <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full bg-white/5 border 
-                                 border-white/10 text-gray-300 group-hover:border-white/50 
-                                 group-hover:bg-white group-hover:text-black transition-all">
-                      Clean Code
-                    </span>
-                    <span className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full bg-white/5 border 
-                                 border-white/10 text-gray-300 group-hover:border-white/50 
-                                 group-hover:bg-white group-hover:text-black transition-all">
-                      Best Practices
-                    </span>
+
+                  <div className="flex-1 overflow-y-auto thin-scrollbar pr-1">
+                    <AnimatePresence mode="wait">
+                      <motion.div 
+                        key={activeSkillSet}
+                        initial="hidden"
+                        animate="visible"
+                        exit="exit"
+                        className="space-y-3"
+                      >
+                        {currentSkillSet.skills.map((skill, idx) => (
+                          <motion.div
+                            key={skill.name}
+                            variants={skillCardVariants}
+                            transition={{ 
+                              duration: 0.15,
+                              delay: idx * 0.03,
+                              ease: "easeOut"
+                            }}
+                            className="flex items-center gap-2.5 transition-all group/skill"
+                            style={{
+                              willChange: 'transform, opacity',
+                              transform: 'translate3d(0, 0, 0)'
+                            }}
+                          >
+                            <div className="w-8 h-8 flex items-center justify-center rounded-lg 
+                                         bg-white/[0.05] transition-all">
+                              <span className="text-base">{skill.icon}</span>
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-white/90 text-sm font-medium">{skill.name}</span>
+                                <span className="text-xs text-white/60 font-medium tabular-nums">{skill.level}%</span>
+                              </div>
+                              <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                                <motion.div 
+                                  className="h-full bg-[#8b5cf6] rounded-full"
+                                  initial={{ width: 0 }}
+                                  animate={{ width: `${skill.level}%` }}
+                                  transition={{ 
+                                    duration: 0.5,
+                                    delay: idx * 0.03,
+                                    ease: "easeOut"
+                                  }}
+                                  style={{
+                                    willChange: 'width',
+                                    transform: 'translate3d(0, 0, 0)'
+                                  }}
+                                ></motion.div>
+                              </div>
+                            </div>
+                          </motion.div>
+                        ))}
+                      </motion.div>
+                    </AnimatePresence>
+                  </div>
+
+                  {/* Updated carousel indicators */}
+                  <div className="flex justify-center gap-1 pt-3">
+                    {techSkills.map((_, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveSkillSet(idx)}
+                        className={`h-0.5 rounded-full transition-all ${
+                          idx === activeSkillSet 
+                            ? 'bg-[#8b5cf6] w-6' 
+                            : 'bg-white/10 hover:bg-white/20 w-3'
+                        }`}
+                        aria-label={`Go to skill set ${idx + 1}`}
+                      />
+                    ))}
                   </div>
                 </div>
               </div>
@@ -350,7 +640,7 @@ export default function Hero() {
           </motion.div>
 
           {/* Stats Grid - Mobile Optimized */}
-          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-2 gap-4 sm:gap-6">
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
@@ -380,15 +670,58 @@ export default function Hero() {
             className="space-y-3 sm:space-y-4"
           >
             <h4 className="text-sm sm:text-base font-medium text-white mb-2 sm:mb-4">Skills & Expertise</h4>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               {expertise.map((skill, index) => (
                 <motion.div
                   key={skill.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: 0.4 + index * 0.05 }}
-                  className="border border-white/20 p-2 sm:p-3 rounded-xl hover:border-white hover:bg-white/5 transition-colors"
+                  className={`relative border border-white/20 p-2 sm:p-3 rounded-xl hover:border-white hover:bg-white/5 transition-colors
+                            ${skill.isNew ? 'border-purple-400/50' : ''}
+                            ${skill.isTrending ? 'border-blue-400/50' : ''}`}
                 >
+                  {/* Add sparkling effect and "newly added" badge for new items */}
+                  {skill.isNew && (
+                    <>
+                      <div className="absolute -top-1 -right-1 z-10">
+                        <div className="relative">
+                          <motion.span
+                            variants={sparkleVariants}
+                            animate="animate"
+                            className="absolute -top-1 -left-1 text-yellow-300 text-xs"
+                          >
+                            ✨
+                          </motion.span>
+                          <motion.span
+                            variants={sparkleVariants}
+                            animate="animate"
+                            transition={{ delay: 0.4 }}
+                            className="absolute top-0 -right-1 text-yellow-300 text-xs"
+                          >
+                            ✨
+                          </motion.span>
+                          <span className="bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                            NEW
+                          </span>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Add trending badge with bounce animation */}
+                  {skill.isTrending && (
+                    <motion.div 
+                      className="absolute -top-1 -right-1 z-10"
+                      variants={bounceVariants}
+                      animate="animate"
+                    >
+                      <span className="bg-gradient-to-r from-blue-500 to-cyan-500 text-white text-[9px] sm:text-[10px] font-medium px-1.5 py-0.5 rounded-full">
+                        TRENDING
+                      </span>
+                    </motion.div>
+                  )}
+
                   <div className="flex items-center gap-2">
                     <span className="text-lg sm:text-xl">{skill.icon}</span>
                     <div>
@@ -464,8 +797,6 @@ export default function Hero() {
           </motion.div>
         )}
       </AnimatePresence>
-
-     
     </motion.section>
   )
 } 

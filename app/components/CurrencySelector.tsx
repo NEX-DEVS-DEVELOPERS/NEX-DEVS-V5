@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
-import { SupportedCurrency, currencySymbols, getPriceBreakdown } from '@/app/utils/pricing';
+import { SupportedCurrency, currencySymbols, getPriceBreakdown, getLocationData } from '@/app/utils/pricing';
 
 // Currency flag icons mapping
 const currencyFlags: Record<SupportedCurrency, string> = {
@@ -15,7 +15,7 @@ const currencyFlags: Record<SupportedCurrency, string> = {
 };
 
 // Add this type definition
-type RestrictedCurrency = 'GBP' | 'AED' | 'INR';
+type RestrictedCurrency = 'GBP' | 'AED' | 'INR' | 'USD';
 
 const CurrencySelector = () => {
   const { currency, setCurrency, exchangeRate, exchangeRates, isExemptCountry } = useCurrency();
@@ -27,6 +27,7 @@ const CurrencySelector = () => {
   const [showPakistanVerification, setShowPakistanVerification] = useState(false);
   const [showLockedWarning, setShowLockedWarning] = useState(false);
   const [showInternationalWarning, setShowInternationalWarning] = useState(false);
+  const [showUSLocationNotice, setShowUSLocationNotice] = useState(false);
   const [selectorOpenCount, setSelectorOpenCount] = useState(0);
   const [timeline, setTimeline] = useState('Urgent (1-2 weeks)');
   const [currentCurrency, setCurrentCurrency] = useState<SupportedCurrency>(currency);
@@ -34,11 +35,16 @@ const CurrencySelector = () => {
   const [userLocation, setUserLocation] = useState('');
   const [locationError, setLocationError] = useState('');
   const [isLocked, setIsLocked] = useState(false);
+  const [isUSLocation, setIsUSLocation] = useState(false);
+  const [showQuickReadWarning, setShowQuickReadWarning] = useState(false);
+  const [noticeShowTime, setNoticeShowTime] = useState<number | null>(null);
+  const [hasReadOnce, setHasReadOnce] = useState(false);
+  const [showPakistanWarning, setShowPakistanWarning] = useState(false);
 
   const currencies: SupportedCurrency[] = ['PKR', 'USD', 'GBP', 'INR', 'AED'];
 
   // Add this near the top of the component
-  const restrictedCurrencies: RestrictedCurrency[] = ['GBP', 'AED', 'INR'];
+  const restrictedCurrencies: RestrictedCurrency[] = ['GBP', 'AED', 'INR', 'USD'];
 
   const getCurrencyName = (code: SupportedCurrency): string => {
     const names: Record<SupportedCurrency, string> = {
@@ -52,42 +58,34 @@ const CurrencySelector = () => {
   };
 
   const handleCurrencyChange = (newCurrency: SupportedCurrency) => {
-    // If user is trying to change from a restricted currency
-    if (restrictedCurrencies.includes(currency as RestrictedCurrency)) {
-      setShowInternationalWarning(true);
+    // Allow Pakistani users to change currency with warnings
+    if (currency === 'PKR' || userLocation.toLowerCase().includes('pakistan')) {
+      if (currency === 'PKR' && newCurrency !== 'PKR') {
+        setShowPakistanWarning(true);
+        setCurrentCurrency(newCurrency);
       return;
     }
-
-    if (newCurrency === 'PKR' && !hasChangedToPKR && ['USD', 'GBP', 'INR', 'AED'].includes(currency)) {
-      setCurrentCurrency(currency);
-      setShowPakistanVerification(true);
-      setShowDropdown(false);
-      return;
-    }
-    
     setCurrency(newCurrency);
     setShowDropdown(false);
     setShowBreakdown(true);
     setTimeout(() => setShowBreakdown(false), 5000);
-  };
-
-  const handleCurrencyClick = () => {
-    if (isLocked) {
-      setShowLockedWarning(true);
-      return;
-    }
-    
-    // Check if current currency is restricted
-    if (restrictedCurrencies.includes(currency as RestrictedCurrency)) {
+    } else {
       setShowInternationalWarning(true);
       return;
     }
+  };
     
+  const handleCurrencyClick = () => {
+    // Check if user is from Pakistan
+    if (currency === 'PKR' || userLocation.toLowerCase().includes('pakistan')) {
     setSelectorOpenCount(prev => prev + 1);
     if (selectorOpenCount === 0) {
       setShowNotice(true);
     } else {
       setShowSecondWarning(true);
+      }
+    } else {
+      setShowInternationalWarning(true);
     }
   };
 
@@ -98,102 +96,76 @@ const CurrencySelector = () => {
     return !isExemptCountry && currency !== 'PKR';
   };
 
-  // Update the dropdownVariants with smoother animations
+  // Simplify dropdown animations for better performance
   const dropdownVariants = {
     hidden: { 
       opacity: 0,
       y: -8,
-      scaleY: 0.95,
-      transformOrigin: "top"
+      // Remove scaleY transform to improve performance
     },
     visible: {
       opacity: 1,
       y: 0,
-      scaleY: 1,
       transition: {
-        type: "spring",
-        stiffness: 150,
-        damping: 15,
-        mass: 0.5,
-        staggerChildren: 0.035,
-        delayChildren: 0.03
+        type: "tween", // Change from spring to tween for better performance
+        duration: 0.2,
+        staggerChildren: 0.02, // Reduce stagger time
+        delayChildren: 0.02 // Reduce delay
       }
     },
     exit: {
       opacity: 0,
       y: -4,
-      scaleY: 0.98,
       transition: {
-        type: "tween",
-        duration: 0.2,
-        ease: [0.32, 0, 0.67, 0]
+        duration: 0.15, // Faster exit animation
       }
     }
   };
 
-  // Update itemVariants for smoother individual item animations
+  // Simplify item animations for better performance
   const itemVariants = {
     hidden: { 
       opacity: 0,
-      x: -8,
-      y: 4
+      x: -5, // Reduced movement
     },
-    visible: (i: number) => ({
+    visible: {
       opacity: 1,
       x: 0,
-      y: 0,
       transition: {
-        type: "spring",
-        stiffness: 170,
-        damping: 18,
-        mass: 0.6,
-        delay: i * 0.04
+        type: "tween", // Change from spring to tween
+        duration: 0.2,
+        delay: 0.02 // Reduced delay
       }
-    }),
+    },
     hover: {
-      x: 6,
+      x: 3, // Reduced movement on hover
       backgroundColor: "rgba(139, 92, 246, 0.15)",
       transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 25,
-        mass: 0.5
+        duration: 0.2 // Faster transition
       }
     },
     tap: {
       scale: 0.98,
       transition: {
-        type: "spring",
-        stiffness: 400,
-        damping: 20
+        duration: 0.1
       }
     }
   };
 
+  // Simplify button animations
   const buttonVariants = {
-    initial: { opacity: 0, y: 10 },
+    initial: { opacity: 0 },
     animate: { 
-      opacity: 1, 
-      y: 0,
-      transition: {
-        duration: 0.2,
-        ease: [0.16, 1, 0.3, 1]
-      }
+      opacity: 1,
+      transition: { duration: 0.2 }
     },
     hover: { 
       scale: 1.01,
-      y: -1,
-      transition: {
-        duration: 0.2,
-        ease: [0.16, 1, 0.3, 1]
-      }
+      transition: { duration: 0.2 }
     },
     tap: { 
       scale: 0.99,
-      transition: {
-        duration: 0.1,
-        ease: "easeOut"
-      }
+      transition: { duration: 0.1 }
     }
   };
 
@@ -251,6 +223,37 @@ const CurrencySelector = () => {
     };
     return symbols[curr];
   };
+
+  const handleUSNoticeClose = () => {
+    const timeShown = noticeShowTime ? Date.now() - noticeShowTime : 0;
+    setShowQuickReadWarning(true); // Always show the quick read warning
+    if (timeShown >= 2000) {
+      setShowUSLocationNotice(false);
+    }
+    setHasReadOnce(true);
+  };
+
+  useEffect(() => {
+    if (showUSLocationNotice) {
+      setNoticeShowTime(Date.now());
+    }
+  }, [showUSLocationNotice]);
+
+  useEffect(() => {
+    // Check if user is from US when component mounts
+    const checkUSLocation = async () => {
+      try {
+        const locationData = await getLocationData('');
+        if (locationData.country === 'US') {
+          setIsUSLocation(true);
+          setShowUSLocationNotice(true);
+        }
+      } catch (error) {
+        console.error('Error checking location:', error);
+      }
+    };
+    checkUSLocation();
+  }, []);
 
   return (
     <div className="relative flex flex-col items-center w-full px-4">
@@ -345,17 +348,17 @@ const CurrencySelector = () => {
           </motion.div>
         </motion.button>
 
-        {/* Location Text - Enhanced with Lock Status */}
+        {/* Modern Location Indicator */}
         <motion.div
           initial={{ opacity: 0, y: 5 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1, duration: 0.3 }}
-          className="absolute -bottom-12 left-0 right-0 flex justify-center"
+          className="absolute -bottom-8 left-0 right-0 flex justify-center"
         >
-          <div className="relative">
-            <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-500/30 to-yellow-500/20 rounded-lg blur"></div>
+          <div className="relative group cursor-default">
+            <div className="absolute -inset-1 bg-gradient-to-r from-purple-500/10 via-violet-500/20 to-purple-500/10 rounded-lg blur opacity-75 group-hover:opacity-100 transition duration-500"></div>
             <div className={`relative flex items-center justify-center space-x-2 bg-black/50 backdrop-blur-sm px-3 py-1.5 rounded-lg border
-              ${isLocked ? 'border-orange-500/30' : 'border-yellow-500/30'}`}
+              ${isLocked ? 'border-orange-500/20' : 'border-violet-500/20'}`}
             >
               <motion.div
                 animate={{
@@ -367,16 +370,32 @@ const CurrencySelector = () => {
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-orange-500' : 'bg-yellow-500'}`}
+                className={`w-1.5 h-1.5 rounded-full ${isLocked ? 'bg-orange-500' : 'bg-violet-500'}`}
               />
-              <span className={`text-xs font-medium tracking-wider
-                ${isLocked 
-                  ? 'bg-gradient-to-r from-orange-200 to-orange-400 bg-clip-text text-transparent'
-                  : 'bg-gradient-to-r from-yellow-200 to-yellow-400 bg-clip-text text-transparent'
-                }`}
-              >
-                {isLocked ? 'CURRENCY LOCKED TO PKR' : 'YOUR LOCATION IS AUTOMATICALLY SET'}
-              </span>
+              <div className="flex items-center space-x-1.5">
+                <motion.span 
+                  className={`text-xs font-medium tracking-wide
+                    ${isLocked 
+                      ? 'text-orange-200'
+                      : 'text-violet-200'
+                    }`}
+                >
+                  {isLocked ? 'REGION LOCKED' : 'REGION DETECTED'}
+                </motion.span>
+                <motion.span
+                  animate={{
+                    rotate: [0, 10, 0, -10, 0],
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className="text-sm opacity-80"
+                >
+                  {isLocked ? '🔒' : '📍'}
+                </motion.span>
+              </div>
             </div>
           </div>
         </motion.div>
@@ -398,20 +417,6 @@ const CurrencySelector = () => {
                 onClick={(e) => e.stopPropagation()}
                 className="bg-gradient-to-br from-zinc-900 to-black border-2 border-yellow-500/20 rounded-xl p-6 max-w-md w-full shadow-xl relative overflow-hidden"
               >
-                {/* Warning Pulse Effect */}
-                <motion.div
-                  animate={{
-                    scale: [1, 1.1, 1],
-                    opacity: [0.1, 0.15, 0.1],
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                  className="absolute inset-0 bg-yellow-500/10 pointer-events-none"
-                />
-
                 <div className="flex items-center justify-center mb-4">
                   <div className="relative">
                     <div className="absolute -inset-1 bg-gradient-to-r from-yellow-500/20 via-yellow-500/30 to-yellow-500/20 rounded-lg blur"></div>
@@ -961,225 +966,21 @@ const CurrencySelector = () => {
           )}
         </AnimatePresence>
 
+        {/* Quick Read Warning Modal */}
         <AnimatePresence>
-          {showDropdown && (
+          {showQuickReadWarning && (
             <motion.div
-              variants={dropdownVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              className="absolute left-0 right-0 top-full mt-2 z-50 w-full rounded-xl 
-                bg-gradient-to-b from-zinc-900/95 to-black/95 
-                border border-purple-500/20 shadow-xl backdrop-blur-md
-                overflow-hidden"
-              style={{ 
-                boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.8), 0 0 15px -5px rgba(139, 92, 246, 0.3)",
-                maxHeight: "280px", // Set a max height to enable scrolling
-              }}
-            >
-              <div 
-                className="p-2 space-y-1.5 overflow-y-auto overscroll-contain"
-                style={{
-                  scrollbarWidth: 'thin',
-                  scrollbarColor: 'rgba(139, 92, 246, 0.3) transparent',
-                  maxHeight: "inherit",
-                  scrollBehavior: "smooth",
-                }}
-              >
-                {currencies.map((curr, index) => (
-                  <motion.button
-                    key={curr}
-                    custom={index}
-                    variants={itemVariants}
-                    initial="hidden"
-                    animate="visible"
-                    whileHover="hover"
-                    whileTap="tap"
-                    onClick={() => handleCurrencyChange(curr)}
-                    className={`w-full flex items-center justify-between p-3 rounded-lg text-left
-                      transition-all duration-200 ease-out
-                      ${currency === curr
-                        ? 'bg-purple-500/20 text-purple-300 backdrop-blur-sm'
-                        : 'hover:bg-zinc-800/50 text-gray-300 hover:text-white'
-                      }
-                      group relative overflow-hidden`}
-                  >
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent 
-                      translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 ease-out" 
-                    />
-                    <div className="flex items-center space-x-3 relative z-10">
-                      <motion.span 
-                        className="text-2xl"
-                        animate={{ 
-                          scale: [1, 1.1, 1],
-                          rotate: [0, -5, 5, 0],
-                          transition: { duration: 0.4, delay: index * 0.06 }
-                        }}
-                      >
-                        {currencyFlags[curr]}
-                      </motion.span>
-                      <span className="font-medium">{getCurrencyName(curr)}</span>
-                    </div>
-                    <div className="flex items-center space-x-2 text-sm opacity-60">
-                      <span>{currencySymbols[curr]}</span>
-                      {currency === curr && (
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          animate={{ scale: 1 }}
-                          transition={{
-                            type: "spring",
-                            stiffness: 400,
-                            damping: 17,
-                            delay: index * 0.04
-                          }}
-                        >
-                          <svg className="w-4 h-4 text-purple-400" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                          </svg>
-                        </motion.div>
-                      )}
-                    </div>
-                  </motion.button>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {showBreakdown && !showDropdown && (
-            <motion.div 
-              initial={{ opacity: 0, y: 15, scale: 0.97 }}
-              animate={{ 
-                opacity: 1, 
-                y: 0, 
-                scale: 1,
-                transition: {
-                  duration: 0.4,
-                  ease: [0.34, 1.56, 0.64, 1]
-                }
-              }}
-              exit={{ 
-                opacity: 0, 
-                y: 10, 
-                scale: 0.95,
-                transition: {
-                  duration: 0.25,
-                  ease: [0.36, 0, 0.66, -0.56]
-                }
-              }}
-              className="absolute left-0 right-0 top-full mt-2 z-50 rounded-xl bg-gradient-to-b from-zinc-900/95 to-black/95 
-                border border-purple-500/30 shadow-xl backdrop-blur-md p-5"
-              style={{ 
-                boxShadow: "0 15px 30px -5px rgba(0, 0, 0, 0.8), 0 0 20px -5px rgba(139, 92, 246, 0.3)"
-              }}
-            >
-              <div className="flex items-center justify-center space-x-2 mb-4 border-b border-purple-500/20 pb-2">
-                <motion.div 
-                  className="w-2 h-2 bg-purple-500 rounded-full"
-                  animate={{ 
-                    scale: [1, 1.5, 1],
-                    opacity: [0.5, 1, 0.5]
-                  }}
-                  transition={{
-                    duration: 2,
-                    repeat: Infinity,
-                    ease: "easeInOut"
-                  }}
-                ></motion.div>
-                <h4 className="text-sm font-medium text-purple-300">Price Conversion Details</h4>
-              </div>
-              
-              <div className="space-y-3 text-sm">
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1, duration: 0.3 }}
-                  className="flex justify-between items-center"
-                >
-                  <span className="text-gray-300 font-medium">Base Amount:</span>
-                  <span className="font-medium text-white bg-purple-900/20 px-2 py-1 rounded">
-                    {currencySymbols.PKR}{samplePrice.toFixed(2)}
-                  </span>
-                </motion.div>
-                
-                {shouldShowInternationalFee() && (
-                  <motion.div
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.2, duration: 0.3 }}
-                    className="flex justify-between items-center"
-                  >
-                    <span className="text-yellow-400 font-medium">International Fee (30%):</span>
-                    <span className="text-yellow-300 bg-yellow-900/20 px-2 py-1 rounded">
-                      +{currencySymbols[currency]}{breakdown.internationalMarkup.toFixed(2)}
-                    </span>
-                  </motion.div>
-                )}
-                
-                <motion.div
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ 
-                    opacity: 1, 
-                    x: 0,
-                    transition: {
-                      delay: 0.3,
-                      duration: 0.3
-                    }
-                  }}
-                  className="pt-3 border-t border-purple-500/20 mt-2"
-                >
-                  <div className="flex justify-between items-center">
-                    <span className="text-purple-300 font-medium">Final Amount:</span>
-                    <motion.span 
-                      className="font-semibold bg-purple-500/20 text-white px-3 py-1.5 rounded-lg"
-                      animate={{ 
-                        scale: [1, 1.05, 1],
-                        boxShadow: [
-                          "0 0 0px rgba(139, 92, 246, 0)",
-                          "0 0 10px rgba(139, 92, 246, 0.3)",
-                          "0 0 0px rgba(139, 92, 246, 0)"
-                        ]
-                      }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        ease: "easeInOut"
-                      }}
-                    >
-                      {currencySymbols[currency]}{breakdown.convertedAmount.toFixed(2)}
-                    </motion.span>
-                  </div>
-                </motion.div>
-              </div>
-
-              {/* Close button */}
-              <motion.button
-                className="absolute top-2 right-2 text-gray-400 hover:text-white p-1"
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setShowBreakdown(false)}
-              >
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </motion.button>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* Warning Modal */}
-        <AnimatePresence>
-          {showWarning && (
-            <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 px-4"
+              className="fixed inset-0 bg-black/95 backdrop-blur-lg flex items-center justify-center z-[101] p-4"
+              onClick={() => setShowQuickReadWarning(false)}
             >
               <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
                 animate={{ 
-                  opacity: 1, 
                   scale: 1, 
+                  opacity: 1, 
                   y: 0,
                   transition: {
                     type: "spring",
@@ -1187,89 +988,316 @@ const CurrencySelector = () => {
                     damping: 25
                   }
                 }}
-                exit={{ 
-                  opacity: 0, 
-                  scale: 0.95, 
-                  y: 20,
-                  transition: {
-                    duration: 0.2
-                  }
-                }}
-                className="bg-[#0A0A0A] border border-red-500/20 rounded-xl p-6 max-w-md w-full shadow-xl"
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className="bg-gradient-to-br from-[#1E1E2E] to-[#2D2D44] backdrop-blur-xl rounded-2xl p-8 w-full max-w-sm mx-auto relative overflow-hidden border border-white/10"
               >
-                <div className="flex items-start space-x-4">
-                  <motion.div 
-                    className="p-2 bg-red-500/10 rounded-lg"
-                    animate={{
-                      boxShadow: ["0 0 0px rgba(239, 68, 68, 0)", "0 0 15px rgba(239, 68, 68, 0.3)", "0 0 0px rgba(239, 68, 68, 0)"]
-                    }}
-                    transition={{
-                      duration: 2,
-                      repeat: Infinity,
-                      ease: "easeInOut"
-                    }}
-                  >
-                    <svg className="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                    </svg>
-                  </motion.div>
-                  <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-white mb-2">Location Verification Notice</h3>
-                    <p className="text-gray-300 text-sm mb-4">
-                      Our system has detected that your current location is using {getCurrencyName(currentCurrency)} ({currentCurrency}). Please note that international service charges will be applied to maintain service quality and support.
-                    </p>
-                    
+                {/* Animated background effect */}
+                <motion.div 
+                  className="absolute inset-0 opacity-20"
+                  style={{
+                    backgroundImage: `radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.1) 0%, transparent 50%)`,
+                    backgroundSize: '200% 200%'
+                  }}
+                  animate={{
+                    backgroundPosition: ['0% 0%', '100% 100%'],
+                    scale: [1, 1.2, 1],
+                  }}
+                  transition={{
+                    duration: 8,
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                />
+
+                {/* Glass effect overlay */}
+                <div className="absolute inset-0 bg-white/5 backdrop-blur-sm rounded-2xl" />
+
+                <div className="relative space-y-6">
+                  {/* Header section */}
+                  <div className="flex items-center justify-center">
                     <motion.div 
-                      className="bg-black rounded-lg p-4 mb-4 border border-red-500/10"
-                      initial={{ x: -10, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
+                      className="relative"
+                      animate={{ 
+                        y: [0, -3, 0],
+                      }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                    >
+                      <div className="absolute -inset-2 bg-gradient-to-r from-violet-500/20 via-purple-500/20 to-violet-500/20 rounded-full blur-lg" />
+                      <span className="relative text-4xl">🧐</span>
+                    </motion.div>
+                  </div>
+
+                  {/* Content section */}
+                  <div className="text-center space-y-4">
+                    <motion.div
+                      initial={{ opacity: 0, y: -10 }}
+                      animate={{ opacity: 1, y: 0 }}
                       transition={{ delay: 0.2 }}
                     >
-                      <h4 className="text-sm font-medium text-red-400 mb-2">Service Fee Structure:</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400">International Service Fee:</span>
-                          <span className="text-red-400">30%</span>
-                        </div>
-                        <div className="flex justify-between items-center">
-                          <span className="text-gray-400">Calculation Example:</span>
-                          <span className="text-gray-300">
-                            {currencySymbols[currentCurrency]}{1000} + {currencySymbols[currentCurrency]}{300} = {currencySymbols[currentCurrency]}{1300}
-                          </span>
-                        </div>
-                      </div>
+                      <h3 className="text-2xl font-bold bg-gradient-to-r from-violet-200 via-purple-200 to-violet-200 bg-clip-text text-transparent">
+                        Speed Reader?
+                      </h3>
+                      <div className="h-0.5 w-16 mx-auto mt-2 bg-gradient-to-r from-violet-500/0 via-purple-500/50 to-violet-500/0" />
                     </motion.div>
-
-                    <motion.div 
-                      className="bg-yellow-500/5 border border-yellow-500/10 rounded-lg p-3 mb-4"
-                      initial={{ x: -10, opacity: 0 }}
-                      animate={{ x: 0, opacity: 1 }}
+                    
+                    <motion.p 
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
                       transition={{ delay: 0.3 }}
+                      className="text-gray-300 text-base leading-relaxed"
                     >
-                      <div className="flex items-start space-x-2">
-                        <svg className="w-4 h-4 text-yellow-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <p className="text-yellow-400/80 text-xs">
-                          <span className="font-medium block mb-1">Important Notice:</span>
-                          Our advanced verification system operates independently of VPN services. Changing your location using a VPN will not affect the application of international service fees.
-                        </p>
-                      </div>
-                    </motion.div>
-
-                    <div className="flex justify-end">
-                      <motion.button
-                        whileHover={{ scale: 1.05, boxShadow: "0 0 15px rgba(239, 68, 68, 0.2)" }}
-                        whileTap={{ scale: 0.98 }}
-                        onClick={() => setShowWarning(false)}
-                        className="px-5 py-2.5 bg-red-500 hover:bg-red-600 text-white text-sm font-medium rounded-lg transition-colors"
+                      Did you really read it in a second?
+                      <motion.span
+                        animate={{
+                          rotate: [0, 5, 0, -5, 0],
+                        }}
+                        transition={{
+                          duration: 2.5,
+                          repeat: Infinity,
+                          ease: "easeInOut"
+                        }}
+                        className="inline-block ml-2"
                       >
-                        I Understand
-                      </motion.button>
-                    </div>
+                        🤨
+                      </motion.span>
+                    </motion.p>
+                  </div>
+
+                  {/* Buttons section */}
+                  <div className="flex flex-col gap-3">
+                    <motion.button
+                      whileHover={{ 
+                        scale: 1.02,
+                        transition: { duration: 0.2 }
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setShowQuickReadWarning(false);
+                        setShowUSLocationNotice(false);
+                      }}
+                      className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-500 to-purple-600 p-px focus:outline-none"
+                    >
+                      <div className="relative bg-black/30 backdrop-blur-md rounded-xl p-3">
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="font-semibold text-white">Yes, I Did</span>
+                          <motion.span
+                            animate={{
+                              x: [0, 3, 0],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                          >
+                            ⚡️
+                          </motion.span>
+                        </div>
+                      </div>
+                    </motion.button>
+
+                    <motion.button
+                      whileHover={{ 
+                        scale: 1.02,
+                        transition: { duration: 0.2 }
+                      }}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => {
+                        setShowQuickReadWarning(false);
+                        setShowUSLocationNotice(true);
+                        setNoticeShowTime(Date.now());
+                      }}
+                      className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-violet-500/20 to-purple-600/20 p-px focus:outline-none"
+                    >
+                      <div className="relative bg-black/30 backdrop-blur-md rounded-xl p-3 group-hover:bg-black/40 transition-colors">
+                        <div className="flex items-center justify-center space-x-2">
+                          <span className="font-semibold text-violet-200">Let me read again</span>
+                          <motion.span
+                            animate={{
+                              rotate: [0, 10, 0],
+                            }}
+                            transition={{
+                              duration: 1.5,
+                              repeat: Infinity,
+                              ease: "easeInOut"
+                            }}
+                            className="inline-block"
+                          >
+                            📖
+                          </motion.span>
+                        </div>
+                      </div>
+                    </motion.button>
                   </div>
                 </div>
               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* US Location Notice Modal */}
+        <AnimatePresence>
+          {showUSLocationNotice && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/95 backdrop-blur-md flex items-center justify-center z-[100] p-4"
+              onClick={() => handleUSNoticeClose()}
+            >
+              <motion.div
+                initial={{ scale: 0.95, opacity: 0, y: 20 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.95, opacity: 0, y: 10 }}
+                onClick={(e) => e.stopPropagation()}
+                className={`backdrop-blur-md rounded-xl p-5 w-full max-w-sm mx-auto relative border shadow-[0_0_25px_-5px_rgba(59,130,246,0.3)] ${
+                  hasReadOnce 
+                    ? 'bg-gradient-to-br from-[#2A0A2B] to-[#4A1A4B] border-purple-500/30'
+                    : 'bg-gradient-to-br from-[#0A0A1B] to-[#1A1A3A] border-blue-500/30'
+                }`}
+              >
+                <div className="space-y-4">
+                  {/* Header */}
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center space-x-3">
+                      <div className="relative">
+                        <div className={`absolute -inset-1 bg-gradient-to-r rounded-lg blur-sm ${
+                          hasReadOnce
+                            ? 'from-purple-500/20 via-purple-500/30 to-purple-500/20'
+                            : 'from-blue-500/20 via-blue-500/30 to-blue-500/20'
+                        }`}></div>
+                        <span className="relative text-2xl">🇺🇸</span>
+                        </div>
+                      <div>
+                        <h3 className={`text-lg font-semibold bg-gradient-to-r bg-clip-text text-transparent ${
+                          hasReadOnce
+                            ? 'from-purple-300 to-purple-100'
+                            : 'from-blue-300 to-blue-100'
+                        }`}>
+                          Welcome to NEX-WEBS
+                        </h3>
+                        </div>
+                      </div>
+                  </div>
+                  
+                  {/* Main Content */}
+                  <div className={`rounded-lg p-3 border ${
+                    hasReadOnce
+                      ? 'bg-purple-500/10 border-purple-500/20'
+                      : 'bg-blue-500/10 border-blue-500/20'
+                  }`}>
+                      <div className="flex items-start space-x-2">
+                      <span className="text-lg mt-0.5">ℹ️</span>
+                      <p className={`text-sm leading-relaxed ${
+                        hasReadOnce ? 'text-purple-50' : 'text-blue-50'
+                      }`}>
+                        For your convenience, USD has been set as your default currency. We support global transactions with flexible payment options.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Payment Info */}
+                  <div className={`rounded-lg p-3 border ${
+                    hasReadOnce
+                      ? 'bg-gradient-to-br from-purple-900/20 to-purple-800/10 border-purple-600/20'
+                      : 'bg-gradient-to-br from-blue-900/20 to-blue-800/10 border-blue-600/20'
+                  }`}>
+                    <h4 className={`text-xs font-medium mb-2 flex items-center ${
+                      hasReadOnce ? 'text-purple-300' : 'text-blue-300'
+                    }`}>
+                      <svg className={`w-4 h-4 mr-1.5 ${
+                        hasReadOnce ? 'text-purple-400' : 'text-blue-400'
+                      }`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      Payment Information
+                    </h4>
+                    <ul className="space-y-2">
+                      <li className="flex items-start space-x-2">
+                        <span className={`text-xs mt-1 ${
+                          hasReadOnce ? 'text-purple-400' : 'text-blue-400'
+                        }`}>•</span>
+                        <p className="text-gray-200 text-xs">
+                          All prices are displayed in USD for US-based clients
+                        </p>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className={`text-xs mt-1 ${
+                          hasReadOnce ? 'text-purple-400' : 'text-blue-400'
+                        }`}>•</span>
+                        <p className="text-gray-200 text-xs">
+                          Alternative currencies available upon request
+                        </p>
+                      </li>
+                      <li className="flex items-start space-x-2">
+                        <span className={`text-xs mt-1 ${
+                          hasReadOnce ? 'text-purple-400' : 'text-blue-400'
+                        }`}>•</span>
+                        <p className="text-gray-200 text-xs">
+                          Secure payments via credit cards and PayPal
+                        </p>
+                      </li>
+                    </ul>
+                      </div>
+
+                  {/* Pro Tip */}
+                  <div className="bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-lg p-3 border border-emerald-500/20">
+                    <div className="flex items-start space-x-2">
+                      <span className="text-emerald-400 text-lg">💡</span>
+                      <p className="text-emerald-200 text-xs">
+                        Pro Tip: Need a different currency? Contact us for custom payment arrangements.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Button */}
+                  <button
+                    onClick={() => handleUSNoticeClose()}
+                    className={`w-full mt-2 py-2.5 text-white text-sm font-medium rounded-lg transition-all duration-200 flex items-center justify-center space-x-1 ${
+                      hasReadOnce
+                        ? 'bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/30'
+                        : 'bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30'
+                    }`}
+                  >
+                    <span>Got it, thanks!</span>
+                  </button>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Currency Dropdown */}
+        <AnimatePresence>
+          {showDropdown && (currency === 'PKR' || userLocation.toLowerCase().includes('pakistan')) && (
+            <motion.div
+              variants={dropdownVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="absolute top-full left-0 right-0 mt-2 bg-gradient-to-br from-zinc-900/95 to-zinc-800/95 backdrop-blur-md rounded-xl border border-white/10 shadow-xl z-50 overflow-hidden"
+            >
+              {currencies.map((curr) => (
+                <motion.button
+                  key={curr}
+                  variants={itemVariants}
+                  whileHover="hover"
+                  whileTap="tap"
+                  onClick={() => handleCurrencyChange(curr)}
+                  className="w-full flex items-center space-x-3 px-4 py-3 text-left text-sm text-white hover:text-white/90 transition-colors"
+                >
+                  <span className="text-xl">{currencyFlags[curr]}</span>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{curr}</span>
+                    <span className="text-xs text-gray-400">{getCurrencyName(curr)}</span>
+                  </div>
+                </motion.button>
+              ))}
             </motion.div>
           )}
         </AnimatePresence>

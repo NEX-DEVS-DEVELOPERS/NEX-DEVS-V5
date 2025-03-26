@@ -266,7 +266,7 @@ export default function ServicesPage() {
       </section>
 
       {/* Find Easter Eggs Box */}
-      <div className="fixed top-24 right-8 z-50">
+      <div className="fixed top-24 right-8 z-50 hidden sm:block">
         <motion.div
           initial={{ opacity: 0, x: 100 }}
           animate={{ opacity: 1, x: 0 }}
