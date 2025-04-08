@@ -80,6 +80,23 @@ interface FormData {
   address: string;
   timeline: string;
   details: string;
+  projectType: string;
+  budget: string;
+  requirements: string[];
+  existingWebsite: string;
+  competitors: string;
+  targetAudience: string;
+  projectGoals: string;
+  designPreferences: string;
+  contentCreation: string;
+  technicalPreferences: string[];
+  businessIndustry: string;
+  maintenanceNeeds: string;
+  seoRequirements: string;
+  securityRequirements: string[];
+  performanceExpectations: string;
+  launchTimeframe: string;
+  userConsent: boolean;
 }
 
 const exchangeRates = {
@@ -433,16 +450,40 @@ function ContactPageContent() {
   const [isLoading, setIsLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     phone: '',
     address: '',
     timeline: '',
-    details: ''
+    details: '',
+    projectType: '',
+    budget: '',
+    requirements: [] as string[],
+    existingWebsite: '',
+    competitors: '',
+    targetAudience: '',
+    projectGoals: '',
+    designPreferences: '',
+    contentCreation: '',
+    technicalPreferences: [] as string[],
+    businessIndustry: '',
+    maintenanceNeeds: '',
+    seoRequirements: '',
+    securityRequirements: [] as string[],
+    performanceExpectations: '',
+    launchTimeframe: '',
+    userConsent: false
   });
   const [charCount, setCharCount] = useState(0);
   const MAX_CHARS = 200;
+  // Add state for requirements panel visibility
+  const [showRequirementsPanel, setShowRequirementsPanel] = useState(false);
+  
+  // Toggle requirements panel visibility
+  const toggleRequirementsPanel = () => {
+    setShowRequirementsPanel(prev => !prev);
+  };
 
   useEffect(() => {
     // Get user's country code (you can use a geolocation service here)
@@ -546,14 +587,69 @@ function ContactPageContent() {
     }
   };
 
+  // Add handler for requirements checkbox selection
+  const handleRequirementChange = (requirement: string) => {
+    setFormData((prev: FormData) => {
+      const newRequirements = prev.requirements.includes(requirement)
+        ? prev.requirements.filter(req => req !== requirement)
+        : [...prev.requirements, requirement];
+      
+      return {
+        ...prev,
+        requirements: newRequirements
+      };
+    });
+  };
+
+  // Add handler for technical preferences checkbox selection
+  const handleTechnicalPreferenceChange = (preference: string) => {
+    setFormData((prev: FormData) => {
+      const newPreferences = prev.technicalPreferences.includes(preference)
+        ? prev.technicalPreferences.filter(pref => pref !== preference)
+        : [...prev.technicalPreferences, preference];
+      
+      return {
+        ...prev,
+        technicalPreferences: newPreferences
+      };
+    });
+  };
+
+  // Add handler for security requirements checkbox selection
+  const handleSecurityRequirementChange = (requirement: string) => {
+    setFormData((prev: FormData) => {
+      const newRequirements = prev.securityRequirements.includes(requirement)
+        ? prev.securityRequirements.filter(req => req !== requirement)
+        : [...prev.securityRequirements, requirement];
+      
+      return {
+        ...prev,
+        securityRequirements: newRequirements
+      };
+    });
+  };
+
+  // Add handler for consent toggle
+  const handleConsentToggle = () => {
+    setFormData((prev: FormData) => ({
+      ...prev,
+      userConsent: !prev.userConsent
+    }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     setSuccessMessage('');
     setErrorMessage('');
     
-    if (!formData.name || !formData.email || !formData.timeline || !formData.details) {
+    if (!formData.name || !formData.email || !formData.timeline) {
       setErrorMessage('Please fill in all required fields');
+      return;
+    }
+
+    if (!formData.userConsent) {
+      setErrorMessage('Please provide your consent to submit the form');
       return;
     }
 
@@ -597,11 +693,29 @@ function ContactPageContent() {
           phone: '',
           address: '',
           timeline: '',
-          details: ''
+          details: '',
+          projectType: '',
+          budget: '',
+          requirements: [],
+          existingWebsite: '',
+          competitors: '',
+          targetAudience: '',
+          projectGoals: '',
+          designPreferences: '',
+          contentCreation: '',
+          technicalPreferences: [],
+          businessIndustry: '',
+          maintenanceNeeds: '',
+          seoRequirements: '',
+          securityRequirements: [],
+          performanceExpectations: '',
+          launchTimeframe: '',
+          userConsent: false
         });
         setSelectedPlan(null);
         setSelectedTimeline('');
         setAdjustedPrice('');
+        setShowRequirementsPanel(false);
       } else {
         setErrorMessage(result.message || 'Failed to send message. Please try again later.');
       }
@@ -995,15 +1109,378 @@ function ContactPageContent() {
                 </div>
                 <p className="text-sm text-gray-300 mt-2">Selected Timeline: {selectedTimeline}</p>
                 <div>
-                  <label className="block text-xs md:text-sm font-medium mb-1 md:mb-2">Project Details</label>
+                  <label className="block text-xs md:text-sm font-medium mb-3 md:mb-4">Project Requirements</label>
+
+                  {/* Project Requirements Toggle Button */}
+                  <button
+                    type="button"
+                    onClick={toggleRequirementsPanel}
+                    className="w-full mb-5 bg-gradient-to-r from-purple-700 to-indigo-800 hover:from-purple-800 hover:to-indigo-900 
+                      text-white py-4 px-5 rounded-xl transition-all duration-300 flex items-center justify-between
+                      shadow-xl shadow-purple-900/30 font-medium border-2 border-purple-500/20 relative overflow-hidden group"
+                  >
+                    {/* Animated gradient background */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/20 via-pink-500/10 to-purple-500/20 opacity-50 
+                      group-hover:opacity-70 transition-opacity duration-500" style={{ backgroundSize: "200% 100%" }}></div>
+                    
+                    {/* Animated shine effect */}
+                    <div className="absolute inset-0 opacity-30 bg-gradient-to-r from-transparent via-white to-transparent 
+                      -translate-x-full group-hover:translate-x-full transition-all duration-1000 ease-in-out"></div>
+                    
+                    <div className="flex items-center z-10">
+                      {/* NEX-DEVS logo/icon */}
+                      <div className="flex items-center justify-center mr-3 bg-white/10 rounded-lg p-2 border border-white/20">
+                        <span className="text-lg font-black tracking-tight">NEX-DEVS</span>
+                      </div>
+                      
+                      <div className="flex flex-col text-left">
+                        <span className="text-sm font-bold uppercase tracking-wider text-purple-200">Development Requirements</span>
+                        <span className="text-xs text-purple-300/90 mt-0.5">Required information from client</span>
+                      </div>
+                    </div>
+                    
+                    {/* Pulsing indicator */}
+                    <div className="flex items-center z-10">
+                      <div className="mr-3 hidden md:block">
+                        <span className="inline-block px-3 py-1 text-xs font-medium rounded-full bg-purple-600/70 text-white 
+                          animate-pulse border border-purple-400/30">
+                          Important
+                        </span>
+                      </div>
+                      <svg 
+                        className={`w-6 h-6 transition-transform duration-300 ${showRequirementsPanel ? 'rotate-180' : ''}`} 
+                        fill="none" 
+                        stroke="currentColor" 
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                      </svg>
+                    </div>
+                  </button>
+                  
+                  {/* Expandable Requirements Panel */}
+                  {showRequirementsPanel && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, y: -20 }}
+                      className="space-y-5 bg-zinc-800/50 p-4 md:p-6 rounded-lg border border-zinc-700 mb-5"
+                    >
+                      <div className="text-purple-400 text-sm font-medium mb-4 pb-2 border-b border-zinc-700">
+                        Business Objectives
+                      </div>
+                      
+                      {/* Project Type */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Project Type <span className="text-purple-400">*</span></label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.projectType}
+                          onChange={(e) => setFormData(prev => ({ ...prev, projectType: e.target.value }))}
+                          required
+                        >
+                          <option value="">Select Project Type</option>
+                          <option value="business-website">Business Website</option>
+                          <option value="e-commerce">E-commerce Store</option>
+                          <option value="portfolio">Portfolio Website</option>
+                          <option value="blog">Blog</option>
+                          <option value="web-application">Web Application</option>
+                          <option value="redesign">Website Redesign</option>
+                          <option value="maintenance">Website Maintenance</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+
+                      {/* Business Industry */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Business Industry</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.businessIndustry}
+                          onChange={(e) => setFormData(prev => ({ ...prev, businessIndustry: e.target.value }))}
+                        >
+                          <option value="">Select Your Industry</option>
+                          <option value="retail">Retail & E-commerce</option>
+                          <option value="healthcare">Healthcare & Medical</option>
+                          <option value="finance">Finance & Banking</option>
+                          <option value="education">Education & Training</option>
+                          <option value="technology">Technology & SaaS</option>
+                          <option value="hospitality">Hospitality & Tourism</option>
+                          <option value="real-estate">Real Estate & Property</option>
+                          <option value="manufacturing">Manufacturing & Industry</option>
+                          <option value="legal">Legal Services</option>
+                          <option value="media">Media & Entertainment</option>
+                          <option value="nonprofit">Nonprofit & Charity</option>
+                          <option value="other">Other</option>
+                        </select>
+                      </div>
+                      
+                      {/* Target Audience */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Target Audience</label>
+                        <textarea
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          rows={2}
+                          placeholder="Describe your target audience (age, demographic, interests, etc.)"
+                          value={formData.targetAudience}
+                          onChange={(e) => setFormData(prev => ({ ...prev, targetAudience: e.target.value }))}
+                        />
+                      </div>
+                      
+                      {/* Project Goals */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Project Goals & Success Metrics</label>
+                        <textarea
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          rows={2}
+                          placeholder="What are your main business goals for this project? How will you measure success?"
+                          value={formData.projectGoals}
+                          onChange={(e) => setFormData(prev => ({ ...prev, projectGoals: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Launch Timeframe */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Desired Launch Timeframe</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.launchTimeframe}
+                          onChange={(e) => setFormData(prev => ({ ...prev, launchTimeframe: e.target.value }))}
+                        >
+                          <option value="">Select Timeframe</option>
+                          <option value="asap">As soon as possible</option>
+                          <option value="1-month">Within 1 month</option>
+                          <option value="2-3-months">2-3 months</option>
+                          <option value="3-6-months">3-6 months</option>
+                          <option value="6-plus-months">6+ months</option>
+                          <option value="flexible">Flexible</option>
+                        </select>
+                      </div>
+
+                      <div className="text-purple-400 text-sm font-medium mt-6 mb-4 pb-2 border-b border-zinc-700">
+                        Technical Specifications
+                      </div>
+
+                      {/* Functional Requirements */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Core Functional Requirements</label>
+                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                          {[
+                            "User Authentication",
+                            "Payment Integration",
+                            "Content Management",
+                            "Search Functionality",
+                            "User Profiles",
+                            "Multi-language Support",
+                            "Product Catalog",
+                            "Social Media Integration",
+                            "Blog Section",
+                            "Contact Forms",
+                            "Newsletter Integration",
+                            "Admin Dashboard",
+                            "Responsive Design",
+                            "SEO Optimization",
+                            "Custom API Integration",
+                            "Analytics Integration"
+                          ].map((req, index) => (
+                            <div key={index} className="flex items-start p-2 hover:bg-zinc-700/30 rounded-md transition-colors">
+                              <input
+                                type="checkbox"
+                                id={`req-${index}`}
+                                className="mt-1 mr-2"
+                                checked={formData.requirements.includes(req)}
+                                onChange={() => handleRequirementChange(req)}
+                              />
+                              <label htmlFor={`req-${index}`} className="text-xs md:text-sm text-gray-300 cursor-pointer">
+                                {req}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Security Requirements */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Security Requirements</label>
+                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                          {[
+                            "SSL Certificate",
+                            "GDPR Compliance",
+                            "Data Encryption",
+                            "Two-Factor Authentication",
+                            "Firewall Protection",
+                            "Regular Backups",
+                            "DDoS Protection",
+                            "Privacy Policy"
+                          ].map((req, index) => (
+                            <div key={index} className="flex items-start p-2 hover:bg-zinc-700/30 rounded-md transition-colors">
+                              <input
+                                type="checkbox"
+                                id={`security-${index}`}
+                                className="mt-1 mr-2"
+                                checked={formData.securityRequirements.includes(req)}
+                                onChange={() => handleSecurityRequirementChange(req)}
+                              />
+                              <label htmlFor={`security-${index}`} className="text-xs md:text-sm text-gray-300 cursor-pointer">
+                                {req}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Technical Preferences */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Technical Preferences</label>
+                        <p className="text-xs text-gray-400 mb-3">Select technologies you prefer or are already using:</p>
+                        <div className="grid grid-cols-2 gap-2 md:gap-3">
+                          {[
+                            "WordPress",
+                            "Shopify",
+                            "WooCommerce",
+                            "Next.js",
+                            "React",
+                            "Vue.js",
+                            "PHP",
+                            "Node.js",
+                            "MySQL",
+                            "MongoDB"
+                          ].map((tech, index) => (
+                            <div key={index} className="flex items-start p-2 hover:bg-zinc-700/30 rounded-md transition-colors">
+                              <input
+                                type="checkbox"
+                                id={`tech-${index}`}
+                                className="mt-1 mr-2"
+                                checked={formData.technicalPreferences.includes(tech)}
+                                onChange={() => handleTechnicalPreferenceChange(tech)}
+                              />
+                              <label htmlFor={`tech-${index}`} className="text-xs md:text-sm text-gray-300 cursor-pointer">
+                                {tech}
+                              </label>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* SEO Requirements */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">SEO Requirements</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.seoRequirements}
+                          onChange={(e) => setFormData(prev => ({ ...prev, seoRequirements: e.target.value }))}
+                        >
+                          <option value="">Select SEO Requirements</option>
+                          <option value="basic">Basic SEO (meta tags, sitemaps)</option>
+                          <option value="standard">Standard SEO (includes keyword research)</option>
+                          <option value="advanced">Advanced SEO (full optimization package)</option>
+                          <option value="none">No SEO services needed</option>
+                        </select>
+                      </div>
+
+                      {/* Performance Expectations */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Performance Expectations</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.performanceExpectations}
+                          onChange={(e) => setFormData(prev => ({ ...prev, performanceExpectations: e.target.value }))}
+                        >
+                          <option value="">Select Performance Expectations</option>
+                          <option value="standard">Standard (Google PageSpeed 80+)</option>
+                          <option value="high">High Performance (Google PageSpeed 90+)</option>
+                          <option value="extreme">Extreme Performance (Google PageSpeed 95+)</option>
+                          <option value="custom">Custom Requirements</option>
+                        </select>
+                      </div>
+
+                      {/* Maintenance Needs */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Maintenance Requirements</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.maintenanceNeeds}
+                          onChange={(e) => setFormData(prev => ({ ...prev, maintenanceNeeds: e.target.value }))}
+                        >
+                          <option value="">Select Maintenance Needs</option>
+                          <option value="none">No maintenance needed</option>
+                          <option value="basic">Basic maintenance (security updates only)</option>
+                          <option value="standard">Standard maintenance (updates, backups, minor changes)</option>
+                          <option value="premium">Premium support (24/7 monitoring, regular updates, content changes)</option>
+                          <option value="custom">Custom maintenance plan</option>
+                        </select>
+                      </div>
+
+                      <div className="text-purple-400 text-sm font-medium mt-6 mb-4 pb-2 border-b border-zinc-700">
+                        Design & Content
+                      </div>
+
+                      {/* Design Preferences */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Design Preferences</label>
+                        <textarea
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          rows={2}
+                          placeholder="Describe your design preferences (modern, minimalist, colorful, etc.) and any branding guidelines"
+                          value={formData.designPreferences}
+                          onChange={(e) => setFormData(prev => ({ ...prev, designPreferences: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Content Creation */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Content Creation</label>
+                        <select
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          value={formData.contentCreation}
+                          onChange={(e) => setFormData(prev => ({ ...prev, contentCreation: e.target.value }))}
+                        >
+                          <option value="">Select Content Creation Option</option>
+                          <option value="client-provided">All content will be provided by me/my team</option>
+                          <option value="partial">I need help with some content creation</option>
+                          <option value="full">I need full content creation services</option>
+                          <option value="copywriting">I only need copywriting services</option>
+                          <option value="media">I only need media (images/videos) creation</option>
+                        </select>
+                      </div>
+
+                      <div className="text-purple-400 text-sm font-medium mt-6 mb-4 pb-2 border-b border-zinc-700">
+                        References
+                      </div>
+
+                      {/* Existing Website */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Do you have an existing website?</label>
+                        <input
+                          type="text"
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          placeholder="If yes, please provide the URL"
+                          value={formData.existingWebsite}
+                          onChange={(e) => setFormData(prev => ({ ...prev, existingWebsite: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Competitors */}
+                      <div>
+                        <label className="block text-xs md:text-sm font-medium mb-2">Competitors or Reference Websites</label>
+                        <textarea
+                          className="w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          rows={2}
+                          placeholder="List websites you like or competitors for reference"
+                          value={formData.competitors}
+                          onChange={(e) => setFormData(prev => ({ ...prev, competitors: e.target.value }))}
+                        />
+                      </div>
+
+                      {/* Additional Details */}
                   <div className="relative">
+                        <label className="block text-xs md:text-sm font-medium mb-2">Additional Details</label>
                     <textarea
                       className={`w-full px-3 md:px-4 py-2 text-sm rounded-lg bg-zinc-800 border 
                         ${charCount > MAX_CHARS ? 'border-red-500 focus:border-red-500 focus:ring-red-500' : 'border-zinc-700 focus:border-purple-500 focus:ring-purple-500'} 
                         focus:ring-1`}
-                      rows={4}
-                      placeholder="Tell us about your project requirements, goals, and any specific features you need..."
-                      required
+                          rows={3}
+                          placeholder="Any other specific requirements, features, or expectations?"
                       maxLength={MAX_CHARS}
                       value={formData.details}
                       onChange={(e) => {
@@ -1015,44 +1492,28 @@ function ContactPageContent() {
                       ${charCount > MAX_CHARS ? 'text-red-400' : charCount > MAX_CHARS * 0.8 ? 'text-yellow-400' : 'text-gray-400'}`}>
                       <span className="font-medium">{charCount}</span>
                       <span className="text-gray-500">/{MAX_CHARS}</span>
-                    </div>
-                    
-                    {/* Character limit notifications */}
-                    {charCount === MAX_CHARS && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-16 right-0 w-64 bg-emerald-900/90 border border-emerald-500/50 
-                          text-emerald-100 p-3 rounded-lg shadow-lg backdrop-blur-sm"
-                      >
-                        <div className="flex items-start gap-2">
-                          <svg className="w-5 h-5 text-emerald-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                          </svg>
-                          <div>
-                            <p className="text-sm font-medium mb-1">Character limit reached</p>
-                            <p className="text-xs text-emerald-300/90">
-                              No worries! You can send up to 3 separate messages for detailed requirements.
-                            </p>
                           </div>
                         </div>
                       </motion.div>
                     )}
                     
-                    {charCount > MAX_CHARS && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-12 right-0 text-red-400 whitespace-nowrap bg-red-900/50 px-3 py-1.5 rounded-lg text-xs border border-red-500/30"
-                      >
-                        <div className="flex items-center gap-1.5">
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                          </svg>
-                          <span>Please reduce the text length</span>
+                  {/* Add consent checkbox */}
+                  <div className="mt-6 p-4 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        id="consent-checkbox"
+                        className="mt-1 mr-3"
+                        checked={formData.userConsent}
+                        onChange={handleConsentToggle}
+                        required
+                      />
+                      <label htmlFor="consent-checkbox" className="text-sm text-gray-300 cursor-pointer">
+                        <span className="font-medium text-white">I consent to NEX-DEVS processing my data</span> - By submitting this form, 
+                        I acknowledge that the information provided will be processed in accordance with NEX-DEVS' privacy policy for the purpose 
+                        of responding to my inquiry and potentially establishing a business relationship. I understand I can withdraw my consent at any time.
+                      </label>
                         </div>
-                      </motion.div>
-                    )}
                   </div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">

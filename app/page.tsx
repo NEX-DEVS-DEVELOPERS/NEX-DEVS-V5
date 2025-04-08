@@ -58,7 +58,6 @@ export default function Home() {
   const { addEasterEgg } = useEasterEggs()
   const [konamiIndex, setKonamiIndex] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
-  const [techClickCounts, setTechClickCounts] = useState<{ [key: string]: number }>({})
   const [showTerminal, setShowTerminal] = useState(false)
   const [showHints, setShowHints] = useState(false)
   const [currentJoke, setCurrentJoke] = useState(PROGRAMMING_JOKES[0])
@@ -91,38 +90,32 @@ export default function Home() {
     { 
       name: 'React', 
       icon: '/icons/react.svg',
-      iconColor: '#61DAFB',  // React blue
-      className: "text-[#61DAFB] hover:text-[#61DAFB]/80"
+      iconColor: '#61DAFB'
     },
     { 
       name: 'Next.js', 
       icon: '/icons/nextjs.svg',
-      iconColor: '#ffffff',  // White
-      className: "text-white hover:text-white/80"
+      iconColor: '#ffffff'
     },
     { 
       name: 'TypeScript', 
       icon: '/icons/typescript.svg',
-      iconColor: '#3178C6',  // TypeScript blue
-      className: "text-[#3178C6] hover:text-[#3178C6]/80"
+      iconColor: '#3178C6'
     },
     { 
       name: 'Node.js', 
       icon: '/icons/nodejs.svg',
-      iconColor: '#339933',  // Node green
-      className: "text-[#339933] hover:text-[#339933]/80"
+      iconColor: '#339933'
     },
     { 
       name: 'Python', 
       icon: '/icons/python.svg',
-      iconColor: '#3776AB',  // Python blue
-      className: "text-[#3776AB] hover:text-[#3776AB]/80"
+      iconColor: '#3776AB'
     },
     { 
       name: 'AWS', 
       icon: '/icons/aws.svg',
-      iconColor: '#FF9900',  // AWS orange
-      className: "text-[#FF9900] hover:text-[#FF9900]/80"
+      iconColor: '#FF9900'
     }
   ]
 
@@ -151,6 +144,21 @@ export default function Home() {
       title: "Web Apps/AI Agents",
       description: "Custom web applications and AI integration",
       icon: "🤖"
+    },
+    {
+      title: "Mobile App Development",
+      description: "Cross-platform native app development for iOS and Android",
+      icon: "📱"
+    },
+    {
+      title: "AI Integrated Website",
+      description: "Smart websites with integrated AI-powered features and chatbots",
+      icon: "🧠"
+    },
+    {
+      title: "3D Business Websites",
+      description: "Immersive 3D experiences with Three.js and WebGL for modern brands",
+      icon: "🌐"
     }
   ]
 
@@ -300,51 +308,6 @@ export default function Home() {
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [handleKeyDown])
-
-  // Handle tech stack icon clicks
-  const handleTechClick = (techName: string) => {
-    setTechClickCounts(prev => {
-      const newCount = (prev[techName] || 0) + 1
-      if (newCount === 10) {
-        addFoundEasterEgg('tech-achievement')
-        alert(`🎉 You've unlocked the ${techName} achievement! You must really love ${techName}!`)
-      }
-      return { ...prev, [techName]: newCount }
-    })
-  }
-
-  // Add useEffect to check for source code easter egg
-  useEffect(() => {
-    const hasViewedSource = localStorage.getItem('viewed-source')
-    if (hasViewedSource) {
-      addFoundEasterEgg('source-code')
-    }
-  }, [])
-
-  // Add keyboard shortcut listener for source code viewing
-  useEffect(() => {
-    const handleKeyPress = (e: KeyboardEvent) => {
-      // Check for Ctrl+U (view source) or Command+U on Mac
-      if ((e.ctrlKey || e.metaKey) && e.key === 'u') {
-        localStorage.setItem('viewed-source', 'true')
-        addFoundEasterEgg('source-code')
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [])
-
-  // Add right-click context menu handler
-  useEffect(() => {
-    const handleContextMenu = () => {
-      localStorage.setItem('viewed-source', 'true')
-      addFoundEasterEgg('source-code')
-    }
-
-    window.addEventListener('contextmenu', handleContextMenu)
-    return () => window.removeEventListener('contextmenu', handleContextMenu)
-  }, [])
 
   // Load saved position on mount
   useEffect(() => {
@@ -549,108 +512,84 @@ export default function Home() {
           </section>
 
           {/* Technologies Section */}
-          <section className="py-12 sm:py-20 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-center mb-8 sm:mb-16 space-y-2 sm:space-y-4"
-              >
-                <motion.h2 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="text-2xl sm:text-4xl font-bold inline-block"
-                >
-                  <span className="text-white">
-                    Tech{" "}
-                    <span className="bg-white text-black px-3 py-1 rounded-lg">
-                      Stack
-                    </span>
-                  </span>
-                </motion.h2>
+          <section className="py-12 sm:py-20 relative">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6">
+              <div className="text-center mb-10 sm:mb-16">
+                <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3">
+                  <span className="text-white">Tech </span>
+                  <span className="bg-white text-black px-3 py-1 rounded-lg">Stack</span>
+                </h2>
                 <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto">
                   Modern technologies I work with to build powerful solutions
                 </p>
-              </motion.div>
+              </div>
               
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-6">
-                {technologies.map((tech, index) => (
-                  <motion.div
+              {/* Tech Icons - Minimalist Grid */}
+              <div className="grid grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6 mb-12 sm:mb-16">
+                {technologies.map((tech) => (
+                  <div
                     key={tech.name}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -5 }}
-                    onClick={() => handleTechClick(tech.name)}
-                    className="group relative flex flex-col items-center p-3 sm:p-6 rounded-xl 
-                              bg-black/40 border border-white/10 backdrop-blur-sm
-                              hover:border-purple-500/50 hover:bg-black/60
-                              transition-all duration-300 ease-out cursor-pointer"
+                    className="flex flex-col items-center"
                   >
-                    <div className="relative z-10 flex flex-col items-center">
-                      <div className={`w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center mb-2 sm:mb-3 
-                                    group-hover:scale-110 transition-transform duration-300
-                                    ${techClickCounts[tech.name] >= 5 ? 'animate-bounce' : ''}`}>
-                        <Image 
-                          src={tech.icon} 
-                          alt={tech.name} 
-                          width={40} 
-                          height={40} 
-                          className={`object-contain brightness-200 
-                                     ${techClickCounts[tech.name] >= 10 ? 'animate-spin' : ''}`}
-                        />
-                      </div>
-                      <span className="text-xs sm:text-sm font-medium text-gray-400 
-                                    group-hover:text-white transition-colors duration-300">
-                        {tech.name}
-                      </span>
+                    <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center 
+                                  bg-black p-2 sm:p-3 rounded-lg border border-white/5 
+                                  hover:border-purple-500/70 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] 
+                                  transition-all duration-300">
+                      <Image 
+                        src={tech.icon} 
+                        alt={tech.name} 
+                        width={40} 
+                        height={40} 
+                        className="object-contain w-8 h-8 sm:w-10 sm:h-10 brightness-125 
+                                 hover:brightness-150 transition-all duration-300"
+                      />
                     </div>
-                  </motion.div>
+                    <span className="text-xs sm:text-sm text-gray-400 group-hover:text-purple-300 transition-colors duration-300">{tech.name}</span>
+                  </div>
                 ))}
               </div>
 
-              {/* Tech Categories */}
-              <div className="mt-8 sm:mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {/* Tech Categories - Clean Cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
                 {[
                   {
                     title: "Frontend",
                     description: "Modern UI development",
                     tools: "React, Next.js, TypeScript",
-                    gradient: "from-purple-500/20 to-indigo-500/20"
+                    icon: "💻"
                   },
                   {
                     title: "Backend",
                     description: "Scalable server solutions",
                     tools: "Node.js, Python, AWS",
-                    gradient: "from-indigo-500/20 to-violet-500/20"
+                    icon: "⚙️"
                   },
                   {
                     title: "DevOps",
                     description: "Deployment & CI/CD",
                     tools: "Docker, GitHub Actions, Vercel",
-                    gradient: "from-violet-500/20 to-purple-500/20"
+                    icon: "🚀"
                   }
-                ].map((category, index) => (
-                  <motion.div
+                ].map((category) => (
+                  <div
                     key={category.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1 }}
-                    whileHover={{ scale: 1.02 }}
-                    className="group p-4 sm:p-6 rounded-xl border border-white/10 
-                             hover:border-purple-500/50
-                             relative overflow-hidden backdrop-blur-sm"
+                    className="group p-5 sm:p-6 border border-white/10 rounded-lg bg-black 
+                             hover:border-purple-500/50 hover:bg-black/80
+                             transition-all duration-300"
                   >
-                    <div className="relative z-10">
-                      <h3 className="text-base sm:text-xl font-semibold text-white mb-1 sm:mb-2 
-                                  group-hover:text-purple-200 transition-colors duration-300">
+                    <div className="flex items-start gap-3 mb-3">
+                      <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
+                        {category.icon}
+                      </span>
+                      <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-purple-200 transition-colors duration-300">
                         {category.title}
                       </h3>
-                      <p className="text-xs sm:text-sm text-gray-400 mb-2 sm:mb-3">{category.description}</p>
-                      <p className="text-xs sm:text-sm text-white/80 font-mono">{category.tools}</p>
                     </div>
-                  </motion.div>
+                    <p className="text-sm text-gray-400 mb-3">{category.description}</p>
+                    <div className="pt-3 border-t border-white/10 group-hover:border-purple-500/20 transition-colors duration-300">
+                      <p className="text-sm text-white/70 font-mono group-hover:text-purple-200/80 transition-colors duration-300">{category.tools}</p>
+                    </div>
+                  </div>
                 ))}
               </div>
             </div>
@@ -689,7 +628,7 @@ export default function Home() {
               {/* Featured Work */}
               <div className="space-y-8 sm:space-y-16">
                 <div className="text-center space-y-2 sm:space-y-4">
-                  <h2 className="text-2xl sm:text-4xl font-bold text-white">Featured Projects</h2>
+                  <h2 className="text-2xl sm:text-4xl font-bold text-white">FEATURED PROJECT DETAILS</h2>
                   <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto">
                     Delivering exceptional digital experiences through innovative solutions and cutting-edge technology
                   </p>
@@ -760,7 +699,7 @@ export default function Home() {
                     href="/featured-projects" 
                     className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-[#1A1A1A] rounded-lg hover:bg-[#2A2A2A] transition-colors"
                   >
-                    View All Projects →
+                    VIEW PROJECTS DETAILS →
                   </Link>
                 </motion.div>
               </div>
@@ -868,6 +807,9 @@ export default function Home() {
           </section>
         </motion.div>
       </AnimatePresence>
+      <div className="fixed bottom-2 right-2 opacity-30 hover:opacity-100 transition-opacity">
+        <Link href="/admin/login" className="text-xs text-gray-500 hover:text-gray-300">Admin</Link>
+      </div>
     </main>
   )
 }

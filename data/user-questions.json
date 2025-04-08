@@ -1,0 +1,38 @@
+[
+  {
+    "id": "sample123456",
+    "name": "Sarah Johnson",
+    "email": "example@example.com",
+    "question": "Do you offer ongoing website support after the project is completed?",
+    "answer": "Yes, I offer various ongoing support packages tailored to your needs. These include regular maintenance, content updates, security monitoring, and technical support. I believe in building long-term relationships with clients, so you can count on continued assistance even after your project launches.",
+    "status": "approved",
+    "createdAt": "2025-03-27T10:15:30Z"
+  },
+  {
+    "id": "sample789012",
+    "name": "Michael Smith",
+    "email": "example2@example.com",
+    "question": "How do you handle revisions to the design during development?",
+    "answer": "I include a specific number of revision rounds in each project proposal. For most projects, this includes 2-3 rounds of major revisions. I maintain open communication throughout the process and use collaborative tools to gather feedback efficiently. If additional revisions are needed beyond what's included, we can discuss reasonable rates for the extra work.",
+    "status": "approved",
+    "createdAt": "2025-03-26T14:22:45Z"
+  },
+  {
+    "id": "e5g5iq349jbkdhve8voac",
+    "name": "NEX-WEBS-PROJECT 1",
+    "email": "nexwebs.org@gmail.com",
+    "question": "when are the new deals?\n",
+    "status": "approved",
+    "createdAt": "2025-03-28T18:58:51.926Z",
+    "answer": "soon brother"
+  },
+  {
+    "id": "7zcfrv0wcqjg4umumrisat",
+    "name": "ali hasnaat",
+    "email": "usjuttsaab@gmail.com",
+    "question": "new deals\n",
+    "status": "approved",
+    "createdAt": "2025-03-28T19:05:40.940Z",
+    "answer": "soon"
+  }
+]

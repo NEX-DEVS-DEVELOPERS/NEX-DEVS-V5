@@ -35,6 +35,7 @@ export default function Navbar() {
             ['About Me', '/about'],
             ['My Projects', '/work'],
             ['My Blogs', '/blog'],
+            ['FAQs', '/faqs'],
             ['Contact/Checkout', '/contact'],
             ['Pricing', '/pricing']
           ].map(([text, href], index) => (

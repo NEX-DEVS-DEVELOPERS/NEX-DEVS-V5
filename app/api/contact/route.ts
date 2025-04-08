@@ -24,7 +24,24 @@ export async function POST(req: NextRequest) {
       finalPrice,
       rushFee,
       discount,
-      internationalFee 
+      internationalFee,
+      projectType,
+      budget,
+      requirements,
+      existingWebsite,
+      competitors,
+      targetAudience,
+      projectGoals,
+      designPreferences,
+      contentCreation,
+      technicalPreferences,
+      businessIndustry,
+      maintenanceNeeds,
+      seoRequirements,
+      securityRequirements,
+      performanceExpectations,
+      launchTimeframe,
+      userConsent
     } = formData;
     
     console.log('Form data received:', { name, email, selectedPlan, timeline });
@@ -89,18 +106,18 @@ export async function POST(req: NextRequest) {
     // Format the email content with all the form data
     const mailOptions = {
       from: {
-        name: 'NEX-WEBS Contact Form',
+        name: 'NEX-DEVS Contact Form',
         address: 'nexwebs.org@gmail.com'
       },
       to: 'nexwebs.org@gmail.com',
-      subject: `NEX-WEBS | New Contact Form Submission - ${name}`,
+      subject: `NEX-DEVS | New Contact Form Submission - ${name}`,
       html: `
         <!DOCTYPE html>
         <html>
         <head>
           <meta charset="utf-8">
           <meta name="viewport" content="width=device-width, initial-scale=1.0">
-          <title>NEX-WEBS Contact Form Submission</title>
+          <title>NEX-DEVS Contact Form Submission</title>
           <style>
             body {
               font-family: 'Arial', sans-serif;
@@ -230,7 +247,7 @@ export async function POST(req: NextRequest) {
         <body>
           <div class="container">
             <div class="header">
-              <div class="logo">NEX-WEBS</div>
+              <div class="logo">NEX-DEVS</div>
               <p class="subtitle">New Contact Form Submission</p>
             </div>
             
@@ -310,8 +327,88 @@ export async function POST(req: NextRequest) {
               </div>
             </div>
             
+            <div class="section">
+              <h2 class="section-title">Business Requirements</h2>
+              <div class="info-row">
+                <span class="label">Project Type:</span>
+                <span class="value">${projectType || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Business Industry:</span>
+                <span class="value">${businessIndustry || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Budget Range:</span>
+                <span class="value">${budget || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Target Audience:</span>
+                <span class="value">${targetAudience || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Project Goals:</span>
+                <span class="value">${projectGoals || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Launch Timeframe:</span>
+                <span class="value">${launchTimeframe || 'Not specified'}</span>
+              </div>
+            </div>
+            
+            <div class="section">
+              <h2 class="section-title">Technical Requirements</h2>
+              <div class="info-row">
+                <span class="label">Functional Requirements:</span>
+                <span class="value">${requirements && requirements.length > 0 ? requirements.join(', ') : 'None selected'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Security Requirements:</span>
+                <span class="value">${securityRequirements && securityRequirements.length > 0 ? securityRequirements.join(', ') : 'None selected'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Technical Preferences:</span>
+                <span class="value">${technicalPreferences && technicalPreferences.length > 0 ? technicalPreferences.join(', ') : 'None selected'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">SEO Requirements:</span>
+                <span class="value">${seoRequirements || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Performance Expectations:</span>
+                <span class="value">${performanceExpectations || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Maintenance Needs:</span>
+                <span class="value">${maintenanceNeeds || 'Not specified'}</span>
+              </div>
+            </div>
+            
+            <div class="section">
+              <h2 class="section-title">Design & Content</h2>
+              <div class="info-row">
+                <span class="label">Design Preferences:</span>
+                <span class="value">${designPreferences || 'Not specified'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Content Creation:</span>
+                <span class="value">${contentCreation || 'Not specified'}</span>
+              </div>
+            </div>
+            
+            <div class="section">
+              <h2 class="section-title">Reference Information</h2>
+              <div class="info-row">
+                <span class="label">Existing Website:</span>
+                <span class="value">${existingWebsite || 'Not provided'}</span>
+              </div>
+              <div class="info-row">
+                <span class="label">Competitors/References:</span>
+                <span class="value">${competitors || 'Not provided'}</span>
+              </div>
+            </div>
+            
             <div class="footer">
-              &copy; ${new Date().getFullYear()} NEX-WEBS | This is an automated email from your website contact form
+              &copy; ${new Date().getFullYear()} NEX-DEVS | This is an automated email from your website contact form
             </div>
           </div>
         </body>

@@ -15,6 +15,7 @@ export default function MobileMenu() {
     ['About', '/about'],
     ['Work', '/work'],
     ['Blog', '/blog'],
+    ['FAQs', '/faqs'],
     ['Contact', '/contact'],
     ['Pricing', '/pricing']
   ]
