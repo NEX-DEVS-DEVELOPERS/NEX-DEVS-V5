@@ -9,11 +9,49 @@ const ADMIN_PASSWORD = 'nex-devs.org889123';
 // Path to the projects.json file
 const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
 
+// Cache mechanism to ensure changes are reflected across instances
+let projectsCache: Project[] | null = null;
+let lastCacheUpdate = 0;
+const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
+
+// Read projects with cache handling
+async function readProjects(): Promise<Project[]> {
+  const now = Date.now();
+  // Return cached projects if they exist and aren't expired
+  if (projectsCache && (now - lastCacheUpdate < CACHE_EXPIRY)) {
+    return projectsCache;
+  }
+  
+  try {
+    const data = await readFile(projectsFilePath, 'utf8');
+    projectsCache = JSON.parse(data);
+    lastCacheUpdate = now;
+    return projectsCache;
+  } catch (error) {
+    console.error('Error reading projects:', error);
+    return [];
+  }
+}
+
+// Write projects with cache update
+async function writeProjects(projects: Project[]): Promise<boolean> {
+  try {
+    const sortedProjects = sortProjects(projects);
+    await writeFile(projectsFilePath, JSON.stringify(sortedProjects, null, 2), 'utf8');
+    // Update cache
+    projectsCache = sortedProjects;
+    lastCacheUpdate = Date.now();
+    return true;
+  } catch (error) {
+    console.error('Error writing projects:', error);
+    return false;
+  }
+}
+
 // GET all projects
 export async function GET() {
   try {
-    const data = await readFile(projectsFilePath, 'utf8');
-    const projects = JSON.parse(data);
+    const projects = await readProjects();
     return NextResponse.json(sortProjects(projects));
   } catch (error) {
     console.error('Error reading projects:', error);
@@ -37,8 +75,7 @@ export async function POST(request: NextRequest) {
     }
     
     // Read current projects
-    const data = await readFile(projectsFilePath, 'utf8');
-    const projects: Project[] = JSON.parse(data);
+    const projects = await readProjects();
     
     // Generate a new ID
     const newId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
@@ -65,7 +102,7 @@ export async function POST(request: NextRequest) {
     projects.push(newProject);
     
     // Write updated projects back to file
-    await writeFile(projectsFilePath, JSON.stringify(sortProjects(projects), null, 2), 'utf8');
+    await writeProjects(projects);
     
     return NextResponse.json(newProject, { status: 201 });
   } catch (error) {
@@ -90,8 +127,7 @@ export async function PUT(request: NextRequest) {
     }
     
     // Read current projects
-    const data = await readFile(projectsFilePath, 'utf8');
-    const projects: Project[] = JSON.parse(data);
+    const projects = await readProjects();
     
     // Find the project to update
     const index = projects.findIndex(p => p.id === project.id);
@@ -121,7 +157,7 @@ export async function PUT(request: NextRequest) {
     projects[index] = updatedProject;
     
     // Write updated projects back to file
-    await writeFile(projectsFilePath, JSON.stringify(sortProjects(projects), null, 2), 'utf8');
+    await writeProjects(projects);
     
     return NextResponse.json(updatedProject);
   } catch (error) {
@@ -167,8 +203,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Read current projects
-    const data = await readFile(projectsFilePath, 'utf8');
-    const projects: Project[] = JSON.parse(data);
+    const projects = await readProjects();
     
     // Filter out the project to delete
     const filteredProjects = projects.filter(p => p.id !== id);
@@ -178,7 +213,7 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Write updated projects back to file
-    await writeFile(projectsFilePath, JSON.stringify(sortProjects(filteredProjects), null, 2), 'utf8');
+    await writeProjects(filteredProjects);
     
     return NextResponse.json({ success: true });
   } catch (error) {
