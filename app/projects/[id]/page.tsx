@@ -175,7 +175,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                       src={project.image}
                       alt={project.title}
                       fill
-                      className={`object-cover ${
+                      className={`object-cover transform-gpu ${
                         project.visualEffects?.animation === 'pulse' ? 'animate-slowPulse' : 
                         project.visualEffects?.animation === 'bounce' ? 'animate-bounce-slow' : 
                         project.visualEffects?.animation === 'fade' ? 'animate-fade' : 
@@ -183,7 +183,15 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                       }`}
                       sizes="(max-width: 768px) 50vw, 25vw"
                       priority
-                      quality={90}
+                      quality={95}
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        WebkitPerspective: 1000, 
+                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                        objectFit: 'cover',
+                        transform: 'translateZ(0)'
+                      }}
+                      unoptimized={project.image.startsWith('data:')}
                     />
                   </div>
                   <div className="w-1/2 relative h-full">
@@ -191,7 +199,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                       src={project.secondImage}
                       alt={`${project.title} - alternate view`}
                       fill
-                      className={`object-cover ${
+                      className={`object-cover transform-gpu ${
                         project.visualEffects?.animation === 'pulse' ? 'animate-slowPulse' : 
                         project.visualEffects?.animation === 'bounce' ? 'animate-bounce-slow' : 
                         project.visualEffects?.animation === 'fade' ? 'animate-fade' : 
@@ -199,7 +207,15 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                       }`}
                       sizes="(max-width: 768px) 50vw, 25vw"
                       priority
-                      quality={90}
+                      quality={95}
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        WebkitPerspective: 1000, 
+                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                        objectFit: 'cover',
+                        transform: 'translateZ(0)'
+                      }}
+                      unoptimized={project.secondImage?.startsWith('data:')}
                     />
                   </div>
                 </div>
@@ -208,7 +224,7 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                   src={project.image}
                   alt={project.title}
                   fill
-                  className={`object-cover ${
+                  className={`object-cover transform-gpu ${
                     project.visualEffects?.animation === 'pulse' ? 'animate-slowPulse' : 
                     project.visualEffects?.animation === 'bounce' ? 'animate-bounce-slow' : 
                     project.visualEffects?.animation === 'fade' ? 'animate-fade' : 
@@ -216,7 +232,15 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
                   }`}
                   sizes="(max-width: 768px) 100vw, 50vw"
                   priority
-                  quality={90}
+                  quality={95}
+                  style={{ 
+                    WebkitBackfaceVisibility: 'hidden', 
+                    WebkitPerspective: 1000, 
+                    WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                    objectFit: 'cover',
+                    transform: 'translateZ(0)'
+                  }}
+                  unoptimized={project.image.startsWith('data:')}
                 />
               )}
               

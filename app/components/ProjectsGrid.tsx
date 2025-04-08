@@ -35,38 +35,58 @@ export default function ProjectsGrid() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Add timestamp to force fresh data and prevent browser caching
+        // Use stronger cache busting with both timestamp and random value
         const timestamp = new Date().getTime();
-        const response = await fetch(`/api/projects?t=${timestamp}`, {
+        const random = Math.floor(Math.random() * 1000000);
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}`, {
+          method: 'GET',
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'X-Force-Refresh': 'true'
           }
-        })
-        const data = await response.json()
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        console.log('Fetched projects data:', data.length, 'projects');
         
         // Filter out newly added projects
         const regularProjects = data.filter((project: Project) => 
           !project.title.startsWith('NEWLY ADDED:') && 
           (!project.status || !['In Development', 'Beta Testing', 'Recently Launched'].includes(project.status))
-        )
+        );
         
-        setProjects(regularProjects)
+        console.log('Regular projects count:', regularProjects.length);
+        setProjects(regularProjects);
         
         // Extract unique categories
-        const uniqueCategories = ['All', ...Array.from(new Set(regularProjects.map((p: Project) => p.category)))]
-        setCategories(uniqueCategories as string[])
+        const uniqueCategories = ['All', ...Array.from(new Set(regularProjects.map((p: Project) => p.category)))];
+        setCategories(uniqueCategories as string[]);
       } catch (error) {
-        console.error('Error fetching projects:', error)
+        console.error('Error fetching projects:', error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
-    }
+    };
 
-    fetchProjects()
-  }, [])
+    fetchProjects();
+    
+    // Set up an interval to refresh data periodically when tab is visible
+    const refreshInterval = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchProjects();
+      }
+    }, 60000); // Refresh every minute when tab is visible
+    
+    // Clean up the interval on component unmount
+    return () => clearInterval(refreshInterval);
+  }, []);
 
   // Handle title click for easter egg
   const handleTitleClick = (project: Project) => {
@@ -161,10 +181,18 @@ export default function ProjectsGrid() {
                           src={project.image}
                           alt={project.title}
                           fill
-                          className="object-cover"
-                          sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
+                          className="object-cover hover:scale-105 transition-transform duration-500"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           loading="lazy"
-                          quality={80}
+                          quality={95}
+                          style={{ 
+                            WebkitBackfaceVisibility: 'hidden', 
+                            WebkitPerspective: 1000, 
+                            WebkitFilter: 'contrast(1.05) saturate(1.05)',
+                            objectFit: 'cover',
+                            transform: 'translateZ(0)'
+                          }}
+                          unoptimized={project.image.startsWith('data:')}
                         />
                       </div>
                       <div className="w-1/2 relative h-full">
@@ -172,10 +200,18 @@ export default function ProjectsGrid() {
                           src={project.secondImage}
                           alt={`${project.title} - secondary view`}
                           fill
-                          className="object-cover"
+                          className="object-cover hover:scale-105 transition-transform duration-500"
                           sizes="(max-width: 768px) 50vw, (max-width: 1200px) 25vw, 16vw"
                           loading="lazy"
-                          quality={80}
+                          quality={95}
+                          style={{ 
+                            WebkitBackfaceVisibility: 'hidden', 
+                            WebkitPerspective: 1000, 
+                            WebkitFilter: 'contrast(1.05) saturate(1.05)',
+                            objectFit: 'cover',
+                            transform: 'translateZ(0)'
+                          }}
+                          unoptimized={project.secondImage?.startsWith('data:')}
                         />
                       </div>
                     </div>
@@ -184,10 +220,18 @@ export default function ProjectsGrid() {
                       src={project.image}
                       alt={project.title}
                       fill
-                      className="object-cover"
+                      className="object-cover hover:scale-105 transition-transform duration-500"
                       sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                       loading="lazy"
-                      quality={80}
+                      quality={95}
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        WebkitPerspective: 1000, 
+                        WebkitFilter: 'contrast(1.05) saturate(1.05)',
+                        objectFit: 'cover',
+                        transform: 'translateZ(0)'
+                      }}
+                      unoptimized={project.image.startsWith('data:')}
                     />
                   )
                 )}
@@ -195,21 +239,21 @@ export default function ProjectsGrid() {
               <div className="h-full relative z-10">
                 <div className="p-4 md:p-6">
                   <div 
-                    className="mb-4 md:mb-6 text-center py-6 md:py-8 bg-gradient-to-b from-purple-500/10 to-transparent rounded-lg border border-purple-500/20 cursor-pointer hover:from-purple-500/20 transition-colors"
+                    className="mb-4 md:mb-6 text-center py-6 md:py-8 bg-gradient-to-b from-purple-500/10 to-transparent rounded-lg border border-purple-500/20 cursor-pointer hover:from-purple-500/20 transition-colors shadow-sm"
                     onClick={() => handleTitleClick(project)}
                   >
-                    <h3 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent">
+                    <h3 className="text-xl md:text-2xl lg:text-3xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent tracking-tight drop-shadow-[0_0_5px_rgba(147,51,234,0.3)]">
                       {project.title}
                     </h3>
                   </div>
-                  <p className="text-xs md:text-sm text-gray-200 mb-4">
+                  <p className="text-xs md:text-sm text-gray-200 mb-4 antialiased leading-relaxed">
                     {project.description}
                   </p>
                   <div className="flex flex-wrap gap-1.5 md:gap-2 mb-4 md:mb-6">
                     {project.technologies.map((tech, index) => (
                       <span
                         key={index}
-                        className="text-[10px] md:text-xs px-2 md:px-3 py-1 bg-black/50 text-white rounded-full border border-purple-500/20"
+                        className="text-[10px] md:text-xs px-2 md:px-3 py-1 bg-black/50 text-white rounded-full border border-purple-500/20 shadow-sm"
                       >
                         {tech}
                       </span>
@@ -218,7 +262,7 @@ export default function ProjectsGrid() {
                   <div className="flex gap-2 md:gap-3">
                     <Link
                       href={`/projects/${project.id}`}
-                      className="flex-1 text-center text-xs md:text-sm px-3 md:px-4 py-2 rounded-md bg-white text-black font-medium hover:bg-gray-100 transition-colors"
+                      className="flex-1 text-center text-xs md:text-sm px-3 md:px-4 py-2 rounded-md bg-white text-black font-medium hover:bg-gray-100 transition-colors shadow-md hover:shadow-lg"
                     >
                       View Details
                     </Link>
@@ -226,14 +270,14 @@ export default function ProjectsGrid() {
                       href={project.link}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="flex-1 text-center text-xs md:text-sm px-3 md:px-4 py-2 rounded-md bg-black text-white border border-white/50 hover:bg-black/80 transition-colors"
+                      className="flex-1 text-center text-xs md:text-sm px-3 md:px-4 py-2 rounded-md bg-black text-white border border-white/50 hover:bg-black/80 transition-colors shadow-md hover:shadow-lg"
                     >
                       Live Link
                     </a>
                   </div>
                 </div>
                 {project.featured && (
-                  <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-white text-black text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-purple-500/20 z-30 font-medium">
+                  <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-white text-black text-[10px] md:text-xs px-2 md:px-3 py-0.5 md:py-1 rounded-full border border-purple-500/20 z-30 font-medium shadow-md">
                     Featured
                   </div>
                 )}

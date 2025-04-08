@@ -542,15 +542,24 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                 <label className="block text-sm font-medium text-gray-300 mb-2">Project Image*</label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="flex flex-col space-y-2">
-                    <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-square">
-                      {project?.image && (
+                    <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-[4/3]">
+                      {project.image && project.image !== '/projects/placeholder.jpg' ? (
                         <Image 
                           src={project.image} 
                           alt="Project preview" 
                           fill 
                           className="object-cover"
-                          sizes="(max-width: 768px) 100vw, 300px"
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          quality={100}
+                          priority
+                          unoptimized={project.image.startsWith('data:')}
                         />
+                      ) : (
+                        <div className="flex items-center justify-center w-full h-full text-gray-400">
+                          <svg className="w-16 h-16 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                        </div>
                       )}
                     </div>
                     <p className="text-xs text-gray-400">Recommended: Square image (1:1 ratio)</p>
@@ -612,15 +621,24 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                   <p className="text-xs text-gray-500 mb-2">This image will only be visible in the expanded view when users click a button</p>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col space-y-2">
-                      <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-square">
-                        {project?.secondImage && project.secondImage !== '/projects/placeholder.jpg' && (
+                      <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-[4/3]">
+                        {project.secondImage && project.secondImage !== '/projects/placeholder.jpg' ? (
                           <Image 
                             src={project.secondImage} 
                             alt="Second image preview" 
                             fill 
                             className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 300px"
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            quality={100}
+                            priority
+                            unoptimized={project.secondImage.startsWith('data:')}
                           />
+                        ) : (
+                          <div className="flex items-center justify-center w-full h-full text-gray-400">
+                            <svg className="w-16 h-16 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                            </svg>
+                          </div>
                         )}
                       </div>
                       <p className="text-xs text-gray-400">Recommended: Square image (1:1 ratio)</p>

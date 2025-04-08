@@ -550,22 +550,18 @@ export default function NewProjectPage() {
                   <label className="block text-sm font-medium text-gray-300 mb-2">Project Image*</label>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="flex flex-col space-y-2">
-                      <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-[4/3]">
-                        {project.image && project.image !== '/projects/placeholder.jpg' ? (
+                      <div className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden aspect-square relative">
+                        {project.image ? (
                           <Image 
                             src={project.image} 
-                            alt="Project preview" 
-                            fill 
+                            alt="Project preview"
+                            fill
                             className="object-cover"
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            quality={100}
-                            priority
+                            unoptimized={project.image.startsWith('data:')}
                           />
                         ) : (
-                          <div className="flex items-center justify-center w-full h-full text-gray-400">
-                            <svg className="w-16 h-16 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-gray-400">No image selected</span>
                           </div>
                         )}
                       </div>
@@ -769,23 +765,22 @@ export default function NewProjectPage() {
                   <label htmlFor="newImage" className="block text-sm font-medium text-gray-300">Project Image*</label>
                   <div className="mt-1 grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="relative overflow-hidden rounded-lg border border-purple-500/30 bg-black/50 aspect-[4/3]">
-                      {newlyAddedProject.image && newlyAddedProject.image !== '/projects/placeholder.jpg' ? (
-                        <Image 
-                          src={newlyAddedProject.image} 
-                          alt="Project preview" 
-                          fill 
-                          className="object-cover"
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          quality={100}
-                          priority
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center w-full h-full text-gray-400">
-                          <svg className="w-16 h-16 opacity-30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                      )}
+                      <div className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden aspect-square relative">
+                        {newlyAddedProject.image ? (
+                          <Image 
+                            src={newlyAddedProject.image} 
+                            alt="Project preview"
+                            fill
+                            className="object-cover"
+                            unoptimized={newlyAddedProject.image.startsWith('data:')}
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center">
+                            <span className="text-gray-400">No image selected</span>
+                          </div>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400">Recommended: 4:3 aspect ratio, minimum 1200x900px</p>
                     </div>
                     <div className="flex flex-col space-y-4">
                       <div className="flex-1 flex flex-col justify-center">

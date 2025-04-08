@@ -104,10 +104,10 @@ export default function ProjectsPage() {
       <GlobalStyles />
       {/* Hero Section */}
       <div className="max-w-7xl mx-auto mb-8 md:mb-12">
-        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(147,51,234,0.5)]">
+        <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-6 bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] tracking-tight">
           My Projects
         </h1>
-        <p className="text-base md:text-lg lg:text-xl text-gray-300 max-w-2xl drop-shadow-[0_0_10px_rgba(147,51,234,0.2)]">
+        <p className="text-base md:text-lg lg:text-xl text-gray-200 max-w-2xl drop-shadow-[0_0_10px_rgba(147,51,234,0.2)] antialiased">
           Explore my complete portfolio of projects, from web applications to design work.
         </p>
         {showEasterEgg && (
@@ -115,9 +115,9 @@ export default function ProjectsPage() {
             initial={{ scale: 0 }}
             animate={{ scale: 1 }}
             exit={{ scale: 0 }}
-            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 py-4 bg-black/90 rounded-xl border border-purple-500/30 z-50 backdrop-blur-md"
+            className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 py-4 bg-black/90 rounded-xl border border-purple-500/30 z-50 backdrop-blur-md shadow-xl"
           >
-            <p className="text-white text-lg font-medium">{easterEggMessage}</p>
+            <p className="text-white text-lg font-medium antialiased">{easterEggMessage}</p>
           </motion.div>
         )}
       </div>
@@ -164,19 +164,19 @@ export default function ProjectsPage() {
 
       {/* Coming Soon Section */}
       <section className="max-w-7xl mx-auto mb-12 md:mb-16 px-4 md:px-6">
-        <div className="relative overflow-hidden rounded-xl p-6 md:p-8 border border-purple-500/20 bg-purple-500/5">
+        <div className="relative overflow-hidden rounded-xl p-6 md:p-8 border border-purple-500/20 bg-purple-500/5 shadow-lg">
           <div className="relative z-10">
-            <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(147,51,234,0.3)]">
+            <h2 className="text-2xl md:text-3xl font-bold mb-3 md:mb-4 bg-gradient-to-r from-purple-400 to-blue-400 bg-clip-text text-transparent drop-shadow-[0_0_10px_rgba(147,51,234,0.3)] tracking-tight">
               New Projects Coming Soon
             </h2>
             <pre className="text-purple-400 text-xs mb-4 opacity-70 font-mono leading-none hidden md:block select-none">
               {AsciiDecorations.terminal}
             </pre>
-            <p className="text-base md:text-lg text-purple-200/80 mb-4 md:mb-6">
+            <p className="text-base md:text-lg text-purple-100/90 mb-4 md:mb-6 antialiased">
               Stay tuned for exciting new projects! Follow me on social media for updates.
             </p>
             <div className="flex items-center gap-4">
-              <button className="px-4 md:px-6 py-1.5 md:py-2 rounded-full bg-purple-500/20 text-purple-300 text-sm md:text-base border border-purple-500/30 hover:bg-purple-500/30 transition-all duration-300 shadow-[0_0_15px_rgba(147,51,234,0.3)] flex items-center gap-2">
+              <button className="px-4 md:px-6 py-1.5 md:py-2 rounded-full bg-purple-500/20 text-purple-200 text-sm md:text-base border border-purple-500/30 hover:bg-purple-500/30 transition-all duration-300 shadow-[0_0_15px_rgba(147,51,234,0.3)] flex items-center gap-2">
                 Follow Updates
                 <LoadingDots />
               </button>

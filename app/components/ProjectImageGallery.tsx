@@ -436,6 +436,7 @@ export default function ProjectImageGallery() {
                         loading={index === currentBannerIndex || index === ((currentBannerIndex + 1) % bannerProjects.length) ? 'eager' : 'lazy'}
                         fetchPriority={index === currentBannerIndex ? 'high' : 'low'}
                         onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
+                        unoptimized={project.image.startsWith('data:')}
                       />
                       
                       {/* Display Switch Image button when hovered */}
@@ -566,155 +567,31 @@ export default function ProjectImageGallery() {
         
         {/* Regular Grid - Skip all banner projects (priority 1) - Use CSS Grid for better responsive layout */}
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-4">
-          {regularProjects.map((project) => (
+          {regularProjects.map((project, index) => (
             <div 
               key={project.id}
-              className={`relative aspect-square rounded-lg overflow-hidden border ${
-                (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                  ? 'border-purple-500/50 shadow-[0_0_15px_rgba(147,51,234,0.2)]' 
-                  : 'border-purple-500/30'
-              } group cursor-pointer transform transition-all duration-300 hover:-translate-y-1 will-change-transform`}
+              className="relative rounded-xl overflow-hidden aspect-video shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-500/30"
               onMouseEnter={() => setHoveredProject(project.id)}
               onMouseLeave={() => setHoveredProject(null)}
               onClick={() => handleImageClick(project.id)}
             >
-              {project.secondImage && project.showBothImagesInPriority ? (
-                <div className="flex h-full w-full">
-                  <div className="w-1/2 relative h-full">
                     <Image 
                       src={project.image} 
                       alt={project.title}
                       fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 25vw, (max-width: 1024px) 16vw, 12.5vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading={
-                        (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                        (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                          ? 'eager' 
-                          : 'lazy'
-                      }
-                      quality={
-                        (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                        (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                          ? 85 
-                          : 75
-                      }
-                      placeholder="blur"
-                      blurDataURL={`data:image/svg+xml;base64,${btoa(
-                        `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
-                          <rect width="100" height="100" fill="#18181B"/>
-                        </svg>`
-                      )}`}
-                      onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
-                    />
-                  </div>
-                  <div className="w-1/2 relative h-full">
-                    <Image 
-                      src={project.secondImage} 
-                      alt={`${project.title} - secondary view`}
-                      fill
-                      sizes="(max-width: 640px) 50vw, (max-width: 768px) 25vw, (max-width: 1024px) 16vw, 12.5vw"
-                      className="object-cover transition-transform duration-300 group-hover:scale-105"
-                      loading={
-                        (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                        (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                          ? 'eager' 
-                          : 'lazy'
-                      }
-                      quality={
-                        (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                        (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                          ? 85 
-                          : 75
-                      }
-                      placeholder="blur"
-                      blurDataURL={`data:image/svg+xml;base64,${btoa(
-                        `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
-                          <rect width="100" height="100" fill="#18181B"/>
-                        </svg>`
-                      )}`}
-                      onClick={(e) => handleImageEnlarge(e, project.id, project.secondImage || '')}
-                    />
-                  </div>
-                  
-                  {/* Enlarge indicator */}
-                  <div 
-                    className={`absolute top-2 left-2 transition-opacity duration-200 ${
-                      hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <div className="bg-black/60 text-white text-[10px] p-1 rounded-md flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v5m4-2h-4" />
-                      </svg>
-                      <span>Tap to enlarge</span>
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <div className="relative h-full w-full">
-                  <Image 
-                    src={project.image} 
-                    alt={project.title}
-                    fill
-                    sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    className="object-cover transition-transform duration-300 group-hover:scale-105"
-                    loading={
-                      (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                      (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                        ? 'eager' 
-                        : 'lazy'
-                    }
-                    quality={
-                      (typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                      (typeof project.imagePriority === 'number' && project.imagePriority <= 3) 
-                        ? 85 
-                        : 75
-                    }
-                    placeholder="blur"
-                    blurDataURL={`data:image/svg+xml;base64,${btoa(
-                      `<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100" fill="none">
-                        <rect width="100" height="100" fill="#18181B"/>
-                      </svg>`
-                    )}`}
-                    onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
-                  />
-                  
-                  {/* Display Switch Image button when hovered */}
-                  {project.secondImage && project.secondImage !== '/projects/placeholder.jpg' && !project.showBothImagesInPriority && (
-                    <div 
-                      className={`absolute bottom-2 right-2 transition-opacity duration-200 ${
-                        hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                      }`}
-                    >
-                      <button
-                        onClick={(e) => handleSwitchImage(e, project.id)}
-                        className="bg-purple-600/70 hover:bg-purple-600 text-white p-1.5 rounded-full transition-colors"
-                        aria-label="Switch image"
-                      >
-                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                        </svg>
-                      </button>
-                    </div>
-                  )}
-                  
-                  {/* Enlarge indicator */}
-                  <div 
-                    className={`absolute top-2 left-2 transition-opacity duration-200 ${
-                      hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <div className="bg-black/60 text-white text-[10px] p-1 rounded-md flex items-center gap-1">
-                      <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v5m4-2h-4" />
-                      </svg>
-                      <span>Tap to enlarge</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                className="object-cover transform-gpu transition-transform duration-700 hover:scale-105"
+                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                loading={index < 5 ? "eager" : "lazy"}
+                quality={95}
+                style={{ 
+                  WebkitBackfaceVisibility: 'hidden', 
+                  WebkitPerspective: 1000, 
+                  WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                  objectFit: 'cover',
+                  transform: 'translateZ(0)'
+                }}
+                unoptimized={project.image.startsWith('data:')}
+              />
               
               {/* Overlay with project title on hover - Optimized for better performance */}
               <div 

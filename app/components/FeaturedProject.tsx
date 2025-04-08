@@ -81,10 +81,18 @@ export default function FeaturedProject() {
               src={featuredProject.image}
               alt={featuredProject.title}
               fill
-              className="object-cover"
+              className="object-cover transform-gpu hover:scale-105 transition-transform duration-700"
               sizes="(max-width: 1536px) 100vw, 1536px"
               priority
-              quality={90}
+              quality={95}
+              style={{ 
+                WebkitBackfaceVisibility: 'hidden', 
+                WebkitPerspective: 1000, 
+                WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.05)',
+                objectFit: 'cover',
+                transform: 'translateZ(0)'
+              }}
+              unoptimized={featuredProject.image.startsWith('data:')}
             />
           )}
         </div>

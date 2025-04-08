@@ -17,18 +17,25 @@ const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 // Read projects with cache handling
 async function readProjects(): Promise<Project[]> {
   const now = Date.now();
-  // Return cached projects if they exist and aren't expired
-  if (projectsCache && (now - lastCacheUpdate < CACHE_EXPIRY)) {
+  // Always invalidate cache on read for production environments
+  if (process.env.NODE_ENV === 'production') {
+    projectsCache = null;
+  }
+  
+  // Return cached projects only in development if they exist and aren't expired
+  if (projectsCache && process.env.NODE_ENV !== 'production' && (now - lastCacheUpdate < CACHE_EXPIRY)) {
     return projectsCache;
   }
   
   try {
     const data = await readFile(projectsFilePath, 'utf8');
-    projectsCache = JSON.parse(data);
+    const parsedProjects = JSON.parse(data) as Project[];
+    projectsCache = parsedProjects;
     lastCacheUpdate = now;
-    return projectsCache;
+    return parsedProjects;
   } catch (error) {
     console.error('Error reading projects:', error);
+    projectsCache = [];
     return [];
   }
 }
@@ -38,7 +45,7 @@ async function writeProjects(projects: Project[]): Promise<boolean> {
   try {
     const sortedProjects = sortProjects(projects);
     await writeFile(projectsFilePath, JSON.stringify(sortedProjects, null, 2), 'utf8');
-    // Update cache
+    // Update cache and force invalidation
     projectsCache = sortedProjects;
     lastCacheUpdate = Date.now();
     return true;
@@ -49,13 +56,36 @@ async function writeProjects(projects: Project[]): Promise<boolean> {
 }
 
 // GET all projects
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    // Force cache invalidation with query parameters
+    const url = new URL(request.url);
+    if (url.searchParams.has('t')) {
+      projectsCache = null; // Force fresh read with timestamp param
+    }
+    
     const projects = await readProjects();
-    return NextResponse.json(sortProjects(projects));
+    
+    // Set cache control headers to prevent browser caching
+    return new NextResponse(JSON.stringify(sortProjects(projects)), {
+      headers: {
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
+        'Surrogate-Control': 'no-store'
+      }
+    });
   } catch (error) {
     console.error('Error reading projects:', error);
-    return NextResponse.json({ error: 'Failed to fetch projects' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to fetch projects' }, { 
+      status: 500,
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   }
 }
 
@@ -87,6 +117,7 @@ export async function POST(request: NextRequest) {
       title: project.title.trim(),
       description: project.description.trim(),
       image: project.image.trim(),
+      // For data URLs, ensure we don't recreate them or manipulate them
       technologies: Array.isArray(project.technologies) ? project.technologies : [],
       exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? project.exclusiveFeatures : [],
       featured: Boolean(project.featured),
