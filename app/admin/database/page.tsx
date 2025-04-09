@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '../../components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
 
 export default function DatabaseAdminPage() {
