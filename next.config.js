@@ -28,16 +28,7 @@ const nextConfig = {
     optimizeCss: true,
     scrollRestoration: true,
     optimizePackageImports: ['framer-motion', 'react-icons'],
-    turbotrace: {
-      logLevel: 'error'
-    },
     largePageDataBytes: 256 * 1000, // Increase limit for large responses
-    isrMemoryCacheSize: 0,  // Disable ISR cache
-    serverComponentsExternalPackages: ['*'], // Improves module resolution
-    largerPersistedQueries: true,
-    serverActions: {
-      bodySizeLimit: '2mb', // Increase limit for server actions
-    },
   },
   output: 'standalone',
   env: {
