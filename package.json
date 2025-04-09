@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "build:netlify": "node scripts/netlify-build.js",
     "start": "next start",
     "lint": "next lint",
     "deploy": "npm run build && netlify deploy --prod"
@@ -25,7 +26,6 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
     "framer-motion": "^12.4.7",
-    "fs-extra": "^11.3.0",
     "lemonsqueezy.ts": "^0.1.8",
     "lucide-react": "^0.475.0",
     "mongoose": "^8.13.1",
@@ -56,6 +56,7 @@
     "autoprefixer": "^10.4.21",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
+    "fs-extra": "^11.3.0",
     "postcss": "^8.5.3",
     "sharp": "^0.33.5",
     "tailwindcss": "^3.4.17",
