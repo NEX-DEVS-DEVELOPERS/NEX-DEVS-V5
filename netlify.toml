@@ -1,16 +1,48 @@
 [build]
   command = "npm run build"
   publish = ".next"
+  ignore = "git diff --quiet HEAD^ HEAD -- . :^db/"
 
-# Use the Next.js Runtime
+# Use the Next.js Runtime with optimized settings
 [[plugins]]
   package = "@netlify/plugin-nextjs"
+  
+  # Configure the Next.js plugin for better performance
+  [plugins.inputs]
+    enable_optimize = true
+    enable_preview_mode = false
+    enable_cache = true
+    debug = false
+
+# Copy ALL database files during build
+[[plugins]]
+  package = "netlify-plugin-copy-files"
+  
+  [plugins.inputs]
+    # Copy the main DB file and its associated WAL and SHM files
+    source = "db/portfolio.db"
+    destination = ".next/server/db/portfolio.db"
+
+[[plugins]]
+  package = "netlify-plugin-copy-files"
+
+  [plugins.inputs]
+    source = "db/portfolio.db-shm" 
+    destination = ".next/server/db/portfolio.db-shm"
+
+[[plugins]]
+  package = "netlify-plugin-copy-files"
+
+  [plugins.inputs]
+    source = "db/portfolio.db-wal"
+    destination = ".next/server/db/portfolio.db-wal"
 
 # Environment variables
 [build.environment]
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
-  NEXT_USE_NETLIFY_EDGE = "true"
+  NETLIFY_USE_YARN = "false"
+  NEXT_PUBLIC_RUNTIME_ENV = "production"
 
 # Cache control headers
 [[headers]]
@@ -21,6 +53,16 @@
     Expires = "0"
 
 [[headers]]
+  for = "/_next/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/static/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
   for = "/*"
   [headers.values]
     X-Frame-Options = "DENY"
@@ -29,15 +71,16 @@
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), microphone=()"
 
-[functions]
-  # Increase function timeout for database operations
-  node_bundler = "esbuild"
-  external_node_modules = ["better-sqlite3"]
+# Set up redirects for SPA
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+  conditions = {Role = ["admin"]}
 
-# Add a custom build plugin for SQLite files
-[[plugins]]
-  package = "@netlify/netlify-plugin-file-path-to-public-path"
-  
-  [plugins.inputs]
-    # Copy SQLite databases to publish directory
-    patterns = ["db/*.db", "db/*.sqlite"]
+# Handle 404 errors gracefully
+[[redirects]]
+  from = "/*"
+  to = "/404"
+  status = 404 

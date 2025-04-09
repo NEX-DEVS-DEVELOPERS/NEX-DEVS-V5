@@ -4,10 +4,12 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build && node scripts/copy-db.js",
+    "build": "next build",
+    "postbuild": "node scripts/post-build.js",
     "start": "next start",
     "lint": "next lint",
-    "deploy": "npm run build && netlify deploy --prod"
+    "deploy": "npm run build && netlify deploy --prod",
+    "deploy:draft": "npm run build && netlify deploy"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
@@ -45,7 +47,6 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
-    "@netlify/plugin-nextjs": "^5.10.4",
     "@tailwindcss/typography": "^0.5.10",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
@@ -53,9 +54,10 @@
     "@types/react": "^18",
     "@types/react-dom": "^18",
     "@types/uuid": "^10.0.0",
-    "autoprefixer": "^10.4.20",
+    "autoprefixer": "^10.4.21",
     "eslint": "^8.56.0",
     "eslint-config-next": "14.1.0",
+    "fs-extra": "^11.3.0",
     "postcss": "^8.5.3",
     "sharp": "^0.33.5",
     "tailwindcss": "^3.4.17",
