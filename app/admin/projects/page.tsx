@@ -35,16 +35,19 @@ export default function AdminProjectsPage() {
   const fetchProjects = async () => {
     setIsLoading(true)
     try {
-      // Enhanced cache busting mechanism
+      // Enhanced cache busting with multiple random values
       const timestamp = new Date().getTime();
-      const random = Math.floor(Math.random() * 1000000);
-      const response = await fetch(`/api/projects?t=${timestamp}&r=${random}&forceRefresh=true`, {
+      const randomValue = Math.floor(Math.random() * 10000000);
+      const cache = `nocache=${timestamp}-${randomValue}`;
+      const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
+        method: 'GET',
         cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
           'Pragma': 'no-cache',
           'Expires': '0',
-          'X-Force-Refresh': 'true'
+          'X-Force-Refresh': 'true',
+          'X-Random-Value': randomValue.toString()
         }
       })
       const data = await response.json()

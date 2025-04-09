@@ -23,16 +23,8 @@ const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
 // Get all projects
 export function getProjects(): Project[] {
   try {
-    // Force a fresh read from the file system
     const projectsData = fs.readFileSync(projectsFilePath, 'utf8');
-    
-    // Clear any existing in-memory cache
-    const projects = JSON.parse(projectsData);
-    
-    // Log data retrieval for debugging
-    console.log(`[projects.ts] Read ${projects.length} projects from file system`);
-    
-    return projects;
+    return JSON.parse(projectsData);
   } catch (error) {
     console.error('Error reading projects file:', error);
     return [];

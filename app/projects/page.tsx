@@ -77,16 +77,14 @@ export default function ProjectsPage() {
   useEffect(() => {
     const checkProjectsData = async () => {
       try {
-        // Enhanced cache busting mechanism
+        // Add timestamp to force fresh data and prevent browser caching
         const timestamp = new Date().getTime();
-        const random = Math.floor(Math.random() * 1000000);
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}&forceRefresh=true`, {
+        const response = await fetch(`/api/projects?t=${timestamp}`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0',
-            'X-Force-Refresh': 'true'
+            'Expires': '0'
           }
         })
         const data = await response.json()

@@ -16,22 +16,14 @@ const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 // Read projects with cache handling
 async function readProjects(): Promise<Project[]> {
-  const now = Date.now();
-  // Always invalidate cache on read for production environments
-  if (process.env.NODE_ENV === 'production') {
-    projectsCache = null;
-  }
-  
-  // Return cached projects only in development if they exist and aren't expired
-  if (projectsCache && process.env.NODE_ENV !== 'production' && (now - lastCacheUpdate < CACHE_EXPIRY)) {
-    return projectsCache;
-  }
+  // Always invalidate cache on each read to ensure fresh data
+  projectsCache = null;
   
   try {
     const data = await readFile(projectsFilePath, 'utf8');
     const parsedProjects = JSON.parse(data) as Project[];
     projectsCache = parsedProjects;
-    lastCacheUpdate = now;
+    lastCacheUpdate = Date.now();
     return parsedProjects;
   } catch (error) {
     console.error('Error reading projects:', error);
@@ -58,25 +50,21 @@ async function writeProjects(projects: Project[]): Promise<boolean> {
 // GET all projects
 export async function GET(request: NextRequest) {
   try {
-    // Force cache invalidation with query parameters
-    const url = new URL(request.url);
-    if (url.searchParams.has('t') || url.searchParams.has('forceRefresh')) {
-      // Always invalidate cache with timestamp or forceRefresh param
-      projectsCache = null;
-      lastCacheUpdate = 0; // Reset cache timestamp
-      console.log('Forced cache invalidation for projects API');
-    }
+    // Force cache invalidation on every request
+    projectsCache = null;
     
     const projects = await readProjects();
     
-    // Set cache control headers to prevent browser caching
+    // Set strong cache control headers to prevent browser caching
     return new NextResponse(JSON.stringify(sortProjects(projects)), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Surrogate-Control': 'no-store'
+        'Surrogate-Control': 'no-store',
+        'X-Accel-Expires': '0',
+        'Last-Modified': new Date().toUTCString()
       }
     });
   } catch (error) {
