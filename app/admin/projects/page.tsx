@@ -25,11 +25,38 @@ type Project = {
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [hasInitializedStorage, setHasInitializedStorage] = useState(false)
 
   // Fetch projects on component mount
   useEffect(() => {
-    fetchProjects()
-  }, [])
+    const initializeStorage = async () => {
+      // Try to initialize JSON storage if needed (for first deployment)
+      try {
+        const response = await fetch('/api/projects/init-storage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'AdminAuth': sessionStorage.getItem('adminPassword') || ''
+          }
+        });
+        
+        if (response.ok) {
+          setHasInitializedStorage(true);
+          console.log('Storage initialized successfully');
+        } else {
+          console.log('Storage initialization not needed or unauthorized');
+        }
+      } catch (error) {
+        console.error('Error initializing storage:', error);
+      }
+      
+      // Fetch projects
+      fetchProjects();
+    };
+    
+    initializeStorage();
+  }, []);
 
   // Function to fetch projects
   const fetchProjects = async () => {

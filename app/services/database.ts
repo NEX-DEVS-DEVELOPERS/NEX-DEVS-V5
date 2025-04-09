@@ -7,6 +7,15 @@ import path from 'path';
 import fs from 'fs/promises';
 import { existsSync } from 'fs';
 
+// Constants
+const DB_FILE = path.join(process.cwd(), 'projects.db');
+const JSON_FALLBACK_FILE = path.join(process.cwd(), 'projects.json');
+const NETLIFY_ENV = process.env.NETLIFY || false;
+const VERCEL_ENV = process.env.VERCEL || false;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const IS_SERVERLESS = NETLIFY_ENV || VERCEL_ENV || IS_PROD;
+const USE_JSON_FALLBACK = IS_SERVERLESS;
+
 // Define Project type locally to avoid import issues
 type Project = {
   id: number;
@@ -34,65 +43,73 @@ type Project = {
 // Type for Database
 type Database = any;
 
-// Constants
-const DB_FILE = path.join(process.cwd(), 'projects.db');
-const JSON_FALLBACK_FILE = path.join(process.cwd(), 'projects.json');
-const NETLIFY_ENV = process.env.NETLIFY || false;
-const IS_PROD = process.env.NODE_ENV === 'production';
-const USE_JSON_FALLBACK = IS_PROD || NETLIFY_ENV;
-
-// Store in-memory version of projects when in production
+// Store in-memory version of projects in production
 let cachedProjects: Project[] = [];
 let jsonLastModified: Date | null = null;
 
 // Log environment info
 console.log(`Database mode: ${USE_JSON_FALLBACK ? 'JSON fallback' : 'SQLite'}`);
 console.log(`Running in ${IS_PROD ? 'production' : 'development'} environment`);
-console.log(`Netlify environment: ${NETLIFY_ENV ? 'true' : 'false'}`);
+console.log(`Serverless environment: ${IS_SERVERLESS ? 'true' : 'false'}`);
 
 class DatabaseService {
   private db: Database | null = null;
+  private initialized = false;
   
   constructor() {
-    if (!USE_JSON_FALLBACK) {
-      // Initialize SQLite in development
-      this.initSqlite().catch(err => {
-        console.error('Failed to initialize SQLite database:', err);
-      });
-    } else {
-      // Initialize JSON fallback in production
-      this.loadJsonData().catch(err => {
-        console.error('Failed to load JSON data:', err);
-      });
+    // Initialize database system
+    this.initialize().catch(err => {
+      console.error('Failed to initialize database system:', err);
+    });
+  }
+  
+  // Initialize the appropriate database system
+  private async initialize(): Promise<void> {
+    if (this.initialized) return;
+    
+    try {
+      if (USE_JSON_FALLBACK) {
+        await this.loadJsonData();
+      } else {
+        await this.initSqlite();
+      }
+      this.initialized = true;
+    } catch (error) {
+      console.error('Database initialization error:', error);
+      // If SQLite initialization fails, fall back to JSON
+      if (!USE_JSON_FALLBACK) {
+        console.log('Falling back to JSON storage');
+        await this.loadJsonData();
+        this.initialized = true;
+      }
     }
   }
   
-  // Initialize SQLite database
+  // Initialize SQLite database (only for local development)
   private async initSqlite(): Promise<void> {
+    if (USE_JSON_FALLBACK) {
+      console.log('Using JSON fallback, skipping SQLite initialization');
+      return;
+    }
+    
     try {
-      // For Vercel deployment, we'll primarily use JSON fallback
-      // This code will only run in development environment
-      if (USE_JSON_FALLBACK) {
-        console.log('Using JSON fallback, skipping SQLite initialization');
-        return;
+      // Only import SQLite modules if we're not in a serverless environment
+      const sqlite3Module = await import('sqlite3').catch(() => null);
+      const sqliteModule = await import('sqlite').catch(() => null);
+      
+      if (!sqlite3Module || !sqliteModule) {
+        throw new Error('SQLite modules not available');
       }
       
-      try {
-        // Dynamically import SQLite modules
-        const sqlite3 = await import('sqlite3').then(m => m.default);
-        const { open } = await import('sqlite');
-        
-        this.db = await open({
-          filename: DB_FILE,
-          driver: sqlite3.Database
-        });
-        
-        console.log('SQLite database opened successfully');
-      } catch (importError) {
-        console.error('Failed to import SQLite modules:', importError);
-        console.log('Falling back to JSON storage');
-        return;
-      }
+      const sqlite3 = sqlite3Module.default;
+      const { open } = sqliteModule;
+      
+      this.db = await open({
+        filename: DB_FILE,
+        driver: sqlite3.Database
+      });
+      
+      console.log('SQLite database opened successfully');
       
       // Create tables if they don't exist
       await this.db.exec(`
@@ -122,8 +139,15 @@ class DatabaseService {
       
       console.log('Database tables initialized');
     } catch (error) {
-      console.error('Error initializing database:', error);
-      console.log('Falling back to JSON storage due to initialization error');
+      console.error('Error initializing SQLite database:', error);
+      throw error; // Re-throw so we can fall back to JSON if needed
+    }
+  }
+  
+  // Method to ensure the database is initialized 
+  private async ensureInitialized(): Promise<void> {
+    if (!this.initialized) {
+      await this.initialize();
     }
   }
   
@@ -175,6 +199,8 @@ class DatabaseService {
   // Get all projects
   async getAllProjects(): Promise<Project[]> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -207,6 +233,8 @@ class DatabaseService {
   // Get projects by category
   async getProjectsByCategory(category: string): Promise<Project[]> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -240,6 +268,8 @@ class DatabaseService {
   // Get featured projects
   async getFeaturedProjects(): Promise<Project[]> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -272,6 +302,8 @@ class DatabaseService {
   // Get newly added projects
   async getNewlyAddedProjects(): Promise<Project[]> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -309,6 +341,8 @@ class DatabaseService {
   // Get a project by ID
   async getProjectById(id: number): Promise<Project | null> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -343,6 +377,8 @@ class DatabaseService {
   // Get unique categories
   async getUniqueCategories(): Promise<string[]> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data if needed
         await this.loadJsonData();
@@ -372,6 +408,8 @@ class DatabaseService {
   // Create a new project
   async createProject(project: Omit<Project, 'id'>): Promise<Project> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data to ensure we have the latest
         await this.loadJsonData();
@@ -475,6 +513,8 @@ class DatabaseService {
   // Update a project
   async updateProject(project: Project): Promise<boolean> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data to ensure we have the latest
         await this.loadJsonData();
@@ -593,6 +633,8 @@ class DatabaseService {
   // Delete a project
   async deleteProject(id: number): Promise<boolean> {
     try {
+      await this.ensureInitialized();
+      
       if (USE_JSON_FALLBACK) {
         // Reload JSON data to ensure we have the latest
         await this.loadJsonData();
