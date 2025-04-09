@@ -6,9 +6,9 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Copy the database file during build
+# Copy the database file during build using our local plugin
 [[plugins]]
-  package = "./plugins/netlify-plugin-copy-files"
+  package = "./netlify/plugins/copy-files.js"
   
   [plugins.inputs]
     source = "db/portfolio.db"

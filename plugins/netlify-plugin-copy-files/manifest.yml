@@ -1,0 +1,8 @@
+name: netlify-plugin-copy-files
+inputs:
+  - name: source
+    description: Source file or directory to copy
+    required: true
+  - name: destination
+    description: Destination file or directory path
+    required: true 
