@@ -6,29 +6,29 @@
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-# Copy the database files during build
+# Copy the database file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
   
   [plugins.inputs]
-    source = "db/portfolio.db"
-    destination = ".next/server/db/portfolio.db"
+  source = "db/portfolio.db"
+  destination = ".next/server/db/portfolio.db"
 
-# Copy the database WAL file
+# Copy the WAL file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
   
   [plugins.inputs]
-    source = "db/portfolio.db-wal"
-    destination = ".next/server/db/portfolio.db-wal"
+  source = "db/portfolio.db-wal"
+  destination = ".next/server/db/portfolio.db-wal"
 
-# Copy the database SHM file  
+# Copy the SHM file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
   
   [plugins.inputs]
-    source = "db/portfolio.db-shm"
-    destination = ".next/server/db/portfolio.db-shm"
+  source = "db/portfolio.db-shm"
+  destination = ".next/server/db/portfolio.db-shm"
 
 # Environment variables
 [build.environment]
