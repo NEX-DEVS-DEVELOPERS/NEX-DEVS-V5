@@ -397,7 +397,7 @@ export default function NewProjectPage() {
 
     try {
       // Get admin password
-      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to add project:')
+      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to add new project:')
       
       if (!password) {
         toast.error('Password required to add project')
@@ -405,52 +405,71 @@ export default function NewProjectPage() {
         return
       }
 
-      // Store password in session for future operations
+      // Store password for session
       sessionStorage.setItem('adminPassword', password)
 
-      // Filter out empty technologies
-      const projectToSubmit = formType === 'regularProject' 
-        ? { ...project, technologies: project.technologies.filter(t => t.trim() !== '') }
-        : {
-            ...newlyAddedProject,
-            technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
-            exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
-            // Ensure second image is properly formatted
-            secondImage: newlyAddedProject.secondImage || '/projects/placeholder.jpg',
-            showBothImagesInPriority: Boolean(newlyAddedProject.showBothImagesInPriority),
-            // Ensure visual effects are properly formatted
-            visualEffects: {
-              morphTransition: Boolean(newlyAddedProject.visualEffects.morphTransition),
-              rippleEffect: Boolean(newlyAddedProject.visualEffects.rippleEffect),
-              floatingElements: Boolean(newlyAddedProject.visualEffects.floatingElements),
-              shimmering: Boolean(newlyAddedProject.visualEffects.shimmering),
-              animation: newlyAddedProject.visualEffects.animation || 'none',
-              spotlight: Boolean(newlyAddedProject.visualEffects.spotlight),
-              shadows: newlyAddedProject.visualEffects.shadows || 'none',
-              border: newlyAddedProject.visualEffects.border || 'none',
-              glassmorphism: Boolean(newlyAddedProject.visualEffects.glassmorphism),
-              particles: Boolean(newlyAddedProject.visualEffects.particles),
-              animationTiming: newlyAddedProject.visualEffects.animationTiming || 'normal',
-              animationIntensity: newlyAddedProject.visualEffects.animationIntensity || 'normal'
-            },
-            // Ensure imagePriority is a number between 1-5
-            imagePriority: Math.min(Math.max(1, newlyAddedProject.imagePriority), 5)
-          }
+      // Generate a cache-busting timestamp
+      const timestamp = Date.now();
+      
+      // Format form data
+      let finalProjectData;
+      
+      if (formType === 'regularProject') {
+        // For regular projects
+        finalProjectData = {
+          ...project,
+          technologies: project.technologies.filter(t => t.trim() !== ''),
+          _created: Date.now(),
+          _timestamp: new Date().toISOString()
+        };
+      } else {
+        // For newly added projects
+        finalProjectData = {
+          ...project, // Base project fields
+          ...newlyAddedProject, // Newly added fields override base fields
+          title: `NEWLY ADDED: ${project.title}`, // Prefix title
+          technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
+          exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
+          progress: Number(newlyAddedProject.progress), // Ensure it's a number
+          updatedDays: 1, // Start with 1 day ago
+          status: newlyAddedProject.status || 'In Development',
+          featured: true, // Always featured
+          _created: Date.now(),
+          _timestamp: new Date().toISOString()
+        };
+      }
 
-      const response = await fetch('/api/projects', {
+      const response = await fetch(`/api/projects?t=${timestamp}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
         body: JSON.stringify({
-          project: projectToSubmit,
+          project: finalProjectData,
           password
         }),
+        cache: 'no-store'
       })
 
       if (response.ok) {
         toast.success('Project added successfully')
-        router.push('/admin/projects')
+        
+        // Force cache revalidation for main pages
+        try {
+          await fetch(`/api/revalidate?path=/&secret=${password}`);
+          await fetch(`/api/revalidate?path=/projects&secret=${password}`);
+        } catch (error) {
+          console.error('Error revalidating paths:', error);
+        }
+
+        // Add a small delay to ensure revalidation completes
+        setTimeout(() => {
+          router.push('/admin/projects')
+        }, 500);
       } else {
         const error = await response.json()
         toast.error(error.error || 'Failed to add project')
@@ -843,7 +862,7 @@ export default function NewProjectPage() {
                           src={newlyAddedProject.secondImage} 
                           alt="Second image preview" 
                           fill 
-                          className="object-cover"
+                          className="object-cover" 
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           quality={100}
                         />

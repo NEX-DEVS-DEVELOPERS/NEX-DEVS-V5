@@ -32,21 +32,30 @@ const nextConfig = {
       logLevel: 'error'
     },
     largePageDataBytes: 256 * 1000, // Increase limit for large responses
+    isrMemoryCacheSize: 0,  // Disable ISR cache
+    serverComponentsExternalPackages: ['*'], // Improves module resolution
+    largerPersistedQueries: true,
+    serverActions: {
+      bodySizeLimit: '2mb', // Increase limit for server actions
+    },
   },
   output: 'standalone',
   env: {
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+    DISABLE_CACHE: 'true', // Force disable cache
   },
-  // Add server configuration
+  // Server configuration
   serverRuntimeConfig: {
     // Will only be available on the server side
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
     PROJECT_CACHE_DISABLED: 'true', // Disable project caching on server
+    NODE_ENV: process.env.NODE_ENV || 'development',
   },
   publicRuntimeConfig: {
     // Will be available on both server and client
     NODE_ENV: process.env.NODE_ENV,
     BUILD_ID: Date.now().toString(), // Add unique build ID to force cache refreshes
+    CACHE_DISABLED: 'true',
   },
   // Add custom headers to prevent caching of API responses
   async headers() {
@@ -54,13 +63,26 @@ const nextConfig = {
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
           { key: 'Surrogate-Control', value: 'no-store' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' }
+        ],
+      },
+      {
+        source: '/admin/:path*',
+        headers: [
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0' },
+          { key: 'Pragma', value: 'no-cache' },
+          { key: 'Expires', value: '0' },
         ],
       },
     ];
+  },
+  // Force Vercel to rebuild the project on every deployment 
+  generateBuildId: () => {
+    return `build-${Date.now()}`;
   },
 }
 

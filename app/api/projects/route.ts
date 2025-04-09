@@ -22,9 +22,18 @@ async function readProjects(): Promise<Project[]> {
   try {
     const data = await readFile(projectsFilePath, 'utf8');
     const parsedProjects = JSON.parse(data) as Project[];
-    projectsCache = parsedProjects;
+    
+    // Process each project to ensure it has updated timestamps
+    const projectsWithTimestamps = parsedProjects.map(project => ({
+      ...project,
+      _fetchTime: Date.now() // Add timestamp to force stale detection
+    }));
+    
+    projectsCache = projectsWithTimestamps;
     lastCacheUpdate = Date.now();
-    return parsedProjects;
+    
+    // Return only the project data without the timestamp
+    return projectsWithTimestamps;
   } catch (error) {
     console.error('Error reading projects:', error);
     projectsCache = [];
@@ -35,11 +44,24 @@ async function readProjects(): Promise<Project[]> {
 // Write projects with cache update
 async function writeProjects(projects: Project[]): Promise<boolean> {
   try {
-    const sortedProjects = sortProjects(projects);
-    await writeFile(projectsFilePath, JSON.stringify(sortedProjects, null, 2), 'utf8');
-    // Update cache and force invalidation
-    projectsCache = sortedProjects;
+    // Add a timestamp to the data to ensure it's different each time
+    const timestamp = new Date().toISOString();
+    const dataWithTimestamp = {
+      projects: sortProjects(projects),
+      lastUpdated: timestamp
+    };
+    
+    // Write the data with timestamp to ensure file changes
+    await writeFile(
+      projectsFilePath,
+      JSON.stringify(dataWithTimestamp.projects, null, 2),
+      'utf8'
+    );
+    
+    // Force cache invalidation for ALL projects
+    projectsCache = null;
     lastCacheUpdate = Date.now();
+    
     return true;
   } catch (error) {
     console.error('Error writing projects:', error);
@@ -148,6 +170,9 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid project data' }, { status: 400 });
     }
     
+    // Force cache invalidation before reading
+    projectsCache = null;
+    
     // Read current projects
     const projects = await readProjects();
     
@@ -158,7 +183,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     
-    // Ensure proper types for visualEffects and imagePriority
+    // Add timestamp to project to force cache invalidation
     const updatedProject: Project = {
       ...project,
       title: project.title.trim(),
@@ -172,7 +197,8 @@ export async function PUT(request: NextRequest) {
         glow: false,
         animation: 'none',
         showBadge: false
-      }
+      },
+      _lastUpdated: new Date().toISOString() // Add timestamp to force change detection
     };
     
     // Update the project in the array
@@ -181,7 +207,26 @@ export async function PUT(request: NextRequest) {
     // Write updated projects back to file
     await writeProjects(projects);
     
-    return NextResponse.json(updatedProject);
+    // Force Vercel to revalidate the data for this project
+    const revalidationResponse = await fetch(`${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`, {
+      method: 'GET',
+      cache: 'no-store',
+      headers: {
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    }).catch(error => console.error('Error revalidating paths:', error));
+    
+    console.log('Revalidation response:', revalidationResponse ? 'successful' : 'failed');
+    
+    return NextResponse.json(updatedProject, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
     console.error('Error updating project:', error);
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });

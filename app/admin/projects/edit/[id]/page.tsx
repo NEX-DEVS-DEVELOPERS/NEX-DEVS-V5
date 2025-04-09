@@ -352,27 +352,48 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         // Ensure imagePriority is a number between 1-5
         imagePriority: typeof project.imagePriority === 'number'
           ? Math.min(Math.max(1, project.imagePriority), 5)
-          : 5
+          : 5,
+        // Add a timestamp to force detection of changes
+        _updated: Date.now()
       }
       
       if (isNewlyAdded && project.exclusiveFeatures) {
         projectToSubmit.exclusiveFeatures = project.exclusiveFeatures.filter(f => f.trim() !== '')
       }
 
-      const response = await fetch('/api/projects', {
+      // Generate a cache-busting timestamp
+      const timestamp = Date.now();
+      const response = await fetch(`/api/projects?t=${timestamp}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
         body: JSON.stringify({
           project: projectToSubmit,
           password
         }),
+        cache: 'no-store'
       })
 
       if (response.ok) {
         toast.success('Project updated successfully')
-        router.push('/admin/projects')
+        
+        // Force cache revalidation for main pages
+        try {
+          await fetch(`/api/revalidate?path=/&secret=${password}`);
+          await fetch(`/api/revalidate?path=/projects&secret=${password}`);
+        } catch (error) {
+          console.error('Error revalidating paths:', error);
+        }
+        
+        // Add a small delay to ensure revalidation completes
+        setTimeout(() => {
+          router.push('/admin/projects')
+        }, 500);
       } else {
         const error = await response.json()
         toast.error(error.error || 'Failed to update project')
