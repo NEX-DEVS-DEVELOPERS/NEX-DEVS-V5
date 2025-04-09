@@ -35,19 +35,17 @@ export default function ProjectsGrid() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Enhanced cache busting with multiple random values
+        // Use stronger cache busting with both timestamp and random value
         const timestamp = new Date().getTime();
-        const randomValue = Math.floor(Math.random() * 10000000);
-        const cache = `nocache=${timestamp}-${randomValue}`;
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
+        const random = Math.floor(Math.random() * 1000000);
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}`, {
           method: 'GET',
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
             'Expires': '0',
-            'X-Force-Refresh': 'true',
-            'X-Random-Value': randomValue.toString()
+            'X-Force-Refresh': 'true'
           }
         });
         
@@ -58,10 +56,10 @@ export default function ProjectsGrid() {
         const data = await response.json();
         console.log('Fetched projects data:', data.length, 'projects');
         
-        // Only filter out projects with 'NEWLY ADDED:' prefix in title
-        // Include all projects regardless of status
+        // Filter out newly added projects
         const regularProjects = data.filter((project: Project) => 
-          !project.title.startsWith('NEWLY ADDED:')
+          !project.title.startsWith('NEWLY ADDED:') && 
+          (!project.status || !['In Development', 'Beta Testing', 'Recently Launched'].includes(project.status))
         );
         
         console.log('Regular projects count:', regularProjects.length);
@@ -79,12 +77,12 @@ export default function ProjectsGrid() {
 
     fetchProjects();
     
-    // Set up an interval to refresh data more frequently when tab is visible
+    // Set up an interval to refresh data periodically when tab is visible
     const refreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchProjects();
       }
-    }, 30000); // Refresh every 30 seconds when tab is visible
+    }, 60000); // Refresh every minute when tab is visible
     
     // Clean up the interval on component unmount
     return () => clearInterval(refreshInterval);

@@ -64,20 +64,15 @@ export default function NewlyAddedProjects() {
     
     const fetchProjects = async () => {
       try {
-        // Enhanced cache busting with multiple random values
+        // Add timestamp to force fresh data and prevent browser caching
         const timestamp = new Date().getTime();
-        const randomValue = Math.floor(Math.random() * 10000000);
-        const cache = `nocache=${timestamp}-${randomValue}`;
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
-          method: 'GET',
+        const response = await fetch(`/api/projects?t=${timestamp}`, {
           signal: controller.signal,
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0',
-            'X-Force-Refresh': 'true',
-            'X-Random-Value': randomValue.toString()
+            'Expires': '0'
           }
         })
         const data = await response.json()

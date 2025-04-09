@@ -16,14 +16,22 @@ const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
 
 // Read projects with cache handling
 async function readProjects(): Promise<Project[]> {
-  // Always invalidate cache on each read to ensure fresh data
-  projectsCache = null;
+  const now = Date.now();
+  // Always invalidate cache on read for production environments
+  if (process.env.NODE_ENV === 'production') {
+    projectsCache = null;
+  }
+  
+  // Return cached projects only in development if they exist and aren't expired
+  if (projectsCache && process.env.NODE_ENV !== 'production' && (now - lastCacheUpdate < CACHE_EXPIRY)) {
+    return projectsCache;
+  }
   
   try {
     const data = await readFile(projectsFilePath, 'utf8');
     const parsedProjects = JSON.parse(data) as Project[];
     projectsCache = parsedProjects;
-    lastCacheUpdate = Date.now();
+    lastCacheUpdate = now;
     return parsedProjects;
   } catch (error) {
     console.error('Error reading projects:', error);
@@ -50,21 +58,22 @@ async function writeProjects(projects: Project[]): Promise<boolean> {
 // GET all projects
 export async function GET(request: NextRequest) {
   try {
-    // Force cache invalidation on every request
-    projectsCache = null;
+    // Force cache invalidation with query parameters
+    const url = new URL(request.url);
+    if (url.searchParams.has('t')) {
+      projectsCache = null; // Force fresh read with timestamp param
+    }
     
     const projects = await readProjects();
     
-    // Set strong cache control headers to prevent browser caching
+    // Set cache control headers to prevent browser caching
     return new NextResponse(JSON.stringify(sortProjects(projects)), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Surrogate-Control': 'no-store',
-        'X-Accel-Expires': '0',
-        'Last-Modified': new Date().toUTCString()
+        'Surrogate-Control': 'no-store'
       }
     });
   } catch (error) {
