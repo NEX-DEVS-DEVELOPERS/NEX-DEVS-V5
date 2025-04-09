@@ -71,42 +71,39 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        const response = await fetch(`/api/projects`)
-        const projects = await response.json()
+        // Generate cache-busting parameters
+        const timestamp = Date.now();
+        const randomValue = Math.floor(Math.random() * 1000000);
         
-        const project = projects.find((p: Project) => p.id === parseInt(params.id))
-        
-        if (project) {
-          setProject({
-            ...project,
-            // Ensure these fields exist with defaults if missing
-            secondImage: project.secondImage || '/projects/placeholder.jpg',
-            showBothImagesInPriority: project.showBothImagesInPriority || false,
-            imagePriority: project.imagePriority || 5,
-            visualEffects: project.visualEffects || {
-              morphTransition: false,
-              rippleEffect: false,
-              floatingElements: false,
-              shimmering: false,
-              animation: 'none',
-              shadows: 'none',
-              border: 'default',
-              glassmorphism: false,
-              particles: false,
-              animationTiming: 'normal',
-              animationIntensity: 'normal'
-            }
-          })
-          setIsNewlyAdded(project.title.startsWith('NEWLY ADDED:') || !!project.features || !!project.exclusiveFeatures)
-        } else {
-          toast.error('Project not found')
-          router.push('/admin/projects')
+        const response = await fetch(`/api/projects/${params.id}?t=${timestamp}&r=${randomValue}`, {
+          method: 'GET',
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Force-Refresh': 'true'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error fetching project: ${response.status}`);
         }
+
+        const projectData = await response.json();
+        
+        // Check if it's a newly added project by title or status
+        const isNewlyAdded = 
+          projectData.title.startsWith('NEWLY ADDED:') || 
+          (projectData.status && ['In Development', 'Beta Testing', 'Recently Launched'].includes(projectData.status));
+        
+        setProject(projectData);
+        setIsNewlyAdded(isNewlyAdded);
       } catch (error) {
-        console.error('Error fetching project:', error)
-        toast.error('Failed to load project')
+        console.error('Error fetching project:', error);
+        toast.error('Error fetching project');
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
     
@@ -205,14 +202,20 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !project) return;
+    if (!e.target.files || e.target.files.length === 0 || !project) {
+      // Use placeholder if no file is selected
+      const imagePath = '/projects/placeholder.jpg';
+      setProject(prev => prev ? { ...prev, image: imagePath } : null);
+      toast.success('Using placeholder image');
+      return;
+    }
     
     const file = e.target.files[0];
     setIsUploading(true);
     
     // Create a FormData object to send the file
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
     
     try {
       // Get admin password from session storage or prompt
@@ -227,18 +230,28 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         }
       }
       
+      formData.append('password', adminPassword);
+      
+      // Include timestamp for cache busting
+      const timestamp = Date.now();
+      
       // Make the request to upload the image
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`/api/upload?t=${timestamp}`, {
         method: 'POST',
         headers: {
-          'AdminAuth': adminPassword
+          'AdminAuth': adminPassword,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
-        body: formData
+        body: formData,
+        cache: 'no-store'
       });
       
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to upload image');
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || 'Failed to upload image');
       }
       
       const data = await response.json();
@@ -246,10 +259,14 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       // Update the project state with the new image path
       setProject(prev => prev ? { ...prev, image: data.imagePath } : null);
       
-      toast.success('Image uploaded successfully!');
+      toast.success(data.isPlaceholder ? 'Using placeholder image' : 'Image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading image:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload image');
+      
+      // Use placeholder image in case of error
+      const placeholderImage = '/projects/placeholder.jpg';
+      setProject(prev => prev ? { ...prev, image: placeholderImage } : null);
     } finally {
       setIsUploading(false);
     }
@@ -257,14 +274,20 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
   // Handle second image upload
   const handleSecondImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0 || !project) return;
+    if (!e.target.files || e.target.files.length === 0 || !project) {
+      // Use placeholder if no file is selected
+      const imagePath = '/projects/placeholder.jpg';
+      setProject(prev => prev ? { ...prev, secondImage: imagePath } : null);
+      toast.success('Using placeholder image for second image');
+      return;
+    }
     
     const file = e.target.files[0];
     setIsUploading(true);
     
     // Create a FormData object to send the file
     const formData = new FormData();
-    formData.append('image', file);
+    formData.append('file', file);
     
     try {
       // Get admin password from session storage or prompt
@@ -279,18 +302,28 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         }
       }
       
+      formData.append('password', adminPassword);
+      
+      // Include timestamp for cache busting
+      const timestamp = Date.now();
+      
       // Make the request to upload the image
-      const response = await fetch('/api/upload', {
+      const response = await fetch(`/api/upload?t=${timestamp}`, {
         method: 'POST',
         headers: {
-          'AdminAuth': adminPassword
+          'AdminAuth': adminPassword,
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
-        body: formData
+        body: formData,
+        cache: 'no-store'
       });
       
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to upload second image');
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || 'Failed to upload second image');
       }
       
       const data = await response.json();
@@ -298,10 +331,14 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       // Update the project state with the new second image path
       setProject(prev => prev ? { ...prev, secondImage: data.imagePath } : null);
       
-      toast.success('Second image uploaded successfully!');
+      toast.success(data.isPlaceholder ? 'Using placeholder image' : 'Second image uploaded successfully!');
     } catch (error) {
       console.error('Error uploading second image:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to upload second image');
+      
+      // Use placeholder image in case of error
+      const placeholderImage = '/projects/placeholder.jpg';
+      setProject(prev => prev ? { ...prev, secondImage: placeholderImage } : null);
     } finally {
       setIsUploading(false);
     }
@@ -310,97 +347,79 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!project) return
     
-    setIsSubmitting(true)
-
+    if (!project) {
+      toast.error('No project data available')
+      return
+    }
+    
     try {
+      setIsSubmitting(true)
+      
       // Get admin password
-      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to update project:')
-      
-      if (!password) {
-        toast.error('Password required to update project')
-        setIsSubmitting(false)
-        return
+      let adminPassword = window.sessionStorage.getItem('adminPassword')
+      if (!adminPassword) {
+        adminPassword = prompt('Enter admin password:')
+        if (adminPassword) {
+          window.sessionStorage.setItem('adminPassword', adminPassword)
+        } else {
+          setIsSubmitting(false)
+          toast.error('Password required')
+          return
+        }
       }
 
-      // Store password for session
-      sessionStorage.setItem('adminPassword', password)
-
-      // Format project data before submission
-      const projectToSubmit = {
+      // Format project data for submission
+      const projectData = {
         ...project,
-        technologies: project.technologies.filter(t => t.trim() !== ''),
-        // Ensure second image and showBothImagesInPriority flag are properly formatted
-        secondImage: project.secondImage || '/projects/placeholder.jpg',
-        showBothImagesInPriority: Boolean(project.showBothImagesInPriority),
-        // Ensure the visualEffects and imagePriority are properly formatted
-        visualEffects: project.visualEffects ? {
-          ...project.visualEffects,
-          morphTransition: Boolean(project.visualEffects.morphTransition),
-          rippleEffect: Boolean(project.visualEffects.rippleEffect),
-          floatingElements: Boolean(project.visualEffects.floatingElements),
-          shimmering: Boolean(project.visualEffects.shimmering),
-          animation: project.visualEffects.animation || 'none',
-          shadows: project.visualEffects.shadows || 'none',
-          border: project.visualEffects.border || 'default',
-          glassmorphism: Boolean(project.visualEffects.glassmorphism),
-          particles: Boolean(project.visualEffects.particles),
-          animationTiming: project.visualEffects.animationTiming || 'normal',
-          animationIntensity: project.visualEffects.animationIntensity || 'normal'
-        } : {},
-        // Ensure imagePriority is a number between 1-5
-        imagePriority: typeof project.imagePriority === 'number'
-          ? Math.min(Math.max(1, project.imagePriority), 5)
-          : 5,
-        // Add a timestamp to force detection of changes
-        _updated: Date.now()
-      }
-      
-      if (isNewlyAdded && project.exclusiveFeatures) {
-        projectToSubmit.exclusiveFeatures = project.exclusiveFeatures.filter(f => f.trim() !== '')
+        // Ensure visual effects are properly serialized for SQLite
+        visualEffects: typeof project.visualEffects === 'object' ? 
+          JSON.stringify(project.visualEffects) : 
+          project.visualEffects,
+        // Ensure image paths are absolute
+        image: project.image?.startsWith('/') ? project.image : `/projects/${project.image}`,
+        secondImage: project.secondImage?.startsWith('/') ? project.secondImage : project.secondImage ? `/projects/${project.secondImage}` : null,
+        // Add last updated timestamp
+        lastUpdated: new Date().toISOString()
       }
 
-      // Generate a cache-busting timestamp
-      const timestamp = Date.now();
-      const response = await fetch(`/api/projects?t=${timestamp}`, {
+      // Add cache-busting timestamp to request
+      const timestamp = Date.now()
+      const projectId = project.id
+      
+      // Make PUT request to update project
+      const response = await fetch(`/api/projects/${projectId}?t=${timestamp}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0',
-          'X-Timestamp': timestamp.toString()
+          'Expires': '0'
         },
         body: JSON.stringify({
-          project: projectToSubmit,
-          password
-        }),
-        cache: 'no-store'
+          project: projectData,
+          password: adminPassword
+        })
       })
 
-      if (response.ok) {
-        toast.success('Project updated successfully')
-        
-        // Force cache revalidation for main pages
-        try {
-          await fetch(`/api/revalidate?path=/&secret=${password}`);
-          await fetch(`/api/revalidate?path=/projects&secret=${password}`);
-        } catch (error) {
-          console.error('Error revalidating paths:', error);
-        }
-        
-        // Add a small delay to ensure revalidation completes
-        setTimeout(() => {
-          router.push('/admin/projects')
-        }, 500);
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to update project')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update project' }))
+        throw new Error(errorData.error || `HTTP error ${response.status}`)
       }
+
+      // Revalidate project list
+      await fetch(`/api/revalidate?path=/projects&secret=${adminPassword}&t=${timestamp}`)
+      await fetch(`/api/revalidate?path=/&secret=${adminPassword}&t=${timestamp}`)
+      
+      toast.success('Project updated successfully!')
+      
+      // Redirect after a brief delay
+      setTimeout(() => {
+        router.push('/admin/projects')
+      }, 2000)
     } catch (error) {
-      console.error('Error updating project:', error)
-      toast.error('Error updating project')
+      console.error('Update error:', error)
+      toast.error(`Failed to update project: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }

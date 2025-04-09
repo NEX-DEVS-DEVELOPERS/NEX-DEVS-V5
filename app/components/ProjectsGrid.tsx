@@ -39,7 +39,12 @@ export default function ProjectsGrid() {
         const timestamp = new Date().getTime();
         const randomValue = Math.floor(Math.random() * 10000000);
         const cache = `nocache=${timestamp}-${randomValue}`;
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
+        
+        // Build the API URL with category filter if selected
+        const categoryParam = selectedCategory !== 'All' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
+        const apiUrl = `/api/projects?t=${timestamp}&r=${randomValue}${categoryParam}&${cache}`;
+        
+        const response = await fetch(apiUrl, {
           method: 'GET',
           cache: 'no-store',
           headers: {
@@ -67,9 +72,14 @@ export default function ProjectsGrid() {
         console.log('Regular projects count:', regularProjects.length);
         setProjects(regularProjects);
         
-        // Extract unique categories
-        const uniqueCategories = ['All', ...Array.from(new Set(regularProjects.map((p: Project) => p.category)))];
-        setCategories(uniqueCategories as string[]);
+        // Extract unique categories from the fetched data
+        const fetchedCategories = await fetch(`/api/projects?t=${timestamp}&action=categories`, {
+          cache: 'no-store'
+        }).then(res => res.json());
+        
+        // Ensure we have unique categories by using a Set
+        const uniqueCategories = Array.from(new Set(['All', ...fetchedCategories]));
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error('Error fetching projects:', error);
       } finally {
@@ -88,7 +98,25 @@ export default function ProjectsGrid() {
     
     // Clean up the interval on component unmount
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [selectedCategory]);
+
+  // Add manual refresh function for admins
+  const handleManualRefresh = () => {
+    setIsLoading(true);
+    // Force revalidation
+    fetch('/api/revalidate?path=/projects&secret=admin-access')
+      .then(() => {
+        // Wait a moment for revalidation to complete
+        setTimeout(() => {
+          // Force reload the current page
+          window.location.reload();
+        }, 500);
+      })
+      .catch(error => {
+        console.error('Error revalidating:', error);
+        setIsLoading(false);
+      });
+  };
 
   // Handle title click for easter egg
   const handleTitleClick = (project: Project) => {
@@ -142,9 +170,9 @@ export default function ProjectsGrid() {
     <>
       {/* Category Filters */}
       <div className="max-w-7xl mx-auto mb-8 flex flex-wrap gap-2 justify-center">
-        {categories.map((category) => (
+        {categories.map((category, index) => (
           <button
-            key={category}
+            key={`category-${index}-${String(category)}`}
             onClick={() => setSelectedCategory(category)}
             className={`px-4 py-2 rounded-full text-sm transition-colors ${
               selectedCategory === category
@@ -155,6 +183,17 @@ export default function ProjectsGrid() {
             {category}
           </button>
         ))}
+        
+        {/* Admin refresh button - hidden for most users */}
+        <button
+          onClick={handleManualRefresh}
+          className="px-4 py-2 rounded-full text-sm transition-colors bg-blue-600/30 text-blue-300 hover:bg-blue-600/50 ml-4"
+          title="Admin refresh"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </button>
       </div>
 
       {/* Easter Egg Message */}

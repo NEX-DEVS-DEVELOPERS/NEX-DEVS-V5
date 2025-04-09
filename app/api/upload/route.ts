@@ -8,19 +8,25 @@ const ADMIN_PASSWORD = 'nex-devs.org889123';
 
 export async function POST(request: NextRequest) {
   try {
-    // Verify password from headers
-    const password = request.headers.get('AdminAuth');
+    // Process the form data
+    const formData = await request.formData();
     
+    // Get password from form data
+    const password = formData.get('password') as string;
+    const file = formData.get('file') as File;
+    
+    // Verify password
     if (password !== ADMIN_PASSWORD) {
       return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
     }
-
-    // Process the form data
-    const formData = await request.formData();
-    const file = formData.get('image') as File;
     
     if (!file) {
-      return NextResponse.json({ error: 'No file uploaded' }, { status: 400 });
+      // If no file is provided, return a placeholder image path instead of an error
+      return NextResponse.json({ 
+        success: true, 
+        imagePath: '/projects/placeholder.jpg',
+        isPlaceholder: true
+      });
     }
 
     // Check if the file is an image
@@ -107,6 +113,8 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Error uploading file:', error);
-    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error uploading file: ' + (error instanceof Error ? error.message : String(error))
+    }, { status: 500 });
   }
 } 

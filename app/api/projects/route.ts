@@ -1,84 +1,48 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFile, writeFile } from 'fs/promises';
-import path from 'path';
-import { Project, sortProjects } from '../projects/index';
+import { Project } from './index';
+import db from '@/app/services/database';
 
 // Set a password for admin operations
 const ADMIN_PASSWORD = 'nex-devs.org889123';
 
-// Path to the projects.json file
-const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
-
-// Cache mechanism to ensure changes are reflected across instances
-let projectsCache: Project[] | null = null;
-let lastCacheUpdate = 0;
-const CACHE_EXPIRY = 5 * 60 * 1000; // 5 minutes
-
-// Read projects with cache handling
-async function readProjects(): Promise<Project[]> {
-  // Always invalidate cache on each read to ensure fresh data
-  projectsCache = null;
-  
-  try {
-    const data = await readFile(projectsFilePath, 'utf8');
-    const parsedProjects = JSON.parse(data) as Project[];
-    
-    // Process each project to ensure it has updated timestamps
-    const projectsWithTimestamps = parsedProjects.map(project => ({
-      ...project,
-      _fetchTime: Date.now() // Add timestamp to force stale detection
-    }));
-    
-    projectsCache = projectsWithTimestamps;
-    lastCacheUpdate = Date.now();
-    
-    // Return only the project data without the timestamp
-    return projectsWithTimestamps;
-  } catch (error) {
-    console.error('Error reading projects:', error);
-    projectsCache = [];
-    return [];
-  }
-}
-
-// Write projects with cache update
-async function writeProjects(projects: Project[]): Promise<boolean> {
-  try {
-    // Add a timestamp to the data to ensure it's different each time
-    const timestamp = new Date().toISOString();
-    const dataWithTimestamp = {
-      projects: sortProjects(projects),
-      lastUpdated: timestamp
-    };
-    
-    // Write the data with timestamp to ensure file changes
-    await writeFile(
-      projectsFilePath,
-      JSON.stringify(dataWithTimestamp.projects, null, 2),
-      'utf8'
-    );
-    
-    // Force cache invalidation for ALL projects
-    projectsCache = null;
-    lastCacheUpdate = Date.now();
-    
-    return true;
-  } catch (error) {
-    console.error('Error writing projects:', error);
-    return false;
-  }
-}
-
 // GET all projects
 export async function GET(request: NextRequest) {
   try {
-    // Force cache invalidation on every request
-    projectsCache = null;
+    // Determine if we need specific projects or all
+    const url = new URL(request.url);
+    const action = url.searchParams.get('action');
+    const category = url.searchParams.get('category');
+    const featured = url.searchParams.get('featured');
+    const newlyAdded = url.searchParams.get('newlyAdded');
     
-    const projects = await readProjects();
+    // Check if we need to return categories instead of projects
+    if (action === 'categories') {
+      const categories = db.getUniqueCategories();
+      return new NextResponse(JSON.stringify(categories), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+    }
+    
+    let projects: Project[];
+    
+    // Get the appropriate projects based on query parameters
+    if (newlyAdded === 'true') {
+      projects = db.getNewlyAddedProjects();
+    } else if (featured === 'true') {
+      projects = db.getFeaturedProjects();
+    } else if (category && category !== 'All') {
+      projects = db.getProjectsByCategory(category);
+    } else {
+      projects = db.getAllProjects();
+    }
     
     // Set strong cache control headers to prevent browser caching
-    return new NextResponse(JSON.stringify(sortProjects(projects)), {
+    return new NextResponse(JSON.stringify(projects), {
       headers: {
         'Content-Type': 'application/json',
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
@@ -112,46 +76,92 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Validate project data
-    if (!project || !project.title || !project.description || !project.image) {
-      return NextResponse.json({ error: 'Invalid project data' }, { status: 400 });
+    // Validate required fields
+    if (!project) {
+      return NextResponse.json({ error: 'Invalid project data - project object is missing' }, { status: 400 });
     }
     
-    // Read current projects
-    const projects = await readProjects();
+    // Check all required fields according to SQLite schema
+    const requiredFields = ['title', 'description', 'category', 'link'];
+    const missingFields = requiredFields.filter(field => !project[field]);
     
-    // Generate a new ID
-    const newId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1;
+    if (missingFields.length > 0) {
+      return NextResponse.json({ 
+        error: `Invalid project data - missing required fields: ${missingFields.join(', ')}` 
+      }, { status: 400 });
+    }
+
+    // Check if this is a newly added project
+    const isNewlyAdded = project.title.startsWith('NEWLY ADDED:');
     
-    // Create new project object with proper properties
-    const newProject: Project = {
+    // Fill in default values for any undefined fields that are required by the database
+    const projectWithDefaults = {
       ...project,
-      id: newId,
       title: project.title.trim(),
       description: project.description.trim(),
-      image: project.image.trim(),
-      // For data URLs, ensure we don't recreate them or manipulate them
+      // Ensure image field has a value, use placeholder if not provided
+      image: (project.image && project.image.trim()) || '/projects/placeholder.jpg',
+      category: project.category.trim(),
+      link: project.link.trim(),
       technologies: Array.isArray(project.technologies) ? project.technologies : [],
-      exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? project.exclusiveFeatures : [],
       featured: Boolean(project.featured),
-      imagePriority: typeof project.imagePriority === 'number' ? project.imagePriority : 5,
-      visualEffects: project.visualEffects || {
-        glow: false,
+      // Add newly added project fields if applicable
+      status: isNewlyAdded ? (project.status || 'In Development') : project.status,
+      updatedDays: isNewlyAdded ? (project.updatedDays || 1) : project.updatedDays,
+      progress: isNewlyAdded ? (project.progress || 50) : project.progress,
+      developmentProgress: isNewlyAdded ? (project.developmentProgress || 50) : project.developmentProgress,
+      estimatedCompletion: project.estimatedCompletion || null,
+      // SQLite schema defines these fields but they may not be in the form data
+      secondImage: project.secondImage || null,
+      showBothImagesInPriority: Boolean(project.showBothImagesInPriority),
+      features: Array.isArray(project.features) ? project.features : [],
+      exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? project.exclusiveFeatures : [],
+      imagePriority: typeof project.imagePriority === 'number' ? project.imagePriority : (isNewlyAdded ? 1 : 5),
+      visualEffects: project.visualEffects ? (
+        typeof project.visualEffects === 'string' ? 
+          project.visualEffects : 
+          JSON.stringify(project.visualEffects)
+      ) : JSON.stringify({
         animation: 'none',
         showBadge: false
-      }
+      }),
+      // Always set lastUpdated field
+      lastUpdated: new Date().toISOString()
     };
     
-    // Add to projects array
-    projects.push(newProject);
+    console.log('Creating project with data:', {
+      title: projectWithDefaults.title,
+      category: projectWithDefaults.category,
+      isNewlyAdded,
+      visualEffectsType: typeof projectWithDefaults.visualEffects
+    });
     
-    // Write updated projects back to file
-    await writeProjects(projects);
-    
-    return NextResponse.json(newProject, { status: 201 });
+    // Create the new project
+    try {
+      const newProject = db.createProject(projectWithDefaults);
+      
+      console.log('Project created successfully with ID:', newProject.id);
+      
+      return NextResponse.json(newProject, { 
+        status: 201,
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+    } catch (dbError) {
+      console.error('Database error creating project:', dbError);
+      console.error('Project data causing error:', JSON.stringify(projectWithDefaults, null, 2));
+      return NextResponse.json({ 
+        error: 'Database error creating project: ' + (dbError instanceof Error ? dbError.message : String(dbError)),
+        details: projectWithDefaults
+      }, { status: 500 });
+    }
   } catch (error) {
     console.error('Error adding project:', error);
-    return NextResponse.json({ error: 'Failed to add project' }, { status: 500 });
+    return NextResponse.json({ error: 'Failed to add project: ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 });
   }
 }
 
@@ -170,21 +180,15 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid project data' }, { status: 400 });
     }
     
-    // Force cache invalidation before reading
-    projectsCache = null;
+    // Check if project exists
+    const existingProject = db.getProjectById(project.id);
     
-    // Read current projects
-    const projects = await readProjects();
-    
-    // Find the project to update
-    const index = projects.findIndex(p => p.id === project.id);
-    
-    if (index === -1) {
+    if (!existingProject) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     
-    // Add timestamp to project to force cache invalidation
-    const updatedProject: Project = {
+    // Update the project
+    const updatedProject = {
       ...project,
       title: project.title.trim(),
       description: project.description.trim(),
@@ -194,31 +198,32 @@ export async function PUT(request: NextRequest) {
       featured: Boolean(project.featured),
       imagePriority: typeof project.imagePriority === 'number' ? project.imagePriority : 5,
       visualEffects: project.visualEffects || {
-        glow: false,
         animation: 'none',
         showBadge: false
       },
-      _lastUpdated: new Date().toISOString() // Add timestamp to force change detection
+      lastUpdated: new Date().toISOString()
     };
     
-    // Update the project in the array
-    projects[index] = updatedProject;
+    const success = db.updateProject(updatedProject);
     
-    // Write updated projects back to file
-    await writeProjects(projects);
+    if (!success) {
+      return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+    }
     
-    // Force Vercel to revalidate the data for this project
-    const revalidationResponse = await fetch(`${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`, {
-      method: 'GET',
-      cache: 'no-store',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    }).catch(error => console.error('Error revalidating paths:', error));
-    
-    console.log('Revalidation response:', revalidationResponse ? 'successful' : 'failed');
+    // Force revalidation paths if needed
+    try {
+      await fetch(`${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
+    } catch (error) {
+      console.error('Error revalidating paths:', error);
+    }
     
     return NextResponse.json(updatedProject, {
       headers: {
@@ -269,18 +274,12 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
     
-    // Read current projects
-    const projects = await readProjects();
+    // Delete the project
+    const success = db.deleteProject(id);
     
-    // Filter out the project to delete
-    const filteredProjects = projects.filter(p => p.id !== id);
-    
-    if (filteredProjects.length === projects.length) {
+    if (!success) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
-    
-    // Write updated projects back to file
-    await writeProjects(filteredProjects);
     
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -10,22 +10,52 @@ export type Project = {
   id: number
   title: string
   description: string
+  detailedDescription?: string
   image: string
+  secondImage?: string
+  showBothImagesInPriority?: boolean
   category: string
   technologies: string[]
+  techDetails?: {
+    frontend?: string
+    styling?: string
+    performance?: string
+    '3D'?: string
+    framework?: string
+    animation?: string
+  }
   link: string
   featured: boolean
   status?: string
   updatedDays?: number
   progress?: number
+  completionDate?: string
+  clientName?: string
+  duration?: string
   features?: string[]
+  developmentProgress?: number
+  estimatedCompletion?: string
   imagePriority?: number
   visualEffects?: {
-    glow: boolean
-    animation: string
-    showBadge: boolean
+    glow?: boolean
+    morphTransition?: boolean
+    rippleEffect?: boolean
+    floatingElements?: boolean
+    shimmering?: boolean
+    animation?: string
+    showBadge?: boolean
+    spotlight?: boolean
+    shadows?: string
+    border?: string
+    glassmorphism?: boolean
+    particles?: boolean
+    hover?: string
+    backdrop?: string
+    animationTiming?: string
+    animationIntensity?: string
   }
   exclusiveFeatures?: string[]
+  lastUpdated?: string
 }
 
 // Path to the projects.json file
@@ -90,58 +120,6 @@ export async function saveProjects(projects: Project[]): Promise<boolean> {
 
 // API handler for projects endpoints
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-  // GET request - Return all projects
-  if (req.method === 'GET') {
-    const projects = getProjects()
-    return res.status(200).json(projects)
-  }
-
-  // POST request - Add a new project
-  if (req.method === 'POST') {
-    try {
-      const { project, password } = req.body
-
-      // Validate password
-      if (password !== ADMIN_PASSWORD) {
-        return res.status(401).json({ error: 'Unauthorized' })
-      }
-
-      // Validate project data
-      if (!project || !project.title || !project.description || !project.image) {
-        return res.status(400).json({ error: 'Invalid project data' })
-      }
-
-      // Get current projects
-      const projects = getProjects()
-
-      // Generate a new ID
-      const newId = projects.length > 0 ? Math.max(...projects.map(p => p.id)) + 1 : 1
-
-      // Prepare new project
-      const newProject: Project = {
-        ...project,
-        id: newId,
-        // Ensure sanitized properties
-        title: project.title.trim(),
-        description: project.description.trim(),
-        technologies: Array.isArray(project.technologies) ? project.technologies : [],
-        features: Array.isArray(project.features) ? project.features : [],
-        exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? project.exclusiveFeatures : []
-      }
-
-      // Add to projects array
-      projects.push(newProject)
-
-      // Save updated projects
-      await saveProjects(projects)
-
-      return res.status(201).json(newProject)
-    } catch (error) {
-      console.error('Error adding project:', error)
-      return res.status(500).json({ error: 'Error adding project' })
-    }
-  }
-
-  // Method not allowed
-  return res.status(405).json({ error: 'Method not allowed' })
+  // Redirect to the new API endpoints using route.ts
+  return res.redirect(307, '/api/projects');
 } 

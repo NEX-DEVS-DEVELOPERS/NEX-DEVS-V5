@@ -139,7 +139,9 @@ export default function NewProjectPage() {
   const [formType, setFormType] = useState<'regularProject' | 'newlyAddedProject'>('regularProject')
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
+  const [isSecondImageUploading, setIsSecondImageUploading] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const secondFileInputRef = useRef<HTMLInputElement>(null)
   
   // Regular project form state
   const [project, setProject] = useState<FormState>({
@@ -196,6 +198,14 @@ export default function NewProjectPage() {
       ...project,
       [name]: value
     })
+
+    // For title field, also update the newly added project title
+    if (name === 'title') {
+      setNewlyAddedProject(prev => ({
+        ...prev,
+        title: `NEWLY ADDED: ${value}`
+      }))
+    }
   }
 
   // Handle change for newly added project form
@@ -205,6 +215,14 @@ export default function NewProjectPage() {
       ...newlyAddedProject,
       [name]: value
     })
+
+    // For title field, also update the base project state
+    if (name === 'title') {
+      setProject(prev => ({
+        ...prev,
+        title: value.replace(/^NEWLY ADDED:\s*/, '') // Remove prefix if it exists
+      }))
+    }
   }
 
   // Handle checkbox change
@@ -219,6 +237,14 @@ export default function NewProjectPage() {
   // Handle newly added checkbox change
   const handleNewlyAddedCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, checked } = e.target
+    
+    // Special handling for visual effects toggles
+    if (name.startsWith('visualEffects.')) {
+      const effectName = name.split('.')[1]
+      handleEffectChange(effectName as keyof NewlyAddedProject['visualEffects'], checked)
+      return
+    }
+    
     setNewlyAddedProject({
       ...newlyAddedProject,
       [name]: checked
@@ -317,59 +343,150 @@ export default function NewProjectPage() {
 
   // Handle image upload
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!e.target.files || e.target.files.length === 0) return;
+    if (!e.target.files || e.target.files.length === 0) {
+      // Use placeholder if no file is selected
+      const imagePath = '/projects/placeholder.jpg';
+      
+      if (formType === 'regularProject') {
+        setProject(prev => ({ ...prev, image: imagePath }));
+      } else {
+        setNewlyAddedProject(prev => ({ ...prev, image: imagePath }));
+      }
+      
+      return;
+    }
     
-    const file = e.target.files[0];
-    setIsUploading(true);
-    
-    // Create a FormData object to send the file
-    const formData = new FormData();
-    formData.append('image', file);
+    const file = e.target.files[0]
+    setIsUploading(true)
     
     try {
-      // Get admin password from session storage or prompt
-      let adminPassword = sessionStorage.getItem('adminPassword');
-      if (!adminPassword) {
-        adminPassword = prompt('Enter admin password to upload image:');
-        if (adminPassword) {
-          sessionStorage.setItem('adminPassword', adminPassword);
-        } else {
-          setIsUploading(false);
-          return;
-        }
+      // Get admin password for authorization
+      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to upload image:')
+      
+      if (!password) {
+        toast.error('Password required to upload image')
+        setIsUploading(false)
+        return
       }
       
-      // Make the request to upload the image
-      const response = await fetch('/api/upload', {
+      // Store password for session
+      sessionStorage.setItem('adminPassword', password)
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('password', password)
+      
+      // Include timestamp for cache busting
+      const timestamp = Date.now()
+      
+      const response = await fetch(`/api/upload?t=${timestamp}`, {
         method: 'POST',
+        body: formData,
         headers: {
-          'AdminAuth': adminPassword
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
-        body: formData
-      });
+        cache: 'no-store'
+      })
       
       if (!response.ok) {
-        const error = await response.text();
-        throw new Error(error || 'Failed to upload image');
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }))
+        throw new Error(errorData.error || `Failed to upload image: ${response.status}`)
       }
       
-      const data = await response.json();
+      const data = await response.json()
       
       // Update the project state with the new image path
       if (formType === 'regularProject') {
-        setProject(prev => ({ ...prev, image: data.imagePath }));
+        setProject(prev => ({ ...prev, image: data.imagePath }))
       } else {
-        setNewlyAddedProject(prev => ({ ...prev, image: data.imagePath }));
+        setNewlyAddedProject(prev => ({ ...prev, image: data.imagePath }))
       }
       
-      toast.success('Image uploaded successfully!');
+      // Keep track of the uploaded image for preview
+      setUploadedImage(data.imagePath)
+      
+      toast.success(data.isPlaceholder ? 'Using placeholder image' : 'Image uploaded successfully!')
     } catch (error) {
-      console.error('Error uploading image:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to upload image');
+      console.error('Error uploading image:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to upload image')
+      
+      // Use placeholder image in case of error
+      const placeholderImage = '/projects/placeholder.jpg';
+      if (formType === 'regularProject') {
+        setProject(prev => ({ ...prev, image: placeholderImage }));
+      } else {
+        setNewlyAddedProject(prev => ({ ...prev, image: placeholderImage }));
+      }
     } finally {
-      setIsUploading(false);
+      setIsUploading(false)
     }
-  };
+  }
+
+  // Handle second image upload for newly added projects
+  const handleSecondImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) {
+      return
+    }
+    
+    const file = e.target.files[0]
+    setIsSecondImageUploading(true)
+    
+    try {
+      // Get admin password for authorization
+      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to upload image:')
+      
+      if (!password) {
+        toast.error('Password required to upload image')
+        setIsSecondImageUploading(false)
+        return
+      }
+      
+      // Store password for session
+      sessionStorage.setItem('adminPassword', password)
+      
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('password', password)
+      
+      // Include timestamp for cache busting
+      const timestamp = Date.now()
+      
+      const response = await fetch(`/api/upload?t=${timestamp}`, {
+        method: 'POST',
+        body: formData,
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
+        },
+        cache: 'no-store'
+      })
+      
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }))
+        throw new Error(errorData.error || `Failed to upload image: ${response.status}`)
+      }
+      
+      const data = await response.json()
+      
+      // Update the project state with the new second image path
+      setNewlyAddedProject(prev => ({ 
+        ...prev, 
+        secondImage: data.imagePath 
+      }))
+      
+      toast.success('Second image uploaded successfully!')
+    } catch (error) {
+      console.error('Error uploading second image:', error)
+      toast.error(error instanceof Error ? error.message : 'Failed to upload second image')
+    } finally {
+      setIsSecondImageUploading(false)
+    }
+  }
 
   // Add new function to handle visual effects presets
   const applyPreset = (preset: 'premium' | 'clean' | 'playful' | 'motion') => {
@@ -408,37 +525,103 @@ export default function NewProjectPage() {
       // Store password for session
       sessionStorage.setItem('adminPassword', password)
 
+      // Check if required fields are present
+      if (formType === 'regularProject') {
+        if (!project.title || !project.description || !project.category || !project.link) {
+          toast.error('Please fill in all required fields')
+          setIsSubmitting(false)
+          return
+        }
+      } else {
+        if (!project.title || !newlyAddedProject.description || !newlyAddedProject.category || !newlyAddedProject.link) {
+          toast.error('Please fill in all required fields')
+          setIsSubmitting(false)
+          return
+        }
+      }
+
       // Generate a cache-busting timestamp
       const timestamp = Date.now();
       
-      // Format form data
+      // Format form data for SQLite compatibility
       let finalProjectData;
       
       if (formType === 'regularProject') {
         // For regular projects
         finalProjectData = {
           ...project,
+          // Ensure all arrays are properly filtered to remove empty entries
           technologies: project.technologies.filter(t => t.trim() !== ''),
-          _created: Date.now(),
-          _timestamp: new Date().toISOString()
+          // Ensure boolean flags are properly formatted
+          featured: Boolean(project.featured),
+          // Make sure the link field is properly set
+          link: project.link.trim(),
+          // Ensure we have an image path
+          image: project.image || '/projects/placeholder.jpg',
+          // Include proper timestamp for SQLite
+          lastUpdated: new Date().toISOString()
         };
       } else {
         // For newly added projects
         finalProjectData = {
-          ...project, // Base project fields
-          ...newlyAddedProject, // Newly added fields override base fields
-          title: `NEWLY ADDED: ${project.title}`, // Prefix title
+          // Base project fields
+          title: `NEWLY ADDED: ${project.title}`.trim(), // Prefix title
+          description: newlyAddedProject.description.trim(),
+          category: newlyAddedProject.category.trim(),
+          // Make sure the link field is properly set
+          link: newlyAddedProject.link.trim(),
+          // Other fields with proper formatting
           technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
+          features: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''), // Map to features field
           exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
-          progress: Number(newlyAddedProject.progress), // Ensure it's a number
+          // Ensure proper number formatting
+          progress: typeof newlyAddedProject.progress === 'string' ? 
+            parseInt(newlyAddedProject.progress) : 
+            newlyAddedProject.progress,
+          developmentProgress: typeof newlyAddedProject.developmentProgress === 'string' ? 
+            parseInt(newlyAddedProject.developmentProgress) : 
+            newlyAddedProject.developmentProgress,
+          // Set other required fields
           updatedDays: 1, // Start with 1 day ago
           status: newlyAddedProject.status || 'In Development',
+          estimatedCompletion: newlyAddedProject.estimatedCompletion,
+          // Format booleans
           featured: true, // Always featured
-          _created: Date.now(),
-          _timestamp: new Date().toISOString()
+          showBothImagesInPriority: Boolean(newlyAddedProject.showBothImagesInPriority),
+          // Ensure proper formatting of image paths
+          image: newlyAddedProject.image || '/projects/placeholder.jpg',
+          secondImage: newlyAddedProject.secondImage || null,
+          // Set visual effects with proper JSON format for SQLite
+          visualEffects: {
+            ...newlyAddedProject.visualEffects,
+            morphTransition: Boolean(newlyAddedProject.visualEffects.morphTransition),
+            rippleEffect: Boolean(newlyAddedProject.visualEffects.rippleEffect),
+            floatingElements: Boolean(newlyAddedProject.visualEffects.floatingElements),
+            shimmering: Boolean(newlyAddedProject.visualEffects.shimmering),
+            showBadge: Boolean(newlyAddedProject.visualEffects.showBadge),
+            spotlight: Boolean(newlyAddedProject.visualEffects.spotlight),
+            glassmorphism: Boolean(newlyAddedProject.visualEffects.glassmorphism),
+            particles: Boolean(newlyAddedProject.visualEffects.particles),
+            animation: newlyAddedProject.visualEffects.animation || 'none',
+            shadows: newlyAddedProject.visualEffects.shadows || 'none',
+            border: newlyAddedProject.visualEffects.border || 'none',
+            hover: newlyAddedProject.visualEffects.hover || 'none',
+            backdrop: newlyAddedProject.visualEffects.backdrop || 'none',
+            animationTiming: newlyAddedProject.visualEffects.animationTiming || 'normal',
+            animationIntensity: newlyAddedProject.visualEffects.animationIntensity || 'normal'
+          },
+          // Set image priority with proper number
+          imagePriority: typeof newlyAddedProject.imagePriority === 'string' ? 
+            parseInt(newlyAddedProject.imagePriority) : 
+            newlyAddedProject.imagePriority || 1,
+          // Include proper timestamp for SQLite
+          lastUpdated: new Date().toISOString()
         };
       }
 
+      console.log('Submitting project data:', finalProjectData);
+
+      // Send the request to create the project
       const response = await fetch(`/api/projects?t=${timestamp}`, {
         method: 'POST',
         headers: {
@@ -455,30 +638,51 @@ export default function NewProjectPage() {
         cache: 'no-store'
       })
 
-      if (response.ok) {
-        toast.success('Project added successfully')
-        
-        // Force cache revalidation for main pages
-        try {
-          await fetch(`/api/revalidate?path=/&secret=${password}`);
-          await fetch(`/api/revalidate?path=/projects&secret=${password}`);
-        } catch (error) {
-          console.error('Error revalidating paths:', error);
-        }
-
-        // Add a small delay to ensure revalidation completes
-        setTimeout(() => {
-          router.push('/admin/projects')
-        }, 500);
-      } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to add project')
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
+        throw new Error(errorData.error || `Failed to add project: ${response.status}`);
       }
+      
+      const newProject = await response.json().catch(() => null);
+      console.log('Project created successfully:', newProject);
+      toast.success('Project added successfully');
+      
+      // Force cache revalidation for main pages
+      try {
+        const revalidatePaths = [
+          `/api/revalidate?path=/&secret=${password}`,
+          `/api/revalidate?path=/projects&secret=${password}`
+        ];
+        
+        if (newProject && newProject.id) {
+          revalidatePaths.push(`/api/revalidate?path=/projects/${newProject.id}&secret=${password}`);
+        }
+        
+        await Promise.all(revalidatePaths.map(path => 
+          fetch(path, {
+            method: 'GET',
+            cache: 'no-store',
+            headers: {
+              'Cache-Control': 'no-cache, no-store, must-revalidate',
+              'Pragma': 'no-cache',
+              'Expires': '0'
+            }
+          }).catch(err => console.error(`Error revalidating ${path}:`, err))
+        ));
+      } catch (error) {
+        console.error('Error during revalidation:', error);
+        // Continue despite revalidation errors
+      }
+
+      // Add a small delay to ensure revalidation completes
+      setTimeout(() => {
+        router.push('/admin/projects');
+      }, 800);
     } catch (error) {
-      console.error('Error adding project:', error)
-      toast.error('Error adding project')
+      console.error('Error adding project:', error);
+      toast.error(error instanceof Error ? error.message : 'Error adding project');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
   }
 
@@ -735,10 +939,10 @@ export default function NewProjectPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Adding Project...
+                        Creating Regular Project...
                       </>
                     ) : (
-                      'Add Project'
+                      'Add Regular Project'
                     )}
                   </button>
                 </div>
@@ -880,56 +1084,18 @@ export default function NewProjectPage() {
                           type="file" 
                           id="secondImageUpload"
                           accept="image/*"
-                          className="hidden" 
-                          onChange={(e) => {
-                            if (!e.target.files || e.target.files.length === 0) return;
-                            
-                            const file = e.target.files[0];
-                            setIsUploading(true);
-                            
-                            // Create a FormData object to send the file
-                            const formData = new FormData();
-                            formData.append('image', file);
-                            
-                            // Get admin password
-                            const adminPassword = sessionStorage.getItem('adminPassword');
-                            if (!adminPassword) {
-                              setIsUploading(false);
-                              toast.error('Admin password required to upload image');
-                              return;
-                            }
-                            
-                            // Upload the file
-                            fetch('/api/upload', {
-                              method: 'POST',
-                              headers: {
-                                'AdminAuth': adminPassword
-                              },
-                              body: formData
-                            }).then(response => {
-                              if (!response.ok) {
-                                throw new Error('Failed to upload second image');
-                              }
-                              return response.json();
-                            }).then(data => {
-                              setNewlyAddedProject(prev => ({ ...prev, secondImage: data.imagePath }));
-                              toast.success('Second image uploaded successfully!');
-                            }).catch(error => {
-                              console.error('Error uploading second image:', error);
-                              toast.error('Failed to upload second image');
-                            }).finally(() => {
-                              setIsUploading(false);
-                            });
-                          }}
+                          className="hidden"
+                          ref={secondFileInputRef}
+                          onChange={handleSecondImageUpload}
                         />
                         <div className="flex flex-col space-y-3">
                           <button
                             type="button"
-                            onClick={() => document.getElementById('secondImageUpload')?.click()}
-                            disabled={isUploading}
+                            onClick={() => secondFileInputRef.current?.click()}
+                            disabled={isSecondImageUploading}
                             className="px-4 py-2 rounded-md bg-blue-600/40 border border-blue-600/40 text-white hover:bg-blue-600/60 transition-colors flex items-center justify-center gap-2"
                           >
-                            {isUploading ? (
+                            {isSecondImageUploading ? (
                               <>
                                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
@@ -1774,7 +1940,7 @@ export default function NewProjectPage() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Adding Project...
+                        Creating "Newly Added" Project...
                       </>
                     ) : (
                       'Add Newly Added Project'

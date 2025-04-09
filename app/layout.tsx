@@ -11,6 +11,14 @@ import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
 import MobilePopup from './components/MobilePopup'
 import { Analytics } from "@vercel/analytics/react"
+import { initializeDatabase } from './lib/database-init'
+
+// Initialize the database when the server starts
+if (typeof window === 'undefined') {
+  initializeDatabase()
+    .then(() => console.log('Database initialized in layout'))
+    .catch(err => console.error('Failed to initialize database:', err));
+}
 
 // Optimize font loading - add display: 'swap' to show text with fallback font while custom font loads
 const inter = Inter({ 
