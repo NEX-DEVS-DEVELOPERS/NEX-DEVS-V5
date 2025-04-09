@@ -5,12 +5,11 @@
 [build.environment]
   NETLIFY = "true"
   NODE_VERSION = "18.17.0"
-  NPM_VERSION = "9.6.7"
+  NPM_FLAGS = "--no-optional"
 
-# Netlify Edge Functions
-[[edge_functions]]
-  function = "api/*"
-  path = "/api/*"
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["better-sqlite3", "sharp"]
 
 # Headers to prevent caching of API routes
 [[headers]]
@@ -19,16 +18,37 @@
     Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
     Pragma = "no-cache"
     Expires = "0"
+    X-Custom-Header = "Make sure this works"
 
-# Redirects for Next.js API routes and dynamic routes
+# Force rebuild and ignore build cache
+[build.processing]
+  skip_processing = false
+
+# Handle Next.js routes
+[[redirects]]
+  from = "/_next/static/*"
+  to = "/_next/static/:splat"
+  status = 200
+
+[[redirects]]
+  from = "/_next/data/*"
+  to = "/_next/data/:splat"
+  status = 200
+
 [[redirects]]
   from = "/api/*"
-  to = "/.netlify/functions/api/:splat"
+  to = "/.netlify/functions/nextjs-api/:splat"
   status = 200
-  force = true
 
 # SPA fallback
 [[redirects]]
   from = "/*"
   to = "/index.html"
-  status = 200 
+  status = 200
+  force = false
+
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
+
+[build.lifecycle]
+  onPreBuild = "node netlify-preinstall.js" 

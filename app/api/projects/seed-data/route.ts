@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import fs from 'fs/promises';
+import db from '@/app/services/database';
 import path from 'path';
-import { existsSync } from 'fs';
 
 // Project type definition
 type Project = {
@@ -24,13 +23,9 @@ type Project = {
 // Admin password
 const ADMIN_PASSWORD = 'nex-devs.org889123';
 
-// JSON storage path
-const JSON_STORAGE_PATH = path.join(process.cwd(), 'projects.json');
-
 // Sample projects data for initial setup
-const SAMPLE_PROJECTS: Project[] = [
+const SAMPLE_PROJECTS: Omit<Project, 'id'>[] = [
   {
-    id: 1,
     title: "Portfolio Website",
     description: "A modern Next.js portfolio showcasing development projects with dark theme and responsive design.",
     image: "/projects/portfolio.jpg",
@@ -42,7 +37,6 @@ const SAMPLE_PROJECTS: Project[] = [
     features: ["Responsive Design", "Dark Theme", "Project Showcase"]
   },
   {
-    id: 2,
     title: "E-Commerce Dashboard",
     description: "Admin dashboard for e-commerce site with inventory management and sales analytics.",
     image: "/projects/dashboard.jpg",
@@ -67,39 +61,47 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Check if file exists
-    const fileExists = existsSync(JSON_STORAGE_PATH);
-    const emptyFile = fileExists ? 
-      (await fs.readFile(JSON_STORAGE_PATH, 'utf-8')).trim() === '[]' : false;
+    // Get existing projects
+    const existingProjects = await db.getAllProjects();
     
-    // Only seed if file doesn't exist or is empty
-    if (fileExists && !emptyFile) {
-      const projects = JSON.parse(await fs.readFile(JSON_STORAGE_PATH, 'utf-8'));
+    // Only seed if there are no projects yet
+    if (existingProjects.length > 0) {
       return NextResponse.json({ 
         success: true, 
-        message: 'Projects already exist', 
-        count: projects.length
+        message: `${existingProjects.length} projects already exist`, 
+        count: existingProjects.length
       });
     }
     
-    // Create directory if it doesn't exist
-    const storageDir = path.dirname(JSON_STORAGE_PATH);
-    await fs.mkdir(storageDir, { recursive: true });
+    console.log(`Seeding ${SAMPLE_PROJECTS.length} sample projects...`);
     
-    // Write sample projects to file
-    await fs.writeFile(JSON_STORAGE_PATH, JSON.stringify(SAMPLE_PROJECTS, null, 2), 'utf-8');
+    // Create each project using the database service
+    const createdProjects = [];
+    for (const projectData of SAMPLE_PROJECTS) {
+      try {
+        const newProject = await db.createProject(projectData);
+        createdProjects.push(newProject);
+        console.log(`Created project: ${newProject.title}`);
+      } catch (projectError) {
+        console.error(`Error creating project ${projectData.title}:`, projectError);
+      }
+    }
     
-    console.log(`Seeded ${SAMPLE_PROJECTS.length} sample projects`);
+    if (createdProjects.length === 0) {
+      throw new Error('Failed to create any projects');
+    }
+    
+    console.log(`Successfully created ${createdProjects.length} sample projects`);
     
     return NextResponse.json({ 
       success: true, 
-      message: `Seeded ${SAMPLE_PROJECTS.length} sample projects`,
-      projects: SAMPLE_PROJECTS
+      message: `Created ${createdProjects.length} sample projects`,
+      projects: createdProjects
     }, { status: 201 });
   } catch (error) {
     console.error('Error seeding projects:', error);
     return NextResponse.json({ 
-      error: 'Failed to seed projects', 
+      error: 'Failed to seed projects',
       details: error instanceof Error ? error.message : String(error) 
     }, { status: 500 });
   }
