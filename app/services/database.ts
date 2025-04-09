@@ -10,11 +10,17 @@ import { existsSync } from 'fs';
 // Constants
 const DB_FILE = path.join(process.cwd(), 'projects.db');
 const JSON_FALLBACK_FILE = path.join(process.cwd(), 'projects.json');
+const TEMP_DIR = process.env.TEMP || process.env.TMP || '/tmp';
 const NETLIFY_ENV = process.env.NETLIFY || false;
 const VERCEL_ENV = process.env.VERCEL || false;
 const IS_PROD = process.env.NODE_ENV === 'production';
 const IS_SERVERLESS = NETLIFY_ENV || VERCEL_ENV || IS_PROD;
 const USE_JSON_FALLBACK = IS_SERVERLESS;
+
+// If on Netlify, use a temporary directory that's writable
+const STORAGE_FILE = NETLIFY_ENV 
+  ? path.join(TEMP_DIR, 'projects.json')
+  : JSON_FALLBACK_FILE;
 
 // Define Project type locally to avoid import issues
 type Project = {
@@ -154,27 +160,72 @@ class DatabaseService {
   // Load JSON data for production environment
   private async loadJsonData(): Promise<void> {
     try {
-      // Check if JSON file exists
-      const jsonExists = existsSync(JSON_FALLBACK_FILE);
+      // First check if the appropriate storage file exists
+      let jsonExists = existsSync(STORAGE_FILE);
+      let fileToUse = STORAGE_FILE;
+      
+      // On Netlify, also check for the fallback location
+      if (!jsonExists && NETLIFY_ENV && !STORAGE_FILE.includes('/tmp/')) {
+        const fallbackFile = path.join('/tmp', 'projects.json');
+        if (existsSync(fallbackFile)) {
+          jsonExists = true;
+          fileToUse = fallbackFile;
+          console.log(`Using fallback storage location: ${fallbackFile}`);
+        }
+      }
       
       if (jsonExists) {
         // Get file stats to check last modified time
-        const stats = await fs.stat(JSON_FALLBACK_FILE);
+        const stats = await fs.stat(fileToUse);
         const fileModified = stats.mtime;
         
         // Only reload if the file has been modified or we haven't loaded it yet
         if (!jsonLastModified || fileModified > jsonLastModified) {
-          console.log('Loading projects from JSON file');
-          const jsonData = await fs.readFile(JSON_FALLBACK_FILE, 'utf-8');
-          cachedProjects = JSON.parse(jsonData);
-          jsonLastModified = fileModified;
-          console.log(`Loaded ${cachedProjects.length} projects from JSON`);
+          console.log(`Loading projects from JSON file: ${fileToUse}`);
+          const jsonData = await fs.readFile(fileToUse, 'utf-8');
+          
+          try {
+            const parsedData = JSON.parse(jsonData);
+            if (Array.isArray(parsedData)) {
+              cachedProjects = parsedData;
+              jsonLastModified = fileModified;
+              console.log(`Loaded ${cachedProjects.length} projects from JSON`);
+            } else {
+              console.error('Invalid JSON data format, not an array');
+              // If data is invalid, use empty array
+              cachedProjects = [];
+            }
+          } catch (parseError) {
+            console.error('Error parsing JSON data:', parseError);
+            cachedProjects = [];
+          }
         } else {
           console.log('Using cached projects (JSON file has not changed)');
         }
       } else {
         console.log('JSON fallback file does not exist, using empty projects array');
         cachedProjects = [];
+        
+        // Try to create an empty file
+        try {
+          const storageDir = path.dirname(STORAGE_FILE);
+          await fs.mkdir(storageDir, { recursive: true });
+          await fs.writeFile(STORAGE_FILE, JSON.stringify([]), 'utf-8');
+          console.log(`Created empty JSON file at ${STORAGE_FILE}`);
+        } catch (createError) {
+          console.warn('Could not create empty JSON file:', createError);
+          
+          // Try fallback location on Netlify
+          if (NETLIFY_ENV) {
+            try {
+              const fallbackFile = path.join('/tmp', 'projects.json');
+              await fs.writeFile(fallbackFile, JSON.stringify([]), 'utf-8');
+              console.log(`Created empty JSON file at fallback location ${fallbackFile}`);
+            } catch (fallbackError) {
+              console.error('Error creating fallback JSON file:', fallbackError);
+            }
+          }
+        }
       }
     } catch (error) {
       console.error('Error loading JSON data:', error);
@@ -187,9 +238,32 @@ class DatabaseService {
     if (USE_JSON_FALLBACK) {
       try {
         console.log('Saving projects to JSON file');
-        await fs.writeFile(JSON_FALLBACK_FILE, JSON.stringify(cachedProjects, null, 2));
-        jsonLastModified = new Date();
-        console.log(`Saved ${cachedProjects.length} projects to JSON`);
+        
+        // Create directory if it doesn't exist
+        const storageDir = path.dirname(STORAGE_FILE);
+        try {
+          await fs.mkdir(storageDir, { recursive: true });
+        } catch (mkdirError) {
+          console.warn('Warning creating directory:', mkdirError);
+          // Continue anyway
+        }
+        
+        try {
+          // Write to the appropriate storage location
+          await fs.writeFile(STORAGE_FILE, JSON.stringify(cachedProjects, null, 2));
+          jsonLastModified = new Date();
+          console.log(`Saved ${cachedProjects.length} projects to ${STORAGE_FILE}`);
+        } catch (writeError) {
+          console.error(`Error writing to ${STORAGE_FILE}:`, writeError);
+          
+          // If writing to the primary location fails, try a fallback location
+          if (NETLIFY_ENV && !STORAGE_FILE.includes('/tmp/')) {
+            const fallbackFile = path.join('/tmp', 'projects.json');
+            console.log(`Trying fallback location: ${fallbackFile}`);
+            await fs.writeFile(fallbackFile, JSON.stringify(cachedProjects, null, 2));
+            console.log(`Saved to fallback location ${fallbackFile}`);
+          }
+        }
       } catch (error) {
         console.error('Error saving JSON data:', error);
       }

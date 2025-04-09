@@ -26,6 +26,7 @@ export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [hasInitializedStorage, setHasInitializedStorage] = useState(false)
+  const [isSeeding, setIsSeeding] = useState(false)
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -57,6 +58,62 @@ export default function AdminProjectsPage() {
     
     initializeStorage();
   }, []);
+
+  // Function to seed database with sample projects
+  const seedDatabase = async () => {
+    if (!confirm('This will add sample projects to your database. Continue?')) {
+      return;
+    }
+
+    setIsSeeding(true);
+    
+    try {
+      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password:');
+      
+      if (!password) {
+        toast.error('Password required');
+        setIsSeeding(false);
+        return;
+      }
+      
+      // Store password for future operations
+      sessionStorage.setItem('adminPassword', password);
+      
+      const response = await fetch('/api/projects/seed-data', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'AdminAuth': password
+        }
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to seed database');
+      }
+      
+      const result = await response.json();
+      toast.success(`${result.message}`);
+      
+      // Refresh projects list
+      fetchProjects();
+      
+      // Revalidate all project pages
+      try {
+        await fetch(`/api/revalidate?path=/projects&secret=${password}`);
+        await fetch(`/api/revalidate?path=/&secret=${password}`);
+      } catch (revalidateError) {
+        console.error('Error revalidating pages:', revalidateError);
+      }
+      
+    } catch (error) {
+      console.error('Error seeding database:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to seed database');
+    } finally {
+      setIsSeeding(false);
+    }
+  };
 
   // Function to fetch projects
   const fetchProjects = async () => {
@@ -157,7 +214,7 @@ export default function AdminProjectsPage() {
               <p className="text-gray-400 mt-2">Manage your projects portfolio</p>
             </div>
             
-            <div className="flex gap-4">
+            <div className="flex flex-wrap gap-4">
               <Link 
                 href="/admin/projects/new" 
                 className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
@@ -177,6 +234,17 @@ export default function AdminProjectsPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
                 {isLoading ? 'Refreshing...' : 'Refresh Data'}
+              </button>
+              
+              <button
+                onClick={seedDatabase}
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                disabled={isSeeding}
+              >
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                {isSeeding ? 'Adding Sample Data...' : 'Add Sample Projects'}
               </button>
               
               <Link 
