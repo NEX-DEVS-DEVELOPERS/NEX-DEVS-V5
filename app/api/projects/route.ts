@@ -28,17 +28,29 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    let projects: Project[];
+    let projects: Project[] = [];
     
-    // Get the appropriate projects based on query parameters
-    if (newlyAdded === 'true') {
-      projects = db.getNewlyAddedProjects();
-    } else if (featured === 'true') {
-      projects = db.getFeaturedProjects();
-    } else if (category && category !== 'All') {
-      projects = db.getProjectsByCategory(category);
-    } else {
-      projects = db.getAllProjects();
+    try {
+      // Get the appropriate projects based on query parameters
+      if (newlyAdded === 'true') {
+        projects = db.getNewlyAddedProjects();
+      } else if (featured === 'true') {
+        projects = db.getFeaturedProjects();
+      } else if (category && category !== 'All') {
+        projects = db.getProjectsByCategory(category);
+      } else {
+        projects = db.getAllProjects();
+      }
+    } catch (dbError) {
+      console.error('Database error when fetching projects:', dbError);
+      // Return empty array instead of failing
+      projects = [];
+    }
+    
+    // Check if projects is valid, if not, provide fallback
+    if (!Array.isArray(projects)) {
+      console.error('Projects is not an array, returning empty array instead');
+      projects = [];
     }
     
     // Set strong cache control headers to prevent browser caching
@@ -55,9 +67,11 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error reading projects:', error);
-    return NextResponse.json({ error: 'Failed to fetch projects' }, { 
-      status: 500,
+    // Always return a valid array even in case of error to prevent UI breakage
+    return NextResponse.json([] as Project[], { 
+      status: 200, // Use 200 instead of 500 to prevent UI breakage
       headers: {
+        'Content-Type': 'application/json',
         'Cache-Control': 'no-store, no-cache, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'

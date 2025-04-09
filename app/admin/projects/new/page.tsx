@@ -571,9 +571,9 @@ export default function NewProjectPage() {
           // Make sure the link field is properly set
           link: newlyAddedProject.link.trim(),
           // Other fields with proper formatting
-          technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
+            technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
           features: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''), // Map to features field
-          exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
+            exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
           // Ensure proper number formatting
           progress: typeof newlyAddedProject.progress === 'string' ? 
             parseInt(newlyAddedProject.progress) : 
@@ -587,29 +587,29 @@ export default function NewProjectPage() {
           estimatedCompletion: newlyAddedProject.estimatedCompletion,
           // Format booleans
           featured: true, // Always featured
-          showBothImagesInPriority: Boolean(newlyAddedProject.showBothImagesInPriority),
+            showBothImagesInPriority: Boolean(newlyAddedProject.showBothImagesInPriority),
           // Ensure proper formatting of image paths
           image: newlyAddedProject.image || '/projects/placeholder.jpg',
           secondImage: newlyAddedProject.secondImage || null,
           // Set visual effects with proper JSON format for SQLite
-          visualEffects: {
+            visualEffects: {
             ...newlyAddedProject.visualEffects,
-            morphTransition: Boolean(newlyAddedProject.visualEffects.morphTransition),
-            rippleEffect: Boolean(newlyAddedProject.visualEffects.rippleEffect),
-            floatingElements: Boolean(newlyAddedProject.visualEffects.floatingElements),
-            shimmering: Boolean(newlyAddedProject.visualEffects.shimmering),
+              morphTransition: Boolean(newlyAddedProject.visualEffects.morphTransition),
+              rippleEffect: Boolean(newlyAddedProject.visualEffects.rippleEffect),
+              floatingElements: Boolean(newlyAddedProject.visualEffects.floatingElements),
+              shimmering: Boolean(newlyAddedProject.visualEffects.shimmering),
             showBadge: Boolean(newlyAddedProject.visualEffects.showBadge),
-            spotlight: Boolean(newlyAddedProject.visualEffects.spotlight),
-            glassmorphism: Boolean(newlyAddedProject.visualEffects.glassmorphism),
-            particles: Boolean(newlyAddedProject.visualEffects.particles),
+              spotlight: Boolean(newlyAddedProject.visualEffects.spotlight),
+              glassmorphism: Boolean(newlyAddedProject.visualEffects.glassmorphism),
+              particles: Boolean(newlyAddedProject.visualEffects.particles),
             animation: newlyAddedProject.visualEffects.animation || 'none',
             shadows: newlyAddedProject.visualEffects.shadows || 'none',
             border: newlyAddedProject.visualEffects.border || 'none',
             hover: newlyAddedProject.visualEffects.hover || 'none',
             backdrop: newlyAddedProject.visualEffects.backdrop || 'none',
-            animationTiming: newlyAddedProject.visualEffects.animationTiming || 'normal',
-            animationIntensity: newlyAddedProject.visualEffects.animationIntensity || 'normal'
-          },
+              animationTiming: newlyAddedProject.visualEffects.animationTiming || 'normal',
+              animationIntensity: newlyAddedProject.visualEffects.animationIntensity || 'normal'
+            },
           // Set image priority with proper number
           imagePriority: typeof newlyAddedProject.imagePriority === 'string' ? 
             parseInt(newlyAddedProject.imagePriority) : 
@@ -669,7 +669,7 @@ export default function NewProjectPage() {
             }
           }).catch(err => console.error(`Error revalidating ${path}:`, err))
         ));
-      } catch (error) {
+    } catch (error) {
         console.error('Error during revalidation:', error);
         // Continue despite revalidation errors
       }
@@ -1066,7 +1066,7 @@ export default function NewProjectPage() {
                           src={newlyAddedProject.secondImage} 
                           alt="Second image preview" 
                           fill 
-                          className="object-cover" 
+                          className="object-cover"
                           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                           quality={100}
                         />
@@ -1084,7 +1084,7 @@ export default function NewProjectPage() {
                           type="file" 
                           id="secondImageUpload"
                           accept="image/*"
-                          className="hidden"
+                          className="hidden" 
                           ref={secondFileInputRef}
                           onChange={handleSecondImageUpload}
                         />

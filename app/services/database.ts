@@ -11,45 +11,160 @@ if (!fs.existsSync(dbDir)) {
 
 // Initialize SQLite database
 const dbPath = path.join(dbDir, 'portfolio.db');
-const db = new Database(dbPath);
+let db: Database.Database;
 
-// Set up the projects table
-db.exec(`
-  CREATE TABLE IF NOT EXISTS projects (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    description TEXT NOT NULL,
-    detailedDescription TEXT,
-    image TEXT NOT NULL,
-    secondImage TEXT,
-    showBothImagesInPriority INTEGER DEFAULT 0,
-    category TEXT NOT NULL,
-    technologies TEXT NOT NULL,
-    techDetails TEXT,
-    link TEXT NOT NULL,
-    featured INTEGER DEFAULT 0,
-    completionDate TEXT,
-    clientName TEXT,
-    duration TEXT,
-    status TEXT,
-    updatedDays INTEGER,
-    progress INTEGER,
-    developmentProgress INTEGER,
-    estimatedCompletion TEXT,
-    features TEXT,
-    exclusiveFeatures TEXT,
-    imagePriority INTEGER DEFAULT 5,
-    visualEffects TEXT,
-    lastUpdated TEXT DEFAULT CURRENT_TIMESTAMP
-  );
-`);
+try {
+  // Try to open the database
+  db = new Database(dbPath, { verbose: console.log });
+  
+  // Set up the projects table
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      detailedDescription TEXT,
+      image TEXT NOT NULL,
+      secondImage TEXT,
+      showBothImagesInPriority INTEGER DEFAULT 0,
+      category TEXT NOT NULL,
+      technologies TEXT NOT NULL,
+      techDetails TEXT,
+      link TEXT NOT NULL,
+      featured INTEGER DEFAULT 0,
+      completionDate TEXT,
+      clientName TEXT,
+      duration TEXT,
+      status TEXT,
+      updatedDays INTEGER,
+      progress INTEGER,
+      developmentProgress INTEGER,
+      estimatedCompletion TEXT,
+      features TEXT,
+      exclusiveFeatures TEXT,
+      imagePriority INTEGER DEFAULT 5,
+      visualEffects TEXT,
+      lastUpdated TEXT DEFAULT CURRENT_TIMESTAMP
+    );
+  `);
+  
+  // Create indexes for better performance
+  db.exec(`
+    CREATE INDEX IF NOT EXISTS idx_projects_featured ON projects (featured);
+    CREATE INDEX IF NOT EXISTS idx_projects_status ON projects (status);
+    CREATE INDEX IF NOT EXISTS idx_projects_category ON projects (category);
+  `);
+  
+  // Check if we need to initialize the database with sample data
+  const checkInitNeeded = () => {
+    try {
+      const countStmt = db.prepare('SELECT COUNT(*) as count FROM projects');
+      const countResult = countStmt.get() as { count: number };
+      return countResult.count === 0;
+    } catch (error) {
+      console.error('Error checking project count:', error);
+      return true;
+    }
+  };
+  
+  // Initialize the database with data from projects.json if needed
+  if (checkInitNeeded()) {
+    console.log('Database is empty, initializing with projects.json data...');
+    
+    try {
+      // Read projects.json
+      const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
+      if (fs.existsSync(projectsFilePath)) {
+        const projectsData = fs.readFileSync(projectsFilePath, 'utf8');
+        const projects = JSON.parse(projectsData) as Project[];
+        
+        // Begin transaction
+        db.exec('BEGIN TRANSACTION;');
+        
+        // Insert projects
+        const insertStmt = db.prepare(`
+          INSERT INTO projects (
+            id, title, description, detailedDescription, image, secondImage, showBothImagesInPriority,
+            category, technologies, techDetails, link, featured, completionDate, clientName,
+            duration, status, updatedDays, progress, developmentProgress, estimatedCompletion,
+            features, exclusiveFeatures, imagePriority, visualEffects, lastUpdated
+          ) VALUES (
+            @id, @title, @description, @detailedDescription, @image, @secondImage, @showBothImagesInPriority,
+            @category, @technologies, @techDetails, @link, @featured, @completionDate, @clientName,
+            @duration, @status, @updatedDays, @progress, @developmentProgress, @estimatedCompletion,
+            @features, @exclusiveFeatures, @imagePriority, @visualEffects, @lastUpdated
+          )
+        `);
+        
+        for (const project of projects) {
+          try {
+            insertStmt.run(projectToRow(project));
+          } catch (insertError) {
+            console.error(`Error inserting project ${project.id}:`, insertError);
+          }
+        }
+        
+        // Commit transaction
+        db.exec('COMMIT;');
+        console.log(`Initialized database with ${projects.length} projects`);
+      } else {
+        console.error('projects.json not found, database will be empty');
+        // Create at least one default project so the site doesn't break
+        createDefaultProject();
+      }
+    } catch (initError) {
+      console.error('Error initializing database from projects.json:', initError);
+      db.exec('ROLLBACK;'); // Roll back in case of error
+      createDefaultProject(); // Create a default project
+    }
+  }
+} catch (dbError) {
+  console.error('Error initializing database:', dbError);
+  // Attempt to create a fallback in-memory database
+  console.log('Creating fallback in-memory database');
+  db = new Database(':memory:');
+  
+  // Still set up the basic schema
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS projects (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      image TEXT NOT NULL,
+      category TEXT NOT NULL,
+      technologies TEXT NOT NULL,
+      link TEXT NOT NULL,
+      featured INTEGER DEFAULT 0
+    );
+  `);
+  
+  // Add a placeholder project
+  createDefaultProject();
+}
 
-// Create indexes for better performance
-db.exec(`
-  CREATE INDEX IF NOT EXISTS idx_projects_featured ON projects (featured);
-  CREATE INDEX IF NOT EXISTS idx_projects_status ON projects (status);
-  CREATE INDEX IF NOT EXISTS idx_projects_category ON projects (category);
-`);
+// Function to create a default project if all else fails
+function createDefaultProject() {
+  try {
+    const insertStmt = db.prepare(`
+      INSERT INTO projects (title, description, image, category, technologies, link, featured)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `);
+    
+    insertStmt.run(
+      'Sample Project',
+      'This is a placeholder project. Please add real projects to the database.',
+      '/projects/placeholder.jpg',
+      'Web Development',
+      JSON.stringify(['Next.js', 'React']),
+      '/',
+      1
+    );
+    
+    console.log('Created default project');
+  } catch (error) {
+    console.error('Failed to create default project:', error);
+  }
+}
 
 // Helper function to convert project to database row
 function projectToRow(project: Project): any {
@@ -97,49 +212,109 @@ function projectToRow(project: Project): any {
   };
 }
 
+// Helper function to safely parse JSON with fallback
+function safeJsonParse(jsonString: string | null, fallback: any = undefined): any {
+  if (!jsonString) return fallback;
+  try {
+    return JSON.parse(jsonString);
+  } catch (e) {
+    console.error('Error parsing JSON:', e);
+    return fallback;
+  }
+}
+
 // Helper function to convert database row to project
-function rowToProject(row: any): Project {
-  return {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    detailedDescription: row.detailedDescription,
-    image: row.image,
-    secondImage: row.secondImage,
-    showBothImagesInPriority: row.showBothImagesInPriority === 1,
-    category: row.category,
-    technologies: JSON.parse(row.technologies || '[]'),
-    techDetails: row.techDetails ? JSON.parse(row.techDetails) : undefined,
-    link: row.link,
-    featured: row.featured === 1,
-    completionDate: row.completionDate,
-    clientName: row.clientName,
-    duration: row.duration,
-    status: row.status,
-    updatedDays: row.updatedDays,
-    progress: row.progress,
-    developmentProgress: row.developmentProgress,
-    estimatedCompletion: row.estimatedCompletion,
-    features: row.features ? JSON.parse(row.features) : undefined,
-    exclusiveFeatures: row.exclusiveFeatures ? JSON.parse(row.exclusiveFeatures) : undefined,
-    imagePriority: row.imagePriority,
-    visualEffects: row.visualEffects ? JSON.parse(row.visualEffects) : undefined,
-    lastUpdated: row.lastUpdated
-  };
+function rowToProject(row: any): Project | null {
+  if (!row) return null;
+  
+  try {
+    return {
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      detailedDescription: row.detailedDescription,
+      image: row.image,
+      secondImage: row.secondImage,
+      showBothImagesInPriority: row.showBothImagesInPriority === 1,
+      category: row.category,
+      technologies: safeJsonParse(row.technologies, []),
+      techDetails: row.techDetails ? safeJsonParse(row.techDetails) : undefined,
+      link: row.link,
+      featured: row.featured === 1,
+      completionDate: row.completionDate,
+      clientName: row.clientName,
+      duration: row.duration,
+      status: row.status,
+      updatedDays: row.updatedDays,
+      progress: row.progress,
+      developmentProgress: row.developmentProgress,
+      estimatedCompletion: row.estimatedCompletion,
+      features: row.features ? safeJsonParse(row.features) : undefined,
+      exclusiveFeatures: row.exclusiveFeatures ? safeJsonParse(row.exclusiveFeatures) : undefined,
+      imagePriority: row.imagePriority,
+      visualEffects: row.visualEffects ? safeJsonParse(row.visualEffects) : undefined,
+      lastUpdated: row.lastUpdated
+    };
+  } catch (e) {
+    console.error('Error converting row to project:', e, row);
+    // Return a minimal valid project to prevent the entire request from failing
+    return {
+      id: row.id || 0,
+      title: row.title || 'Error Loading Project',
+      description: row.description || 'There was an error loading this project.',
+      image: row.image || '/projects/placeholder.jpg',
+      category: row.category || 'Uncategorized',
+      technologies: [],
+      link: row.link || '#',
+      featured: false
+    };
+  }
+}
+
+// Wrapper for database operations with retry logic
+function executeDatabaseOperation<T>(operation: () => T, fallback: T, maxRetries = 3): T {
+  let retries = 0;
+  
+  while (retries < maxRetries) {
+    try {
+      return operation();
+    } catch (error) {
+      retries++;
+      console.error(`Database operation failed (attempt ${retries}/${maxRetries}):`, error);
+      
+      if (retries >= maxRetries) {
+        console.error('Max retries reached, returning fallback value');
+        return fallback;
+      }
+      
+      // Add a small delay before retrying
+      const delay = retries * 100;
+      console.log(`Retrying in ${delay}ms...`);
+      // Simple synchronous delay for server-side operations
+      const startTime = new Date().getTime();
+      while (new Date().getTime() - startTime < delay) {}
+    }
+  }
+  
+  return fallback;
 }
 
 // Get all projects
 export function getAllProjects(): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects ORDER BY featured DESC, imagePriority ASC, id DESC');
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare('SELECT * FROM projects ORDER BY featured DESC, imagePriority ASC, id DESC');
+    const rows = stmt.all();
+    return rows.map(rowToProject).filter((project): project is Project => project !== null);
+  }, []);
 }
 
 // Get project by ID
 export function getProjectById(id: number): Project | null {
-  const stmt = db.prepare('SELECT * FROM projects WHERE id = ?');
-  const row = stmt.get(id);
-  return row ? rowToProject(row) : null;
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare('SELECT * FROM projects WHERE id = ?');
+    const row = stmt.get(id);
+    return row ? rowToProject(row) : null;
+  }, null);
 }
 
 // Create a new project
@@ -211,47 +386,57 @@ export function deleteProject(id: number): boolean {
 
 // Get newly added projects
 export function getNewlyAddedProjects(): Project[] {
-  const stmt = db.prepare(`
-    SELECT * FROM projects 
-    WHERE title LIKE 'NEWLY ADDED:%' 
-    OR status IN ('In Development', 'Beta Testing', 'Recently Launched')
-    ORDER BY updatedDays ASC, featured DESC, id DESC
-  `);
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare(`
+      SELECT * FROM projects 
+      WHERE title LIKE 'NEWLY ADDED:%' 
+      OR status IN ('In Development', 'Beta Testing', 'Recently Launched')
+      ORDER BY updatedDays ASC, featured DESC, id DESC
+    `);
+    const rows = stmt.all();
+    return rows.map(rowToProject).filter((project): project is Project => project !== null);
+  }, []);
 }
 
 // Get regular projects (not newly added)
 export function getRegularProjects(): Project[] {
-  const stmt = db.prepare(`
-    SELECT * FROM projects 
-    WHERE title NOT LIKE 'NEWLY ADDED:%' 
-    AND (status IS NULL OR status NOT IN ('In Development', 'Beta Testing', 'Recently Launched'))
-    ORDER BY featured DESC, imagePriority ASC, id DESC
-  `);
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare(`
+      SELECT * FROM projects 
+      WHERE title NOT LIKE 'NEWLY ADDED:%' 
+      AND (status IS NULL OR status NOT IN ('In Development', 'Beta Testing', 'Recently Launched'))
+      ORDER BY featured DESC, imagePriority ASC, id DESC
+    `);
+    const rows = stmt.all();
+    return rows.map(rowToProject).filter((project): project is Project => project !== null);
+  }, []);
 }
 
 // Get featured projects
 export function getFeaturedProjects(): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects WHERE featured = 1 ORDER BY imagePriority ASC, id DESC');
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare('SELECT * FROM projects WHERE featured = 1 ORDER BY imagePriority ASC, id DESC');
+    const rows = stmt.all();
+    return rows.map(rowToProject).filter((project): project is Project => project !== null);
+  }, []);
 }
 
 // Get projects by category
 export function getProjectsByCategory(category: string): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects WHERE category = ? ORDER BY featured DESC, id DESC');
-  const rows = stmt.all(category);
-  return rows.map(rowToProject);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare('SELECT * FROM projects WHERE category = ? ORDER BY featured DESC, id DESC');
+    const rows = stmt.all(category);
+    return rows.map(rowToProject).filter((project): project is Project => project !== null);
+  }, []);
 }
 
 // Get unique categories
 export function getUniqueCategories(): string[] {
-  const stmt = db.prepare('SELECT DISTINCT category FROM projects');
-  const rows = stmt.all();
-  return rows.map((row: any) => row.category);
+  return executeDatabaseOperation(() => {
+    const stmt = db.prepare('SELECT DISTINCT category FROM projects');
+    const rows = stmt.all();
+    return rows.map((row: any) => row.category);
+  }, []);
 }
 
 // Migrate existing JSON data to SQLite (run this once)

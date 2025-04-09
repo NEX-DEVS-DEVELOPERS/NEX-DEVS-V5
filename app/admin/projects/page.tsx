@@ -50,11 +50,33 @@ export default function AdminProjectsPage() {
           'X-Random-Value': randomValue.toString()
         }
       })
-      const data = await response.json()
-      setProjects(data)
+      
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+      }
+      
+      // Safe JSON parsing with fallback to empty array
+      let data = [];
+      try {
+        data = await response.json();
+        
+        // Verify data is a valid array
+        if (!Array.isArray(data)) {
+          console.error('Received invalid data format, expected array:', typeof data);
+          data = [];
+        }
+      } catch (jsonError) {
+        console.error('JSON parsing error:', jsonError);
+        toast.error('Error parsing data from server');
+        data = [];
+      }
+      
+      setProjects(data);
     } catch (error) {
-      console.error('Error fetching projects:', error)
-      toast.error('Failed to load projects')
+      console.error('Error fetching projects:', error);
+      toast.error('Failed to load projects. Please try refreshing.');
+      // Set empty array to avoid undefined errors
+      setProjects([]);
     } finally {
       setIsLoading(false)
     }
