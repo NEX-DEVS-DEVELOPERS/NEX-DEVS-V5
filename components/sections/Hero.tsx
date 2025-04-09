@@ -106,7 +106,9 @@ const techSkills = [
     skills: [
       { name: "NEXTJS", level: 99, icon: "⚛️" },
       { name: "REACT", level: 84, icon: "⚛️" },
-      { name: "REACT NATIVE", level: 81, icon: "📱" }
+      { name: "REACT NATIVE", level: 81, icon: "📱" },
+      { name: "NODE+EXPRESS", level: 89, icon: "🚀" },
+      { name: "DJANGO", level: 86, icon: "🐍" }
     ]
   },
   {
@@ -115,7 +117,9 @@ const techSkills = [
       { name: "TYPESCRIPT", level: 95, icon: "📘" },
       { name: "JAVASCRIPT", level: 95, icon: "💛" },
       { name: "PYTHON", level: 85, icon: "🐍" },
-      { name: "PHP", level: 82, icon: "🐘" }
+      { name: "PHP", level: 82, icon: "🐘" },
+      { name: "C#", level: 87, icon: "🔷" },
+      { name: "JS", level: 96, icon: "📜" }
     ]
   },
   {
@@ -149,7 +153,8 @@ const techSkills = [
     skills: [
       { name: "NODE", level: 90, icon: "📦" },
       { name: "MYSQL", level: 85, icon: "🛢️" },
-      { name: "POSTGRES", level: 85, icon: "🛢️" }
+      { name: "POSTGRES", level: 85, icon: "🛢️" },
+      { name: "SQLITE", level: 88, icon: "🗃️" }
     ]
   },
   {
@@ -518,25 +523,43 @@ export default function Hero() {
             animate={{ opacity: 1, y: 0 }}
             className="relative h-[240px] sm:h-[280px] w-full group"
           >
-            <div className="absolute inset-0 rounded-[24px] overflow-hidden bg-gradient-to-b from-white/[0.15] to-white/[0.05]">
-              <div className="h-full w-full p-4 sm:p-5 backdrop-blur-xl backdrop-saturate-150
-                            bg-white/[0.02] transition-all duration-500">
+            <div className="absolute inset-0 rounded-[24px] overflow-hidden backdrop-blur-xl">
+              {/* Simplified, consistent background for all slides */}
+              <div className="absolute inset-0 bg-white/[0.03] border border-white/10 z-0"></div>
+              
+              {/* Subtle glass effect */}
+              <div className="absolute inset-0 backdrop-blur-sm backdrop-saturate-150 z-0"></div>
+              
+              <div className="h-full w-full p-4 sm:p-5 relative z-10 transition-all duration-300">
                 <div className="h-full flex flex-col justify-between">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-base sm:text-lg font-medium flex items-center gap-2">
                       <span className="text-white/90">{currentSkillSet.category}</span>
+                      <motion.span 
+                        animate={{ rotate: [0, 5, 0, -5, 0] }}
+                        transition={{ 
+                          duration: 1.5, 
+                          repeat: Infinity, 
+                          repeatDelay: 3 
+                        }}
+                        className="text-white/70"
+                      >
+                        {currentSkillSet.category === "Fullstack" ? "⚛️" : 
+                         currentSkillSet.category === "Languages" ? "📜" : 
+                         currentSkillSet.category === "Backend" ? "🛢️" : "✨"}
+                      </motion.span>
                     </h3>
                     <div className="flex gap-2 items-center">
                       <button 
                         onClick={toggleAutoAnimation}
-                        className={`text-xs px-3 py-1 rounded-md transition-all flex items-center gap-1.5
+                        className={`text-xs px-3 py-1 rounded-full transition-all flex items-center gap-1.5
                                     ${isAutoAnimating 
-                                      ? 'bg-[#8b5cf6]/20 text-[#8b5cf6] hover:bg-[#8b5cf6]/30' 
-                                      : 'bg-white/10 text-white/70 hover:bg-white/20'}`}
+                                      ? 'bg-purple-500/20 text-purple-200' 
+                                      : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
                         aria-label={isAutoAnimating ? "Turn off auto-slide" : "Turn on auto-slide"}
                       >
-                        <span className={`text-xs ${isAutoAnimating ? 'text-[#8b5cf6]' : 'text-white/70'}`}>
-                          {isAutoAnimating ? '⟳' : '⟳'}
+                        <span className={`text-xs ${isAutoAnimating ? 'text-purple-200' : 'text-white/70'}`}>
+                          {isAutoAnimating ? '🔄' : '⏸️'}
                         </span>
                         <span className="text-xs font-medium">
                           {isAutoAnimating ? 'Auto' : 'Manual'}
@@ -545,19 +568,19 @@ export default function Hero() {
                       <div className="flex gap-1.5">
                         <button 
                           onClick={prevSkillSet}
-                          className="p-1.5 rounded-md bg-white/10 hover:bg-white/20
+                          className="p-1.5 rounded-full bg-white/5 hover:bg-white/10
                                    active:scale-95 transition-all group"
                           aria-label="Previous skill set"
                         >
-                          <span className="text-base text-white/70 group-hover:text-white transition-colors">←</span>
+                          <span className="text-base text-white/70 group-hover:text-white/90 transition-colors">←</span>
                         </button>
                         <button 
                           onClick={nextSkillSet}
-                          className="p-1.5 rounded-md bg-white/10 hover:bg-white/20
+                          className="p-1.5 rounded-full bg-white/5 hover:bg-white/10
                                    active:scale-95 transition-all group"
                           aria-label="Next skill set"
                         >
-                          <span className="text-base text-white/70 group-hover:text-white transition-colors">→</span>
+                          <span className="text-base text-white/70 group-hover:text-white/90 transition-colors">→</span>
                         </button>
                       </div>
                     </div>
@@ -581,34 +604,41 @@ export default function Hero() {
                               delay: idx * 0.03,
                               ease: "easeOut"
                             }}
-                            className="flex items-center gap-2.5 transition-all group/skill"
+                            className="flex items-center gap-2.5 transition-all group/skill hover:bg-white/[0.05] p-1.5 rounded-lg"
                             style={{
                               willChange: 'transform, opacity',
                               transform: 'translate3d(0, 0, 0)'
                             }}
                           >
                             <div className="w-8 h-8 flex items-center justify-center rounded-lg 
-                                         bg-white/[0.05] transition-all">
-                              <span className="text-base">{skill.icon}</span>
+                                         bg-white/[0.05] group-hover/skill:bg-white/[0.08] transition-all duration-300">
+                              <span className="text-base group-hover/skill:scale-110 transition-transform duration-300">{skill.icon}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1">
-                                <span className="text-white/90 text-sm font-medium">{skill.name}</span>
-                                <span className="text-xs text-white/60 font-medium tabular-nums">{skill.level}%</span>
+                              <div className="flex items-center justify-between mb-1.5">
+                                <span className="text-white/90 text-sm font-medium group-hover/skill:text-white/100 transition-colors">{skill.name}</span>
+                                <span className="text-xs text-white/70 font-medium tabular-nums bg-white/[0.05] px-1.5 py-0.5 rounded-full group-hover/skill:text-white/90 group-hover/skill:bg-white/[0.08] transition-all">{skill.level}%</span>
                               </div>
-                              <div className="h-1 bg-white/[0.05] rounded-full overflow-hidden">
+                              <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden backdrop-blur-sm">
                                 <motion.div 
-                                  className="h-full bg-[#8b5cf6] rounded-full"
-                                  initial={{ width: 0 }}
-                                  animate={{ width: `${skill.level}%` }}
-                                  transition={{ 
-                                    duration: 0.5,
-                                    delay: idx * 0.03,
-                                    ease: "easeOut"
-                                  }}
+                                  className="h-full rounded-full"
                                   style={{
+                                    background: 'linear-gradient(90deg, rgba(139,92,246,0.5) 0%, rgba(168,85,247,0.7) 100%)',
+                                    boxShadow: '0 0 4px rgba(139,92,246,0.3)',
                                     willChange: 'width',
                                     transform: 'translate3d(0, 0, 0)'
+                                  }}
+                                  initial={{ width: 0 }}
+                                  animate={{ 
+                                    width: `${skill.level}%`,
+                                    transition: { 
+                                      duration: 0.5,
+                                      delay: idx * 0.03,
+                                      ease: "easeOut"
+                                    }
+                                  }}
+                                  whileHover={{ 
+                                    boxShadow: '0 0 8px rgba(139,92,246,0.5)'
                                   }}
                                 ></motion.div>
                               </div>
@@ -620,18 +650,25 @@ export default function Hero() {
                   </div>
 
                   {/* Updated carousel indicators */}
-                  <div className="flex justify-center gap-1 pt-3">
-                    {techSkills.map((_, idx) => (
+                  <div className="flex justify-center gap-1.5 pt-4">
+                    {techSkills.map((skillSet, idx) => (
                       <button
                         key={idx}
                         onClick={() => setActiveSkillSet(idx)}
-                        className={`h-0.5 rounded-full transition-all ${
-                          idx === activeSkillSet 
-                            ? 'bg-[#8b5cf6] w-6' 
-                            : 'bg-white/10 hover:bg-white/20 w-3'
-                        }`}
-                        aria-label={`Go to skill set ${idx + 1}`}
-                      />
+                        className="group flex flex-col items-center"
+                        aria-label={`Go to ${skillSet.category} skills`}
+                      >
+                        <span className="text-[10px] text-white/50 group-hover:text-white/80 transition-colors mb-1.5 hidden sm:block">
+                          {skillSet.category.substring(0, 3)}
+                        </span>
+                        <div 
+                          className={`h-1 rounded-full transition-all duration-300 ${
+                            idx === activeSkillSet 
+                              ? 'bg-purple-500/70 w-6 shadow-[0_0_4px_rgba(139,92,246,0.3)]' 
+                              : 'bg-white/10 group-hover:bg-white/20 w-3'
+                          }`}
+                        />
+                      </button>
                     ))}
                   </div>
                 </div>
