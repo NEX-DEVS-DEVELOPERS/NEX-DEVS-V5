@@ -9,21 +9,28 @@
 # Copy the database file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
-  [plugins.inputs]
+  
+  # Each plugin.inputs needs a unique name in the array
+  # This is causing the parsing error in Netlify
+  [plugins.inputs.db]
     source = "db/portfolio.db"
     destination = ".next/server/db/portfolio.db"
 
 # Copy the WAL file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
-  [plugins.inputs]
+  
+  # Each plugin.inputs needs a unique name in the array
+  [plugins.inputs.wal]
     source = "db/portfolio.db-wal"
     destination = ".next/server/db/portfolio.db-wal"
 
 # Copy the SHM file during build
 [[plugins]]
   package = "./plugins/netlify-plugin-copy-files"
-  [plugins.inputs]
+  
+  # Each plugin.inputs needs a unique name in the array
+  [plugins.inputs.shm]
     source = "db/portfolio.db-shm"
     destination = ".next/server/db/portfolio.db-shm"
 
