@@ -17,7 +17,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Ignore ESLint errors during build for deployment
   },
-  swcMinify: true,
   poweredByHeader: false,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {
@@ -31,7 +30,7 @@ const nextConfig = {
     optimizePackageImports: ['framer-motion', 'react-icons'],
     largePageDataBytes: 256 * 1000, // Increase limit for large responses
   },
-  // Set to 'export' for static site generation, use 'standalone' for SSR
+  // Set to 'standalone' for SSR
   output: 'standalone',
   env: {
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,

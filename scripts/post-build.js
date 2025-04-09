@@ -106,14 +106,8 @@ function createNetlifyRedirects() {
   
   const redirectsContent = `
 # Netlify redirects file
-# Redirect domain aliases to primary domain
-https://www.example.com/* https://example.com/:splat 301!
-
 # Handle SPA routing
-/* /index.html 200
-
-# Handle 404
-/* /404.html 404
+/*    /index.html   200
 `;
 
   const redirectsPath = path.join(publicDir, '_redirects');

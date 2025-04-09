@@ -47,6 +47,7 @@
     "uuid": "^11.1.0"
   },
   "devDependencies": {
+    "@netlify/plugin-nextjs": "^4.41.3",
     "@tailwindcss/typography": "^0.5.10",
     "@types/canvas-confetti": "^1.9.0",
     "@types/node": "^20",
