@@ -372,6 +372,16 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       // Format project data for submission
       const projectData = {
         ...project,
+        // Ensure arrays are properly JSON stringified for SQLite
+        technologies: Array.isArray(project.technologies) ? 
+          JSON.stringify(project.technologies) : 
+          project.technologies,
+        features: Array.isArray(project.features) ? 
+          JSON.stringify(project.features) : 
+          project.features,
+        exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? 
+          JSON.stringify(project.exclusiveFeatures) : 
+          project.exclusiveFeatures,
         // Ensure visual effects are properly serialized for SQLite
         visualEffects: typeof project.visualEffects === 'object' ? 
           JSON.stringify(project.visualEffects) : 
@@ -379,6 +389,9 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         // Ensure image paths are absolute
         image: project.image?.startsWith('/') ? project.image : `/projects/${project.image}`,
         secondImage: project.secondImage?.startsWith('/') ? project.secondImage : project.secondImage ? `/projects/${project.secondImage}` : null,
+        // Set featured as a number for SQLite compatibility (0 or 1)
+        featured: project.featured ? 1 : 0,
+        showBothImagesInPriority: project.showBothImagesInPriority ? 1 : 0,
         // Add last updated timestamp
         lastUpdated: new Date().toISOString()
       }
@@ -392,24 +405,41 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
+          'AdminAuth': adminPassword,
           'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
-          'Expires': '0'
+          'Expires': '0',
+          'X-Timestamp': timestamp.toString()
         },
         body: JSON.stringify({
           project: projectData,
           password: adminPassword
-        })
+        }),
+        cache: 'no-store'
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to update project' }))
-        throw new Error(errorData.error || `HTTP error ${response.status}`)
+        const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }))
+        throw new Error(errorData.error || `Failed to update project (${response.status})`)
       }
 
-      // Revalidate project list
-      await fetch(`/api/revalidate?path=/projects&secret=${adminPassword}&t=${timestamp}`)
-      await fetch(`/api/revalidate?path=/&secret=${adminPassword}&t=${timestamp}`)
+      // Attempt to parse response to verify success
+      const result = await response.json().catch(() => null)
+      if (!result || !result.success) {
+        throw new Error('Failed to update project: Invalid server response')
+      }
+
+      // Revalidate project list and homepage
+      try {
+        await Promise.all([
+          fetch(`/api/revalidate?path=/projects&secret=${adminPassword}&t=${timestamp}`),
+          fetch(`/api/revalidate?path=/&secret=${adminPassword}&t=${timestamp}`),
+          fetch(`/api/revalidate?path=/projects/${projectId}&secret=${adminPassword}&t=${timestamp}`)
+        ])
+      } catch (revalidateError) {
+        console.error('Cache revalidation error:', revalidateError)
+        // Continue with success message even if revalidation fails
+      }
       
       toast.success('Project updated successfully!')
       
