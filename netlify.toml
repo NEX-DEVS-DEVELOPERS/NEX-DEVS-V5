@@ -2,53 +2,36 @@
   command = "npm run build"
   publish = ".next"
 
-[build.environment]
-  NETLIFY = "true"
-  NODE_VERSION = "18.17.0"
-  NPM_FLAGS = "--no-optional"
-
-[functions]
-  node_bundler = "esbuild"
-  external_node_modules = ["better-sqlite3", "sharp"]
-
-# Headers to prevent caching of API routes
-[[headers]]
-  for = "/api/*"
-  [headers.values]
-    Cache-Control = "no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0"
-    Pragma = "no-cache"
-    Expires = "0"
-    X-Custom-Header = "Make sure this works"
-
-# Force rebuild and ignore build cache
-[build.processing]
-  skip_processing = false
-
-# Handle Next.js routes
-[[redirects]]
-  from = "/_next/static/*"
-  to = "/_next/static/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/_next/data/*"
-  to = "/_next/data/:splat"
-  status = 200
-
-[[redirects]]
-  from = "/api/*"
-  to = "/.netlify/functions/nextjs-api/:splat"
-  status = 200
-
-# SPA fallback
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
-  force = false
-
+# Use the Next.js Runtime
 [[plugins]]
   package = "@netlify/plugin-nextjs"
 
-[build.lifecycle]
-  onPreBuild = "node netlify-preinstall.js" 
+# Copy the database file during build
+[[plugins]]
+  package = "netlify-plugin-copy-files"
+  
+  [plugins.inputs]
+    source = "db/portfolio.db"
+    destination = ".next/server/db/portfolio.db"
+
+# Environment variables
+[build.environment]
+  NODE_ENV = "production"
+  NEXT_TELEMETRY_DISABLED = "1"
+
+# Cache control headers
+[[headers]]
+  for = "/api/*"
+  [headers.values]
+    Cache-Control = "no-cache, no-store, must-revalidate"
+    Pragma = "no-cache"
+    Expires = "0"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), microphone=()" 

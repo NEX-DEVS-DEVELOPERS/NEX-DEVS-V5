@@ -1,29 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { Project } from './index';
 import db from '@/app/services/database';
-
-// Define Project type here to ensure consistency
-export type Project = {
-  id: number;
-  title: string;
-  description: string;
-  image: string;
-  secondImage?: string;
-  showBothImagesInPriority?: boolean;
-  category: string;
-  technologies: string[];
-  link: string;
-  features?: string[];
-  exclusiveFeatures?: string[];
-  featured: boolean;
-  status?: string;
-  updatedDays?: number;
-  progress?: number;
-  developmentProgress?: number;
-  estimatedCompletion?: string;
-  imagePriority?: number;
-  visualEffects?: any;
-  lastUpdated?: string;
-};
+import fs from 'fs';
+import path from 'path';
 
 // Set a password for admin operations
 const ADMIN_PASSWORD = 'nex-devs.org889123';
@@ -38,62 +17,64 @@ export async function GET(request: NextRequest) {
     const featured = url.searchParams.get('featured');
     const newlyAdded = url.searchParams.get('newlyAdded');
     
-    // Logging to debug
-    console.log(`API Request - action: ${action}, category: ${category}, featured: ${featured}, newlyAdded: ${newlyAdded}`);
-    
-    // Check if we need to return categories instead of projects
-    if (action === 'categories') {
+    // Check if we need to return database status (admin only)
+    if (action === 'status') {
+      const authHeader = request.headers.get('Authorization');
+      if (!authHeader || !authHeader.startsWith('Bearer ') || authHeader.split(' ')[1] !== ADMIN_PASSWORD) {
+        return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+      }
+      
+      // Get database information
       try {
-        const categories = await db.getUniqueCategories();
-        console.log(`Retrieved ${categories.length} categories`);
+        const dbStats = getDatabaseStats();
         
-        return new NextResponse(JSON.stringify(categories), {
+        return NextResponse.json({
+          path: dbStats.path,
+          count: dbStats.count,
+          size: dbStats.size,
+          lastModified: dbStats.lastModified,
+          environment: process.env.NODE_ENV || 'unknown',
+          timestamp: new Date().toISOString()
+        }, {
           headers: {
-            'Content-Type': 'application/json',
             'Cache-Control': 'no-store, no-cache, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0'
           }
         });
       } catch (error) {
-        console.error('Error retrieving categories:', error);
-        // Return empty array
-        return new NextResponse(JSON.stringify([]), {
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-store, no-cache, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
+        console.error('Error getting database stats:', error);
+        return NextResponse.json({ 
+          error: 'Failed to get database stats',
+          details: error instanceof Error ? error.message : String(error)
+        }, { status: 500 });
       }
     }
     
-    let projects: Project[] = [];
-    
-    try {
-      // Get the appropriate projects based on query parameters - awaiting the promises
-      if (newlyAdded === 'true') {
-        projects = await db.getNewlyAddedProjects();
-      } else if (featured === 'true') {
-        projects = await db.getFeaturedProjects();
-      } else if (category && category !== 'All') {
-        projects = await db.getProjectsByCategory(category);
-      } else {
-        projects = await db.getAllProjects();
-      }
-      
-      console.log(`Retrieved ${projects.length} projects`);
-    } catch (dbError) {
-      console.error('Database error when fetching projects:', dbError);
-      // Return empty array instead of failing
-      projects = [];
+    // Check if we need to return categories instead of projects
+    if (action === 'categories') {
+      const categories = db.getUniqueCategories();
+      return new NextResponse(JSON.stringify(categories), {
+        headers: {
+          'Content-Type': 'application/json',
+          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Pragma': 'no-cache',
+          'Expires': '0'
+        }
+      });
     }
     
-    // Check if projects is valid, if not, provide fallback
-    if (!Array.isArray(projects)) {
-      console.error('Projects is not an array, returning empty array instead');
-      projects = [];
+    let projects: Project[];
+    
+    // Get the appropriate projects based on query parameters
+    if (newlyAdded === 'true') {
+      projects = db.getNewlyAddedProjects();
+    } else if (featured === 'true') {
+      projects = db.getFeaturedProjects();
+    } else if (category && category !== 'All') {
+      projects = db.getProjectsByCategory(category);
+    } else {
+      projects = db.getAllProjects();
     }
     
     // Set strong cache control headers to prevent browser caching
@@ -110,11 +91,9 @@ export async function GET(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error reading projects:', error);
-    // Always return a valid array even in case of error to prevent UI breakage
-    return NextResponse.json([] as Project[], { 
-      status: 200, // Use 200 instead of 500 to prevent UI breakage
+    return NextResponse.json({ error: 'Failed to fetch projects' }, { 
+      status: 500,
       headers: {
-        'Content-Type': 'application/json',
         'Cache-Control': 'no-store, no-cache, must-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0'
@@ -123,18 +102,50 @@ export async function GET(request: NextRequest) {
   }
 }
 
+// Helper function to get database stats
+function getDatabaseStats() {
+  try {
+    // Get path from db
+    const dbPath = (db as any).db?.filename || 'unknown';
+    
+    // Count projects
+    const countProjects = db.getAllProjects().length;
+    
+    // Get file stats if possible
+    let fileSize = 0;
+    let lastModified = 'unknown';
+    
+    if (dbPath !== 'unknown' && dbPath !== ':memory:') {
+      try {
+        const stats = fs.statSync(dbPath);
+        fileSize = stats.size;
+        lastModified = stats.mtime.toISOString();
+      } catch (error) {
+        console.warn('Could not get file stats for database:', error);
+      }
+    }
+    
+    return {
+      path: dbPath,
+      count: countProjects,
+      size: fileSize,
+      lastModified: lastModified
+    };
+  } catch (error) {
+    console.error('Error getting database stats:', error);
+    return {
+      path: 'error',
+      count: 0,
+      size: 0,
+      lastModified: 'error'
+    };
+  }
+}
+
 // POST to create a new project
 export async function POST(request: NextRequest) {
   try {
-    let requestData;
-    try {
-      requestData = await request.json();
-    } catch (parseError) {
-      console.error('Error parsing request body:', parseError);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    }
-    
-    const { project, password } = requestData;
+    const { project, password } = await request.json();
     
     // Validate password
     if (password !== ADMIN_PASSWORD) {
@@ -203,7 +214,7 @@ export async function POST(request: NextRequest) {
     
     // Create the new project
     try {
-      const newProject = await db.createProject(projectWithDefaults);
+      const newProject = db.createProject(projectWithDefaults);
       
       console.log('Project created successfully with ID:', newProject.id);
       
@@ -233,15 +244,7 @@ export async function POST(request: NextRequest) {
 // PUT to update a project
 export async function PUT(request: NextRequest) {
   try {
-    let requestData;
-    try {
-      requestData = await request.json();
-    } catch (parseError) {
-      console.error('Error parsing request body:', parseError);
-      return NextResponse.json({ error: 'Invalid request body' }, { status: 400 });
-    }
-    
-    const { project, password } = requestData;
+    const { project, password } = await request.json();
     
     // Validate password
     if (password !== ADMIN_PASSWORD) {
@@ -254,23 +257,10 @@ export async function PUT(request: NextRequest) {
     }
     
     // Check if project exists
-    const existingProject = await db.getProjectById(project.id);
+    const existingProject = db.getProjectById(project.id);
     
     if (!existingProject) {
-      console.error(`Project not found with ID: ${project.id}`);
-      // Try to recover by treating it as a new project in production
-      if (process.env.NODE_ENV === 'production') {
-        try {
-          console.log('Production environment: Creating project instead of updating');
-          const newProject = await db.createProject(project);
-          return NextResponse.json(newProject);
-        } catch (createError) {
-          console.error('Failed to create project as fallback:', createError);
-          return NextResponse.json({ error: 'Project not found and creation failed' }, { status: 404 });
-        }
-      } else {
-        return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-      }
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     
     // Update the project
@@ -290,49 +280,34 @@ export async function PUT(request: NextRequest) {
       lastUpdated: new Date().toISOString()
     };
     
-    console.log(`Updating project with ID: ${updatedProject.id}`);
+    const success = db.updateProject(updatedProject);
     
+    if (!success) {
+      return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+    }
+    
+    // Force revalidation paths if needed
     try {
-      const success = await db.updateProject(updatedProject);
-      
-      if (!success) {
-        console.warn(`Update failed for project ID: ${updatedProject.id}`);
-        return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
-      }
-      
-      console.log(`Successfully updated project ID: ${updatedProject.id}`);
-      
-      // Force revalidation paths if needed
-      try {
-        const revalidateUrl = `${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`;
-        console.log(`Revalidating paths: ${revalidateUrl}`);
-        
-        await fetch(revalidateUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        });
-      } catch (error) {
-        console.error('Error revalidating paths:', error);
-      }
-      
-      return NextResponse.json({ success: true, project: updatedProject }, {
+      await fetch(`${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`, {
+        method: 'GET',
+        cache: 'no-store',
         headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
           'Pragma': 'no-cache',
           'Expires': '0'
         }
       });
-    } catch (updateError) {
-      console.error('Error in database update:', updateError);
-      return NextResponse.json({ 
-        error: 'Database update error: ' + (updateError instanceof Error ? updateError.message : String(updateError))
-      }, { status: 500 });
+    } catch (error) {
+      console.error('Error revalidating paths:', error);
     }
+    
+    return NextResponse.json(updatedProject, {
+      headers: {
+        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      }
+    });
   } catch (error) {
     console.error('Error updating project:', error);
     return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
@@ -375,27 +350,16 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
     }
     
-    console.log(`Deleting project with ID: ${id}`);
-    
     // Delete the project
-    try {
-      const success = await db.deleteProject(id);
-      
-      if (!success) {
-        console.warn(`Project not found for deletion: ${id}`);
-        return NextResponse.json({ error: 'Project not found' }, { status: 404 });
-      }
-      
-      console.log(`Successfully deleted project ID: ${id}`);
-      return NextResponse.json({ success: true });
-    } catch (deleteError) {
-      console.error(`Error deleting project ID ${id}:`, deleteError);
-      return NextResponse.json({ 
-        error: 'Database error during deletion: ' + (deleteError instanceof Error ? deleteError.message : String(deleteError))
-      }, { status: 500 });
+    const success = db.deleteProject(id);
+    
+    if (!success) {
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
+    
+    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error('Error in DELETE handler:', error);
+    console.error('Error deleting project:', error);
     return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
   }
 } 

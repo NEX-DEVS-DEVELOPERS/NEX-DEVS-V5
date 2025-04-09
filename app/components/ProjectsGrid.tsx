@@ -35,8 +35,6 @@ export default function ProjectsGrid() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        setIsLoading(true);
-        
         // Enhanced cache busting with multiple random values
         const timestamp = new Date().getTime();
         const randomValue = Math.floor(Math.random() * 10000000);
@@ -62,21 +60,7 @@ export default function ProjectsGrid() {
           throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
         
-        let data = [];
-        try {
-          data = await response.json();
-        } catch (jsonError) {
-          console.error('Error parsing JSON response:', jsonError);
-          // Return empty array if JSON parsing fails
-          data = [];
-        }
-        
-        // Verify data is an array
-        if (!Array.isArray(data)) {
-          console.error('Invalid data format received, expected array but got:', typeof data);
-          data = [];
-        }
-        
+        const data = await response.json();
         console.log('Fetched projects data:', data.length, 'projects');
         
         // Only filter out projects with 'NEWLY ADDED:' prefix in title
@@ -88,30 +72,16 @@ export default function ProjectsGrid() {
         console.log('Regular projects count:', regularProjects.length);
         setProjects(regularProjects);
         
-        try {
-          // Extract unique categories from the fetched data
-          const categoriesResponse = await fetch(`/api/projects?t=${timestamp}&action=categories`, {
-            cache: 'no-store'
-          });
-          
-          if (!categoriesResponse.ok) {
-            throw new Error(`Failed to fetch categories: ${categoriesResponse.status}`);
-          }
-          
-          const fetchedCategories = await categoriesResponse.json();
-          
-          // Ensure we have unique categories by using a Set
-          const uniqueCategories = Array.from(new Set(['All', ...(Array.isArray(fetchedCategories) ? fetchedCategories : [])]));
-          setCategories(uniqueCategories);
-        } catch (categoryError) {
-          console.error('Error fetching categories:', categoryError);
-          // Ensure we always have at least 'All' category
-          setCategories(['All']);
-        }
+        // Extract unique categories from the fetched data
+        const fetchedCategories = await fetch(`/api/projects?t=${timestamp}&action=categories`, {
+          cache: 'no-store'
+        }).then(res => res.json());
+        
+        // Ensure we have unique categories by using a Set
+        const uniqueCategories = Array.from(new Set(['All', ...fetchedCategories]));
+        setCategories(uniqueCategories);
       } catch (error) {
         console.error('Error fetching projects:', error);
-        // Clear projects and set to empty array on error
-        setProjects([]);
       } finally {
         setIsLoading(false);
       }

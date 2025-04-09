@@ -1,4 +1,4 @@
-import db from '../services/database';
+import { migrateJsonToSqlite } from '../services/database';
 
 // Initialize the database when the app starts
 let initialized = false;
@@ -12,10 +12,7 @@ export async function initializeDatabase() {
     // Only run on the server
     if (typeof window === 'undefined') {
       console.log('Initializing database...');
-      
-      // Force database initialization by getting all projects
-      await db.getAllProjects();
-      
+      await migrateJsonToSqlite();
       console.log('Database initialization completed');
     }
     

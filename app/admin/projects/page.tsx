@@ -25,95 +25,11 @@ type Project = {
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
-  const [hasInitializedStorage, setHasInitializedStorage] = useState(false)
-  const [isSeeding, setIsSeeding] = useState(false)
 
   // Fetch projects on component mount
   useEffect(() => {
-    const initializeStorage = async () => {
-      // Try to initialize JSON storage if needed (for first deployment)
-      try {
-        const response = await fetch('/api/projects/init-storage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'AdminAuth': sessionStorage.getItem('adminPassword') || ''
-          }
-        });
-        
-        if (response.ok) {
-          setHasInitializedStorage(true);
-          console.log('Storage initialized successfully');
-        } else {
-          console.log('Storage initialization not needed or unauthorized');
-        }
-      } catch (error) {
-        console.error('Error initializing storage:', error);
-      }
-      
-      // Fetch projects
-      fetchProjects();
-    };
-    
-    initializeStorage();
-  }, []);
-
-  // Function to seed database with sample projects
-  const seedDatabase = async () => {
-    if (!confirm('This will add sample projects to your database. Continue?')) {
-      return;
-    }
-
-    setIsSeeding(true);
-    
-    try {
-      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password:');
-      
-      if (!password) {
-        toast.error('Password required');
-        setIsSeeding(false);
-        return;
-      }
-      
-      // Store password for future operations
-      sessionStorage.setItem('adminPassword', password);
-      
-      const response = await fetch('/api/projects/seed-data', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'AdminAuth': password
-        }
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to seed database');
-      }
-      
-      const result = await response.json();
-      toast.success(`${result.message}`);
-      
-      // Refresh projects list
-      fetchProjects();
-      
-      // Revalidate all project pages
-      try {
-        await fetch(`/api/revalidate?path=/projects&secret=${password}`);
-        await fetch(`/api/revalidate?path=/&secret=${password}`);
-      } catch (revalidateError) {
-        console.error('Error revalidating pages:', revalidateError);
-      }
-      
-    } catch (error) {
-      console.error('Error seeding database:', error);
-      toast.error(error instanceof Error ? error.message : 'Failed to seed database');
-    } finally {
-      setIsSeeding(false);
-    }
-  };
+    fetchProjects()
+  }, [])
 
   // Function to fetch projects
   const fetchProjects = async () => {
@@ -134,33 +50,11 @@ export default function AdminProjectsPage() {
           'X-Random-Value': randomValue.toString()
         }
       })
-      
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}: ${response.statusText}`);
-      }
-      
-      // Safe JSON parsing with fallback to empty array
-      let data = [];
-      try {
-        data = await response.json();
-        
-        // Verify data is a valid array
-        if (!Array.isArray(data)) {
-          console.error('Received invalid data format, expected array:', typeof data);
-          data = [];
-        }
-      } catch (jsonError) {
-        console.error('JSON parsing error:', jsonError);
-        toast.error('Error parsing data from server');
-        data = [];
-      }
-      
-      setProjects(data);
+      const data = await response.json()
+      setProjects(data)
     } catch (error) {
-      console.error('Error fetching projects:', error);
-      toast.error('Failed to load projects. Please try refreshing.');
-      // Set empty array to avoid undefined errors
-      setProjects([]);
+      console.error('Error fetching projects:', error)
+      toast.error('Failed to load projects')
     } finally {
       setIsLoading(false)
     }
@@ -214,44 +108,103 @@ export default function AdminProjectsPage() {
               <p className="text-gray-400 mt-2">Manage your projects portfolio</p>
             </div>
             
-            <div className="flex flex-wrap gap-4">
-              <Link 
-                href="/admin/projects/new" 
-                className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+            <div className="flex gap-4">
+              <Link
+                href="/admin/projects/new"
+                className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                  />
                 </svg>
-                Add New Project
+                <span>Add New Project</span>
               </Link>
-              
-              <button 
-                onClick={fetchProjects}
-                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                disabled={isLoading}
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                {isLoading ? 'Refreshing...' : 'Refresh Data'}
-              </button>
-              
+
               <button
-                onClick={seedDatabase}
-                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-                disabled={isSeeding}
+                onClick={fetchProjects}
+                className="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
                 </svg>
-                {isSeeding ? 'Adding Sample Data...' : 'Add Sample Projects'}
+                <span>Refresh Data</span>
               </button>
               
-              <Link 
-                href="/" 
-                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              <Link
+                href="/admin/database"
+                className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
               >
-                View Site
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 11h6"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 15h6"
+                  />
+                </svg>
+                <span>Database Admin</span>
+              </Link>
+
+              <Link
+                href="/"
+                className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                  />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                  />
+                </svg>
+                <span>View Site</span>
               </Link>
             </div>
           </div>

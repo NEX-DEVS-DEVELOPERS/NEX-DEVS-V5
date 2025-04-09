@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "preinstall": "node -e \"process.env.NETLIFY === 'true' && require('./netlify-preinstall.js')\""
+    "deploy": "npm run build && netlify deploy --prod"
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
