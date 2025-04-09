@@ -23,8 +23,27 @@ const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
 // Get all projects
 export function getProjects(): Project[] {
   try {
+    // Force a fresh read from the file system
     const projectsData = fs.readFileSync(projectsFilePath, 'utf8');
-    return JSON.parse(projectsData);
+    
+    // Clear any existing in-memory cache
+    const projects = JSON.parse(projectsData);
+    
+    // Log data retrieval for debugging
+    const isVercel = process.env.VERCEL === '1';
+    console.log(`[projects.ts] Read ${projects.length} projects from file system${isVercel ? ' on Vercel' : ''}`);
+    
+    // When on Vercel, check the filesystem timestamp to ensure we're getting the latest data
+    if (isVercel) {
+      try {
+        const stats = fs.statSync(projectsFilePath);
+        console.log(`[projects.ts] Projects file last modified: ${stats.mtime.toISOString()}`);
+      } catch (err) {
+        console.error('Error checking file stats:', err);
+      }
+    }
+    
+    return projects;
   } catch (error) {
     console.error('Error reading projects file:', error);
     return [];
@@ -34,11 +53,23 @@ export function getProjects(): Project[] {
 // Save projects to file
 export async function saveProjects(projects: Project[]): Promise<boolean> {
   try {
+    // Write with a temporary file first to avoid race conditions
+    const tempPath = `${projectsFilePath}.tmp`;
+    
     await fs.promises.writeFile(
-      projectsFilePath,
+      tempPath,
       JSON.stringify(projects, null, 2),
       'utf8'
     );
+    
+    // Rename the temp file to the actual file (atomic operation)
+    await fs.promises.rename(tempPath, projectsFilePath);
+    
+    // On Vercel, log the save operation
+    if (process.env.VERCEL === '1') {
+      console.log(`[projects.ts] Saved ${projects.length} projects to file system on Vercel`);
+    }
+    
     return true;
   } catch (error) {
     console.error('Error saving projects file:', error);

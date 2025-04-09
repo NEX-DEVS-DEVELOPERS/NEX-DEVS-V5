@@ -148,30 +148,29 @@
     "image": "/projects/1aef2df5-ec63-42c1-9c05-f37a1a4d152e.png",
     "category": "Web Development with AI Integration",
     "technologies": [
-      "DEEP SEARCH",
       "WEB SEARCH "
     ],
     "link": "https://3d-portfolio-showcase.vercel.app",
     "featured": true,
-    "status": "Beta Testing",
+    "status": "Recently Launched",
     "updatedDays": 1,
-    "progress": "100",
+    "progress": "75",
     "features": [
       "DEEP SEARCH "
     ],
     "id": 13,
     "imagePriority": 1,
     "visualEffects": {
-      "morphTransition": false,
-      "rippleEffect": true,
+      "morphTransition": true,
+      "rippleEffect": false,
       "floatingElements": true,
       "shimmering": false,
-      "animation": "float-smooth",
-      "shadows": "gradient",
-      "border": "glow",
-      "glassmorphism": false,
-      "particles": false,
-      "animationTiming": "slow",
+      "animation": "pop",
+      "shadows": "3d",
+      "border": "animated",
+      "glassmorphism": true,
+      "particles": true,
+      "animationTiming": "very-slow",
       "animationIntensity": "strong"
     },
     "exclusiveFeatures": [

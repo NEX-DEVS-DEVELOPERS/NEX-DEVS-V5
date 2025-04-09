@@ -64,16 +64,21 @@ export default function NewlyAddedProjects() {
     
     const fetchProjects = async () => {
       try {
-        // Add timestamp to force fresh data and prevent browser caching
+        // Enhanced cache busting mechanism for Vercel deployment
         const timestamp = new Date().getTime();
-        const response = await fetch(`/api/projects?t=${timestamp}`, {
+        const random = Math.floor(Math.random() * 1000000);
+        const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV || '';
+        
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}&forceRefresh=true&env=${vercelEnv}`, {
           signal: controller.signal,
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
-            'Expires': '0'
-          }
+            'Expires': '0',
+            'X-Force-Refresh': 'true'
+          },
+          next: { revalidate: 0 } // Next.js 13 cache control
         })
         const data = await response.json()
         

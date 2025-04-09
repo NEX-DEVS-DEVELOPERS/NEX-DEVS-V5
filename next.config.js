@@ -36,6 +36,8 @@ const nextConfig = {
   output: 'standalone',
   env: {
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
+    VERCEL_ENV: process.env.VERCEL_ENV || 'development',
+    VERCEL_URL: process.env.VERCEL_URL || 'localhost:3000'
   },
   // Add server configuration
   serverRuntimeConfig: {
@@ -47,6 +49,7 @@ const nextConfig = {
     // Will be available on both server and client
     NODE_ENV: process.env.NODE_ENV,
     BUILD_ID: Date.now().toString(), // Add unique build ID to force cache refreshes
+    VERCEL_ENV: process.env.VERCEL_ENV || 'development',
   },
   // Add custom headers to prevent caching of API responses
   async headers() {
@@ -54,14 +57,19 @@ const nextConfig = {
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate' },
+          { key: 'Cache-Control', value: 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0, stale-while-revalidate=0' },
+          { key: 'CDN-Cache-Control', value: 'no-cache' },
+          { key: 'Vercel-CDN-Cache-Control', value: 'no-cache' },
           { key: 'Pragma', value: 'no-cache' },
           { key: 'Expires', value: '0' },
           { key: 'Surrogate-Control', value: 'no-store' },
+          { key: 'X-Vercel-Cache', value: 'BYPASS' },
         ],
       },
     ];
   },
+  // Force Vercel to revalidate on every request
+  generateEtags: false,
 }
 
 module.exports = nextConfig 
