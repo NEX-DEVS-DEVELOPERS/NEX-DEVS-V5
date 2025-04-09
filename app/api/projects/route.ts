@@ -60,9 +60,7 @@ export async function GET(request: NextRequest) {
   try {
     // Force cache invalidation with query parameters
     const url = new URL(request.url);
-    
-    // Always invalidate cache in production and when force refresh is requested
-    if (process.env.VERCEL || url.searchParams.has('t') || url.searchParams.has('forceRefresh')) {
+    if (url.searchParams.has('t') || url.searchParams.has('forceRefresh')) {
       // Always invalidate cache with timestamp or forceRefresh param
       projectsCache = null;
       lastCacheUpdate = 0; // Reset cache timestamp
@@ -72,17 +70,13 @@ export async function GET(request: NextRequest) {
     const projects = await readProjects();
     
     // Set cache control headers to prevent browser caching
-    // These headers are specifically recognized by Vercel and will prevent their edge cache
     return new NextResponse(JSON.stringify(sortProjects(projects)), {
       headers: {
         'Content-Type': 'application/json',
-        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0, s-maxage=0, stale-while-revalidate=0',
-        'CDN-Cache-Control': 'no-cache',
-        'Vercel-CDN-Cache-Control': 'no-cache',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate',
         'Pragma': 'no-cache',
         'Expires': '0',
-        'Surrogate-Control': 'no-store',
-        'X-Vercel-Cache': 'BYPASS'
+        'Surrogate-Control': 'no-store'
       }
     });
   } catch (error) {

@@ -31,54 +31,34 @@ export type Project = {
 // Path to the projects.json file
 const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json')
 
-// Sort projects correctly
+// Sort projects by image priority and featured status
 export function sortProjects(projects: Project[]): Project[] {
-  // Create a copy of the array to avoid mutating the original
-  const sorted = [...projects];
-  
-  // Perform a stable sort (preserves original order when values are equal)
-  return sorted.sort((a, b) => {
-    // First sort by ID for stable ordering
-    return a.id - b.id;
-  });
-}
-
-// Export a helper function for generating cache-busting URL parameters
-export function getCacheBustingParams(): string {
-  const timestamp = Date.now();
-  const random = Math.floor(Math.random() * 1000000);
-  const vercelEnv = process.env.VERCEL_ENV || '';
-  return `t=${timestamp}&r=${random}&env=${vercelEnv}&forceRefresh=true`;
-}
-
-// Helper function to clear Vercel edge caches programmatically
-export async function clearVercelCache(path: string = '/api/projects'): Promise<boolean> {
-  try {
-    // Only attempt to clear cache if we're on Vercel
-    if (process.env.VERCEL_URL) {
-      console.log(`Attempting to clear Vercel cache for: ${path}`);
-      
-      // Generate the full URL to purge
-      const url = `https://${process.env.VERCEL_URL}${path}`;
-      
-      // Make the purge request
-      const res = await fetch(url, {
-        method: 'GET',
-        headers: {
-          'Cache-Control': 'no-cache, no-store',
-          'Pragma': 'no-cache',
-          'X-Vercel-Purge': 'true' // Special header for Vercel
-        }
-      });
-      
-      console.log(`Cache purge response: ${res.status}`);
-      return res.ok;
+  return [...projects].sort((a, b) => {
+    // First sort by numeric imagePriority (this is the main priority sorting)
+    if (typeof a.imagePriority === 'number' && typeof b.imagePriority === 'number') {
+      return a.imagePriority - b.imagePriority;
     }
-    return false;
-  } catch (error) {
-    console.error('Error clearing Vercel cache:', error);
-    return false;
-  }
+    
+    // If only one has numeric priority, it takes precedence
+    if (typeof a.imagePriority === 'number') return -1;
+    if (typeof b.imagePriority === 'number') return 1;
+    
+    // Boolean priority is secondary
+    if (a.imagePriority === true && b.imagePriority !== true) return -1;
+    if (a.imagePriority !== true && b.imagePriority === true) return 1;
+    
+    // Then by featured status
+    if (a.featured && !b.featured) return -1;
+    if (!a.featured && b.featured) return 1;
+    
+    // Then by updatedDays if they exist (newer first)
+    if (a.updatedDays !== undefined && b.updatedDays !== undefined) {
+      return a.updatedDays - b.updatedDays;
+    }
+    
+    // Finally by id (newer first assuming higher id is newer)
+    return b.id - a.id;
+  });
 }
 
 // Get all projects

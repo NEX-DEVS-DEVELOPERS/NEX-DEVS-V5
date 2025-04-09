@@ -43,20 +43,17 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
   useEffect(() => {
     const fetchProject = async () => {
       try {
-        // Enhanced cache busting mechanism for Vercel deployment
+        // Enhanced cache busting mechanism
         const timestamp = new Date().getTime();
         const random = Math.floor(Math.random() * 1000000);
-        const vercelEnv = process.env.NEXT_PUBLIC_VERCEL_ENV || '';
-        
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}&forceRefresh=true&env=${vercelEnv}`, {
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${random}&forceRefresh=true`, {
           cache: 'no-store',
           headers: {
             'Cache-Control': 'no-cache, no-store, must-revalidate',
             'Pragma': 'no-cache',
             'Expires': '0',
             'X-Force-Refresh': 'true'
-          },
-          next: { revalidate: 0 } // Next.js 13 cache control
+          }
         })
         const projects = await response.json()
         
