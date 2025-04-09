@@ -1,41 +1,20 @@
 [build]
-  command = "npm run build:netlify"
+  command = "npm run build"
   publish = ".next"
 
-# Use the Next.js Runtime
+# Use the Next.js Runtime with SQLite file handling
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-# Copy the database file during build
-[[plugins]]
-  package = "./plugins/netlify-plugin-copy-files"
   
   [plugins.inputs]
-  source = "db/portfolio.db"
-  destination = ".next/server/db/portfolio.db"
-
-# Copy the WAL file during build if it exists
-[[plugins]]
-  package = "./plugins/netlify-plugin-copy-files"
-  
-  [plugins.inputs]
-  source = "db/portfolio.db-wal"
-  destination = ".next/server/db/portfolio.db-wal"
-  optional = true
-
-# Copy the SHM file during build if it exists
-[[plugins]]
-  package = "./plugins/netlify-plugin-copy-files"
-  
-  [plugins.inputs]
-  source = "db/portfolio.db-shm"
-  destination = ".next/server/db/portfolio.db-shm"
-  optional = true
+    # Copy the SQLite database to the publish directory
+    includeFiles = ["*.db", "database.sqlite", "*.sqlite"]
 
 # Environment variables
 [build.environment]
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_USE_NETLIFY_EDGE = "true"
 
 # Cache control headers
 [[headers]]
@@ -52,4 +31,9 @@
     X-XSS-Protection = "1; mode=block"
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
-    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), microphone=()" 
+    Permissions-Policy = "accelerometer=(), camera=(), geolocation=(), microphone=()"
+
+[functions]
+  # Increase function timeout for database operations
+  node_bundler = "esbuild"
+  external_node_modules = ["better-sqlite3"]
