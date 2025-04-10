@@ -6,7 +6,7 @@
     "dev": "next dev",
     "ensure-deps": "node scripts/ensure-deps.js",
     "prebuild": "npm run ensure-deps && node scripts/fix-import-paths.js || echo 'Warning: Path fix script failed but continuing with build'",
-    "build": "next build --no-lint",
+    "build": "next build",
     "postbuild": "node scripts/post-build.js || echo 'Warning: Post-build script failed but build artifacts are ready'",
     "start": "next start",
     "lint": "next lint",

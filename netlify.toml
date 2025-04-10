@@ -2,29 +2,14 @@
 [build]
   command = "npm install autoprefixer postcss tailwindcss @netlify/plugin-nextjs --no-save && npm run build"
   publish = ".next"
-  node_version = "18"
 
 [[plugins]]
   package = "@netlify/plugin-nextjs"
-
-# Plugin configuration
-[[plugins.inputs]]
-  debug = true
-  nodeBundler = "esbuild"
-  nextVersion = "15.x"
 
 # Production environment
 [build.environment]
   NODE_ENV = "production"
   NEXT_TELEMETRY_DISABLED = "1"
-  NEXT_CACHE_MINIFY = "true"
-  NEXT_SHARP_PATH = "./node_modules/sharp"
-  NEXT_CACHE_MEMORY_LIMIT = "4000"
-  NEXT_DISABLE_SOURCEMAPS = "true"
-
-# Cache configuration
-[build.processing]
-  skip_processing = false
 
 # SPA Fallback redirects
 [[redirects]]
