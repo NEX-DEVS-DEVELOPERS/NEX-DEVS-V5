@@ -91,7 +91,7 @@ function printNetlifyConfig() {
       console.error('❌ Error reading netlify.toml:', error);
     }
   } else {
-    console.warn('⚠️ netlify.toml file not found');
+    console.log('✅ Using Netlify default configuration (no netlify.toml file)');
   }
 }
 
