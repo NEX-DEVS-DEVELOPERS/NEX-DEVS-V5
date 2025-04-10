@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "prebuild": "node scripts/fix-import-paths.js || echo 'Warning: Path fix script failed but continuing with build'",
+    "ensure-deps": "node scripts/ensure-deps.js",
+    "prebuild": "npm run ensure-deps && node scripts/fix-import-paths.js || echo 'Warning: Path fix script failed but continuing with build'",
     "build": "next build",
     "postbuild": "node scripts/post-build.js || echo 'Warning: Post-build script failed but build artifacts are ready'",
     "start": "next start",
