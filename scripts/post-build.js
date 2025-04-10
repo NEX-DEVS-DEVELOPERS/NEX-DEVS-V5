@@ -12,6 +12,13 @@ console.log('======================================');
 console.log('Running post-build deployment script...');
 console.log('======================================');
 
+console.log('\n🌐 Verifying environment...');
+console.log(`Node version: ${process.version}`);
+console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+console.log(`Platform: ${process.platform}`);
+console.log(`Netlify: ${process.env.NETLIFY ? 'true' : 'false'}`);
+console.log(`Build ID: ${process.env.NETLIFY_BUILD_ID || 'not available'}`);
+
 function copyDatabaseFiles() {
   console.log('\n📁 Copying SQLite database files...');
 

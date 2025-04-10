@@ -4,11 +4,12 @@ const { execSync } = require('child_process');
 
 console.log('Ensuring critical dependencies are installed...');
 
+// Define critical dependencies with specific version constraints for Netlify compatibility
 const criticalDeps = [
-  'autoprefixer',
-  'postcss',
-  'tailwindcss',
-  '@netlify/plugin-nextjs'
+  { name: 'autoprefixer', version: '^10.4.21' },
+  { name: 'postcss', version: '^8.5.3' },
+  { name: 'tailwindcss', version: '^3.4.17' },
+  { name: '@netlify/plugin-nextjs', version: '^4.41.3' }
 ];
 
 // Check if package.json exists
@@ -25,11 +26,11 @@ const installedDeps = {
   ...packageJson.devDependencies
 };
 
-// Check if each critical dependency is installed
+// Check if each critical dependency is installed with compatible version
 const missingDeps = [];
 criticalDeps.forEach(dep => {
-  if (!installedDeps[dep]) {
-    missingDeps.push(dep);
+  if (!installedDeps[dep.name]) {
+    missingDeps.push(`${dep.name}@${dep.version}`);
   }
 });
 
@@ -51,7 +52,7 @@ if (missingDeps.length > 0) {
   console.log('✅ All critical dependencies are installed');
 }
 
-// Ensure PostCSS is configured correctly
+// Ensure PostCSS is configured correctly for Next.js 15
 const postcssConfigPath = path.join(process.cwd(), 'postcss.config.js');
 if (fs.existsSync(postcssConfigPath)) {
   const postcssConfig = fs.readFileSync(postcssConfigPath, 'utf8');
@@ -83,8 +84,25 @@ if (fs.existsSync(postcssConfigPath)) {
 }`;
     fs.writeFileSync(postcssConfigPath, newConfig);
     console.log('✅ Created postcss.config.js with autoprefixer');
-  } catch (error) {
+  }
+  catch (error) {
     console.error('❌ Error creating postcss.config.js:', error.message);
+  }
+}
+
+// Check Netlify plugin compatibility
+if (process.env.NETLIFY === 'true') {
+  console.log('🔍 Checking Netlify environment compatibility...');
+  
+  // Create a compatible .nvmrc file if not exists
+  const nvmrcPath = path.join(process.cwd(), '.nvmrc');
+  if (!fs.existsSync(nvmrcPath)) {
+    try {
+      fs.writeFileSync(nvmrcPath, '18');
+      console.log('✅ Created .nvmrc file to ensure Node 18 compatibility');
+    } catch (error) {
+      console.error('❌ Error creating .nvmrc file:', error.message);
+    }
   }
 }
 
