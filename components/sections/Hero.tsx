@@ -554,11 +554,11 @@ export default function Hero() {
                         onClick={toggleAutoAnimation}
                         className={`text-xs px-3 py-1 rounded-full transition-all flex items-center gap-1.5
                                     ${isAutoAnimating 
-                                      ? 'bg-purple-500/20 text-purple-200' 
+                                      ? 'bg-white/10 text-white/90' 
                                       : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
                         aria-label={isAutoAnimating ? "Turn off auto-slide" : "Turn on auto-slide"}
                       >
-                        <span className={`text-xs ${isAutoAnimating ? 'text-purple-200' : 'text-white/70'}`}>
+                        <span className={`text-xs ${isAutoAnimating ? 'text-white/90' : 'text-white/70'}`}>
                           {isAutoAnimating ? '🔄' : '⏸️'}
                         </span>
                         <span className="text-xs font-medium">
@@ -623,8 +623,8 @@ export default function Hero() {
                                 <motion.div 
                                   className="h-full rounded-full"
                                   style={{
-                                    background: 'linear-gradient(90deg, rgba(139,92,246,0.5) 0%, rgba(168,85,247,0.7) 100%)',
-                                    boxShadow: '0 0 4px rgba(139,92,246,0.3)',
+                                    background: "linear-gradient(90deg, rgba(139,92,246,0.6) 0%, rgba(168,85,247,0.8) 100%)",
+                                    boxShadow: "0 0 8px rgba(139,92,246,0.2)",
                                     willChange: 'width',
                                     transform: 'translate3d(0, 0, 0)'
                                   }}
@@ -638,7 +638,7 @@ export default function Hero() {
                                     }
                                   }}
                                   whileHover={{ 
-                                    boxShadow: '0 0 8px rgba(139,92,246,0.5)'
+                                    boxShadow: "0 0 12px rgba(139,92,246,0.4)"
                                   }}
                                 ></motion.div>
                               </div>
@@ -664,7 +664,7 @@ export default function Hero() {
                         <div 
                           className={`h-1 rounded-full transition-all duration-300 ${
                             idx === activeSkillSet 
-                              ? 'bg-purple-500/70 w-6 shadow-[0_0_4px_rgba(139,92,246,0.3)]' 
+                              ? 'bg-gradient-to-r from-purple-500 to-purple-400 w-6 shadow-[0_0_8px_rgba(139,92,246,0.3)]' 
                               : 'bg-white/10 group-hover:bg-white/20 w-3'
                           }`}
                         />

@@ -1,107 +1,159 @@
 import { motion } from 'framer-motion'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
+import { useIsMobile } from '@/app/utils/deviceDetection'
 
-// Redesigned company display with minimal styling
+// Updated with better styling and structure
 const companies = [
-  { name: 'GitHub', symbol: '/' },
-  { name: 'Webflow', symbol: '~' },
-  { name: 'Spline', symbol: '+' },
-  { name: 'Fiverr', symbol: '$' },
-  { name: 'Upwork', symbol: '_' },
-  { name: 'LinkedIn', symbol: '•' },
-  { name: 'Supabase', symbol: '◆' },
-  { name: 'Dribbble', symbol: '.' },
-  { name: 'Vercel', symbol: '△' }
+  { name: 'Webflow', symbol: '~', color: 'from-purple-500/10 to-blue-500/10' },
+  { name: 'Spline', symbol: '+', color: 'from-violet-500/10 to-indigo-500/10' },
+  { name: 'Fiverr', symbol: '$', color: 'from-green-500/10 to-emerald-500/10' },
+  { name: 'Upwork', symbol: '_', color: 'from-blue-500/10 to-sky-500/10' },
+  { name: 'LinkedIn', symbol: '•', color: 'from-blue-600/10 to-blue-400/10' },
+  { name: 'Netlify', symbol: '*', color: 'from-purple-600/10 to-indigo-400/10' },
+  { name: 'Vercel', symbol: '△', color: 'from-gray-500/10 to-gray-300/10' },
+  { name: 'Dribbble', symbol: '.', color: 'from-pink-500/10 to-rose-400/10' },
+  { name: 'Supabase', symbol: '◆', color: 'from-emerald-500/10 to-green-300/10' },
 ]
 
 export default function TrustedBy() {
+  const [scrollPosition, setScrollPosition] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const isMobile = useIsMobile()
+
+  useEffect(() => {
+    if (isMobile) return
+    
+    const scrollAnimation = () => {
+      setScrollPosition((prev) => (prev + 1) % 3000)
+    }
+
+    const interval = setInterval(scrollAnimation, 30)
+    return () => clearInterval(interval)
+  }, [isMobile])
+
+  // Fade-in animation variants
+  const fadeInUpVariant = {
+    hidden: { opacity: 0, y: 10 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: {
+        duration: 0.2,
+        ease: "easeOut"
+      }
+    }
+  }
+
+  // Glow animation for individual companies
+  const glowVariant = {
+    animate: {
+      opacity: [0.7, 1, 0.7],
+      scale: [1, 1.02, 1],
+      transition: {
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "loop" as const,
+        ease: "linear"
+      }
+    }
+  }
+
   return (
     <div className="w-full py-8 sm:py-12 overflow-hidden relative">
-      {/* Enhanced Gradient Background that matches hero section */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Main gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-black/90 to-black/80"></div>
-        
-        {/* Blurred light spots for visual interest */}
-        <div className="absolute top-1/3 left-1/4 w-[700px] h-[400px] bg-gradient-to-r from-purple-500/8 to-pink-500/8 rounded-full blur-[180px]"></div>
-        <div className="absolute bottom-1/3 right-1/4 w-[700px] h-[400px] bg-gradient-to-r from-violet-500/8 to-indigo-500/8 rounded-full blur-[180px]"></div>
-        
-        {/* Subtle mesh grid overlay */}
-        <div className="absolute inset-0 bg-[url('/grid-pattern.png')] bg-repeat opacity-5"></div>
-        
-        {/* Side blur effects to soften edges */}
-        <div className="absolute inset-y-0 left-0 w-40 bg-gradient-to-r from-black via-black/95 to-transparent z-10 pointer-events-none blur-[3px]"></div>
-        <div className="absolute inset-y-0 right-0 w-40 bg-gradient-to-l from-black via-black/95 to-transparent z-10 pointer-events-none blur-[3px]"></div>
-      </div>
+      {/* Main background with texture */}
+      <div className="absolute inset-0 bg-black/40 backdrop-blur-xl"></div>
       
-      <div className="max-w-7xl mx-auto px-4 relative z-[1]">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-center mb-8"
+      {/* Static gradient overlay - stays in place */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/20 to-black/70 opacity-70"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-black/90 via-transparent to-black/90 pointer-events-none z-10"></div>
+      
+      {/* Rainbow gradient band - stays in place */}
+      <div className="absolute top-1/2 left-0 right-0 h-16 -translate-y-1/2 bg-gradient-to-r from-purple-900/5 via-blue-900/5 to-emerald-900/5 blur-3xl opacity-40"></div>
+      
+      {/* Background glow spots - stays in place */}
+      <div className="absolute left-1/4 top-1/3 w-40 h-40 bg-purple-500/10 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute right-1/4 bottom-1/3 w-40 h-40 bg-blue-500/10 rounded-full blur-3xl opacity-30"></div>
+      <div className="absolute left-2/3 top-1/2 w-32 h-32 bg-emerald-500/10 rounded-full blur-3xl opacity-20"></div>
+      
+      <div className="max-w-7xl mx-auto px-4 relative z-20">
+        <motion.h2 
+          initial="hidden"
+          animate="visible"
+          variants={fadeInUpVariant}
+          className="text-center text-sm sm:text-base text-gray-400 font-medium mb-8 tracking-wider"
         >
-          <motion.div 
-            className="inline-block"
-            whileHover={{ scale: 1.05 }}
-            transition={{ type: "spring", stiffness: 400, damping: 10 }}
-          >
-            <span className="text-sm sm:text-base text-purple-200 font-medium uppercase tracking-wider px-6 py-1.5 bg-gradient-to-r from-purple-500/5 to-pink-500/5 rounded-full backdrop-blur-xl shadow-[0_0_20px_rgba(168,85,247,0.15)]">
-              Trusted By
-            </span>
-          </motion.div>
-        </motion.div>
+          TRUSTED BY
+        </motion.h2>
 
         {/* Mobile Grid Layout */}
-        <div className="block md:hidden">
-          <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="block sm:hidden">
+          <div className="grid grid-cols-3 gap-6 text-center">
             {companies.map((company, index) => (
               <motion.div
-                key={`mobile-${company.name}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05, duration: 0.4 }}
-                whileHover={{ scale: 1.05 }}
-                className="px-3 py-1.5 bg-gradient-to-r from-purple-900/10 to-pink-900/10 backdrop-blur-xl rounded-full shadow-[0_0_15px_rgba(168,85,247,0.05)] hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300"
+                key={company.name}
+                initial="hidden"
+                animate="visible"
+                variants={{
+                  hidden: fadeInUpVariant.hidden,
+                  visible: {
+                    ...fadeInUpVariant.visible,
+                    transition: {
+                      ...fadeInUpVariant.visible.transition,
+                      delay: index * 0.1
+                    }
+                  },
+                  animate: glowVariant.animate
+                }}
+                whileHover="animate"
+                className="flex flex-col items-center justify-center group"
               >
-                <span className="text-sm font-medium bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-pink-100">
-                  {company.name}<span className="text-purple-400 ml-1">{company.symbol}</span>
+                <div className={`w-10 h-10 flex items-center justify-center mb-1 bg-gradient-to-br ${company.color} rounded-full bg-opacity-10 backdrop-blur-sm`}>
+                  <span className="text-xs text-gray-300 font-medium">{company.symbol}</span>
+                </div>
+                <span className="text-sm text-gray-300 font-medium group-hover:text-white group-hover:text-opacity-90 transition-colors">
+                  {company.name}
                 </span>
               </motion.div>
             ))}
           </div>
         </div>
 
-        {/* Desktop Static Grid with Beautiful Styling */}
-        <div className="hidden md:block">
-          <div className="flex flex-wrap justify-center gap-6">
-            {companies.map((company, index) => (
-              <motion.div
-                key={`desktop-${company.name}`}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ 
-                  delay: index * 0.05, 
-                  duration: 0.4,
-                  ease: [0.21, 0.6, 0.35, 1] // Custom easing for smoother animation
-                }}
-                whileHover={{ 
-                  scale: 1.1,
-                  transition: { 
-                    duration: 0.2, 
-                    ease: "easeOut" 
-                  }
-                }}
-                className="group px-5 py-2 bg-gradient-to-r from-purple-900/10 to-pink-900/10 backdrop-blur-xl rounded-full shadow-[0_0_15px_rgba(168,85,247,0.05)] hover:shadow-[0_0_20px_rgba(168,85,247,0.15)] transition-all duration-300"
-              >
-                <span className="text-base font-semibold bg-clip-text text-transparent bg-gradient-to-r from-purple-200 to-pink-100 whitespace-nowrap transition-all duration-300 group-hover:drop-shadow-[0_0_8px_rgba(168,85,247,0.6)]">
-                  <span className="opacity-70">{index % 2 === 0 ? '[' : '{'}</span>
-                  {company.name}
-                  <span className="text-purple-400 mx-1">{company.symbol}</span>
-                  <span className="opacity-70">{index % 2 === 0 ? ']' : '}'}</span>
-                </span>
-              </motion.div>
-            ))}
+        {/* Desktop Sleek Infinite Scroll */}
+        <div className="hidden sm:block relative" ref={containerRef}>
+          {/* Static edge fade mask - stays in place */}
+          <div 
+            className="absolute inset-0 bg-gradient-to-r from-black via-transparent to-black z-10 pointer-events-none opacity-80" 
+            style={{ maskImage: 'linear-gradient(to right, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 10%, rgba(0,0,0,0) 90%, rgba(0,0,0,1) 100%)' }}
+          />
+          
+          <div className="flex whitespace-nowrap overflow-hidden">
+            <div 
+              className="flex gap-16 items-center"
+              style={{
+                transform: `translateX(-${scrollPosition}px)`,
+                willChange: 'transform',
+              }}
+            >
+              {[...companies, ...companies, ...companies].map((company, index) => (
+                <motion.div
+                  key={`${company.name}-${index}`}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: index * 0.05 }}
+                  whileHover="animate"
+                  variants={glowVariant}
+                  className="flex-shrink-0 flex flex-col items-center group"
+                >
+                  <div className={`w-12 h-12 flex items-center justify-center mb-2 bg-gradient-to-br ${company.color} rounded-full bg-opacity-10 backdrop-blur-sm relative`}>
+                    <div className="absolute inset-0 rounded-full bg-black/10 backdrop-blur-sm"></div>
+                    <span className="text-sm text-gray-300 font-medium relative z-10">{company.symbol}</span>
+                  </div>
+                  <span className="text-base text-gray-300 font-medium group-hover:text-white group-hover:text-opacity-90 transition-colors">
+                    {company.name}
+                  </span>
+                </motion.div>
+              ))}
+            </div>
           </div>
         </div>
       </div>

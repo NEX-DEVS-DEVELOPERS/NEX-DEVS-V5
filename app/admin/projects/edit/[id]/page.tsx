@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
-import AdminAuthCheck from '../../../../components/AdminAuthCheck'
+import AdminAuthCheck from '@/app/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
 
 const categories = [
