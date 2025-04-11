@@ -151,9 +151,17 @@ const techSkills = [
   {
     category: "Backend",
     skills: [
-      { name: "NODE", level: 90, icon: "📦" },
-      { name: "MYSQL", level: 85, icon: "🛢️" },
-      { name: "POSTGRES", level: 85, icon: "🛢️" },
+      { name: "NODE.JS", level: 92, icon: "🟢" },
+      { name: "PYTHON", level: 88, icon: "🐍" },
+      { name: "JAVA", level: 85, icon: "☕" }
+    ]
+  },
+  {
+    category: "Databases",
+    skills: [
+      { name: "MYSQL", level: 90, icon: "🐬" },
+      { name: "POSTGRES", level: 88, icon: "🐘" },
+      { name: "MONGODB", level: 85, icon: "🍃" },
       { name: "SQLITE", level: 88, icon: "🗃️" }
     ]
   },
