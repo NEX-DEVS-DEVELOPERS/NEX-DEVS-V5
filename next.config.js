@@ -30,7 +30,7 @@ const nextConfig = {
     optimizePackageImports: ['framer-motion', 'react-icons'],
     largePageDataBytes: 256 * 1000, // Increase limit for large responses
   },
-  output: 'standalone',
+  // output: 'standalone', // Commented out as it might conflict with Vercel deployment
   env: {
     EMAIL_PASSWORD: process.env.EMAIL_PASSWORD,
     DISABLE_CACHE: 'true', // Force disable cache
