@@ -6,6 +6,11 @@ import db from '@/app/services/database'
 
 const ADMIN_PASSWORD = 'nex-devs.org889123'
 
+// Check if we're in read-only mode on Vercel
+const isVercel = process.env.VERCEL === '1';
+const isProduction = process.env.NODE_ENV === 'production';
+const READ_ONLY_MODE = isVercel && isProduction;
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -41,41 +46,68 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = parseInt(params.id)
+    const id = parseInt(params.id);
+    console.log(`PUT request received for project ID: ${id}`);
     
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 })
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
+    }
+    
+    // Special handling for read-only mode
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would update project ID: ${id}`);
+      
+      // In read-only mode, get the current data and pretend we updated it
+      const currentProject = db.getProjectById(id);
+      
+      if (!currentProject) {
+        return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+      }
+      
+      // Get the request data to merge with current data
+      const data = await request.json();
+      const updatedProject = { 
+        ...currentProject, 
+        ...data.project || data,
+        id // Ensure ID remains the same
+      };
+      
+      return NextResponse.json({ 
+        ...updatedProject,
+        readOnly: true,
+        message: 'Project updated (read-only mode)'
+      });
     }
     
     // Check if project exists
-    const existingProject = db.getProjectById(id)
+    const existingProject = db.getProjectById(id);
     if (!existingProject) {
-      return NextResponse.json({ error: 'Project not found' }, { status: 404 })
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
 
     // Get the request data
-    const data = await request.json()
+    const data = await request.json();
     
     // Check for admin password if provided
     if (data.password && data.password !== ADMIN_PASSWORD) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
     // Get project data from request body
-    const projectData = data.project || data
+    const projectData = data.project || data;
     
     // Combine with existing project
     const updatedProject = { 
       ...existingProject, 
       ...projectData,
       id // Ensure ID remains the same
-    }
+    };
     
     // Update in database
-    const success = db.updateProject(updatedProject)
+    const success = db.updateProject(updatedProject);
     
     if (!success) {
-      return NextResponse.json({ error: 'Failed to update project in database' }, { status: 500 })
+      return NextResponse.json({ error: 'Failed to update project in database' }, { status: 500 });
     }
 
     // Return the updated project
@@ -85,10 +117,14 @@ export async function PUT(
         'Pragma': 'no-cache',
         'Expires': '0'
       }
-    })
+    });
   } catch (error) {
-    console.error('Error updating project:', error)
-    return NextResponse.json({ error: 'Failed to update project: ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 })
+    console.error('Error updating project:', error);
+    return NextResponse.json({ 
+      error: 'Failed to update project', 
+      details: error instanceof Error ? error.message : String(error),
+      readOnly: READ_ONLY_MODE
+    }, { status: 500 });
   }
 }
 
@@ -124,6 +160,18 @@ export async function DELETE(
     
     console.log(`Attempting to delete project ID: ${id}`);
     
+    // Special handling for read-only mode
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would delete project ID: ${id}`);
+      
+      // In Vercel production, return success even though we can't actually modify the DB
+      return NextResponse.json({ 
+        message: 'Project marked for deletion (read-only mode)',
+        success: true,
+        readOnly: true
+      });
+    }
+    
     // First check if the project exists
     const project = db.getProjectById(id);
     if (!project) {
@@ -140,7 +188,8 @@ export async function DELETE(
       console.error(`Database error deleting project ID ${id}:`, dbError);
       return NextResponse.json({ 
         error: 'Database error during deletion',
-        details: dbError instanceof Error ? dbError.message : String(dbError)
+        details: dbError instanceof Error ? dbError.message : String(dbError),
+        readOnly: READ_ONLY_MODE
       }, { status: 500 });
     }
     
@@ -164,7 +213,8 @@ export async function DELETE(
     console.error('Error deleting project:', error);
     return NextResponse.json({ 
       error: 'Failed to delete project', 
-      details: error instanceof Error ? error.message : String(error)
+      details: error instanceof Error ? error.message : String(error),
+      readOnly: READ_ONLY_MODE
     }, { status: 500 });
   }
 } 

@@ -3,9 +3,12 @@ import path from 'path';
 import fs from 'fs';
 import { Project } from '../api/projects/index';
 
-// Determine if we're in production (Netlify) or development
+// Determine environment variables
 const isProduction = process.env.NODE_ENV === 'production';
-console.log(`Environment: ${isProduction ? 'Production' : 'Development'}`);
+const isVercel = process.env.VERCEL === '1';
+const READ_ONLY_MODE = isVercel && isProduction;
+
+console.log(`Environment: ${isProduction ? 'Production' : 'Development'}, Vercel: ${isVercel ? 'Yes' : 'No'}, Read-only: ${READ_ONLY_MODE ? 'Yes' : 'No'}`);
 
 // Initialize the database
 let db: Database.Database;
@@ -238,69 +241,109 @@ export function getProjectById(id: number): Project | null {
 
 // Create a new project
 export function createProject(project: Omit<Project, 'id'>): Project {
-  const insertStmt = db.prepare(`
-    INSERT INTO projects (
-      title, description, detailedDescription, image, secondImage, showBothImagesInPriority,
-      category, technologies, techDetails, link, featured, completionDate, clientName,
-      duration, status, updatedDays, progress, developmentProgress, estimatedCompletion,
-      features, exclusiveFeatures, imagePriority, visualEffects, lastUpdated
-    ) VALUES (
-      @title, @description, @detailedDescription, @image, @secondImage, @showBothImagesInPriority,
-      @category, @technologies, @techDetails, @link, @featured, @completionDate, @clientName,
-      @duration, @status, @updatedDays, @progress, @developmentProgress, @estimatedCompletion,
-      @features, @exclusiveFeatures, @imagePriority, @visualEffects, @lastUpdated
-    )
-  `);
-  
-  const projectData = projectToRow({ ...project, id: 0 });
-  const result = insertStmt.run(projectData);
-  
-  return {
-    ...project,
-    id: result.lastInsertRowid as number
-  };
+  try {
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would create new project: ${project.title}`);
+      
+      // In read-only mode, generate a fake ID and pretend it worked
+      return {
+        ...project,
+        id: Math.floor(Math.random() * 10000) + 1000
+      };
+    }
+    
+    const insertStmt = db.prepare(`
+      INSERT INTO projects (
+        title, description, detailedDescription, image, secondImage, showBothImagesInPriority,
+        category, technologies, techDetails, link, featured, completionDate, clientName,
+        duration, status, updatedDays, progress, developmentProgress, estimatedCompletion,
+        features, exclusiveFeatures, imagePriority, visualEffects, lastUpdated
+      ) VALUES (
+        @title, @description, @detailedDescription, @image, @secondImage, @showBothImagesInPriority,
+        @category, @technologies, @techDetails, @link, @featured, @completionDate, @clientName,
+        @duration, @status, @updatedDays, @progress, @developmentProgress, @estimatedCompletion,
+        @features, @exclusiveFeatures, @imagePriority, @visualEffects, @lastUpdated
+      )
+    `);
+    
+    const projectData = projectToRow({ ...project, id: 0 });
+    const result = insertStmt.run(projectData);
+    
+    return {
+      ...project,
+      id: result.lastInsertRowid as number
+    };
+  } catch (error) {
+    console.error(`Error creating project:`, error);
+    throw error;
+  }
 }
 
 // Update an existing project
 export function updateProject(project: Project): boolean {
-  const updateStmt = db.prepare(`
-    UPDATE projects SET
-      title = @title,
-      description = @description,
-      detailedDescription = @detailedDescription,
-      image = @image,
-      secondImage = @secondImage,
-      showBothImagesInPriority = @showBothImagesInPriority,
-      category = @category,
-      technologies = @technologies,
-      techDetails = @techDetails,
-      link = @link,
-      featured = @featured,
-      completionDate = @completionDate,
-      clientName = @clientName,
-      duration = @duration,
-      status = @status,
-      updatedDays = @updatedDays,
-      progress = @progress,
-      developmentProgress = @developmentProgress,
-      estimatedCompletion = @estimatedCompletion,
-      features = @features,
-      exclusiveFeatures = @exclusiveFeatures,
-      imagePriority = @imagePriority,
-      visualEffects = @visualEffects,
-      lastUpdated = @lastUpdated
-    WHERE id = @id
-  `);
-  
-  const result = updateStmt.run(projectToRow(project));
-  return result.changes > 0;
+  try {
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would update project ID: ${project.id}`);
+      
+      // In read-only mode, pretend the operation succeeded
+      return true;
+    }
+    
+    const updateStmt = db.prepare(`
+      UPDATE projects SET
+        title = @title,
+        description = @description,
+        detailedDescription = @detailedDescription,
+        image = @image,
+        secondImage = @secondImage,
+        showBothImagesInPriority = @showBothImagesInPriority,
+        category = @category,
+        technologies = @technologies,
+        techDetails = @techDetails,
+        link = @link,
+        featured = @featured,
+        completionDate = @completionDate,
+        clientName = @clientName,
+        duration = @duration,
+        status = @status,
+        updatedDays = @updatedDays,
+        progress = @progress,
+        developmentProgress = @developmentProgress,
+        estimatedCompletion = @estimatedCompletion,
+        features = @features,
+        exclusiveFeatures = @exclusiveFeatures,
+        imagePriority = @imagePriority,
+        visualEffects = @visualEffects,
+        lastUpdated = @lastUpdated
+      WHERE id = @id
+    `);
+    
+    const result = updateStmt.run(projectToRow(project));
+    return result.changes > 0;
+  } catch (error) {
+    console.error(`Error updating project ID ${project.id}:`, error);
+    throw error;
+  }
 }
 
 // Delete a project
 export function deleteProject(id: number): boolean {
-  const deleteStmt = db.prepare('DELETE FROM projects WHERE id = ?');
-  const result = deleteStmt.run(id);
-  return result.changes > 0;
+  try {
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would delete project ID: ${id}`);
+      
+      // In read-only mode, pretend the operation succeeded
+      // This is only for Vercel serverless functions where SQLite can't write
+      return true;
+    }
+    
+    const deleteStmt = db.prepare('DELETE FROM projects WHERE id = ?');
+    const result = deleteStmt.run(id);
+    return result.changes > 0;
+  } catch (error) {
+    console.error(`Error deleting project ID ${id}:`, error);
+    throw error;
+  }
 }
 
 // Get newly added projects

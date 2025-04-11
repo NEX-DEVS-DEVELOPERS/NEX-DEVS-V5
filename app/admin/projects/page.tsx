@@ -25,6 +25,31 @@ type Project = {
 export default function AdminProjectsPage() {
   const [projects, setProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isReadOnly, setIsReadOnly] = useState(false)
+
+  // Add a check for read-only mode
+  useEffect(() => {
+    // Check if we're running on Vercel in production
+    const checkReadOnlyMode = async () => {
+      try {
+        const response = await fetch('/api/config?check=readOnly', {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache'
+          }
+        });
+        
+        if (response.ok) {
+          const data = await response.json();
+          setIsReadOnly(data.readOnlyMode || false);
+        }
+      } catch (error) {
+        console.error('Error checking read-only mode:', error);
+      }
+    };
+    
+    checkReadOnlyMode();
+  }, []);
 
   // Fetch projects on component mount
   useEffect(() => {
@@ -102,16 +127,21 @@ export default function AdminProjectsPage() {
 
       toast.dismiss()
       
+      const responseData = await response.json()
+      
       if (response.ok) {
-        toast.success('Project deleted successfully')
-        // Force a hard refresh of the data instead of using the cached version
-        setTimeout(() => {
-          fetchProjects()
-        }, 300)
+        // Check if we're in read-only mode
+        if (responseData.readOnly) {
+          toast.success(`${responseData.message || 'Project deleted in read-only mode'}. Changes won't persist on serverless deployments.`)
+        } else {
+          toast.success('Project deleted successfully')
+        }
+        
+        // Update the local UI by removing the deleted project
+        setProjects(projects.filter(p => p.id !== id))
       } else {
-        const errorData = await response.json()
-        console.error('Error response:', errorData)
-        toast.error(errorData.error || 'Failed to delete project')
+        console.error('Error response:', responseData)
+        toast.error(responseData.error || 'Failed to delete project')
       }
     } catch (error) {
       toast.dismiss()
@@ -124,6 +154,28 @@ export default function AdminProjectsPage() {
     <AdminAuthCheck>
       <div className="min-h-screen bg-[#0a0a0a] pt-32 p-6">
         <Toaster position="top-right" />
+        
+        {isReadOnly && (
+          <div className="mb-6 bg-amber-900/30 border border-amber-500/30 text-amber-200 rounded-lg p-4 shadow-lg">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 mr-2 mt-0.5 text-amber-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <div>
+                <h3 className="font-semibold text-amber-300">Read-Only Mode Active</h3>
+                <p className="mt-1">
+                  This admin dashboard is running in read-only mode because it's deployed on Vercel. 
+                  Any changes you make (adding, editing, or deleting projects) will appear to work 
+                  but won't be permanently saved due to Vercel's serverless architecture.
+                </p>
+                <p className="mt-2">
+                  For persistent changes, please run the site locally or deploy to a platform 
+                  that supports persistent file storage for SQLite databases.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
         
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">

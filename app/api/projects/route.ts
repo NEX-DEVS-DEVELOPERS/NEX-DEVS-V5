@@ -7,6 +7,11 @@ import path from 'path';
 // Set a password for admin operations
 const ADMIN_PASSWORD = 'nex-devs.org889123';
 
+// Check if we're in read-only mode on Vercel
+const isVercel = process.env.VERCEL === '1';
+const isProduction = process.env.NODE_ENV === 'production';
+const READ_ONLY_MODE = isVercel && isProduction;
+
 // GET all projects
 export async function GET(request: NextRequest) {
   try {
@@ -244,6 +249,7 @@ export async function POST(request: NextRequest) {
 // PUT to update a project
 export async function PUT(request: NextRequest) {
   try {
+    console.log('Update project request received');
     const { project, password } = await request.json();
     
     // Validate password
@@ -254,6 +260,20 @@ export async function PUT(request: NextRequest) {
     // Validate project data
     if (!project || !project.id) {
       return NextResponse.json({ error: 'Invalid project data' }, { status: 400 });
+    }
+    
+    console.log(`Updating project ID: ${project.id}`);
+    
+    // Special handling for read-only mode
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would update project ID: ${project.id}`);
+      
+      // In Vercel production, return success even though we can't actually modify the DB
+      return NextResponse.json({ 
+        ...project, 
+        readOnly: true,
+        message: 'Project updated (read-only mode)' 
+      });
     }
     
     // Check if project exists
@@ -310,13 +330,19 @@ export async function PUT(request: NextRequest) {
     });
   } catch (error) {
     console.error('Error updating project:', error);
-    return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to update project', 
+      details: error instanceof Error ? error.message : String(error),
+      readOnly: READ_ONLY_MODE
+    }, { status: 500 });
   }
 }
 
 // DELETE a project
 export async function DELETE(request: NextRequest) {
   try {
+    console.log('Delete request received');
+    
     // Get data from either query parameters or request body
     const url = new URL(request.url);
     let id: number | null = null;
@@ -336,9 +362,11 @@ export async function DELETE(request: NextRequest) {
         id = body.id;
         password = body.password;
       } catch (e) {
-        // If JSON parsing fails, continue with the values we have
+        console.error('Error parsing request body:', e);
       }
     }
+    
+    console.log(`Project ID to delete: ${id}, Auth provided: ${!!password}`);
     
     // Validate password
     if (password !== ADMIN_PASSWORD) {
@@ -348,6 +376,19 @@ export async function DELETE(request: NextRequest) {
     // Validate ID
     if (!id) {
       return NextResponse.json({ error: 'Project ID is required' }, { status: 400 });
+    }
+    
+    // Special handling for read-only mode
+    if (READ_ONLY_MODE) {
+      console.log(`[Read-only mode] Would delete project ID: ${id}`);
+      
+      // In Vercel production, return success even though we can't actually modify the DB
+      // This allows the UI to work correctly even though changes aren't permanent
+      return NextResponse.json({ 
+        success: true,
+        readOnly: true,
+        message: 'Project marked for deletion (read-only mode)' 
+      });
     }
     
     // Delete the project
@@ -360,6 +401,10 @@ export async function DELETE(request: NextRequest) {
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error('Error deleting project:', error);
-    return NextResponse.json({ error: 'Failed to delete project' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Failed to delete project',
+      details: error instanceof Error ? error.message : String(error),
+      readOnly: READ_ONLY_MODE
+    }, { status: 500 });
   }
 } 

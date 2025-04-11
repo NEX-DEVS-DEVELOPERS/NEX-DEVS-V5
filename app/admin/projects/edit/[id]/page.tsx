@@ -372,13 +372,13 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       ...project,
       technologies: Array.isArray(project.technologies) 
         ? project.technologies 
-        : project.technologies?.split(',').map(t => t.trim()) || [],
+        : (typeof project.technologies === 'string' ? project.technologies.split(',').map((t: string) => t.trim()) : []),
       features: Array.isArray(project.features)
         ? project.features
-        : project.features?.split(',').map(f => f.trim()) || [],
+        : (typeof project.features === 'string' ? project.features.split(',').map((f: string) => f.trim()) : []),
       exclusiveFeatures: Array.isArray(project.exclusiveFeatures)
         ? project.exclusiveFeatures
-        : project.exclusiveFeatures?.split(',').map(f => f.trim()) || []
+        : (typeof project.exclusiveFeatures === 'string' ? project.exclusiveFeatures.split(',').map((f: string) => f.trim()) : [])
     };
     
     setIsSubmitting(true);
@@ -418,20 +418,26 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       
       toast.dismiss();
       
+      const responseData = await response.json();
+      
       if (response.ok) {
-        toast.success('Project updated successfully');
-        
-        // Force cache revalidation
-        await fetch(`/api/revalidate?path=/&secret=${password}`);
+        // Check if we're in read-only mode
+        if (responseData.readOnly) {
+          toast.success(`${responseData.message || 'Project updated in read-only mode'}. Changes won't persist on serverless deployments.`);
+        } else {
+          toast.success('Project updated successfully');
+          
+          // Force cache revalidation
+          await fetch(`/api/revalidate?path=/&secret=${password}`);
+        }
         
         // Redirect to admin page after a short delay
         setTimeout(() => {
           router.push('/admin/projects');
         }, 1000);
       } else {
-        const errorData = await response.json();
-        console.error('Error response:', errorData);
-        toast.error(errorData.error || 'Failed to update project');
+        console.error('Error response:', responseData);
+        toast.error(responseData.error || 'Failed to update project');
       }
     } catch (error) {
       console.error('Error updating project:', error);
