@@ -1,51 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
-// Same password as the projects API for consistency
+// Admin password for authentication
 const ADMIN_PASSWORD = 'nex-devs.org889123';
 
 export async function GET(request: NextRequest) {
   try {
-    // Get path and secret from query parameters
-    const { searchParams } = new URL(request.url);
-    const path = searchParams.get('path') || '/';
-    const secret = searchParams.get('secret');
-
-    // Validate the secret
-    if (secret !== ADMIN_PASSWORD) {
-      return NextResponse.json(
-        { error: 'Invalid secret token' },
-        { status: 401 }
-      );
-    }
-
-    // Clear the cache for the specified path
-    revalidatePath(path);
-
-    // Additionally revalidate other important paths
-    revalidatePath('/projects');
-    revalidatePath('/admin/projects');
+    // Get query parameters
+    const url = new URL(request.url);
+    const path = url.searchParams.get('path');
+    const secret = url.searchParams.get('secret');
     
-    // Return a success response
-    return NextResponse.json(
-      { 
-        success: true, 
-        message: `Cache revalidated for path: ${path}`,
-        timestamp: new Date().toISOString() 
-      },
-      {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
-      }
-    );
+    // Check authorization
+    if (secret !== ADMIN_PASSWORD) {
+      console.error('Unauthorized revalidation attempt');
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+    
+    if (!path) {
+      console.error('No path specified for revalidation');
+      return NextResponse.json({ error: 'Path required' }, { status: 400 });
+    }
+    
+    console.log(`Revalidating path: ${path}`);
+    
+    // Revalidate the specified path
+    revalidatePath(path);
+    
+    // Also revalidate some common paths that might be affected
+    if (path !== '/') revalidatePath('/');
+    if (path !== '/projects') revalidatePath('/projects');
+    if (path !== '/admin/projects') revalidatePath('/admin/projects');
+    
+    console.log('Revalidation complete');
+    
+    return NextResponse.json({ 
+      revalidated: true,
+      now: Date.now(),
+      paths: [path, '/', '/projects', '/admin/projects']
+    });
   } catch (error) {
-    console.error('Error revalidating path:', error);
-    return NextResponse.json(
-      { error: 'Failed to revalidate cache' },
-      { status: 500 }
-    );
+    console.error('Revalidation error:', error);
+    return NextResponse.json({ 
+      error: 'Failed to revalidate',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 } 

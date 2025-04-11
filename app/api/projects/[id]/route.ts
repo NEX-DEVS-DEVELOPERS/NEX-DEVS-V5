@@ -97,32 +97,61 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    const id = parseInt(params.id)
+    console.log(`DELETE request received for project ID: ${params.id}`);
+    const id = parseInt(params.id);
     
     if (isNaN(id)) {
-      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 })
+      console.error('Invalid project ID:', params.id);
+      return NextResponse.json({ error: 'Invalid project ID' }, { status: 400 });
     }
     
-    // Check authorization - either from headers or query params
-    const authHeader = request.headers.get('Authorization')
-    const url = new URL(request.url)
-    const queryPassword = url.searchParams.get('password')
+    // Extract authorization information with more logging
+    const authHeader = request.headers.get('Authorization');
+    const url = new URL(request.url);
+    const queryPassword = url.searchParams.get('password');
+    
+    console.log(`Auth method check: Header: ${!!authHeader}, Query: ${!!queryPassword}`);
     
     // Check password from header or query parameters
     const isAuthorized = 
       (authHeader && authHeader.startsWith('Bearer ') && authHeader.split(' ')[1] === ADMIN_PASSWORD) ||
-      (queryPassword && queryPassword === ADMIN_PASSWORD)
+      (queryPassword && queryPassword === ADMIN_PASSWORD);
     
     if (!isAuthorized) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+      console.error('Unauthorized delete attempt for project ID:', id);
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
     
-    // Delete from database
-    const success = db.deleteProject(id)
+    console.log(`Attempting to delete project ID: ${id}`);
+    
+    // First check if the project exists
+    const project = db.getProjectById(id);
+    if (!project) {
+      console.error(`Project ID ${id} not found for deletion`);
+      return NextResponse.json({ error: 'Project not found' }, { status: 404 });
+    }
+    
+    // Delete from database with explicit error handling
+    let success = false;
+    try {
+      success = db.deleteProject(id);
+      console.log(`Deletion result for project ID ${id}: ${success ? 'Success' : 'Failed'}`);
+    } catch (dbError) {
+      console.error(`Database error deleting project ID ${id}:`, dbError);
+      return NextResponse.json({ 
+        error: 'Database error during deletion',
+        details: dbError instanceof Error ? dbError.message : String(dbError)
+      }, { status: 500 });
+    }
     
     if (!success) {
-      return NextResponse.json({ error: 'Project not found or could not be deleted' }, { status: 404 })
+      console.error(`Failed to delete project ID ${id} (no database error but operation failed)`);
+      return NextResponse.json({ error: 'Project deletion failed' }, { status: 500 });
     }
+
+    // Clear cache for this endpoint
+    const revalidateResponse = await fetch(`${url.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`);
+    console.log(`Cache revalidation status: ${revalidateResponse.status}`);
 
     return NextResponse.json({ message: 'Project deleted successfully' }, {
       headers: {
@@ -130,9 +159,12 @@ export async function DELETE(
         'Pragma': 'no-cache',
         'Expires': '0'
       }
-    })
+    });
   } catch (error) {
-    console.error('Error deleting project:', error)
-    return NextResponse.json({ error: 'Failed to delete project: ' + (error instanceof Error ? error.message : String(error)) }, { status: 500 })
+    console.error('Error deleting project:', error);
+    return NextResponse.json({ 
+      error: 'Failed to delete project', 
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 } 

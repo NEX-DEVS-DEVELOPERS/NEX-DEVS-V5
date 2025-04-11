@@ -1,0 +1,311 @@
+[
+  {
+    "id": 17,
+    "title": "NEWLY ADDED: PROJECT ARA BY (NEX-DEVS)",
+    "description": "YOULL BE AMAZED..!!",
+    "detailedDescription": null,
+    "image": "/projects/c0e3e4a3-58ba-4e27-a61e-7dad197af43d.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "Web Development",
+    "technologies": [
+      "GOOGLE DEEP THINK "
+    ],
+    "link": "https://3d-portfolio-showcase.vercel.app",
+    "featured": true,
+    "completionDate": null,
+    "clientName": null,
+    "duration": null,
+    "status": "In Development",
+    "updatedDays": 1,
+    "progress": 59,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "exclusiveFeatures": [
+      "Experimental features not available in public release",
+      "Limited edition design elements",
+      "Special promotions for early adopters"
+    ],
+    "imagePriority": 1,
+    "visualEffects": {
+      "glow": false,
+      "animation": "float",
+      "showBadge": true,
+      "spotlight": true,
+      "shadows": "soft",
+      "border": "dashed"
+    },
+    "lastUpdated": "2025-04-09T14:55:13.058Z"
+  },
+  {
+    "id": 15,
+    "title": "NEWLY ADDED: YT-VEDIO-ANALYZER",
+    "description": "ANALYZER",
+    "detailedDescription": null,
+    "image": "/projects/0c3e9b24-ffb3-4f2f-8afe-00ccdbbd05a9.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "Web Development",
+    "technologies": [
+      "AI MODEL FOR RESEARCH"
+    ],
+    "link": "https://nex-webs-project-6.netlify.app/",
+    "featured": true,
+    "completionDate": null,
+    "clientName": null,
+    "duration": null,
+    "status": "In Development",
+    "updatedDays": 1,
+    "progress": 48,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "exclusiveFeatures": [
+      "PREMIUM CONTENT ",
+      "Behind-the-scenes development insights"
+    ],
+    "imagePriority": 1,
+    "visualEffects": {
+      "morphTransition": true,
+      "rippleEffect": true,
+      "floatingElements": false,
+      "shimmering": false,
+      "animation": "elastic",
+      "shadows": "neon",
+      "border": "double",
+      "glassmorphism": false,
+      "particles": true,
+      "animationTiming": "very-slow",
+      "animationIntensity": "subtle"
+    },
+    "lastUpdated": "2025-04-09T14:55:13.058Z"
+  },
+  {
+    "id": 5,
+    "title": "NEWLY ADDED: PET-GPT (By NEX-DEVS)",
+    "description": "a vercitile PET query related chat bot",
+    "detailedDescription": null,
+    "image": "/projects/1aef2df5-ec63-42c1-9c05-f37a1a4d152e.png",
+    "secondImage": "/projects/2859ce8c-65c3-4780-894a-7434a0cf7a78.png",
+    "showBothImagesInPriority": true,
+    "category": "Web Development with AI Integration",
+    "technologies": [
+      "WEB SEARCH ",
+      "DEEP RESEARCH "
+    ],
+    "link": "https://3d-portfolio-showcase.vercel.app",
+    "featured": true,
+    "completionDate": null,
+    "clientName": null,
+    "duration": null,
+    "status": "In Development",
+    "updatedDays": 1,
+    "progress": 100,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "features": [
+      "DEEP SEARCH "
+    ],
+    "exclusiveFeatures": [
+      "Early access to premium content",
+      "Experimental features not available in public release",
+      "Limited edition design elements"
+    ],
+    "imagePriority": 1,
+    "visualEffects": {
+      "morphTransition": true,
+      "rippleEffect": false,
+      "floatingElements": true,
+      "shimmering": false,
+      "animation": "pop",
+      "shadows": "3d",
+      "border": "animated",
+      "glassmorphism": true,
+      "particles": true,
+      "animationTiming": "very-slow",
+      "animationIntensity": "strong"
+    },
+    "lastUpdated": "2025-04-09T10:34:58.029Z"
+  },
+  {
+    "id": 1,
+    "title": "NEX-WEBS Tools",
+    "description": "A comprehensive suite of web tools including XML Sitemap Generator, Image Compressor, and SEO tools.(just need an API key for some tools to work)",
+    "detailedDescription": "NEX-WEBS Tools is a powerful collection of utilities designed to help developers and businesses optimize their web presence. The suite includes tools for SEO analysis, performance optimization, and content management. With features like XML sitemap generation, image compression, and metadata analysis, users can significantly improve their website's performance and visibility.",
+    "image": "/projects/9289c8e1-3f27-48e0-afaf-1ad087bce119.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "Web Development",
+    "technologies": [
+      "Next.js",
+      "Tailwind CSS",
+      "TypeScript"
+    ],
+    "techDetails": {
+      "frontend": "Next.js with TypeScript for type safety",
+      "styling": "Tailwind CSS for responsive design",
+      "performance": "Optimized with code splitting and lazy loading"
+    },
+    "link": "https://1-project-nex-webs.netlify.app/",
+    "featured": true,
+    "completionDate": "2023-10-15",
+    "clientName": "Internal Project",
+    "duration": "8 weeks",
+    "status": null,
+    "updatedDays": null,
+    "progress": null,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "exclusiveFeatures": [],
+    "imagePriority": 1,
+    "visualEffects": {
+      "morphTransition": false,
+      "rippleEffect": false,
+      "floatingElements": false,
+      "shimmering": false,
+      "animation": "none",
+      "shadows": "soft",
+      "border": "solid",
+      "glassmorphism": false,
+      "particles": false,
+      "animationTiming": "normal",
+      "animationIntensity": "normal"
+    },
+    "lastUpdated": "2025-04-09T10:31:24.308Z"
+  },
+  {
+    "id": 43,
+    "title": "CPU & GPU Bottleneck Calculator(AI-Agent)",
+    "description": "A modern and intuitive NFT marketplace design with dark theme and glass-morphism effects.",
+    "detailedDescription": "The CPU & GPU Bottleneck Calculator is an advanced tool that helps users identify performance bottlenecks in their computer systems. Using AI-driven analysis, it compares CPU and GPU specifications, evaluates their compatibility, and provides detailed recommendations for optimizing performance. The tool includes visual representations of bottlenecks and personalized upgrade suggestions.",
+    "image": "/projects/1a58fe2c-191f-4164-8527-728b4f518c5f.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "UI/UX Design",
+    "technologies": [
+      "Figma",
+      "Blender",
+      "After Effects"
+    ],
+    "techDetails": {
+      "design": "Figma for UI/UX with custom component library",
+      "3D": "Blender for hardware visualization models",
+      "animation": "After Effects for performance demonstration animations",
+      "data": "Extensive hardware database with performance metrics"
+    },
+    "link": "https://project-4-updated.vercel.app/",
+    "featured": true,
+    "completionDate": "2023-11-30",
+    "clientName": "Hardware Benchmark Platform",
+    "duration": "12 weeks",
+    "status": null,
+    "updatedDays": null,
+    "progress": null,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "imagePriority": 5,
+    "lastUpdated": "2025-04-09T15:05:35.434Z"
+  },
+  {
+    "id": 31,
+    "title": "NEWLY ADDED: Fullstack Dashboard",
+    "description": "A complete dashboard solution with authentication, analytics, and real-time data visualization.",
+    "detailedDescription": "The Fullstack Dashboard is a comprehensive solution for business intelligence and data management. It provides a secure authentication system with role-based access control, real-time analytics that process and visualize data streams, and customizable reporting tools. The dashboard features a modular architecture that allows for easy extension and integration with existing business systems.",
+    "image": "/projects/dashboard.jpg",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "Web Development",
+    "technologies": [
+      "Next.js 14",
+      "Tailwind CSS",
+      "Prisma",
+      "MongoDB"
+    ],
+    "techDetails": {
+      "frontend": "Next.js 14 with App Router and React Server Components",
+      "database": "MongoDB with Prisma ORM for type-safe queries",
+      "styling": "Tailwind CSS with custom design system",
+      "auth": "NextAuth.js with OAuth 2.0 and role-based permissions"
+    },
+    "link": "https://fullstack-dashboard.vercel.app",
+    "featured": true,
+    "completionDate": "Expected July 2024",
+    "clientName": "Enterprise SaaS Platform",
+    "duration": "4 months",
+    "status": "Beta Testing",
+    "updatedDays": 5,
+    "progress": 50,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "features": [
+      "OAuth 2.0 Authentication",
+      "Real-time Analytics",
+      "Data Visualization"
+    ],
+    "imagePriority": 5,
+    "lastUpdated": "2025-04-09T14:57:05.396Z"
+  },
+  {
+    "id": 9,
+    "title": "WEB-APP-(Gratuity Calculator 2025)",
+    "description": "This tool simplifies the complex process of gratuity calculation, ensuring you have a clear understanding of your entitlements.",
+    "detailedDescription": "The Gratuity Calculator 2025 is a comprehensive tool that factors in the latest regulations and policies to provide accurate gratuity estimations. It includes features for different employment scenarios, various country regulations, and detailed breakdowns of calculations. The tool also provides downloadable reports and historical calculation tracking.",
+    "image": "/projects/1bba4cac-58bb-4fa0-9cf1-c7062bb94629.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "Web Development",
+    "technologies": [
+      "React",
+      "TensorFlow.js",
+      "Node.js"
+    ],
+    "techDetails": {
+      "frontend": "React with responsive forms and visualization",
+      "backend": "Node.js for calculation logic and data processing",
+      "ai": "TensorFlow.js for predictive analysis of financial trends"
+    },
+    "link": "https://nex-webs-project-9.netlify.app/",
+    "featured": true,
+    "completionDate": "2024-01-10",
+    "clientName": "Financial Services Company",
+    "duration": "10 weeks",
+    "status": null,
+    "updatedDays": null,
+    "progress": null,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "imagePriority": 5,
+    "lastUpdated": "2025-04-09T10:31:24.315Z"
+  },
+  {
+    "id": 46,
+    "title": "Morse Code Translator(Web-App)",
+    "description": "Express yourself with unique Morse Code products—perfect for personalized gifts, home decor, and more. Speak in dots and dashes today!",
+    "detailedDescription": "The Morse Code Translator is an interactive web application that converts text to Morse code and vice versa. It includes audio playback of the Morse code, visual representations, and customizable speed settings. The application also includes a learning mode for users unfamiliar with Morse code.",
+    "image": "/projects/806ed4b7-10b2-49bb-b8b3-c13a3ec6d597.png",
+    "secondImage": null,
+    "showBothImagesInPriority": false,
+    "category": "UI/UX Design",
+    "technologies": [
+      "Figma",
+      "Adobe XD",
+      "Prototyping"
+    ],
+    "techDetails": {
+      "design": "Figma and Adobe XD for high-fidelity mockups",
+      "prototyping": "Interactive prototypes with animation",
+      "research": "User testing and feedback implementation"
+    },
+    "link": "https://nex-webs-project-6.netlify.app/",
+    "featured": false,
+    "completionDate": "2023-08-20",
+    "clientName": "Educational Project",
+    "duration": "4 weeks",
+    "status": null,
+    "updatedDays": null,
+    "progress": null,
+    "developmentProgress": null,
+    "estimatedCompletion": null,
+    "imagePriority": 5,
+    "lastUpdated": "2025-04-09T15:05:35.434Z"
+  }
+]

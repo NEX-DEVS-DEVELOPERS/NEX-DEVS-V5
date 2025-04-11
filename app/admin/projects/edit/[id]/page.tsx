@@ -346,84 +346,101 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
     
-    if (!project) {
-      toast.error('No project data available')
-      return
+    if (!project) return;
+    
+    // Get password from session storage or prompt user
+    const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to save changes:');
+    
+    if (!password) {
+      toast.error('Password required to update project');
+      return;
     }
     
+    // Save password for future operations
+    sessionStorage.setItem('adminPassword', password);
+    
+    // Validate form data
+    if (!project.title || !project.description || !project.category) {
+      toast.error('Please fill in all required fields');
+      return;
+    }
+    
+    // Prepare data for API
+    const updatedProject = {
+      ...project,
+      technologies: Array.isArray(project.technologies) 
+        ? project.technologies 
+        : project.technologies?.split(',').map(t => t.trim()) || [],
+      features: Array.isArray(project.features)
+        ? project.features
+        : project.features?.split(',').map(f => f.trim()) || [],
+      exclusiveFeatures: Array.isArray(project.exclusiveFeatures)
+        ? project.exclusiveFeatures
+        : project.exclusiveFeatures?.split(',').map(f => f.trim()) || []
+    };
+    
+    setIsSubmitting(true);
+    toast.loading('Saving changes...');
+    
     try {
-      setIsSubmitting(true)
-      
-      // Get admin password
-      let adminPassword = window.sessionStorage.getItem('adminPassword')
-      if (!adminPassword) {
-        adminPassword = prompt('Enter admin password:')
-        if (adminPassword) {
-          window.sessionStorage.setItem('adminPassword', adminPassword)
-        } else {
-          setIsSubmitting(false)
-          toast.error('Password required')
-          return
-        }
-      }
-
-      // Format project data for submission
-      const projectData = {
-        ...project,
-        // Ensure visual effects are properly serialized for SQLite
-        visualEffects: typeof project.visualEffects === 'object' ? 
-          JSON.stringify(project.visualEffects) : 
-          project.visualEffects,
-        // Ensure image paths are absolute
-        image: project.image?.startsWith('/') ? project.image : `/projects/${project.image}`,
-        secondImage: project.secondImage?.startsWith('/') ? project.secondImage : project.secondImage ? `/projects/${project.secondImage}` : null,
-        // Add last updated timestamp
-        lastUpdated: new Date().toISOString()
-      }
-
-      // Add cache-busting timestamp to request
-      const timestamp = Date.now()
-      const projectId = project.id
-      
-      // Make PUT request to update project
-      const response = await fetch(`/api/projects/${projectId}?t=${timestamp}`, {
+      // First try the direct endpoint
+      let response = await fetch(`/api/projects/${project.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
+          'Pragma': 'no-cache'
         },
         body: JSON.stringify({
-          project: projectData,
-          password: adminPassword
-        })
-      })
-
+          project: updatedProject,
+          password
+        }),
+      });
+      
+      // If that fails, try the fallback endpoint
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to update project' }))
-        throw new Error(errorData.error || `HTTP error ${response.status}`)
+        console.log('First update attempt failed, trying alternative endpoint...');
+        response = await fetch('/api/projects', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          },
+          body: JSON.stringify({
+            project: updatedProject,
+            password
+          }),
+        });
       }
-
-      // Revalidate project list
-      await fetch(`/api/revalidate?path=/projects&secret=${adminPassword}&t=${timestamp}`)
-      await fetch(`/api/revalidate?path=/&secret=${adminPassword}&t=${timestamp}`)
       
-      toast.success('Project updated successfully!')
+      toast.dismiss();
       
-      // Redirect after a brief delay
-      setTimeout(() => {
-        router.push('/admin/projects')
-      }, 2000)
+      if (response.ok) {
+        toast.success('Project updated successfully');
+        
+        // Force cache revalidation
+        await fetch(`/api/revalidate?path=/&secret=${password}`);
+        
+        // Redirect to admin page after a short delay
+        setTimeout(() => {
+          router.push('/admin/projects');
+        }, 1000);
+      } else {
+        const errorData = await response.json();
+        console.error('Error response:', errorData);
+        toast.error(errorData.error || 'Failed to update project');
+      }
     } catch (error) {
-      console.error('Update error:', error)
-      toast.error(`Failed to update project: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      console.error('Error updating project:', error);
+      toast.dismiss();
+      toast.error('Error connecting to the server. Please try again.');
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
+  };
 
   // Handle effect change
   const handleEffectChange = (effect: keyof NonNullable<Project['visualEffects']>, value: boolean | string) => {

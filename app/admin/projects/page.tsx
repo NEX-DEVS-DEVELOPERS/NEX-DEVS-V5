@@ -77,20 +77,46 @@ export default function AdminProjectsPage() {
     sessionStorage.setItem('adminPassword', password)
 
     try {
-      const response = await fetch(`/api/projects?id=${id}&password=${password}`, {
+      toast.loading('Deleting project...')
+      
+      // Try the direct endpoint first
+      let response = await fetch(`/api/projects/${id}?password=${encodeURIComponent(password)}`, {
         method: 'DELETE',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache'
+        }
       })
+      
+      // If that fails, try the fallback endpoint
+      if (!response.ok) {
+        console.log('First deletion attempt failed, trying alternative endpoint...')
+        response = await fetch(`/api/projects?id=${id}&password=${encodeURIComponent(password)}`, {
+          method: 'DELETE',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache'
+          }
+        })
+      }
 
+      toast.dismiss()
+      
       if (response.ok) {
         toast.success('Project deleted successfully')
-        fetchProjects()
+        // Force a hard refresh of the data instead of using the cached version
+        setTimeout(() => {
+          fetchProjects()
+        }, 300)
       } else {
-        const error = await response.json()
-        toast.error(error.error || 'Failed to delete project')
+        const errorData = await response.json()
+        console.error('Error response:', errorData)
+        toast.error(errorData.error || 'Failed to delete project')
       }
     } catch (error) {
+      toast.dismiss()
       console.error('Error deleting project:', error)
-      toast.error('Error deleting project')
+      toast.error('Error connecting to the server. Please try again.')
     }
   }
 

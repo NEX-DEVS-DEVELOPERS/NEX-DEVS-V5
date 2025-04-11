@@ -12,6 +12,26 @@ let db: Database.Database;
 let dbPath: string = '';
 let dbDir: string = '';
 
+// Get database path based on environment
+function getDbPaths() {
+  const isVercel = process.env.VERCEL === '1';
+  const cwd = process.cwd();
+  
+  // Add more possible paths for Vercel deployment
+  return [
+    // Vercel specific paths
+    isVercel ? path.join(cwd, '.vercel', 'output', 'functions', 'db', 'projects.db') : null,
+    isVercel ? path.join(cwd, '.vercel', 'output', 'server', 'db', 'projects.db') : null,
+    // Regular paths
+    path.join(cwd, 'app', 'db', 'projects.db'),
+    path.join(cwd, 'db', 'projects.db'),
+    path.join(cwd, '.next', 'server', 'db', 'projects.db'),
+    path.join(cwd, '.next', 'cache', 'db', 'projects.db'),
+    // Default in-memory as last resort
+    ':memory:'
+  ].filter(Boolean) as string[];
+}
+
 try {
   // Primary path for local development
   dbDir = path.join(process.cwd(), 'db');
@@ -23,15 +43,7 @@ try {
   }
   
   // Try multiple possible database locations
-  const possiblePaths = [
-    // Standard path for local development
-    path.join(process.cwd(), 'db', 'portfolio.db'),
-    // Path for Netlify functions
-    path.join(process.cwd(), '.next', 'server', 'db', 'portfolio.db'),
-    // Fallback paths
-    path.join('/tmp', 'portfolio.db'),
-    './portfolio.db'
-  ];
+  const possiblePaths = getDbPaths();
   
   // Log possible locations for debugging
   console.log('Trying database paths:', possiblePaths);
@@ -366,6 +378,43 @@ export async function migrateJsonToSqlite(): Promise<void> {
     console.error('Error migrating data:', error);
     throw error;
   }
+}
+
+// Update the initializeDatabase function to be more resilient
+export async function initializeDatabase() {
+  // Try multiple possible database paths
+  const possiblePaths = getDbPaths();
+  let dbInstance = null;
+  let dbPathSuccess = null;
+  let openAttempts = 0;
+  
+  console.log('Attempting to initialize database...');
+  
+  for (const dbPath of possiblePaths) {
+    try {
+      openAttempts++;
+      console.log(`Attempt ${openAttempts}: Opening database at ${dbPath}`);
+      
+      // Create directory if it doesn't exist (except for in-memory)
+      if (dbPath !== ':memory:') {
+        const dbDir = path.dirname(dbPath);
+        if (!fs.existsSync(dbDir)) {
+          fs.mkdirSync(dbDir, { recursive: true });
+          console.log(`Created directory ${dbDir}`);
+        }
+      }
+      
+      // Try to open the database
+      dbInstance = new Database(dbPath, { verbose: console.log });
+      dbPathSuccess = dbPath;
+      console.log(`Successfully opened database at ${dbPath}`);
+      break;
+    } catch (error) {
+      console.error(`Failed to open database at ${dbPath}:`, error);
+    }
+  }
+
+  // ... existing code ...
 }
 
 export default {

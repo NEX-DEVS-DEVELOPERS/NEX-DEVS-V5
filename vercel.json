@@ -2,5 +2,9 @@
   "version": 2,
   "framework": "nextjs",
   "buildCommand": "next build",
-  "outputDirectory": ".next"
+  "outputDirectory": ".next",
+  "env": {
+    "DEBUG_DB": "true",
+    "NODE_ENV": "production"
+  }
 } 
