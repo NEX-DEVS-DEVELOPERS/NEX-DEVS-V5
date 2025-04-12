@@ -2,10 +2,13 @@
   "name": "portflio",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/copy-db-vercel.js",
+    "postbuild": "node scripts/copy-db-railway.js",
     "start": "next start",
     "lint": "next lint"
   },
