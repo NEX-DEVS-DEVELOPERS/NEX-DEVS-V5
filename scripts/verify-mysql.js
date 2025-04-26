@@ -10,7 +10,10 @@ async function verifyConnection() {
     user: process.env.MYSQL_USER || 'root',
     password: process.env.MYSQL_PASSWORD || 'ippEdXwIlTCRKIYuCzsvnVqeJjmxufIc',
     database: process.env.MYSQL_DATABASE || 'railway',
-    ssl: process.env.NODE_ENV === 'production' ? {} : undefined
+    ssl: {
+      // This is needed to work with self-signed certificates
+      rejectUnauthorized: false
+    }
   };
 
   try {
