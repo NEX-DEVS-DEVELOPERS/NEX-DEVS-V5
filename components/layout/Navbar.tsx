@@ -5,6 +5,7 @@ import { motion } from 'framer-motion'
 import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import { useIsMobile } from '@/app/utils/deviceDetection'
+import FloatingActionButton from '@/app/components/FloatingActionButton'
 
 export default function Navbar() {
   const isMobile = useIsMobile()
@@ -24,7 +25,7 @@ export default function Navbar() {
       transition={{ duration: isMobile ? 0.3 : 0.5 }}
       className="fixed top-0 w-full py-4 px-6 z-50"
     >
-      <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/10 backdrop-blur-md rounded-2xl px-6 py-3 border border-white/20">
+      <div className="max-w-7xl mx-auto flex items-center justify-between bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-3 border border-white/20 shadow-lg shadow-white/5">
         <Logo />
         
         {/* Desktop Menu */}
@@ -56,6 +57,9 @@ export default function Navbar() {
               </Link>
             </motion.div>
           ))}
+          <div className="ml-4">
+            <FloatingActionButton />
+          </div>
         </div>
 
         {/* Mobile Menu */}

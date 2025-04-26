@@ -36,7 +36,7 @@
   }
  
   .dark {
-    --background: 222.2 84% 4.9%;
+    --background: 0 0% 0%;
     --foreground: 210 40% 98%;
  
     --card: 222.2 84% 4.9%;
@@ -77,7 +77,8 @@
   }
   
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: smooth !important;
+    -webkit-overflow-scrolling: touch;
     height: 100%;
     overflow-x: hidden;
     scroll-padding-top: 80px;
@@ -88,6 +89,7 @@
   body {
     @apply bg-background text-foreground;
     background-color: black;
+    background-image: linear-gradient(to bottom right, rgba(76, 29, 149, 0.1), black 30%, black 70%, rgba(91, 33, 182, 0.1));
     color: white;
     min-height: 100vh;
     height: 100%;
@@ -98,6 +100,8 @@
     overflow-y: auto;
     overflow-x: hidden;
     width: 100%;
+    scroll-behavior: smooth;
+    -webkit-overflow-scrolling: touch;
   }
 
   #__next {
@@ -1257,4 +1261,203 @@
 
 .will-change-transform {
   will-change: transform;
+}
+
+/* Enhanced smooth scrolling */
+.smooth-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Apply smooth scrolling to all scrollable containers */
+div, section, main, article, aside, nav {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Calendly widget styling */
+.calendly-inline-widget {
+  min-width: 320px;
+  height: 100%;
+  position: relative;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Custom styles for Calendly integration */
+.calendly-badge-widget {
+  left: 20px;
+  right: auto;
+  position: fixed;
+  z-index: 9998;
+}
+
+.calendly-badge-content {
+  background: linear-gradient(to right, #9333ea, #7e22ce);
+  color: white;
+  box-shadow: 0 8px 16px rgba(147, 51, 234, 0.3);
+  transition: all 0.3s ease;
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.calendly-badge-content:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 20px rgba(147, 51, 234, 0.4);
+}
+
+.calendly-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+}
+
+.calendly-popup {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.calendly-popup .calendly-close-overlay {
+  color: white;
+}
+
+.calendly-spinner {
+  @apply animate-spin h-8 w-8 text-purple-500;
+}
+
+/* Fix spacing conflicts with navbar */
+.calendly-wrapper {
+  margin-top: 2rem;
+}
+
+/* Responsive adjustments for Calendly */
+@media (max-width: 768px) {
+  .calendly-inline-widget {
+    height: 500px !important;
+  }
+  
+  .calendly-badge-content {
+    padding: 8px 16px;
+    font-size: 14px;
+  }
+}
+
+/* Loading animation for Calendly */
+.calendly-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  width: 100%;
+  background-color: #111827;
+  color: #9ca3af;
+}
+
+.calendly-loading svg {
+  margin-bottom: 1rem;
+}
+
+/* Modern scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(30, 30, 30, 0.5);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(147, 51, 234, 0.6);
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(147, 51, 234, 0.8);
+}
+
+/* Header styling */
+.modern-header {
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  transition: all 0.3s ease-in-out;
+}
+
+.modern-header.scrolled {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+}
+
+/* Modern button effects */
+.btn-glow {
+  position: relative;
+  z-index: 1;
+  overflow: hidden;
+}
+
+.btn-glow::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    to bottom right,
+    rgba(147, 51, 234, 0) 0%,
+    rgba(147, 51, 234, 0.3) 50%,
+    rgba(147, 51, 234, 0) 100%
+  );
+  transform: rotate(30deg);
+  z-index: -1;
+  transition: transform 0.5s ease-out;
+}
+
+.btn-glow:hover::after {
+  transform: rotate(30deg) translate(10%, 10%);
+}
+
+/* Calendly animations */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(30px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+.animate-slide-up {
+  animation: slideUp 0.3s ease-out forwards;
+}
+
+@keyframes gradientMove {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
 }

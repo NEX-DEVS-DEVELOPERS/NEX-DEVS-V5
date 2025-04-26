@@ -4,12 +4,11 @@ import { revalidatePath } from 'next/cache';
 // Admin password for authentication
 const ADMIN_PASSWORD = 'nex-devs.org889123';
 
-export async function GET(request: NextRequest) {
+export async function GET(req: NextRequest) {
   try {
-    // Get query parameters
-    const url = new URL(request.url);
-    const path = url.searchParams.get('path');
-    const secret = url.searchParams.get('secret');
+    const searchParams = req.nextUrl.searchParams;
+    const secret = searchParams?.get('secret');
+    const path = searchParams?.get('path');
     
     // Check authorization
     if (secret !== ADMIN_PASSWORD) {

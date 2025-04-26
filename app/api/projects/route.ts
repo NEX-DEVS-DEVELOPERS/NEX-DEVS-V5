@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Project } from './index';
-import db from '@/app/services/database';
+import sqliteDb from '@/app/services/database'; // SQLite database (keeping as fallback)
+import mysqlDb from '@/lib/mysql'; // MySQL database (primary)
 import fs from 'fs';
 import path from 'path';
 
 // Set a password for admin operations
 const ADMIN_PASSWORD = 'nex-devs.org889123';
+
+// Use MySQL by default
+const db = mysqlDb;
 
 // Check if we're in read-only mode on Vercel
 const isVercel = process.env.VERCEL === '1';
@@ -15,6 +19,10 @@ const READ_ONLY_MODE = isVercel && isProduction;
 // GET all projects
 export async function GET(request: NextRequest) {
   try {
+    // Add timestamp to force fresh data
+    const timestamp = new Date().getTime();
+    console.log(`GET projects request at timestamp: ${timestamp}`);
+    
     // Determine if we need specific projects or all
     const url = new URL(request.url);
     const action = url.searchParams.get('action');
@@ -31,7 +39,7 @@ export async function GET(request: NextRequest) {
       
       // Get database information
       try {
-        const dbStats = getDatabaseStats();
+        const dbStats = await getDatabaseStats();
         
         return NextResponse.json({
           path: dbStats.path,
@@ -58,7 +66,7 @@ export async function GET(request: NextRequest) {
     
     // Check if we need to return categories instead of projects
     if (action === 'categories') {
-      const categories = db.getUniqueCategories();
+      const categories = await db.getUniqueCategories();
       return new NextResponse(JSON.stringify(categories), {
         headers: {
           'Content-Type': 'application/json',
@@ -69,17 +77,30 @@ export async function GET(request: NextRequest) {
       });
     }
     
-    let projects: Project[];
+    let projects;
     
     // Get the appropriate projects based on query parameters
     if (newlyAdded === 'true') {
-      projects = db.getNewlyAddedProjects();
+      projects = await db.getNewlyAddedProjects();
+      console.log(`Retrieved ${projects.length} newly added projects`);
     } else if (featured === 'true') {
-      projects = db.getFeaturedProjects();
+      projects = await db.getFeaturedProjects();
+      console.log(`Retrieved ${projects.length} featured projects`);
     } else if (category && category !== 'All') {
-      projects = db.getProjectsByCategory(category);
+      projects = await db.getProjectsByCategory(category);
+      console.log(`Retrieved ${projects.length} projects in category: ${category}`);
     } else {
-      projects = db.getAllProjects();
+      projects = await db.getProjects();
+      console.log(`Retrieved ${projects.length} total projects`);
+    }
+    
+    // Log a sample of the projects (for debugging)
+    if (projects.length > 0) {
+      console.log(`First project sample:`, {
+        id: projects[0].id,
+        title: projects[0].title,
+        isCodeScreenshot: projects[0].isCodeScreenshot
+      });
     }
     
     // Set strong cache control headers to prevent browser caching
@@ -91,7 +112,8 @@ export async function GET(request: NextRequest) {
         'Expires': '0',
         'Surrogate-Control': 'no-store',
         'X-Accel-Expires': '0',
-        'Last-Modified': new Date().toUTCString()
+        'Last-Modified': new Date().toUTCString(),
+        'X-Response-Time': new Date().getTime().toString()
       }
     });
   } catch (error) {
@@ -108,33 +130,18 @@ export async function GET(request: NextRequest) {
 }
 
 // Helper function to get database stats
-function getDatabaseStats() {
+async function getDatabaseStats() {
   try {
-    // Get path from db
-    const dbPath = (db as any).db?.filename || 'unknown';
-    
-    // Count projects
-    const countProjects = db.getAllProjects().length;
-    
-    // Get file stats if possible
-    let fileSize = 0;
-    let lastModified = 'unknown';
-    
-    if (dbPath !== 'unknown' && dbPath !== ':memory:') {
-      try {
-        const stats = fs.statSync(dbPath);
-        fileSize = stats.size;
-        lastModified = stats.mtime.toISOString();
-      } catch (error) {
-        console.warn('Could not get file stats for database:', error);
-      }
-    }
+    // For MySQL, use a different approach
+    const result = await db.testConnection();
+    const projects = await db.getProjects();
+    const countProjects = projects.length;
     
     return {
-      path: dbPath,
+      path: process.env.MYSQL_HOST || 'mysql-database',
       count: countProjects,
-      size: fileSize,
-      lastModified: lastModified
+      size: 0, // Not applicable for MySQL
+      lastModified: new Date().toISOString()
     };
   } catch (error) {
     console.error('Error getting database stats:', error);
@@ -162,8 +169,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid project data - project object is missing' }, { status: 400 });
     }
     
-    // Check all required fields according to SQLite schema
-    const requiredFields = ['title', 'description', 'category', 'link'];
+    // Check all required fields - support both SQLite and MySQL column names
+    const requiredFields = ['title', 'description', 'category'];
+    // Check for either 'link' or 'project_link'
+    if (!project.link && !project.project_link) {
+      requiredFields.push('link');
+    }
+    
     const missingFields = requiredFields.filter(field => !project[field]);
     
     if (missingFields.length > 0) {
@@ -182,8 +194,13 @@ export async function POST(request: NextRequest) {
       description: project.description.trim(),
       // Ensure image field has a value, use placeholder if not provided
       image: (project.image && project.image.trim()) || '/projects/placeholder.jpg',
+      // Add MySQL compatible field
+      image_url: (project.image_url || project.image || '/projects/placeholder.jpg').trim(),
       category: project.category.trim(),
-      link: project.link.trim(),
+      // Handle both SQLite and MySQL link field names
+      link: project.link ? project.link.trim() : (project.project_link ? project.project_link.trim() : ''),
+      // Add MySQL compatible field
+      project_link: project.project_link ? project.project_link.trim() : (project.link ? project.link.trim() : ''),
       technologies: Array.isArray(project.technologies) ? project.technologies : [],
       featured: Boolean(project.featured),
       // Add newly added project fields if applicable
@@ -206,8 +223,21 @@ export async function POST(request: NextRequest) {
         animation: 'none',
         showBadge: false
       }),
+      // Code screenshot fields
+      isCodeScreenshot: Boolean(project.isCodeScreenshot),
+      is_code_screenshot: Boolean(project.isCodeScreenshot),
+      codeLanguage: project.codeLanguage || '',
+      code_language: project.codeLanguage || '',
+      codeTitle: project.codeTitle || '',
+      code_title: project.codeTitle || '',
+      codeContent: project.codeContent || '',
+      code_content: project.codeContent || '',
+      useDirectCodeInput: Boolean(project.useDirectCodeInput),
+      use_direct_code_input: Boolean(project.useDirectCodeInput),
       // Always set lastUpdated field
-      lastUpdated: new Date().toISOString()
+      lastUpdated: new Date().toISOString(),
+      // MySQL created_at field
+      created_at: new Date().toISOString()
     };
     
     console.log('Creating project with data:', {
@@ -219,7 +249,7 @@ export async function POST(request: NextRequest) {
     
     // Create the new project
     try {
-      const newProject = db.createProject(projectWithDefaults);
+      const newProject = await db.createProject(projectWithDefaults);
       
       console.log('Project created successfully with ID:', newProject.id);
       
@@ -277,18 +307,25 @@ export async function PUT(request: NextRequest) {
     }
     
     // Check if project exists
-    const existingProject = db.getProjectById(project.id);
+    const existingProject = await db.getProjectById(project.id);
     
     if (!existingProject) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     
-    // Update the project
+    // Update the project with field mapping support for MySQL
     const updatedProject = {
       ...project,
       title: project.title.trim(),
       description: project.description.trim(),
-      image: project.image.trim(),
+      // Handle both SQLite and MySQL image field
+      image: project.image ? project.image.trim() : project.image_url ? project.image_url.trim() : existingProject.image,
+      // Add MySQL compatible field
+      image_url: project.image_url ? project.image_url.trim() : project.image ? project.image.trim() : existingProject.image_url || existingProject.image,
+      // Handle both SQLite and MySQL link field
+      link: project.link ? project.link.trim() : project.project_link ? project.project_link.trim() : existingProject.link,
+      // Add MySQL compatible field
+      project_link: project.project_link ? project.project_link.trim() : project.link ? project.link.trim() : existingProject.project_link || existingProject.link,
       technologies: Array.isArray(project.technologies) ? project.technologies : [],
       exclusiveFeatures: Array.isArray(project.exclusiveFeatures) ? project.exclusiveFeatures : [],
       featured: Boolean(project.featured),
@@ -297,35 +334,71 @@ export async function PUT(request: NextRequest) {
         animation: 'none',
         showBadge: false
       },
-      lastUpdated: new Date().toISOString()
+      // Code screenshot fields
+      isCodeScreenshot: project.isCodeScreenshot !== undefined ? Boolean(project.isCodeScreenshot) : Boolean(existingProject.isCodeScreenshot),
+      is_code_screenshot: project.isCodeScreenshot !== undefined ? Boolean(project.isCodeScreenshot) : Boolean(existingProject.isCodeScreenshot),
+      codeLanguage: project.codeLanguage || existingProject.codeLanguage || '',
+      code_language: project.codeLanguage || existingProject.codeLanguage || '',
+      codeTitle: project.codeTitle || existingProject.codeTitle || '',
+      code_title: project.codeTitle || existingProject.codeTitle || '',
+      codeContent: project.codeContent || existingProject.codeContent || '',
+      code_content: project.codeContent || existingProject.codeContent || '',
+      useDirectCodeInput: project.useDirectCodeInput !== undefined ? Boolean(project.useDirectCodeInput) : Boolean(existingProject.useDirectCodeInput),
+      use_direct_code_input: project.useDirectCodeInput !== undefined ? Boolean(project.useDirectCodeInput) : Boolean(existingProject.useDirectCodeInput),
+      lastUpdated: new Date().toISOString(),
+      // MySQL timestamp format
+      updated_at: new Date().toISOString()
     };
     
-    const success = db.updateProject(updatedProject);
+    console.log('Updating project with data:', {
+      id: updatedProject.id,
+      title: updatedProject.title,
+      isCodeScreenshot: updatedProject.isCodeScreenshot,
+      codeTitle: updatedProject.codeTitle
+    });
     
-    if (!success) {
+    const success = await db.updateProject(updatedProject.id, updatedProject);
+    
+    // Handle different return types between MySQL (object) and SQLite (boolean)
+    const isSuccess = success !== false && success !== undefined && success !== null;
+    
+    if (!isSuccess) {
       return NextResponse.json({ error: 'Failed to update project' }, { status: 500 });
     }
     
-    // Force revalidation paths if needed
+    // Force revalidation paths
     try {
+      // Revalidate main pages
       await fetch(`${request.nextUrl.origin}/api/revalidate?path=/&secret=${ADMIN_PASSWORD}`, {
         method: 'GET',
-        cache: 'no-store',
-        headers: {
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
-        }
+        cache: 'no-store'
       });
+      
+      // Also revalidate projects page and specific project page
+      await fetch(`${request.nextUrl.origin}/api/revalidate?path=/projects&secret=${ADMIN_PASSWORD}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+      
+      await fetch(`${request.nextUrl.origin}/api/revalidate?path=/project/${project.id}&secret=${ADMIN_PASSWORD}`, {
+        method: 'GET',
+        cache: 'no-store'
+      });
+      
+      console.log('All paths revalidated successfully');
     } catch (error) {
       console.error('Error revalidating paths:', error);
     }
     
     return NextResponse.json(updatedProject, {
       headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
+        'Content-Type': 'application/json',
+        'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',
         'Pragma': 'no-cache',
-        'Expires': '0'
+        'Expires': '0',
+        'Surrogate-Control': 'no-store',
+        'X-Accel-Expires': '0',
+        'Last-Modified': new Date().toUTCString()
       }
     });
   } catch (error) {
@@ -392,9 +465,12 @@ export async function DELETE(request: NextRequest) {
     }
     
     // Delete the project
-    const success = db.deleteProject(id);
+    const result = await db.deleteProject(id);
     
-    if (!success) {
+    // Handle different return types between MySQL and SQLite
+    const isSuccess = result && (typeof result === 'boolean' ? result : true);
+    
+    if (!isSuccess) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
     }
     

@@ -31,16 +31,16 @@ const MobilePopup = () => {
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/30 backdrop-blur-lg"
+          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-lg"
         >
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
             animate={{ scale: 1, y: 0 }}
             exit={{ scale: 0.9, y: 20 }}
             transition={{ type: "spring", duration: 0.6, bounce: 0.3 }}
-            className="mx-4 p-8 text-center bg-gradient-to-br from-purple-900/20 via-black/20 to-purple-800/20 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-500/20 max-w-md"
+            className="mx-4 p-8 text-center bg-gradient-to-br from-black via-black/90 to-purple-950/30 backdrop-blur-xl rounded-3xl shadow-2xl border border-purple-500/20 max-w-md"
             style={{
-              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+              boxShadow: '0 8px 32px 0 rgba(76, 29, 149, 0.25)',
               backdropFilter: 'blur(20px)',
             }}
             onClick={(e) => e.stopPropagation()}

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { motion } from 'framer-motion'
 
 // Project type definition
 type Project = {
@@ -19,6 +20,7 @@ type Project = {
 export default function FeaturedProject() {
   const [featuredProject, setFeaturedProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [isHovered, setIsHovered] = useState(false)
 
   // Fetch featured project
   useEffect(() => {
@@ -53,8 +55,8 @@ export default function FeaturedProject() {
 
   if (isLoading) {
     return (
-      <section className="max-w-7xl mx-auto mb-16">
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 p-8">
+      <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/20 p-4 sm:p-6 md:p-8 shadow-lg">
           <div className="flex justify-center items-center h-40">
             <div className="flex space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -72,111 +74,127 @@ export default function FeaturedProject() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto mb-16">
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900/40 to-blue-900/40 border border-purple-500/30 p-8">
-        {/* Project Image Background */}
-        <div className="absolute inset-0 z-0 opacity-20">
-          {featuredProject.image && (
-            <Image
-              src={featuredProject.image}
-              alt={featuredProject.title}
-              fill
-              className="object-cover transform-gpu hover:scale-105 transition-transform duration-700"
-              sizes="(max-width: 1536px) 100vw, 1536px"
-              priority
-              quality={95}
-              style={{ 
-                WebkitBackfaceVisibility: 'hidden', 
-                WebkitPerspective: 1000, 
-                WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.05)',
-                objectFit: 'cover',
-                transform: 'translateZ(0)'
-              }}
-              unoptimized={featuredProject.image.startsWith('data:')}
-            />
-          )}
+    <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
+      <motion.div 
+        className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/20 shadow-lg will-change-transform"
+        initial={{ opacity: 0.8, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        {/* Featured Project Header */}
+        <div className="flex items-center gap-3 px-4 py-3 sm:px-6 sm:py-4 bg-black/40 border-b border-purple-500/20">
+          <div className="w-4 h-4 md:w-5 md:h-5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full animate-pulse"></div>
+          <h2 className="text-lg sm:text-xl font-semibold text-white">Featured Project</h2>
         </div>
-        <div className="relative z-10">
-          <div className="inline-block mb-4 px-3 py-1 rounded-full text-xs md:text-sm font-medium bg-purple-500/20 text-purple-300 border border-purple-500/30">
-            🌟 Featured Project
-          </div>
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent">
-            {featuredProject.title}
-          </h2>
-          <p className="text-base md:text-lg lg:text-xl text-gray-300 mb-6 leading-relaxed">
-            {featuredProject.description}
-          </p>
-
-          {/* Tools Grid - Only show for NEX-WEBS Tools */}
-          {featuredProject.title === 'NEX-WEBS Tools' && (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 mb-6 md:mb-8">
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🖼️ Image Compressor</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Optimize images without quality loss</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🔍 Plagiarism Checker</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Advanced content originality verification</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🤖 AI Detector</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Identify AI-generated content</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🎯 Keyword Positioning</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">SEO keyword rank tracking</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">✍️ Article Writer</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">AI-powered content generation</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🔑 API Access</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Developer API integration</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">📊 Domain Authority</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Website authority metrics</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">🔗 Backlink Checker</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Analyze backlink profile</p>
-              </div>
-              <div className="bg-black/30 p-3 md:p-4 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group">
-                <h3 className="text-base md:text-lg font-semibold text-purple-300 mb-1 md:mb-2 group-hover:text-purple-200">📝 Paraphrasing Tool</h3>
-                <p className="text-xs md:text-sm text-gray-400 group-hover:text-gray-300">Intelligent content rewriting</p>
-              </div>
+        
+        {/* Project Content */}
+        <div className="flex flex-col lg:flex-row">
+          {/* Project Image (Mobile: top, Desktop: left) */}
+          <div className="w-full lg:w-1/2 aspect-video lg:aspect-auto relative overflow-hidden">
+            {featuredProject.image && (
+              <Image
+                src={featuredProject.image}
+                alt={featuredProject.title}
+                fill
+                className={`object-cover transition-transform duration-700 transform-gpu ${isHovered ? 'scale-105' : 'scale-100'}`}
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                priority
+                quality={85}
+                style={{ 
+                  objectFit: 'cover',
+                  WebkitBackfaceVisibility: 'hidden',
+                  WebkitPerspective: 1000,
+                  WebkitFilter: 'contrast(1.05) saturate(1.05)',
+                  transform: 'translateZ(0)',
+                  willChange: 'transform'
+                }}
+                unoptimized={featuredProject.image.startsWith('data:')}
+              />
+            )}
+            {/* Gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent lg:bg-gradient-to-r lg:from-black/80 lg:via-black/40 lg:to-transparent transform-gpu"></div>
+            
+            {/* Mobile title (shown on small screens only) */}
+            <div className="absolute bottom-0 left-0 right-0 p-4 lg:hidden transform-gpu">
+              <h2 className="text-2xl font-bold text-white mb-1">
+                {featuredProject.title}
+              </h2>
+              <p className="text-sm text-purple-300">
+                {featuredProject.category}
+              </p>
             </div>
-          )}
-
-          <div className="flex flex-wrap gap-2 md:gap-3 mb-6 md:mb-8">
-            {featuredProject.technologies.map((tech) => (
-              <span
-                key={tech}
-                className="px-3 py-1.5 rounded-full text-xs md:text-sm font-medium bg-purple-500/10 text-purple-300 border border-purple-500/30 hover:bg-purple-500/20 transition-all"
-              >
-                {tech}
-              </span>
-            ))}
           </div>
-          <div className="flex gap-3 md:gap-4 flex-col sm:flex-row">
-            <Link
-              href={`/projects/${featuredProject.id}`}
-              className="px-4 md:px-6 py-2 md:py-3 rounded-xl bg-purple-500 text-white text-sm md:text-base font-medium hover:bg-purple-600 hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/25 flex items-center justify-center gap-2"
-            >
-              View Details <span className="text-lg md:text-xl">→</span>
-            </Link>
-            <a
-              href={featuredProject.link}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-4 md:px-6 py-2 md:py-3 rounded-xl bg-transparent text-purple-300 text-sm md:text-base font-medium border border-purple-500/30 hover:bg-purple-500/20 hover:scale-105 transition-all duration-300 flex items-center justify-center"
-            >
-              Live Preview
-            </a>
+          
+          {/* Project Details (Mobile: bottom, Desktop: right) */}
+          <div className="w-full lg:w-1/2 p-4 sm:p-6 md:p-8">
+            {/* Desktop title (hidden on small screens) */}
+            <div className="hidden lg:block mb-4">
+              <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-purple-300 to-blue-300 bg-clip-text text-transparent">
+                {featuredProject.title}
+              </h2>
+              <p className="text-base text-purple-300 mt-1">
+                {featuredProject.category}
+              </p>
+            </div>
+            
+            <p className="text-sm md:text-base text-gray-300 mb-6 leading-relaxed">
+              {featuredProject.description}
+            </p>
+
+            {/* Tools Grid - Only show for NEX-WEBS Tools */}
+            {featuredProject.title === 'NEX-WEBS Tools' && (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-6">
+                <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group transform-gpu">
+                  <h3 className="text-sm md:text-base font-semibold text-purple-300 mb-1 group-hover:text-purple-200">🖼️ Image Compressor</h3>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300">Optimize images without quality loss</p>
+                </div>
+                <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group transform-gpu">
+                  <h3 className="text-sm md:text-base font-semibold text-purple-300 mb-1 group-hover:text-purple-200">🔍 Plagiarism Checker</h3>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300">Content originality verification</p>
+                </div>
+                <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group transform-gpu">
+                  <h3 className="text-sm md:text-base font-semibold text-purple-300 mb-1 group-hover:text-purple-200">🤖 AI Detector</h3>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300">Identify AI-generated content</p>
+                </div>
+                <div className="bg-black/30 p-3 rounded-lg border border-purple-500/20 hover:border-purple-500/40 transition-all group transform-gpu">
+                  <h3 className="text-sm md:text-base font-semibold text-purple-300 mb-1 group-hover:text-purple-200">🎯 Keyword Positioning</h3>
+                  <p className="text-xs text-gray-400 group-hover:text-gray-300">SEO keyword rank tracking</p>
+                </div>
+              </div>
+            )}
+
+            <div className="flex flex-wrap gap-2 mb-6">
+              {featuredProject.technologies.map((tech) => (
+                <span
+                  key={tech}
+                  className="px-2.5 py-1 rounded-full text-xs font-medium bg-purple-500/10 text-purple-300 border border-purple-500/20 transform-gpu"
+                >
+                  {tech}
+                </span>
+              ))}
+            </div>
+            
+            <div className="flex gap-3 flex-col sm:flex-row">
+              <Link
+                href={`/projects/${featuredProject.id}`}
+                className="px-4 py-2.5 rounded-lg bg-purple-600 text-white text-sm font-medium hover:bg-purple-700 transition-all flex items-center justify-center gap-2 shadow-lg shadow-purple-500/10 transform-gpu"
+              >
+                View Details <span className="text-lg">→</span>
+              </Link>
+              <a
+                href={featuredProject.link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2.5 rounded-lg bg-transparent text-purple-300 text-sm font-medium border border-purple-500/30 hover:bg-purple-500/10 transition-all flex items-center justify-center transform-gpu"
+              >
+                Live Preview
+              </a>
+            </div>
           </div>
         </div>
-      </div>
+      </motion.div>
     </section>
   )
 } 

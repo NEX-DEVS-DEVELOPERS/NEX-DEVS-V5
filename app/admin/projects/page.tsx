@@ -5,18 +5,22 @@ import Link from 'next/link'
 import Image from 'next/image'
 import AdminAuthCheck from '@/app/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
+import DebugPanelWrapper from '@/app/components/DebugPanelWrapper'
 
 // Project type definition
 type Project = {
   id: number
   title: string
   description: string
-  image: string
-  category: string
-  technologies: string[]
-  link: string
-  featured: boolean
+  image?: string  // For older entries
+  image_url?: string // For MySQL entries
+  category?: string
+  technologies?: string[] | string
+  link?: string // For older entries
+  project_link?: string // For MySQL entries
+  featured?: boolean
   status?: string
+  created_at?: string
   updatedDays?: number
   progress?: number
   features?: string[]
@@ -76,10 +80,19 @@ export default function AdminProjectsPage() {
         }
       })
       const data = await response.json()
-      setProjects(data)
+      
+      // Ensure data is an array before setting to state
+      if (Array.isArray(data)) {
+        setProjects(data)
+      } else {
+        console.error('API returned non-array data:', data)
+        setProjects([])
+        toast.error('Invalid data format received from server')
+      }
     } catch (error) {
       console.error('Error fetching projects:', error)
       toast.error('Failed to load projects')
+      setProjects([]) // Set to empty array on error
     } finally {
       setIsLoading(false)
     }
@@ -162,15 +175,14 @@ export default function AdminProjectsPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               <div>
-                <h3 className="font-semibold text-amber-300">Read-Only Mode Active</h3>
+                <h3 className="font-semibold text-amber-300">MySQL Database Connected</h3>
                 <p className="mt-1">
-                  This admin dashboard is running in read-only mode because it's deployed on Vercel. 
-                  Any changes you make (adding, editing, or deleting projects) will appear to work 
-                  but won't be permanently saved due to Vercel's serverless architecture.
+                  This admin dashboard is connected to the MySQL database on Railway. 
+                  Any changes you make (adding, editing, or deleting projects) will be
+                  saved to your database and will persist across deployments.
                 </p>
                 <p className="mt-2">
-                  For persistent changes, please run the site locally or deploy to a platform 
-                  that supports persistent file storage for SQLite databases.
+                  Your database connection: {process.env.MYSQL_HOST || 'metro.proxy.rlwy.net'}
                 </p>
               </div>
             </div>
@@ -228,38 +240,6 @@ export default function AdminProjectsPage() {
               </button>
               
               <Link
-                href="/admin/database"
-                className="bg-amber-600 hover:bg-amber-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
-              >
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M4 7v10c0 2 1.5 3 3.5 3h9c2 0 3.5-1 3.5-3V7c0-2-1.5-3-3.5-3h-9C5.5 4 4 5 4 7z"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 11h6"
-                  />
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 15h6"
-                  />
-                </svg>
-                <span>Database Admin</span>
-              </Link>
-
-              <Link
                 href="/"
                 className="bg-gray-600 hover:bg-gray-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
               >
@@ -286,6 +266,9 @@ export default function AdminProjectsPage() {
               </Link>
             </div>
           </div>
+
+          {/* Debug Information */}
+          <DebugPanelWrapper projects={projects} />
 
           {isLoading ? (
             <div className="flex justify-center items-center h-64">
@@ -325,7 +308,7 @@ export default function AdminProjectsPage() {
                     </tr>
                   </thead>
                   <tbody className="bg-gray-900/30 divide-y divide-gray-800">
-                    {projects.map((project) => (
+                    {Array.isArray(projects) && projects.map((project) => (
                       <tr key={project.id} className="hover:bg-gray-800/50 transition-colors">
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-300">
                           {project.id}
@@ -333,12 +316,15 @@ export default function AdminProjectsPage() {
                         <td className="px-6 py-4 whitespace-nowrap">
                           <div className="h-12 w-12 relative rounded overflow-hidden">
                             <Image 
-                              src={project.image} 
+                              src={project.image_url || project.image || '/placeholder-image.jpg'} 
                               alt={project.title} 
                               fill 
                               className="object-cover"
                               sizes="48px"
-                              unoptimized={project.image.startsWith('data:')}
+                              unoptimized={Boolean(
+                                (project.image_url && project.image_url.startsWith('data:')) || 
+                                (project.image && project.image.startsWith('data:'))
+                              )}
                             />
                           </div>
                         </td>

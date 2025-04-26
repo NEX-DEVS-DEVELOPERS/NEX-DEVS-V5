@@ -120,33 +120,23 @@ const packages: Package[] = [
     name: "WordPress Basic",
     price: "38500",
     features: [
-      "GeneratePress Theme Setup",
-      "Up to 5 Pages Development",
-      "Mobile-First Design",
-      "2 SEO Articles",
-      "5 Days Revision",
-      "Basic XML Sitemap",
-      "Google Analytics Integration",
-      "Contact Form Integration",
-      "Social Media Integration",
-      "Basic Security Package"
+      "Complete Website Development",
+      "Mobile-First Responsive Design",
+      "Essential Premium Plugins",
+      "Speed & Performance Optimization",
+      "Basic SEO Implementation"
     ],
-    hasDiscount: false
+    hasDiscount: true
   },
   {
     name: "WordPress Professional",
     price: "49500",
     features: [
-      "Premium Theme (Foxiz/Pixwell/Phlox)",
-      "Up to 10 Pages Development",
-      "Rank Math Pro + Elementor Pro",
-      "Advanced SEO Setup",
-      "10 Days Revision",
-      "CDN Integration",
-      "Schema Markup Implementation",
-      "Advanced Analytics",
-      "Database Optimization",
-      "Advanced Security Package"
+      "Premium Theme & Elementor Pro",
+      "Advanced Performance",
+      "Comprehensive SEO",
+      "Expert Author Profiles",
+      "Advanced Analytics"
     ],
     hasDiscount: true
   },
@@ -154,16 +144,39 @@ const packages: Package[] = [
     name: "WordPress Enterprise",
     price: "71500",
     features: [
-      "All Premium Themes Access",
       "Unlimited Pages Development",
-      "Premium Plugin Bundle",
-      "6 SEO Articles + Backlinks",
-      "1 Year Hosting + Domain",
-      "WP Rocket Pro Integration",
+      "Premium Theme Access",
+      "Enterprise SEO Suite",
       "Multi-language Support",
-      "Custom Admin Dashboard",
-      "Monthly Performance Reports",
-      "Priority Support (30 Days)"
+      "Advanced Security"
+    ],
+    hasDiscount: true
+  },
+  {
+    name: "WordPress E-commerce",
+    price: "280000",
+    features: [
+      "Complete WooCommerce Setup",
+      "AI-Powered Product Recommendations",
+      "40-60% Sales Growth Potential",
+      "Automated Inventory Management",
+      "Conversion Rate Optimization",
+      "Mobile-Optimized Checkout",
+      "6 Months Premium Support"
+    ],
+    hasDiscount: true
+  },
+  {
+    name: "Shopify Store",
+    price: "252000",
+    features: [
+      "Complete Shopify Store Setup",
+      "AI-Driven Sales Optimization",
+      "40-60% Sales Growth Potential",
+      "Mobile-First Design",
+      "Cross-Selling & Upselling Features",
+      "Automated Inventory Management",
+      "6 Months Premium Support"
     ],
     hasDiscount: true
   },
@@ -172,15 +185,10 @@ const packages: Package[] = [
     price: "60500",
     features: [
       "Modern React/Next.js Frontend",
-      "Node.js/Express Backend",
-      "MongoDB Database Setup",
+      "Node.js Backend",
+      "MongoDB Database",
       "Basic User Authentication",
-      "Essential API Endpoints",
-      "Responsive Design",
-      "Basic SEO Setup",
-      "Performance Optimization",
-      "Security Best Practices",
-      "Basic Documentation"
+      "Essential API Endpoints"
     ],
     hasDiscount: true
   },
@@ -488,8 +496,8 @@ function ContactPageContent() {
   useEffect(() => {
     // Get user's country code (you can use a geolocation service here)
     // For now, we'll assume any non-PKR selection means international
-    const plan = searchParams.get('plan');
-    const currency = searchParams.get('currency');
+    const plan = searchParams?.get('plan');
+    const currency = searchParams?.get('currency');
     
     if (currency) {
       setSelectedCurrency(currency);

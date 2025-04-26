@@ -8,6 +8,18 @@ import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { formatPrice, convertPrice, baseExchangeRates } from '@/app/utils/pricing';
 import type { SupportedCurrency } from '@/app/utils/pricing';
 
+// Add this keyframe animation for the modal
+const globalStyles = `
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.3s ease-out forwards;
+}
+`;
+
 interface InvoiceDetails {
   invoiceNumber: string;
   date: string;
@@ -89,6 +101,78 @@ const paymentMethods = [
   { id: 'google-pay', icon: FaGooglePay, label: 'Google Pay' }
 ];
 
+function LoadingInvoice() {
+  return (
+    <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+      <div className="flex justify-between items-center mb-4 sm:mb-6">
+        <div className="h-6 w-40 bg-zinc-800/70 rounded animate-pulse"></div>
+        <div className="flex gap-2">
+          <div className="h-8 w-24 bg-zinc-800/70 rounded animate-pulse"></div>
+          <div className="h-8 w-20 bg-zinc-800/70 rounded animate-pulse"></div>
+        </div>
+      </div>
+
+      <div className="space-y-5">
+        {/* Company and Invoice Info */}
+        <div className="grid sm:grid-cols-2 gap-4">
+          <div className="space-y-3">
+            <div className="h-5 w-32 bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-4 w-40 bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-4 w-36 bg-zinc-800/70 rounded animate-pulse"></div>
+          </div>
+          <div className="space-y-3">
+            <div className="h-4 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-4 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-4 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+          </div>
+        </div>
+        
+        {/* Divider */}
+        <div className="h-[1px] w-full bg-zinc-800/70 animate-pulse"></div>
+        
+        {/* Billing Details */}
+        <div className="space-y-3">
+          <div className="flex justify-between">
+            <div className="h-5 w-32 bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-5 w-20 bg-zinc-800/70 rounded animate-pulse"></div>
+          </div>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <div className="h-4 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+              <div className="h-4 w-3/4 bg-zinc-800/70 rounded animate-pulse"></div>
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+              <div className="h-4 w-4/5 bg-zinc-800/70 rounded animate-pulse"></div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Divider */}
+        <div className="h-[1px] w-full bg-zinc-800/70 animate-pulse"></div>
+        
+        {/* Items */}
+        <div className="space-y-3">
+          <div className="h-5 w-32 bg-zinc-800/70 rounded animate-pulse"></div>
+          <div className="space-y-3">
+            <div className="h-20 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-20 w-full bg-zinc-800/70 rounded animate-pulse"></div>
+          </div>
+        </div>
+        
+        {/* Summary */}
+        <div className="space-y-3 mt-5">
+          <div className="h-[1px] w-full bg-zinc-800/70 animate-pulse"></div>
+          <div className="flex justify-between items-center">
+            <div className="h-5 w-20 bg-zinc-800/70 rounded animate-pulse"></div>
+            <div className="h-7 w-24 bg-zinc-800/70 rounded animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -110,6 +194,8 @@ function CheckoutPageContent() {
   });
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isInvoiceLoading, setIsInvoiceLoading] = useState(true);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   useEffect(() => {
     // Fetch location data when component mounts
@@ -124,7 +210,7 @@ function CheckoutPageContent() {
   }, []);
 
   useEffect(() => {
-    const plan = searchParams.get('plan');
+    const plan = searchParams?.get('plan');
     if (plan) {
       setSelectedPlan(decodeURIComponent(plan));
       // Generate invoice details
@@ -165,11 +251,25 @@ function CheckoutPageContent() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Add this useEffect to simulate invoice loading
+  useEffect(() => {
+    if (selectedPlan) {
+      setIsInvoiceLoading(true);
+      const timer = setTimeout(() => {
+        generateInvoice(selectedPlan);
+        setIsInvoiceLoading(false);
+      }, 800); // Simulate loading for better UX
+      return () => clearTimeout(timer);
+    }
+  }, [selectedPlan, currency, exchangeRate]);
+
   const getBaseAmount = (plan: string): number => {
     const prices: { [key: string]: number } = {
       'WordPress Basic': 38500,
       'WordPress Professional': 49500,
       'WordPress Enterprise': 71500,
+      'WordPress E-commerce': 280000,
+      'Shopify Store': 252000,
       'Shopify/WooCommerce': 60500,
       'Full-Stack Basic': 60500,
       'Full-Stack Professional': 82500,
@@ -1137,878 +1237,865 @@ function CheckoutPageContent() {
   };
 
   const handlePayClick = () => {
-    setButtonShake(true);
-    setTimeout(() => setButtonShake(false), 500);
-    const modal = document.getElementById('angryWarningModal');
-    if (modal) modal.classList.remove('hidden');
+    setShowPaymentModal(true);
+  };
+
+  const closePaymentModal = () => {
+    setShowPaymentModal(false);
   };
 
   return (
-    <main className="min-h-screen bg-black text-white py-8 px-4 pt-20 sm:pt-28 sm:py-20 sm:px-6">
-      <div className="max-w-6xl mx-auto">
-        {/* Back Button */}
-        <div className="mb-6 sm:mb-8">
-          <div className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group">
-            <svg 
-              className="w-4 h-4 md:w-5 md:h-5 transform transition-transform group-hover:-translate-x-1" 
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-            </svg>
-            <span className="text-xs md:text-sm font-medium">Back</span>
-          </div>
-        </div>
-        
-        {/* Updated Pricing Notice */}
-        {['USD', 'GBP', 'AED'].includes(currency) && (
-          <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-500/30 rounded-xl p-4 mt-4 md:mt-0 mb-6 shadow-lg">
-            <div className="flex items-center gap-2">
-              <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold animate-pulse">
-                UPDATED
-              </div>
-              <h3 className="text-lg font-semibold text-white">Pricing Update Notice</h3>
+    <>
+      <style jsx global>{globalStyles}</style>
+      <main className="min-h-screen bg-black text-white py-8 px-4 pt-20 sm:pt-28 sm:py-20 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          {/* Back Button */}
+          <div className="mb-6 sm:mb-8">
+            <div className="flex items-center space-x-2 text-white/80 hover:text-white transition-colors group">
+              <svg 
+                className="w-4 h-4 md:w-5 md:h-5 transform transition-transform group-hover:-translate-x-1" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+              </svg>
+              <span className="text-xs md:text-sm font-medium">Back</span>
             </div>
-            <p className="text-purple-100 mt-2 text-sm">
-              We've updated our pricing for {currency} to reflect current market conditions. The new rates provide better value while maintaining our premium service quality.
-            </p>
           </div>
-        )}
-
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
-          {/* Left Column - Project Timeline and Payment Details */}
-          <div className="space-y-6">
-            {/* Project Timeline Section */}
-            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Project Timeline</h2>
-              
-              <div className="space-y-3 sm:space-y-4">
-                {/* Urgent Timeline Option */}
-                <div 
-                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
-                    selectedTimeline === 'Urgent Project (1-2 weeks)'
-                      ? 'border-yellow-500 bg-yellow-500/10'
-                      : 'border-white/10 hover:border-white/30'
-                  }`}
-                  onClick={() => handleTimelineChange('Urgent Project (1-2 weeks)')}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedTimeline === 'Urgent Project (1-2 weeks)'
-                          ? 'border-yellow-500'
-                          : 'border-gray-500'
-                      }`}>
-                        {selectedTimeline === 'Urgent Project (1-2 weeks)' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-yellow-400">Urgent Project</h3>
-                        <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded font-medium">+20% Charge</span>
-                      </div>
-                      <p className="text-sm text-gray-400 mt-1">Delivery in 1-2 weeks</p>
-                    </div>
-                  </div>
+          
+          {/* Updated Pricing Notice */}
+          {['USD', 'GBP', 'AED'].includes(currency) && (
+            <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-500/30 rounded-xl p-4 mt-4 md:mt-0 mb-6 shadow-lg">
+              <div className="flex items-center gap-2">
+                <div className="bg-purple-500 text-white text-xs px-2 py-1 rounded font-bold animate-pulse">
+                  UPDATED
                 </div>
-                
-                {/* Normal Timeline Option */}
-                <div 
-                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
-                    selectedTimeline === 'Normal Time (2-3 weeks)'
-                      ? 'border-purple-500 bg-purple-500/10'
-                      : 'border-white/10 hover:border-white/30'
-                  }`}
-                  onClick={() => handleTimelineChange('Normal Time (2-3 weeks)')}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedTimeline === 'Normal Time (2-3 weeks)'
-                          ? 'border-purple-500'
-                          : 'border-gray-500'
-                      }`}>
-                        {selectedTimeline === 'Normal Time (2-3 weeks)' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-purple-400">Normal Time</h3>
-                        <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">Standard</span>
-                      </div>
-                      <p className="text-sm text-gray-400 mt-1">Delivery in 2-3 weeks</p>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Relaxed Timeline Option */}
-                <div 
-                  className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
-                    selectedTimeline === 'Relaxed (4 weeks)'
-                      ? 'border-green-500 bg-green-500/10'
-                      : 'border-white/10 hover:border-white/30'
-                  }`}
-                  onClick={() => handleTimelineChange('Relaxed (4 weeks)')}
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="mt-0.5">
-                      <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                        selectedTimeline === 'Relaxed (4 weeks)'
-                          ? 'border-green-500'
-                          : 'border-gray-500'
-                      }`}>
-                        {selectedTimeline === 'Relaxed (4 weeks)' && (
-                          <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
-                        )}
-                      </div>
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <h3 className="font-semibold text-green-400">Relaxed</h3>
-                        <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded font-medium">5% Discount</span>
-                      </div>
-                      <p className="text-sm text-gray-400 mt-1">Delivery in 4 weeks</p>
-                    </div>
-                  </div>
-                </div>
+                <h3 className="text-lg font-semibold text-white">Pricing Update Notice</h3>
               </div>
-              
-              <div className="mt-4 bg-zinc-800/50 p-3 rounded-lg text-sm text-gray-300">
-                <div className="flex items-start gap-2">
-                  <svg className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <p>Choose a timeline that suits your project needs. Your selection will affect the final price.</p>
-                </div>
-              </div>
+              <p className="text-purple-100 mt-2 text-sm">
+                We've updated our pricing for {currency} to reflect current market conditions. The new rates provide better value while maintaining our premium service quality.
+              </p>
             </div>
+          )}
 
-            {/* Payment Method Section */}
-            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Payment Method</h2>
-              
-              <div className="grid gap-3 sm:gap-4">
-                {paymentMethods.map(({ id, icon: Icon, label }) => (
-                  <div
-                    key={id}
-                    className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all duration-300 ${
-                      paymentMethod === id
+          <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
+            {/* Left Column - Project Timeline and Payment Details */}
+            <div className="space-y-6">
+              {/* Project Timeline Section */}
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Project Timeline</h2>
+                
+                <div className="space-y-3 sm:space-y-4">
+                  {/* Urgent Timeline Option */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                      selectedTimeline === 'Urgent Project (1-2 weeks)'
+                        ? 'border-yellow-500 bg-yellow-500/10'
+                        : 'border-white/10 hover:border-white/30'
+                    }`}
+                    onClick={() => handleTimelineChange('Urgent Project (1-2 weeks)')}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedTimeline === 'Urgent Project (1-2 weeks)'
+                            ? 'border-yellow-500'
+                            : 'border-gray-500'
+                        }`}>
+                          {selectedTimeline === 'Urgent Project (1-2 weeks)' && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-yellow-500"></div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-yellow-400">Urgent Project</h3>
+                          <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded font-medium">+20% Charge</span>
+                        </div>
+                        <p className="text-sm text-gray-400 mt-1">Delivery in 1-2 weeks</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Normal Timeline Option */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                      selectedTimeline === 'Normal Time (2-3 weeks)'
                         ? 'border-purple-500 bg-purple-500/10'
                         : 'border-white/10 hover:border-white/30'
                     }`}
-                    onClick={() => setPaymentMethod(id)}
+                    onClick={() => handleTimelineChange('Normal Time (2-3 weeks)')}
                   >
-                    <div className="flex items-center space-x-3">
-                      <Icon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
-                      <span className="text-sm sm:text-base">{label}</span>
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedTimeline === 'Normal Time (2-3 weeks)'
+                            ? 'border-purple-500'
+                            : 'border-gray-500'
+                        }`}>
+                          {selectedTimeline === 'Normal Time (2-3 weeks)' && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-purple-500"></div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-purple-400">Normal Time</h3>
+                          <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">Standard</span>
+                        </div>
+                        <p className="text-sm text-gray-400 mt-1">Delivery in 2-3 weeks</p>
+                      </div>
                     </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Bank Transfer Details */}
-            {paymentMethod === 'bank-transfer' && (
-              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-lg font-bold mb-4">Bank Account Details</h3>
-                <div className="space-y-4">
-                  {pakistaniBanks.map((bank, index) => (
-                    <div key={index} className="p-3 sm:p-4 rounded-lg border border-white/10 space-y-2">
-                      <div className="flex justify-between items-center flex-wrap gap-2">
-                        <h4 className="font-semibold text-base">{bank.bank}</h4>
-                        <button 
-                          onClick={() => navigator.clipboard.writeText(bank.accountNumber)}
-                          className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded"
-                        >
-                          Copy
-                        </button>
+                  
+                  {/* Relaxed Timeline Option */}
+                  <div 
+                    className={`p-4 rounded-lg border transition-all duration-300 cursor-pointer ${
+                      selectedTimeline === 'Relaxed (4 weeks)'
+                        ? 'border-green-500 bg-green-500/10'
+                        : 'border-white/10 hover:border-white/30'
+                    }`}
+                    onClick={() => handleTimelineChange('Relaxed (4 weeks)')}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
+                          selectedTimeline === 'Relaxed (4 weeks)'
+                            ? 'border-green-500'
+                            : 'border-gray-500'
+                        }`}>
+                          {selectedTimeline === 'Relaxed (4 weeks)' && (
+                            <div className="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+                          )}
+                        </div>
                       </div>
-                      <div className="space-y-1.5 text-sm">
-                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <span className="text-gray-400">Account Title:</span>
-                          <span className="font-medium">{bank.accountTitle}</span>
-                        </p>
-                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <span className="text-gray-400">Account Number:</span>
-                          <span className="font-medium">{bank.accountNumber}</span>
-                        </p>
-                        <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                          <span className="text-gray-400">IBAN:</span>
-                          <span className="font-medium break-all">{bank.iban}</span>
-                        </p>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h3 className="font-semibold text-green-400">Relaxed</h3>
+                          <span className="bg-green-500/20 text-green-300 text-xs px-2 py-1 rounded font-medium">5% Discount</span>
+                        </div>
+                        <p className="text-sm text-gray-400 mt-1">Delivery in 4 weeks</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 bg-zinc-800/50 p-3 rounded-lg text-sm text-gray-300">
+                  <div className="flex items-start gap-2">
+                    <svg className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p>Choose a timeline that suits your project needs. Your selection will affect the final price.</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Payment Method Section */}
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Payment Method</h2>
+                
+                <div className="grid gap-3 sm:gap-4">
+                  {paymentMethods.map(({ id, icon: Icon, label }) => (
+                    <div
+                      key={id}
+                      className={`p-3 sm:p-4 rounded-lg border cursor-pointer transition-all duration-300 ${
+                        paymentMethod === id
+                          ? 'border-purple-500 bg-purple-500/10'
+                          : 'border-white/10 hover:border-white/30'
+                      }`}
+                      onClick={() => setPaymentMethod(id)}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Icon className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0" />
+                        <span className="text-sm sm:text-base">{label}</span>
                       </div>
                     </div>
                   ))}
                 </div>
               </div>
-            )}
 
-            {/* Mobile Wallet Details */}
-            {(paymentMethod === 'jazzcash' || paymentMethod === 'easypaisa') && (
-              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h3 className="text-lg font-bold mb-4">
-                  {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} Details
-                </h3>
-                <div className="space-y-4">
-                  {mobileWallets
-                    .filter(wallet => wallet.name.toLowerCase() === paymentMethod)
-                    .map((wallet, index) => (
+              {/* Bank Transfer Details */}
+              {paymentMethod === 'bank-transfer' && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                  <h3 className="text-lg font-bold mb-4">Bank Account Details</h3>
+                  <div className="space-y-4">
+                    {pakistaniBanks.map((bank, index) => (
                       <div key={index} className="p-3 sm:p-4 rounded-lg border border-white/10 space-y-2">
                         <div className="flex justify-between items-center flex-wrap gap-2">
-                          <h4 className="font-semibold text-base">{wallet.name}</h4>
+                          <h4 className="font-semibold text-base">{bank.bank}</h4>
                           <button 
-                            onClick={() => navigator.clipboard.writeText(wallet.number)}
+                            onClick={() => navigator.clipboard.writeText(bank.accountNumber)}
                             className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded"
                           >
-                            Copy Number
+                            Copy
                           </button>
                         </div>
                         <div className="space-y-1.5 text-sm">
                           <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
                             <span className="text-gray-400">Account Title:</span>
-                            <span className="font-medium">{wallet.accountTitle}</span>
+                            <span className="font-medium">{bank.accountTitle}</span>
                           </p>
                           <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
-                            <span className="text-gray-400">Number:</span>
-                            <span className="font-medium">{wallet.number}</span>
+                            <span className="text-gray-400">Account Number:</span>
+                            <span className="font-medium">{bank.accountNumber}</span>
+                          </p>
+                          <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                            <span className="text-gray-400">IBAN:</span>
+                            <span className="font-medium break-all">{bank.iban}</span>
                           </p>
                         </div>
                       </div>
                     ))}
-                  <div className="mt-4 space-y-3">
-                    <p className="text-sm text-yellow-400 font-medium">
-                      Please follow these steps:
-                    </p>
-                    <ol className="text-sm text-gray-300 list-decimal list-inside space-y-2">
-                      <li className="pl-2">Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
-                      <li className="pl-2">Select "Send Money"</li>
-                      <li className="pl-2">Enter the number shown above</li>
-                      <li className="pl-2">Enter amount: (for-pak-PKR) ($-GBP-AED)-{invoice?.total.toLocaleString()}</li>
-                      <li className="pl-2">Complete the transaction</li>
-                      <li className="pl-2">Send the transaction ID to support@nex-web-official.com</li>
-                    </ol>
                   </div>
                 </div>
-              </div>
-            )}
+              )}
 
-            {/* Credit Card Form */}
-            {(paymentMethod === 'credit-card' || paymentMethod === 'american-express') && (
-              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-                  <h3 className="text-lg font-bold">Card Details</h3>
-                  <div className="flex flex-wrap gap-2">
-                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
-                      VISA
-                    </div>
-                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
-                      MASTERCARD
-                    </div>
-                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
-                      AMEX
-                    </div>
-                    <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
-                      DISCOVER
-                    </div>
-                  </div>
-                </div>
-                <form className="space-y-4">
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2">Card Number</label>
-                    <div className="relative">
-                      <input
-                        type="text"
-                        className="w-full px-3 sm:px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base pl-10"
-                        placeholder="1234 5678 9012 3456"
-                      />
-                      <FaCreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-                      <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <div className="text-xs font-mono text-gray-400 tracking-wider">
-                          {paymentMethod === 'american-express' ? 'AMEX' : 'CARD'}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="col-span-2">
-                      <label className="block text-xs sm:text-sm font-medium mb-2">Expiry Date</label>
-                      <input
-                        type="text"
-                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
-                        placeholder="MM/YY"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs sm:text-sm font-medium mb-2">CVV</label>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
-                          placeholder={paymentMethod === 'american-express' ? '4DIG' : 'CVV'}
-                          maxLength={paymentMethod === 'american-express' ? 4 : 3}
-                        />
-                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-help group">
-                          <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                          </svg>
-                          <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-xs text-gray-300 rounded-lg">
-                            {paymentMethod === 'american-express' 
-                              ? '4 digits on the front of your card'
-                              : '3 digits on the back of your card'}
+              {/* Mobile Wallet Details */}
+              {(paymentMethod === 'jazzcash' || paymentMethod === 'easypaisa') && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                  <h3 className="text-lg font-bold mb-4">
+                    {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} Details
+                  </h3>
+                  <div className="space-y-4">
+                    {mobileWallets
+                      .filter(wallet => wallet.name.toLowerCase() === paymentMethod)
+                      .map((wallet, index) => (
+                        <div key={index} className="p-3 sm:p-4 rounded-lg border border-white/10 space-y-2">
+                          <div className="flex justify-between items-center flex-wrap gap-2">
+                            <h4 className="font-semibold text-base">{wallet.name}</h4>
+                            <button 
+                              onClick={() => navigator.clipboard.writeText(wallet.number)}
+                              className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded"
+                            >
+                              Copy Number
+                            </button>
                           </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  <div>
-                    <label className="block text-xs sm:text-sm font-medium mb-2">Name on Card</label>
-                    <input
-                      type="text"
-                      className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
-                      placeholder="John Doe"
-                    />
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2 text-xs text-gray-400">
-                      <FaLock className="w-3 h-3" />
-                      <span>Secured with encryption</span>
-                    </div>
-                    <div className="text-xs text-purple-400">
-                      Powered by NEX-WEBS
-                    </div>
-                  </div>
-                </form>
-              </div>
-            )}
-          </div>
-
-          {/* Right Column - Invoice & Summary */}
-          <div className="space-y-6">
-            {invoice && (
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5"
-              >
-                <div className="flex justify-between items-center mb-4 sm:mb-6">
-                  <h2 className="text-lg sm:text-xl font-bold">Invoice Details</h2>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={handleDownloadClick}
-                      className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-purple-600 hover:bg-purple-700 rounded-lg text-xs sm:text-sm font-medium transition-colors"
-                    >
-                      <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Download</span>
-                    </button>
-                    <button
-                      onClick={() => window.print()}
-                      className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs sm:text-sm font-medium transition-colors"
-                    >
-                      <FaFilePdf className="w-3 h-3 sm:w-4 sm:h-4" />
-                      <span>Print</span>
-                    </button>
-                  </div>
-                </div>
-
-                <div className="space-y-4 sm:space-y-6">
-                  {/* Company and Invoice Info */}
-                  <div className="grid sm:grid-cols-2 gap-4 sm:gap-6">
-                    <div>
-                      <h3 className="text-sm sm:text-base font-bold mb-2">NEX-WEBS</h3>
-                      <p className="text-xs sm:text-sm text-gray-400">Professional Web Development Services</p>
-                      <p className="text-xs sm:text-sm text-gray-400">support@nexwebs.com</p>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span className="text-gray-400">Invoice Number:</span>
-                        <span className="font-medium">{invoice.invoiceNumber}</span>
-                      </div>
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span className="text-gray-400">Date:</span>
-                        <span>{invoice.date}</span>
-                      </div>
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span className="text-gray-400">Due Date:</span>
-                        <span>{invoice.dueDate}</span>
-                      </div>
-                      <div className="flex justify-between text-xs sm:text-sm">
-                        <span className="text-gray-400">Currency:</span>
-                        <span className="font-medium text-purple-400">
-                          {currency} 
-                          {!isExemptCountry && currency !== 'PKR' && ' (International Rate)'}
-                          {['USD', 'GBP', 'AED'].includes(currency) && (
-                            <span className="bg-purple-500 text-white text-xs px-1.5 py-0.5 rounded ml-2 animate-pulse">
-                              UPDATED
-                            </span>
-                          )}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Billing Details */}
-                  <div className="border-t border-white/10 pt-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="font-semibold">Billing Details</h3>
-                      <button
-                        onClick={() => setIsEditing(!isEditing)}
-                        className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-2"
-                      >
-                        {isEditing ? (
-                          <span>Cancel</span>
-                        ) : (
-                          <>
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                            </svg>
-                            <span>Edit Details</span>
-                          </>
-                        )}
-                      </button>
-                    </div>
-                    
-                    {isEditing ? (
-                      <div className="space-y-4">
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Name</label>
-                            <input
-                              type="text"
-                              value={editedDetails.name}
-                              onChange={(e) => setEditedDetails({...editedDetails, name: e.target.value})}
-                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
-                              placeholder="Your Name"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Email</label>
-                            <input
-                              type="email"
-                              value={editedDetails.email}
-                              onChange={(e) => setEditedDetails({...editedDetails, email: e.target.value})}
-                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
-                              placeholder="your.email@example.com"
-                            />
-                          </div>
-                        </div>
-                        <div className="grid sm:grid-cols-2 gap-4">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Phone</label>
-                            <input
-                              type="tel"
-                              value={editedDetails.phone}
-                              onChange={(e) => setEditedDetails({...editedDetails, phone: e.target.value})}
-                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
-                              placeholder="Your Phone"
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Address</label>
-                            <input
-                              type="text"
-                              value={editedDetails.address}
-                              onChange={(e) => setEditedDetails({...editedDetails, address: e.target.value})}
-                              className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500"
-                              placeholder="Your Address"
-                            />
-                          </div>
-                        </div>
-                        <div className="flex flex-col">
-                          <label className="block text-sm font-medium mb-2">Select Timeline</label>
-                          <select
-                            value={editedDetails.timeline}
-                            onChange={(e) => handleTimelineChange(e.target.value)}
-                            className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
-                          >
-                            <option value="Urgent Project (1-2 weeks)">Urgent Project (1-2 weeks) +20%</option>
-                            <option value="Normal Time (2-3 weeks)">Normal Time (2-3 weeks)</option>
-                            <option value="Relaxed (4 weeks)">Relaxed (4 weeks) +5% discount</option>
-                          </select>
-                        </div>
-                        <div className="flex justify-end mt-4">
-                          <button
-                            onClick={handleSaveDetails}
-                            className="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-                          >
-                            Save Details
-                          </button>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="grid sm:grid-cols-2 gap-4 text-sm">
-                        <div>
-                          <p><span className="text-gray-400">Name:</span> {invoice?.billingDetails?.name}</p>
-                          <p><span className="text-gray-400">Email:</span> {invoice?.billingDetails?.email}</p>
-                        </div>
-                        <div>
-                          <p><span className="text-gray-400">Phone:</span> {invoice?.billingDetails?.phone}</p>
-                          <p><span className="text-gray-400">Address:</span> {invoice?.billingDetails?.address}</p>
-                        </div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Invoice Items */}
-                  <div className="border-t border-white/10 pt-4">
-                    <h3 className="font-semibold mb-3">Invoice Items</h3>
-                    <div className="space-y-3">
-                      {invoice.items.map((item, index) => (
-                        <div key={index} className="bg-zinc-800/50 p-3 rounded-lg">
-                          <div className="grid grid-cols-1 gap-3">
-                            <div>
-                              <span className="text-gray-400 text-sm">Description</span>
-                              <p className="font-medium">{item.description}</p>
-                              {item.details && (
-                                <p className="text-sm text-gray-400 mt-1">{item.details}</p>
-                              )}
-                              {item.features && item.features.length > 0 && (
-                                <div className="mt-3 space-y-1">
-                                  <span className="text-sm text-purple-400">Key Features:</span>
-                                  <ul className="text-sm text-gray-400 list-disc list-inside">
-                                    {item.features.map((feature, idx) => (
-                                      <li key={idx}>{feature}</li>
-                                    ))}
-                                  </ul>
-                                </div>
-                              )}
-                            </div>
-                            <div className="grid grid-cols-2 gap-3 mt-3">
-                              <div>
-                                <span className="text-gray-400 text-sm">Rate</span>
-                                <p className="font-medium">{formatPrice(item.rate, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
-                              </div>
-                              <div>
-                                <span className="text-gray-400 text-sm">Amount</span>
-                                <p className="font-medium">{formatPrice(item.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
-                              </div>
-                            </div>
+                          <div className="space-y-1.5 text-sm">
+                            <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <span className="text-gray-400">Account Title:</span>
+                              <span className="font-medium">{wallet.accountTitle}</span>
+                            </p>
+                            <p className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2">
+                              <span className="text-gray-400">Number:</span>
+                              <span className="font-medium">{wallet.number}</span>
+                            </p>
                           </div>
                         </div>
                       ))}
+                    <div className="mt-4 space-y-3">
+                      <p className="text-sm text-yellow-400 font-medium">
+                        Please follow these steps:
+                      </p>
+                      <ol className="text-sm text-gray-300 list-decimal list-inside space-y-2">
+                        <li className="pl-2">Open your {paymentMethod === 'jazzcash' ? 'JazzCash' : 'Easypaisa'} app</li>
+                        <li className="pl-2">Select "Send Money"</li>
+                        <li className="pl-2">Enter the number shown above</li>
+                        <li className="pl-2">Enter amount: (for-pak-PKR) ($-GBP-AED)-{invoice?.total.toLocaleString()}</li>
+                        <li className="pl-2">Complete the transaction</li>
+                        <li className="pl-2">Send the transaction ID to support@nex-web-official.com</li>
+                      </ol>
                     </div>
-                  </div>
-
-                  {/* Summary */}
-                  <div className="border-t border-white/10 pt-4">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-gray-400">Sub Total:</span>
-                        <span>{formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                      </div>
-                      
-                      {/* Timeline Adjustments */}
-                      {editedDetails.timeline === 'Urgent Project (1-2 weeks)' && (
-                        <div className="flex justify-between text-yellow-400">
-                          <span>Urgent Timeline Surcharge (20%):</span>
-                          <span>+{formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                        </div>
-                      )}
-                      {editedDetails.timeline === 'Normal Time (2-3 weeks)' && (
-                        <div className="flex justify-between text-gray-400">
-                          <span>Timeline - Normal (2-3 weeks):</span>
-                          <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                        </div>
-                      )}
-                      {editedDetails.timeline === 'Relaxed (4 weeks)' && (
-                        <div className="flex justify-between text-green-400">
-                          <span>Timeline Discount - Relaxed (4 weeks):</span>
-                          <span>{formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                        </div>
-                      )}
-                      
-                      <div className="flex justify-between text-gray-400">
-                        <span>Tax (0%):</span>
-                        <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                      </div>
-                      <div className="flex justify-between text-emerald-400 font-medium">
-                        <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
-                        <span>-{formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                      </div>
-                      
-                      {/* Currency Information */}
-                      {!isExemptCountry && currency !== 'PKR' && invoice && (
-                        <div className="mt-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                          <p className="text-sm text-purple-300 mb-2">International Pricing Information:</p>
-                          <ul className="text-xs space-y-1 text-gray-400">
-                            <li>• Base price in PKR: {formatPrice(invoice.subTotal / 1.3, 'PKR', 1, true)}</li>
-                            <li>• International service fee (30%): {formatPrice(invoice.subTotal - (invoice.subTotal / 1.3), invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
-                            {Boolean(invoice.items.find(item => item.description.includes('Urgent Timeline'))) && (
-                              <li>• Urgent delivery surcharge (20%): {formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
-                            )}
-                            {Boolean(invoice.items.find(item => item.description.includes('Timeline Discount'))) && (
-                              <li>• Relaxed timeline discount (5%): {formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
-                            )}
-                            <li>• Current exchange rate: 1 PKR = {baseExchangeRates[currency as SupportedCurrency]} {currency}</li>
-                          </ul>
-                        </div>
-                      )}
-
-                      <div className="border-t border-white/10 pt-2 mt-2">
-                        <div className="flex justify-between text-xl font-bold">
-                          <span>Total:</span>
-                          <span>{formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Payment Instructions */}
-                  <div className="border-t border-white/10 pt-4 text-xs sm:text-sm text-gray-400">
-                    <p className="font-medium text-yellow-400 mb-2">Payment Instructions:</p>
-                    <ul className="list-disc list-inside space-y-1">
-                      <li>Please make the payment within 7 days of invoice date</li>
-                      <li>Include invoice number in payment reference</li>
-                      <li>Send payment confirmation to support@nexwebs.com</li>
-                    </ul>
                   </div>
                 </div>
-              </motion.div>
-            )}
+              )}
 
-            <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-              {/* Payment Note */}
-              <div className="space-y-4">
-                {/* Contact Information Section */}
-                <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/5 rounded-xl p-6 border border-purple-500/20 backdrop-blur-sm">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <span className="text-purple-400">📞</span>
-                    Our Support Team Is Here For You
-                  </h3>
-                  <p className="text-gray-300 mb-4">Be patient, here's our contact information:</p>
-                  <div className="space-y-3">
-                          {['03089080171', '03098795492', '03292425950'].map((number, index) => (
-                      <div key={index} className="flex items-center justify-between bg-purple-500/10 rounded-lg p-3 border border-purple-500/20">
-                        <span className="text-white font-medium">{number}</span>
-                              <button 
-                          onClick={() => navigator.clipboard.writeText(number)}
-                          className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded transition-colors"
-                              >
-                                Copy
-                              </button>
+              {/* Credit Card Form */}
+              {(paymentMethod === 'credit-card' || paymentMethod === 'american-express') && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <h3 className="text-lg font-bold">Card Details</h3>
+                    <div className="flex flex-wrap gap-2">
+                      <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                        VISA
+                      </div>
+                      <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                        MASTERCARD
+                      </div>
+                      <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                        AMEX
+                      </div>
+                      <div className="px-2 py-1 bg-[#1A1F36] rounded border border-white/10 text-xs font-semibold text-white/70">
+                        DISCOVER
+                      </div>
+                    </div>
+                  </div>
+                  <form className="space-y-4">
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-2">Card Number</label>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          className="w-full px-3 sm:px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base pl-10"
+                          placeholder="1234 5678 9012 3456"
+                        />
+                        <FaCreditCard className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+                        <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <div className="text-xs font-mono text-gray-400 tracking-wider">
+                            {paymentMethod === 'american-express' ? 'AMEX' : 'CARD'}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="col-span-2">
+                        <label className="block text-xs sm:text-sm font-medium mb-2">Expiry Date</label>
+                        <input
+                          type="text"
+                          className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
+                          placeholder="MM/YY"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs sm:text-sm font-medium mb-2">CVV</label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
+                            placeholder={paymentMethod === 'american-express' ? '4DIG' : 'CVV'}
+                            maxLength={paymentMethod === 'american-express' ? 4 : 3}
+                          />
+                          <div className="absolute right-3 top-1/2 transform -translate-y-1/2 cursor-help group">
+                            <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <div className="hidden group-hover:block absolute bottom-full right-0 mb-2 w-48 p-2 bg-black text-xs text-gray-300 rounded-lg">
+                              {paymentMethod === 'american-express' 
+                                ? '4 digits on the front of your card'
+                                : '3 digits on the back of your card'}
                             </div>
-                          ))}
-                        </div>
-                  
-                  <div className="mt-6 bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
-                    <div className="flex items-start gap-3">
-                      <span className="text-yellow-500 text-xl">⚠️</span>
-                      <p className="text-yellow-200/90 text-sm">
-                        Please call one time after you've completed the payment to confirm your order
-                      </p>
                           </div>
                         </div>
                       </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs sm:text-sm font-medium mb-2">Name on Card</label>
+                      <input
+                        type="text"
+                        className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 text-sm sm:text-base"
+                        placeholder="John Doe"
+                      />
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-xs text-gray-400">
+                        <FaLock className="w-3 h-3" />
+                        <span>Secured with encryption</span>
+                      </div>
+                      <div className="text-xs text-purple-400">
+                        Powered by NEX-WEBS
+                      </div>
+                    </div>
+                  </form>
+                </div>
+              )}
+            </div>
 
-                <div className="bg-gradient-to-br from-red-900/20 to-red-800/5 rounded-xl p-6 border border-red-500/20 backdrop-blur-sm">
-                  <div className="flex items-start gap-3">
-                    <span className="text-red-500 text-xl mt-1">⚡</span>
-                    <div className="space-y-2">
-                      <p className="text-gray-300 text-sm">
-                        Since Stripe isn't available in Pakistan, we are actively working on implementing new secure payment methods. 
-                        Meanwhile, we offer several trusted local payment options for your convenience.
-                      </p>
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {['Bank Transfer', 'JazzCash', 'EasyPaisa'].map((method, index) => (
-                          <span key={index} className="text-xs bg-red-500/10 text-red-300 px-3 py-1 rounded-full border border-red-500/20">
-                            {method}
+            {/* Right Column - Invoice & Summary */}
+            <div className="space-y-6">
+              {isInvoiceLoading ? (
+                <LoadingInvoice />
+              ) : invoice ? (
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5 hover:border-white/10 transition-all duration-300 shadow-xl hover:shadow-purple-900/5"
+                >
+                  <div className="flex justify-between items-center mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Invoice Details</h2>
+                    <div className="flex gap-2">
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleDownloadClick}
+                        className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 rounded-lg text-xs sm:text-sm font-medium transition-all shadow-lg shadow-purple-900/20"
+                      >
+                        <FaDownload className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>Download</span>
+                      </motion.button>
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => window.print()}
+                        className="flex items-center gap-2 px-2 sm:px-3 py-1 sm:py-1.5 bg-zinc-700 hover:bg-zinc-600 rounded-lg text-xs sm:text-sm font-medium transition-all shadow-lg shadow-black/20"
+                      >
+                        <FaFilePdf className="w-3 h-3 sm:w-4 sm:h-4" />
+                        <span>Print</span>
+                      </motion.button>
+                    </div>
+                  </div>
+
+                  <div className="space-y-5">
+                    {/* Company and Invoice Info */}
+                    <div className="grid sm:grid-cols-2 gap-4 sm:gap-6 p-4 rounded-lg bg-gradient-to-br from-zinc-800/20 to-zinc-900/30 border border-white/5">
+                      <div>
+                        <h3 className="text-sm sm:text-base font-bold mb-2 text-white">NEX-WEBS</h3>
+                        <p className="text-xs sm:text-sm text-gray-400">Professional Web Development Services</p>
+                        <p className="text-xs sm:text-sm text-gray-400">support@nexwebs.com</p>
+                      </div>
+                      <div className="space-y-2 bg-zinc-800/30 p-3 rounded-lg border border-white/5">
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-400">Invoice Number:</span>
+                          <span className="font-medium">{invoice.invoiceNumber}</span>
+                        </div>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-400">Date:</span>
+                          <span>{invoice.date}</span>
+                        </div>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-400">Due Date:</span>
+                          <span>{invoice.dueDate}</span>
+                        </div>
+                        <div className="flex justify-between text-xs sm:text-sm">
+                          <span className="text-gray-400">Currency:</span>
+                          <span className="font-medium text-purple-400">
+                            {currency} 
+                            {!isExemptCountry && currency !== 'PKR' && ' (International Rate)'}
+                            {['USD', 'GBP', 'AED'].includes(currency) && (
+                              <span className="bg-purple-500 text-white text-xs px-1.5 py-0.5 rounded ml-2 animate-pulse">
+                                UPDATED
+                              </span>
+                            )}
                           </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Billing Details */}
+                    <div className="border-t border-white/10 pt-4">
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="font-semibold text-white">Billing Details</h3>
+                        <button
+                          onClick={() => setIsEditing(!isEditing)}
+                          className="text-purple-400 hover:text-purple-300 text-sm flex items-center gap-2 transition-colors"
+                        >
+                          {isEditing ? (
+                            <span>Cancel</span>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                              </svg>
+                              <span>Edit Details</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {isEditing ? (
+                        <div className="space-y-4 bg-zinc-800/20 p-4 rounded-lg border border-white/5">
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-gray-300">Name</label>
+                              <input
+                                type="text"
+                                value={editedDetails.name}
+                                onChange={(e) => setEditedDetails({...editedDetails, name: e.target.value})}
+                                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring focus:ring-purple-500/20 transition-all duration-200"
+                                placeholder="Your Name"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-gray-300">Email</label>
+                              <input
+                                type="email"
+                                value={editedDetails.email}
+                                onChange={(e) => setEditedDetails({...editedDetails, email: e.target.value})}
+                                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring focus:ring-purple-500/20 transition-all duration-200"
+                                placeholder="your.email@example.com"
+                              />
+                            </div>
+                          </div>
+                          <div className="grid sm:grid-cols-2 gap-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-gray-300">Phone</label>
+                              <input
+                                type="tel"
+                                value={editedDetails.phone}
+                                onChange={(e) => setEditedDetails({...editedDetails, phone: e.target.value})}
+                                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring focus:ring-purple-500/20 transition-all duration-200"
+                                placeholder="Your Phone"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-2 text-gray-300">Address</label>
+                              <input
+                                type="text"
+                                value={editedDetails.address}
+                                onChange={(e) => setEditedDetails({...editedDetails, address: e.target.value})}
+                                className="w-full px-4 py-2 rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring focus:ring-purple-500/20 transition-all duration-200"
+                                placeholder="Your Address"
+                              />
+                            </div>
+                          </div>
+                          <div className="flex flex-col">
+                            <label className="block text-sm font-medium mb-2 text-gray-300">Select Timeline</label>
+                            <select
+                              value={editedDetails.timeline}
+                              onChange={(e) => handleTimelineChange(e.target.value)}
+                              className="bg-zinc-800 border border-zinc-700 rounded-lg p-2 transition duration-200 focus:outline-none focus:ring focus:ring-purple-500 text-yellow-300 shadow-lg hover:shadow-xl"
+                            >
+                              <option value="Urgent Project (1-2 weeks)">Urgent Project (1-2 weeks) +20%</option>
+                              <option value="Normal Time (2-3 weeks)">Normal Time (2-3 weeks)</option>
+                              <option value="Relaxed (4 weeks)">Relaxed (4 weeks) +5% discount</option>
+                            </select>
+                          </div>
+                          <div className="flex justify-end mt-4">
+                            <motion.button
+                              whileHover={{ scale: 1.05 }}
+                              whileTap={{ scale: 0.95 }}
+                              onClick={handleSaveDetails}
+                              className="bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white px-4 py-2 rounded-lg text-sm font-medium transition-all shadow-lg"
+                            >
+                              Save Details
+                            </motion.button>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="grid sm:grid-cols-2 gap-4 text-sm p-3 bg-zinc-800/20 rounded-lg border border-white/5">
+                          <div>
+                            <p className="mb-1"><span className="text-gray-400">Name:</span> <span className="font-medium text-white">{invoice?.billingDetails?.name || 'Not provided'}</span></p>
+                            <p><span className="text-gray-400">Email:</span> <span className="font-medium text-white">{invoice?.billingDetails?.email || 'Not provided'}</span></p>
+                          </div>
+                          <div>
+                            <p className="mb-1"><span className="text-gray-400">Phone:</span> <span className="font-medium text-white">{invoice?.billingDetails?.phone || 'Not provided'}</span></p>
+                            <p><span className="text-gray-400">Address:</span> <span className="font-medium text-white">{invoice?.billingDetails?.address || 'Not provided'}</span></p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Invoice Items */}
+                    <div className="border-t border-white/10 pt-4">
+                      <h3 className="font-semibold mb-3 text-white">Invoice Items</h3>
+                      <div className="space-y-3">
+                        {invoice.items.map((item, index) => (
+                          <div key={index} className="bg-zinc-800/30 p-3 rounded-lg border border-white/5 hover:border-white/10 transition-all duration-300">
+                            <div className="grid grid-cols-1 gap-3">
+                              <div>
+                                <span className="text-gray-400 text-sm">Description</span>
+                                <p className="font-medium text-white">{item.description}</p>
+                                {item.details && (
+                                  <p className="text-sm text-gray-400 mt-1">{item.details}</p>
+                                )}
+                                {item.features && item.features.length > 0 && (
+                                  <div className="mt-3 space-y-1">
+                                    <span className="text-sm text-purple-400">Key Features:</span>
+                                    <ul className="text-sm text-gray-400 list-disc list-inside">
+                                      {item.features.map((feature, idx) => (
+                                        <li key={idx}>{feature}</li>
+                                      ))}
+                                    </ul>
+                                  </div>
+                                )}
+                              </div>
+                              <div className="grid grid-cols-2 gap-3 mt-1 bg-black/20 p-2 rounded-lg">
+                                <div>
+                                  <span className="text-gray-400 text-sm">Rate</span>
+                                  <p className="font-medium text-white">{formatPrice(item.rate, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
+                                </div>
+                                <div>
+                                  <span className="text-gray-400 text-sm">Amount</span>
+                                  <p className="font-medium text-white">{formatPrice(item.amount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
                         ))}
+                      </div>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="border-t border-white/10 pt-4">
+                      <div className="p-4 rounded-lg bg-gradient-to-br from-zinc-800/30 to-zinc-900/50 border border-white/5">
+                        <div className="space-y-2">
+                          <div className="flex justify-between">
+                            <span className="text-gray-400">Sub Total:</span>
+                            <span className="text-white">{formatPrice(invoice.subTotal, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                          </div>
+                          
+                          {/* Timeline Adjustments */}
+                          {editedDetails.timeline === 'Urgent Project (1-2 weeks)' && (
+                            <div className="flex justify-between text-yellow-400">
+                              <span>Urgent Timeline Surcharge (20%):</span>
+                              <span>+{formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                            </div>
+                          )}
+                          {editedDetails.timeline === 'Normal Time (2-3 weeks)' && (
+                            <div className="flex justify-between text-gray-400">
+                              <span>Timeline - Normal (2-3 weeks):</span>
+                              <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                            </div>
+                          )}
+                          {editedDetails.timeline === 'Relaxed (4 weeks)' && (
+                            <div className="flex justify-between text-green-400">
+                              <span>Timeline Discount - Relaxed (4 weeks):</span>
+                              <span>{formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                            </div>
+                          )}
+                          
+                          <div className="flex justify-between text-gray-400">
+                            <span>Tax (0%):</span>
+                            <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                          </div>
+                          <div className="flex justify-between text-emerald-400 font-medium">
+                            <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
+                            <span>-{formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                          </div>
+                          
+                          {/* Currency Information */}
+                          {!isExemptCountry && currency !== 'PKR' && invoice && (
+                            <div className="mt-3 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                              <p className="text-sm text-purple-300 mb-2">International Pricing Information:</p>
+                              <ul className="text-xs space-y-1 text-gray-400">
+                                <li>• Base price in PKR: {formatPrice(invoice.subTotal / 1.3, 'PKR', 1, true)}</li>
+                                <li>• International service fee (30%): {formatPrice(invoice.subTotal - (invoice.subTotal / 1.3), invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                                {Boolean(invoice.items.find(item => item.description.includes('Urgent Timeline'))) && (
+                                  <li>• Urgent delivery surcharge (20%): {formatPrice(invoice.items.find(item => item.description.includes('Urgent Timeline'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                                )}
+                                {Boolean(invoice.items.find(item => item.description.includes('Timeline Discount'))) && (
+                                  <li>• Relaxed timeline discount (5%): {formatPrice(invoice.items.find(item => item.description.includes('Timeline Discount'))?.amount || 0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</li>
+                                )}
+                                <li>• Current exchange rate: 1 PKR = {baseExchangeRates[currency as SupportedCurrency]} {currency}</li>
+                              </ul>
+                            </div>
+                          )}
+
+                          <div className="border-t border-white/10 pt-3 mt-3">
+                            <div className="flex justify-between text-xl font-bold">
+                              <span className="text-white">Total:</span>
+                              <span className="bg-gradient-to-r from-emerald-400 to-green-500 bg-clip-text text-transparent">{formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Payment Instructions */}
+                    <div className="border-t border-white/10 pt-4 text-xs sm:text-sm text-gray-400">
+                      <p className="font-medium text-yellow-400 mb-2">Payment Instructions:</p>
+                      <ul className="list-disc list-inside space-y-1">
+                        <li>Please make the payment within 7 days of invoice date</li>
+                        <li>Include invoice number in payment reference</li>
+                        <li>Send payment confirmation to support@nexwebs.com</li>
+                      </ul>
                     </div>
                   </div>
-                    </div>
+                </motion.div>
+              ) : (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                  <div className="text-center py-8">
+                    <svg className="w-12 h-12 text-gray-400 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-300">No Invoice Generated</h3>
+                    <p className="mt-2 text-sm text-gray-400">
+                      Please select a plan and timeline to generate your invoice.
+                    </p>
                   </div>
+                </div>
+              )}
 
-                {/* International Payment Methods */}
-                <div className="bg-gradient-to-br from-blue-900/20 to-blue-800/5 rounded-xl p-6 border border-blue-500/20 backdrop-blur-sm">
-                  <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
-                    <span className="text-blue-400">🌐</span>
-                    International Payment Methods
-                  </h3>
-                  
-                  <div className="space-y-4">
-                    {/* PayPal */}
-                    <div className="bg-blue-500/5 rounded-lg p-4 border border-blue-500/20">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-[#003087] p-2 rounded-lg">
-                            <FaPaypal className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-white">PayPal</h4>
-                            <p className="text-xs text-gray-400">Send to: nexwebs.org@gmail.com</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => navigator.clipboard.writeText('nexwebs.org@gmail.com')}
-                          className="text-xs text-blue-400 hover:text-blue-300 px-2 py-1 bg-blue-500/10 rounded transition-colors"
+              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                {/* Payment Note */}
+                <div className="space-y-5">
+                  {/* Contact Information Section */}
+                  <div className="bg-gradient-to-br from-purple-900/20 to-purple-800/5 rounded-xl p-6 border border-purple-500/20 backdrop-blur-sm">
+                    <h3 className="text-lg font-bold text-white mb-4 flex items-center gap-2">
+                      <span className="text-purple-400">📞</span>
+                      Our Support Team Is Here For You
+                    </h3>
+                    <p className="text-gray-300 mb-4">Be patient, here's our contact information:</p>
+                    <div className="space-y-3">
+                      {['03089080171', '03098795492', '03292425950'].map((number, index) => (
+                        <motion.div 
+                          key={index} 
+                          className="flex items-center justify-between bg-purple-500/10 rounded-lg p-3 border border-purple-500/20 hover:bg-purple-500/15 transition-all duration-300"
+                          whileHover={{ y: -2, boxShadow: '0 4px 12px rgba(139, 92, 246, 0.15)' }}
                         >
-                          Copy Email
-                        </button>
-                      </div>
+                          <span className="text-white font-medium">{number}</span>
+                          <motion.button 
+                            onClick={() => navigator.clipboard.writeText(number)}
+                            className="text-xs text-purple-400 hover:text-purple-300 px-2 py-1 bg-purple-500/10 rounded transition-colors"
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                          >
+                            Copy
+                          </motion.button>
+                        </motion.div>
+                      ))}
                     </div>
-
-                    {/* Apple Pay */}
-                    <div className="bg-zinc-500/5 rounded-lg p-4 border border-zinc-500/20">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-black p-2 rounded-lg">
-                            <FaApplePay className="w-6 h-6 text-white" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-white">Apple Pay</h4>
-                            <p className="text-xs text-gray-400">ID: nexwebs@apple.pay</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => navigator.clipboard.writeText('nexwebs@apple.pay')}
-                          className="text-xs text-gray-400 hover:text-gray-300 px-2 py-1 bg-zinc-500/10 rounded transition-colors"
-                        >
-                          Copy ID
-                        </button>
-                      </div>
-                    </div>
-
-                    {/* Google Pay */}
-                    <div className="bg-[#4285f4]/5 rounded-lg p-4 border border-[#4285f4]/20">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <div className="bg-white p-2 rounded-lg">
-                            <FaGooglePay className="w-6 h-6 text-[#4285f4]" />
-                          </div>
-                          <div>
-                            <h4 className="font-medium text-white">Google Pay</h4>
-                            <p className="text-xs text-gray-400">UPI: nexwebs@gpay</p>
-                          </div>
-                        </div>
-                        <button 
-                          onClick={() => navigator.clipboard.writeText('nexwebs@gpay')}
-                          className="text-xs text-[#4285f4] hover:text-blue-300 px-2 py-1 bg-[#4285f4]/10 rounded transition-colors"
-                        >
-                          Copy UPI
-                        </button>
-                      </div>
-                    </div>
-
-                    <div className="mt-4 bg-blue-500/5 rounded-lg p-3 border border-blue-500/20">
-                      <div className="flex items-start gap-2">
-                        <span className="text-blue-400 text-sm">ℹ️</span>
-                        <p className="text-xs text-gray-400">
-                          International payments are subject to a 30% service fee. After payment, please send the transaction ID to support@nexwebs.com for verification.
+                    
+                    <div className="mt-6 bg-yellow-500/10 rounded-lg p-4 border border-yellow-500/20">
+                      <div className="flex items-start gap-3">
+                        <span className="text-yellow-500 text-xl">⚠️</span>
+                        <p className="text-yellow-200/90 text-sm">
+                          Please call one time after you've completed the payment to confirm your order
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Warning modal */}
-              <div id="angryWarningModal" className="hidden fixed inset-0 bg-black/90 backdrop-blur-sm flex items-center justify-center z-50">
-                <div className="bg-gradient-to-br from-red-900/30 to-black p-8 rounded-2xl border border-red-500/20 max-w-md w-full mx-4">
-                  <div className="text-center space-y-4">
-                    <div className="bg-red-500/10 rounded-full p-4 w-16 h-16 mx-auto flex items-center justify-center">
-                      <span className="text-4xl">⚠️</span>
-                          </div>
-                    <h3 className="text-xl font-bold text-red-400">Payment Not Available</h3>
-                    <div className="space-y-2">
-                      <p className="text-gray-300">
-                        We currently don't accept Stripe payments in Pakistan.
-                      </p>
-                      <p className="text-sm text-gray-400">
-                        Please use one of our secure local payment methods listed above:
-                      </p>
-                      <div className="flex justify-center gap-2 mt-2">
-                        {['Bank Transfer', 'JazzCash', 'EasyPaisa'].map((method, index) => (
-                          <span key={index} className="text-xs bg-red-500/10 text-red-300 px-3 py-1 rounded-full border border-red-500/20">
-                            {method}
-                          </span>
-                        ))}
-                            </div>
-                    </div>
-                    <button 
-                      onClick={() => {
-                        const modal = document.getElementById('angryWarningModal');
-                        if (modal) modal.classList.add('hidden');
-                      }}
-                      className="w-full py-3 bg-gradient-to-r from-zinc-800 to-zinc-900 hover:from-zinc-700 hover:to-zinc-800 text-white rounded-lg font-medium transition-all duration-200 border border-red-500/20"
-                    >
-                      I Understand
-                    </button>
-                            </div>
-                          </div>
-                        </div>
-
-              {/* Add click handler for pay button */}
-              <div className="flex justify-end mt-6">
+                {/* Enhance payment button */}
+                <div className="flex justify-end mt-6">
                   <motion.button
-                  className={`pay-button w-full bg-purple-600 hover:bg-purple-700 text-white font-bold py-2 sm:py-3 px-4 sm:px-6 rounded-lg transition-all flex items-center justify-center space-x-2 text-sm sm:text-base ${buttonShake ? 'animate-shake' : ''}`}
-                  whileHover={{ scale: 1.02 }}
+                    className={`pay-button w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 text-sm sm:text-base shadow-lg shadow-purple-900/20 ${buttonShake ? 'animate-shake' : ''}`}
+                    whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)' }}
                     whileTap={{ scale: 0.98 }}
-                  onClick={handlePayClick}
+                    onClick={handlePayClick}
                   >
                     <FaLock className="w-3 h-3 sm:w-4 sm:h-4" />
                     <span>Pay Now</span>
                   </motion.button>
-              </div>
+                </div>
 
-                  <p className="text-xs sm:text-sm text-gray-400 text-center mt-3 sm:mt-4">
+                <p className="text-xs sm:text-sm text-gray-400 text-center mt-4">
+                  <span className="flex items-center justify-center gap-2">
+                    <FaLock className="w-3 h-3 text-purple-400" />
                     Your payment is secured with SSL encryption
-                  </p>
+                  </span>
+                </p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      {/* Confirmation Dialog */}
-      {showConfirmDialog && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-          <div className="bg-zinc-900 p-6 rounded-xl border border-purple-500/20 max-w-md w-full mx-4">
-            <div className="text-center mb-6">
-              <svg className="w-12 h-12 text-purple-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-              </svg>
-              <h3 className="text-xl font-bold text-white mb-2">Download Invoice</h3>
-              <p className="text-gray-300 text-sm mb-4">
-                Please note that this invoice contains important information about your project terms and conditions.
-              </p>
-              <div className="mt-2 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                <p className="text-yellow-400 text-sm font-medium mb-2">
-                  ⚠️ Important Notice
-                </p>
-                <p className="text-gray-300 text-sm">
-                  This invoice serves as your official proof of agreement and payment evidence. Please ensure all details are accurate and keep it securely for your records.
-                </p>
-              </div>
-              {isMobile && (
-                <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                  <p className="text-yellow-400 text-sm">
-                    ⚠️ You are on a mobile device. For the best viewing experience, we recommend opening the invoice on a laptop or desktop computer.
+        {/* Payment Processing Modal */}
+        {showPaymentModal && (
+          <div className="fixed inset-0 bg-black/90 backdrop-blur-md flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn">
+            <div className="relative bg-gradient-to-br from-zinc-900 to-zinc-950 p-5 sm:p-6 rounded-xl border border-purple-500/20 max-w-sm w-full mx-4 shadow-2xl shadow-purple-900/10">
+              <motion.button
+                initial={{ opacity: 0.6 }}
+                whileHover={{ opacity: 1 }}
+                className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                onClick={closePaymentModal}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </motion.button>
+              
+              <div className="text-center space-y-4">
+                <div className="inline-flex items-center justify-center bg-purple-500/10 rounded-full p-2.5 mx-auto">
+                  <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                
+                <div>
+                  <h3 className="text-lg font-bold text-white">Payment Process Update</h3>
+                  <p className="text-gray-300 text-xs mt-1">
+                    We're enhancing our payment system to prioritize your security.
                   </p>
                 </div>
-              )}
-            </div>
-            <div className="flex flex-col gap-3">
-              <button
-                onClick={handleConfirmDownload}
-                className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
-              >
-                I Understand, Continue
-              </button>
-              <button
-                onClick={() => setShowConfirmDialog(false)}
-                className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-semibold py-3 px-6 rounded-lg transition-all duration-300"
-              >
-                Cancel
-              </button>
+                
+                <div className="grid grid-cols-3 gap-2 py-2">
+                  {[
+                    { name: 'JazzCash', icon: FaMobileAlt, color: 'bg-red-600', onClick: () => setPaymentMethod('jazzcash') },
+                    { name: 'EasyPaisa', icon: FaMobileAlt, color: 'bg-green-600', onClick: () => setPaymentMethod('easypaisa') },
+                    { name: 'Bank Transfer', icon: FaUniversity, color: 'bg-blue-600', onClick: () => setPaymentMethod('bank-transfer') }
+                  ].map((method, index) => (
+                    <motion.div 
+                      key={index} 
+                      className="text-center cursor-pointer"
+                      whileHover={{ y: -2 }}
+                      whileTap={{ scale: 0.97 }}
+                      onClick={method.onClick}
+                    >
+                      <div className={`${method.color} rounded-lg p-2 mx-auto w-10 h-10 flex items-center justify-center mb-1`}>
+                        <method.icon className="text-white text-sm" />
+                      </div>
+                      <p className="text-[10px] font-medium text-gray-300">{method.name}</p>
+                    </motion.div>
+                  ))}
+                </div>
+                
+                <div className="p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20 text-left">
+                  <div className="flex gap-2">
+                    <span className="text-yellow-500 text-sm flex-shrink-0">ⓘ</span>
+                    <p className="text-xs text-yellow-200/90">
+                      After completing your transaction, please contact our support team with your receipt for verification.
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col space-y-2">
+                  <motion.button
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => {
+                      setPaymentMethod('jazzcash');
+                      closePaymentModal();
+                    }}
+                    className="py-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white rounded-lg text-sm font-medium transition-all duration-300 shadow-lg shadow-purple-900/20"
+                  >
+                    Continue to Payment
+                  </motion.button>
+                  <button
+                    onClick={closePaymentModal}
+                    className="py-2 text-xs text-gray-400 hover:text-white transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                
+                <p className="text-[10px] text-gray-500 flex items-center justify-center gap-1.5 pt-1">
+                  <FaLock className="w-2.5 h-2.5" />
+                  <span>Your security is our priority</span>
+                </p>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-    </main>
+        )}
+
+        {/* Confirmation Dialog */}
+        {showConfirmDialog && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
+            <div className="bg-zinc-900 p-6 rounded-xl border border-purple-500/20 max-w-md w-full mx-4">
+              <div className="text-center mb-6">
+                <svg className="w-12 h-12 text-purple-500 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="text-xl font-bold text-white mb-2">Download Invoice</h3>
+                <p className="text-gray-300 text-sm mb-4">
+                  Please note that this invoice contains important information about your project terms and conditions.
+                </p>
+                <div className="mt-2 p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                  <p className="text-yellow-400 text-sm font-medium mb-2">
+                    ⚠️ Important Notice
+                  </p>
+                  <p className="text-gray-300 text-sm">
+                    This invoice serves as your official proof of agreement and payment evidence. Please ensure all details are accurate and keep it securely for your records.
+                  </p>
+                </div>
+                {isMobile && (
+                  <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                    <p className="text-yellow-400 text-sm">
+                      ⚠️ You are on a mobile device. For the best viewing experience, we recommend opening the invoice on a laptop or desktop computer.
+                    </p>
+                  </div>
+                )}
+              </div>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={handleConfirmDownload}
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+                >
+                  I Understand, Continue
+                </button>
+                <button
+                  onClick={() => setShowConfirmDialog(false)}
+                  className="w-full bg-zinc-800 hover:bg-zinc-700 text-gray-300 font-semibold py-3 px-6 rounded-lg transition-all duration-300"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+    </>
   );
 }
 

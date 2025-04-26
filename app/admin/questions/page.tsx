@@ -30,7 +30,7 @@ export default function AdminQuestionsPage() {
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
     // Simple password protection - in a real app, use proper authentication
-    if (password === 'nex-devs.org889123') {
+    if (password === 'nex-devs') {
       setAuthenticated(true);
       localStorage.setItem('admin-authenticated', 'true');
     } else {

@@ -1,6 +1,8 @@
 'use client'
 import Hero from "@/components/sections/Hero"
-import TrustedCompanies from "@/components/sections/TrustedCompanies"
+import HomeProjectGallery from "@/components/HomeProjectGallery"
+// import TrustedCompanies from "@/components/sections/TrustedCompanies"
+// import TrustedSection from "@/components/sections/TrustedSection"
 // import Details from "@/components/sections/Details"
 // import Work from "@/components/sections/Work"
 // import Footer from "@/components/sections/Footer"
@@ -10,6 +12,7 @@ import Image from 'next/image'
 import { useEffect, useState, useCallback } from 'react'
 import { useEasterEggs } from '@/context/EasterEggContext'
 import WelcomeScreen from './components/WelcomeScreen'
+import FloatingActionButton from './components/FloatingActionButton'
 
 // Easter Egg: Hidden message in source code
 /**
@@ -370,443 +373,380 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main className="min-h-screen bg-black">
-      <AnimatePresence mode="wait">
-        {showWelcome && (
-          <motion.div
-            key="welcome"
-            initial={{ opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 1.02 }}
-            transition={{ 
-              duration: 0.8, 
-              ease: [0.22, 1, 0.36, 1],
-              scale: {
-                duration: 1.2
-              }
-            }}
-            className="fixed inset-0 z-50"
-          >
-            <WelcomeScreen onComplete={handleWelcomeComplete} initialDirection={-1} />
-          </motion.div>
-        )}
-        <motion.div
-          key="main"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8 }}
-        >
-          {/* Floating Hint Button */}
-          <motion.button
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            whileHover={{ scale: 1.1 }}
-            onClick={() => setShowHints(prev => !prev)}
-            className="fixed bottom-4 right-4 z-50 px-4 py-2 bg-purple-500/20 
-                       rounded-full border border-purple-500/30 backdrop-blur-sm
-                       hover:bg-purple-500/30 transition-all duration-300
-                       text-white/80 hover:text-white flex items-center gap-2
-                       hidden sm:flex"
-          >
-            <span className="text-lg">🎲</span>
-            <span className="text-sm">Find Easter Eggs</span>
-          </motion.button>
-
-          {/* Hints Panel */}
-          {showHints && (
+    <main className="relative smooth-scroll transition-all will-change-transform"
+          style={{
+            transform: 'translate3d(0, 0, 0)',
+            backfaceVisibility: 'hidden',
+            perspective: '1000px',
+            scrollBehavior: 'smooth'
+          }}>
+      {showWelcome && <WelcomeScreen onComplete={handleWelcomeComplete} />}
+      <div className="smooth-scroll transition-all duration-300 ease-in-out will-change-transform"
+           style={{
+             transform: 'translate3d(0, 0, 0)',
+             backfaceVisibility: 'hidden'
+           }}>
+        <Hero />
+        
+        {/* Project Gallery Section - Added below Hero */}
+        <HomeProjectGallery />
+        
+        {/* Services Section */}
+        <section className="py-12 sm:py-20 relative overflow-hidden transition-all duration-500 ease-in-out will-change-transform"
+                 style={{
+                   transform: 'translate3d(0, 0, 0)',
+                   backfaceVisibility: 'hidden'
+                 }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
             <motion.div
-              initial={{ opacity: 0, x: 300 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 300 }}
-              className="fixed right-4 bottom-16 z-50 w-80 bg-black/90 
-                         rounded-xl border border-purple-500/30 backdrop-blur-lg
-                         p-4 text-white/80"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3, duration: 0.6, ease: "easeOut" }}
+              className="text-center mb-8 sm:mb-16 space-y-2 sm:space-y-4"
             >
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-lg font-semibold text-purple-400">Easter Egg Hints</h3>
-                <button 
-                  onClick={() => setShowHints(false)}
-                  className="text-white/60 hover:text-white"
-                >
-                  ×
-                </button>
-              </div>
-              <div className="space-y-3">
-                {easterEggHints.map((hint, index) => (
-                  <motion.div
-                    key={hint.title}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="p-2 rounded-lg bg-white/5 hover:bg-white/10 
-                              transition-colors duration-300"
-                  >
-                    <h4 className="text-sm font-medium text-purple-300">{hint.title}</h4>
-                    <p className="text-xs text-gray-400 mt-1">{hint.hint}</p>
-                  </motion.div>
-                ))}
-              </div>
-            </motion.div>
-          )}
-
-          {/* Small indicator for Konami progress */}
-          {konamiIndex > 0 && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="fixed top-4 right-4 z-50 px-3 py-1 bg-purple-500/20 
-                         rounded-full border border-purple-500/30 backdrop-blur-sm"
-            >
-              <span className="text-xs text-purple-300">
-                {`${konamiIndex}/${KONAMI_CODE.length}`}
-              </span>
-            </motion.div>
-          )}
-
-          <Hero />
-          <TrustedCompanies />
-
-          {/* Services Section */}
-          <section className="py-12 sm:py-20 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-center mb-8 sm:mb-16 space-y-2 sm:space-y-4"
-              >
-                <h2 className="text-2xl sm:text-4xl font-bold text-white">
-                  Our{" "}
-                  <span className="relative inline-block">
-                    <span className="relative z-10 bg-white text-black px-3 sm:px-4 py-1 rounded-lg">
-                      Services
-                    </span>
+              <h2 className="text-2xl sm:text-4xl font-bold text-white">
+                Our{" "}
+                <span className="relative inline-block">
+                  <span className="relative z-10 bg-white text-black px-3 sm:px-4 py-1 rounded-lg">
+                    Services
                   </span>
-                </h2>
-              </motion.div>
+                </span>
+              </h2>
+            </motion.div>
 
-              <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
-                {services.map((service, index) => (
-                  <motion.div
-                    key={service.title}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    whileHover={{ y: -5 }}
-                    className="group relative p-4 sm:p-6 w-[calc(50%-8px)] sm:w-64 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
-                               hover:border-purple-500/50 transition-all duration-300 shadow-lg"
-                  >
-                    <div className="mb-3 sm:mb-4">
-                      <span className="text-2xl sm:text-4xl">{service.icon}</span>
-                    </div>
-                    <h3 className="text-base sm:text-xl font-semibold text-white mb-2">
-                      {service.title}
-                    </h3>
-                    <p className="text-xs sm:text-base text-gray-400">
-                      {service.description}
-                    </p>
-                  </motion.div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Technologies Section */}
-          <section className="py-12 sm:py-20 relative">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6">
-              <div className="text-center mb-10 sm:mb-16">
-                <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3">
-                  <span className="text-white">Tech </span>
-                  <span className="bg-white text-black px-3 py-1 rounded-lg">Stack</span>
-                </h2>
-                <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto">
-                  Modern technologies I work with to build powerful solutions
-                </p>
-              </div>
-              
-              {/* Tech Icons - Minimalist Grid */}
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6 mb-12 sm:mb-16">
-                {technologies.map((tech) => (
-                  <div
-                    key={tech.name}
-                    className="flex flex-col items-center"
-                  >
-                    <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center 
-                                  bg-black p-2 sm:p-3 rounded-lg border border-white/5 
-                                  hover:border-purple-500/70 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] 
-                                  transition-all duration-300">
-                      <Image 
-                        src={tech.icon} 
-                        alt={tech.name} 
-                        width={40} 
-                        height={40} 
-                        className="object-contain w-8 h-8 sm:w-10 sm:h-10 brightness-125 
-                                 hover:brightness-150 transition-all duration-300"
-                      />
-                    </div>
-                    <span className="text-xs sm:text-sm text-gray-400 group-hover:text-purple-300 transition-colors duration-300">{tech.name}</span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Tech Categories - Clean Cards */}
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
-                {[
-                  {
-                    title: "Frontend",
-                    description: "Modern UI development",
-                    tools: "React, Next.js, TypeScript",
-                    icon: "💻"
-                  },
-                  {
-                    title: "Backend",
-                    description: "Scalable server solutions",
-                    tools: "Node.js, Python, AWS",
-                    icon: "⚙️"
-                  },
-                  {
-                    title: "DevOps",
-                    description: "Deployment & CI/CD",
-                    tools: "Docker, GitHub Actions, Vercel",
-                    icon: "🚀"
-                  }
-                ].map((category) => (
-                  <div
-                    key={category.title}
-                    className="group p-5 sm:p-6 border border-white/10 rounded-lg bg-black 
-                             hover:border-purple-500/50 hover:bg-black/80
-                             transition-all duration-300"
-                  >
-                    <div className="flex items-start gap-3 mb-3">
-                      <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
-                        {category.icon}
-                      </span>
-                      <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-purple-200 transition-colors duration-300">
-                        {category.title}
-                      </h3>
-                    </div>
-                    <p className="text-sm text-gray-400 mb-3">{category.description}</p>
-                    <div className="pt-3 border-t border-white/10 group-hover:border-purple-500/20 transition-colors duration-300">
-                      <p className="text-sm text-white/70 font-mono group-hover:text-purple-200/80 transition-colors duration-300">{category.tools}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* Work Showcase Section */}
-          <section className="py-12 sm:py-24 relative overflow-hidden">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-12 sm:mb-20">
-                {[
-                  { number: "250+", label: "Projects Completed", icon: "🚀" },
-                  { number: "95%", label: "Client Satisfaction", icon: "⭐" },
-                  { number: "10+", label: "Years Experience", icon: "⏳" },
-                  { number: "50+", label: "Team Members", icon: "👥" }
-                ].map((stat, index) => (
-                  <motion.div
-                    key={stat.label}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: index * 0.1 }}
-                    className="relative group"
-                  >
-                    <div className="relative p-3 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
-                                  hover:border-purple-500/50 transition-all duration-300">
-                      <span className="text-xl sm:text-2xl mb-2 sm:mb-4 block group-hover:scale-110 transition-transform duration-300">
-                        {stat.icon}
-                      </span>
-                      <h4 className="text-xl sm:text-3xl font-bold text-white mb-1">{stat.number}</h4>
-                      <p className="text-xs sm:text-sm text-gray-400">{stat.label}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Featured Work */}
-              <div className="space-y-8 sm:space-y-16">
-                <div className="text-center space-y-2 sm:space-y-4">
-                  <h2 className="text-2xl sm:text-4xl font-bold text-white">FEATURED PROJECT DETAILS</h2>
-                  <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto">
-                    Delivering exceptional digital experiences through innovative solutions and cutting-edge technology
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
-                  {[
-                    {
-                      title: "E-commerce Platform",
-                      description: "Built a scalable e-commerce solution handling 100k+ monthly users",
-                      tech: ["Next.js", "Node.js", "MongoDB", "AWS"],
-                      metrics: ["45% faster loading", "2x conversion rate", "99.9% uptime"],
-                      color: "from-blue-500/20 to-purple-500/20"
-                    },
-                    {
-                      title: "AI-Powered Analytics",
-                      description: "Developed custom AI solutions for enterprise data analysis",
-                      tech: ["Python", "TensorFlow", "React", "GraphQL"],
-                      metrics: ["85% accuracy", "3x faster insights", "50% cost reduction"],
-                      color: "from-purple-500/20 to-pink-500/20"
-                    }
-                  ].map((project, index) => (
-                    <motion.div
-                      key={project.title}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ delay: 0.2 + index * 0.1 }}
-                      className="group relative"
-                    >
-                      <div className="relative p-4 sm:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
-                                    hover:border-purple-500/50 transition-all duration-300">
-                        <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-4 group-hover:text-purple-200 transition-colors">
-                          {project.title}
-                        </h3>
-                        <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{project.description}</p>
-                        
-                        {/* Tech Stack */}
-                        <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-                          {project.tech.map((tech) => (
-                            <span key={tech} className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full bg-white/5 border border-white/10 text-gray-300">
-                              {tech}
-                            </span>
-                          ))}
-                        </div>
-
-                        {/* Metrics */}
-                        <div className="space-y-1 sm:space-y-2">
-                          {project.metrics.map((metric) => (
-                            <div key={metric} className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
-                              <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50"></span>
-                              {metric}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </div>
-
-                {/* View All Projects button */}
+            <div className="flex flex-wrap justify-center gap-4 sm:gap-8">
+              {services.map((service, index) => (
                 <motion.div
+                  key={service.title}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.3 }}
-                  className="flex justify-center mt-8 sm:mt-12"
+                  transition={{ delay: index * 0.1 }}
+                  whileHover={{ y: -5 }}
+                  className="group relative p-4 sm:p-6 w-[calc(50%-8px)] sm:w-64 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
+                             hover:border-purple-500/50 transition-all duration-300 shadow-lg"
                 >
-                  <Link 
-                    href="/featured-projects" 
-                    className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-[#1A1A1A] rounded-lg hover:bg-[#2A2A2A] transition-colors"
-                  >
-                    VIEW PROJECTS DETAILS →
-                  </Link>
+                  <div className="mb-3 sm:mb-4">
+                    <span className="text-2xl sm:text-4xl">{service.icon}</span>
+                  </div>
+                  <h3 className="text-base sm:text-xl font-semibold text-white mb-2">
+                    {service.title}
+                  </h3>
+                  <p className="text-xs sm:text-base text-gray-400">
+                    {service.description}
+                  </p>
                 </motion.div>
-              </div>
+              ))}
             </div>
-          </section>
+          </div>
+        </section>
 
-          {/* Work Process Sitemap */}
-          <section className="py-20 relative overflow-hidden">
-            {/* Purple Gradient Background Effects */}
-            <div className="absolute inset-0 bg-black">
-              <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
-              <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-700" />
-              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[128px] animate-pulse delay-1000" />
+        {/* Technologies Section */}
+        <section className="py-12 sm:py-20 relative transition-all duration-500 ease-in-out will-change-transform"
+                 style={{
+                   transform: 'translate3d(0, 0, 0)',
+                   backfaceVisibility: 'hidden'
+                 }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6">
+            <div className="text-center mb-10 sm:mb-16">
+              <h2 className="text-2xl sm:text-4xl font-bold text-white mb-3">
+                <span className="text-white">Tech </span>
+                <span className="bg-white text-black px-3 py-1 rounded-lg">Stack</span>
+              </h2>
+              <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto">
+                Modern technologies I work with to build powerful solutions
+              </p>
+            </div>
+            
+            {/* Tech Icons - Minimalist Grid */}
+            <div className="grid grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6 mb-12 sm:mb-16">
+              {technologies.map((tech) => (
+                <div
+                  key={tech.name}
+                  className="flex flex-col items-center"
+                >
+                  <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center 
+                                bg-black p-2 sm:p-3 rounded-lg border border-white/5 
+                                hover:border-purple-500/70 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] 
+                                transition-all duration-300">
+                    <Image 
+                      src={tech.icon} 
+                      alt={tech.name} 
+                      width={40} 
+                      height={40} 
+                      className="object-contain w-8 h-8 sm:w-10 sm:h-10 brightness-125 
+                               hover:brightness-150 transition-all duration-300"
+                    />
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-400 group-hover:text-purple-300 transition-colors duration-300">{tech.name}</span>
+                </div>
+              ))}
             </div>
 
-            <div className="max-w-7xl mx-auto px-6 relative z-10">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3 }}
-                className="text-center mb-16"
-              >
-                <h2 className="text-3xl font-bold text-white mb-4">How I Work</h2>
-                <p className="text-gray-400">A systematic approach to delivering exceptional results</p>
-              </motion.div>
+            {/* Tech Categories - Clean Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+              {[
+                {
+                  title: "Frontend",
+                  description: "Modern UI development",
+                  tools: "React, Next.js, TypeScript",
+                  icon: "💻"
+                },
+                {
+                  title: "Backend",
+                  description: "Scalable server solutions",
+                  tools: "Node.js, Python, AWS",
+                  icon: "⚙️"
+                },
+                {
+                  title: "DevOps",
+                  description: "Deployment & CI/CD",
+                  tools: "Docker, GitHub Actions, Vercel",
+                  icon: "🚀"
+                }
+              ].map((category) => (
+                <div
+                  key={category.title}
+                  className="group p-5 sm:p-6 border border-white/10 rounded-lg bg-black 
+                           hover:border-purple-500/50 hover:bg-black/80
+                           transition-all duration-300"
+                >
+                  <div className="flex items-start gap-3 mb-3">
+                    <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
+                      {category.icon}
+                    </span>
+                    <h3 className="text-lg sm:text-xl font-medium text-white group-hover:text-purple-200 transition-colors duration-300">
+                      {category.title}
+                    </h3>
+                  </div>
+                  <p className="text-sm text-gray-400 mb-3">{category.description}</p>
+                  <div className="pt-3 border-t border-white/10 group-hover:border-purple-500/20 transition-colors duration-300">
+                    <p className="text-sm text-white/70 font-mono group-hover:text-purple-200/80 transition-colors duration-300">{category.tools}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
 
-              {/* Timeline Connection Line with Glow */}
-              <div className="absolute left-1/2 top-[30%] bottom-[20%] w-0.5 hidden lg:block">
-                <div className="h-full bg-gradient-to-b from-purple-500/50 via-indigo-500/30 to-transparent" />
-                <div className="h-full w-full absolute top-0 left-0 bg-gradient-to-b from-purple-500/50 via-indigo-500/30 to-transparent blur-sm" />
+        {/* Work Showcase Section */}
+        <section className="py-12 sm:py-24 relative overflow-hidden transition-all duration-500 ease-in-out will-change-transform"
+                 style={{
+                   transform: 'translate3d(0, 0, 0)',
+                   backfaceVisibility: 'hidden'
+                 }}>
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 relative z-10">
+            {/* Stats Grid */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-6 mb-12 sm:mb-20">
+              {[
+                { number: "250+", label: "Projects Completed", icon: "🚀" },
+                { number: "95%", label: "Client Satisfaction", icon: "⭐" },
+                { number: "10+", label: "Years Experience", icon: "⏳" },
+                { number: "50+", label: "Team Members", icon: "👥" }
+              ].map((stat, index) => (
+                <motion.div
+                  key={stat.label}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="relative group"
+                >
+                  <div className="relative p-3 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                                hover:border-purple-500/50 transition-all duration-300">
+                    <span className="text-xl sm:text-2xl mb-2 sm:mb-4 block group-hover:scale-110 transition-transform duration-300">
+                      {stat.icon}
+                    </span>
+                    <h4 className="text-xl sm:text-3xl font-bold text-white mb-1">{stat.number}</h4>
+                    <p className="text-xs sm:text-sm text-gray-400">{stat.label}</p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Featured Work */}
+            <div className="space-y-8 sm:space-y-16">
+              <div className="text-center space-y-2 sm:space-y-4">
+                <h2 className="text-2xl sm:text-4xl font-bold text-white">FEATURED PROJECT DETAILS</h2>
+                <p className="text-xs sm:text-base text-gray-400 max-w-2xl mx-auto">
+                  Delivering exceptional digital experiences through innovative solutions and cutting-edge technology
+                </p>
               </div>
 
-              <div className="space-y-12 relative">
-                {workProcess.map((process, index) => (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-8">
+                {[
+                  {
+                    title: "E-commerce Platform",
+                    description: "Built a scalable e-commerce solution handling 100k+ monthly users",
+                    tech: ["Next.js", "Node.js", "MongoDB", "AWS"],
+                    metrics: ["45% faster loading", "2x conversion rate", "99.9% uptime"],
+                    color: "from-blue-500/20 to-purple-500/20"
+                  },
+                  {
+                    title: "AI-Powered Analytics",
+                    description: "Developed custom AI solutions for enterprise data analysis",
+                    tech: ["Python", "TensorFlow", "React", "GraphQL"],
+                    metrics: ["85% accuracy", "3x faster insights", "50% cost reduction"],
+                    color: "from-purple-500/20 to-pink-500/20"
+                  }
+                ].map((project, index) => (
                   <motion.div
-                    key={process.step}
-                    initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.2 }}
-                    className={`flex flex-col lg:flex-row gap-8 items-center ${
-                      index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
-                    }`}
+                    key={project.title}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 + index * 0.1 }}
+                    className="group relative"
                   >
-                    {/* Process Card with Enhanced Hover Effect */}
-                    <motion.div 
-                      whileHover={{ scale: 1.02 }}
-                      className="w-full lg:w-[45%] p-6 rounded-xl border border-white/10 
-                               hover:border-purple-500/50 transition-all 
-                               bg-black/40 backdrop-blur-xl group relative overflow-hidden"
-                    >
-                      {/* Enhanced Gradient on Hover */}
-                      <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-indigo-500/0 
-                                    opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-                      {/* Card Content */}
-                      <div className="relative z-10">
-                        <div className="flex items-center gap-4 mb-4">
-                          <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
-                            {process.icon}
+                    <div className="relative p-4 sm:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
+                                  hover:border-purple-500/50 transition-all duration-300">
+                      <h3 className="text-lg sm:text-2xl font-bold text-white mb-2 sm:mb-4 group-hover:text-purple-200 transition-colors">
+                        {project.title}
+                      </h3>
+                      <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{project.description}</p>
+                      
+                      {/* Tech Stack */}
+                      <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                        {project.tech.map((tech) => (
+                          <span key={tech} className="px-2 sm:px-3 py-1 text-xs sm:text-sm rounded-full bg-white/5 border border-white/10 text-gray-300">
+                            {tech}
                           </span>
-                          <div>
-                            <span className="text-sm text-purple-200/60">{process.step}</span>
-                            <h3 className="text-xl font-semibold text-white group-hover:text-purple-200 transition-colors">
-                              {process.title}
-                            </h3>
-                          </div>
-                        </div>
-                        <p className="text-gray-400 mb-4 group-hover:text-purple-200/80 transition-colors">
-                          {process.description}
-                        </p>
-                        <ul className="space-y-2">
-                          {process.details.map((detail, i) => (
-                            <motion.li
-                              key={i}
-                              initial={{ opacity: 0, x: -10 }}
-                              whileInView={{ opacity: 1, x: 0 }}
-                              transition={{ delay: i * 0.1 }}
-                              className="text-gray-400 text-sm flex items-center gap-2 group/item"
-                            >
-                              <span className="w-1.5 h-1.5 bg-purple-400/50 rounded-full 
-                                           group-hover/item:bg-purple-400 group-hover/item:scale-110 
-                                           transition-all" />
-                              <span className="group-hover:text-purple-200/90 transition-colors">
-                                {detail}
-                              </span>
-                            </motion.li>
-                          ))}
-                        </ul>
+                        ))}
                       </div>
-                    </motion.div>
 
-                    {/* Enhanced Connection Point */}
-                    <div className="hidden lg:flex w-[10%] justify-center items-center">
-                      <motion.div
-                        whileHover={{ scale: 1.2 }}
-                        className="w-4 h-4 rounded-full bg-purple-500/20 border border-purple-500/50
-                                 hover:border-purple-400 hover:bg-purple-500/30 transition-all duration-300
-                                 shadow-[0_0_15px_rgba(168,85,247,0.3)]"
-                      />
+                      {/* Metrics */}
+                      <div className="space-y-1 sm:space-y-2">
+                        {project.metrics.map((metric) => (
+                          <div key={metric} className="flex items-center gap-2 text-xs sm:text-sm text-gray-400">
+                            <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50"></span>
+                            {metric}
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </motion.div>
                 ))}
               </div>
+
+              {/* View All Projects button */}
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+                className="flex justify-center mt-8 sm:mt-12"
+              >
+                <Link 
+                  href="/featured-projects" 
+                  className="inline-flex items-center justify-center px-4 sm:px-6 py-2 sm:py-3 text-sm sm:text-base font-medium text-white bg-[#1A1A1A] rounded-lg hover:bg-[#2A2A2A] transition-colors"
+                >
+                  VIEW PROJECTS DETAILS →
+                </Link>
+              </motion.div>
             </div>
-          </section>
-        </motion.div>
-      </AnimatePresence>
+          </div>
+        </section>
+
+        {/* Work Process Sitemap */}
+        <section className="py-20 relative overflow-hidden transition-all duration-500 ease-in-out will-change-transform"
+                 style={{
+                   transform: 'translate3d(0, 0, 0)',
+                   backfaceVisibility: 'hidden'
+                 }}>
+          {/* Purple Gradient Background Effects */}
+          <div className="absolute inset-0 bg-black">
+            <div className="absolute top-0 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse" />
+            <div className="absolute bottom-0 right-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[128px] animate-pulse delay-700" />
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[128px] animate-pulse delay-1000" />
+          </div>
+
+          <div className="max-w-7xl mx-auto px-6 relative z-10">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-center mb-16"
+            >
+              <h2 className="text-3xl font-bold text-white mb-4">How I Work</h2>
+              <p className="text-gray-400">A systematic approach to delivering exceptional results</p>
+            </motion.div>
+
+            {/* Timeline Connection Line with Glow */}
+            <div className="absolute left-1/2 top-[30%] bottom-[20%] w-0.5 hidden lg:block">
+              <div className="h-full bg-gradient-to-b from-purple-500/50 via-indigo-500/30 to-transparent" />
+              <div className="h-full w-full absolute top-0 left-0 bg-gradient-to-b from-purple-500/50 via-indigo-500/30 to-transparent blur-sm" />
+            </div>
+
+            <div className="space-y-12 relative">
+              {workProcess.map((process, index) => (
+                <motion.div
+                  key={process.step}
+                  initial={{ opacity: 0, x: index % 2 === 0 ? -50 : 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.2 }}
+                  className={`flex flex-col lg:flex-row gap-8 items-center ${
+                    index % 2 === 0 ? 'lg:flex-row' : 'lg:flex-row-reverse'
+                  }`}
+                >
+                  {/* Process Card with Enhanced Hover Effect */}
+                  <motion.div 
+                    whileHover={{ scale: 1.02 }}
+                    className="w-full lg:w-[45%] p-6 rounded-xl border border-white/10 
+                             hover:border-purple-500/50 transition-all 
+                             bg-black/40 backdrop-blur-xl group relative overflow-hidden"
+                  >
+                    {/* Enhanced Gradient on Hover */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-500/0 via-purple-500/5 to-indigo-500/0 
+                                  opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                    {/* Card Content */}
+                    <div className="relative z-10">
+                      <div className="flex items-center gap-4 mb-4">
+                        <span className="text-3xl group-hover:scale-110 transition-transform duration-300">
+                          {process.icon}
+                        </span>
+                        <div>
+                          <span className="text-sm text-purple-200/60">{process.step}</span>
+                          <h3 className="text-xl font-semibold text-white group-hover:text-purple-200 transition-colors">
+                            {process.title}
+                          </h3>
+                        </div>
+                      </div>
+                      <p className="text-gray-400 mb-4 group-hover:text-purple-200/80 transition-colors">
+                        {process.description}
+                      </p>
+                      <ul className="space-y-2">
+                        {process.details.map((detail, i) => (
+                          <motion.li
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            transition={{ delay: i * 0.1 }}
+                            className="text-gray-400 text-sm flex items-center gap-2 group/item"
+                          >
+                            <span className="w-1.5 h-1.5 bg-purple-400/50 rounded-full 
+                                         group-hover/item:bg-purple-400 group-hover/item:scale-110 
+                                         transition-all" />
+                            <span className="group-hover:text-purple-200/90 transition-colors">
+                              {detail}
+                            </span>
+                          </motion.li>
+                        ))}
+                      </ul>
+                    </div>
+                  </motion.div>
+
+                  {/* Enhanced Connection Point */}
+                  <div className="hidden lg:flex w-[10%] justify-center items-center">
+                    <motion.div
+                      whileHover={{ scale: 1.2 }}
+                      className="w-4 h-4 rounded-full bg-purple-500/20 border border-purple-500/50
+                               hover:border-purple-400 hover:bg-purple-500/30 transition-all duration-300
+                               shadow-[0_0_15px_rgba(168,85,247,0.3)]"
+                    />
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </div>
       <div className="fixed bottom-2 right-2 opacity-30 hover:opacity-100 transition-opacity">
         <Link href="/admin/login" className="text-xs text-gray-500 hover:text-gray-300">Admin</Link>
       </div>

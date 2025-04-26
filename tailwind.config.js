@@ -248,6 +248,10 @@ module.exports = {
           "from": { transform: "rotate(0deg) scale(0)" },
           "to": { transform: "rotate(360deg) scale(1)" }
         },
+        "spin-slow": {
+          "0%": { transform: "rotate(0deg)" },
+          "100%": { transform: "rotate(360deg)" }
+        },
         "elastic": {
           "0%": { transform: "scale(1)" },
           "25%": { transform: "scale(0.95)" },
@@ -287,12 +291,12 @@ module.exports = {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "blob": "blob 7s infinite",
-        "pulse": "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-        "slowPulse": "pulse-slow 4s infinite",
-        "fade": "fade 3s ease-in-out infinite",
-        "float": "float 6s ease-in-out infinite",
-        "float-smooth": "float-smooth 6s ease-in-out infinite",
-        "reveal": "reveal 0.5s ease-out forwards",
+        "bounce": "bounce 1s ease-in-out infinite",
+        "float": "float 3s ease-in-out infinite",
+        "pulse-slow": "pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite",
+        "spin-slow": "spin-slow 6s linear infinite",
+        "fade": "fade 2s ease-in-out infinite",
+        "reveal": "reveal 0.8s ease-out forwards",
         "flip": "flip 1s ease-in-out",
         "slide": "slide 1s ease-in-out infinite",
         "slide-right": "slide-right 3s ease-in-out infinite",
@@ -340,5 +344,8 @@ module.exports = {
       },
     },
   },
-  plugins: [require("@tailwindcss/typography")],
+  plugins: [
+    require('tailwind-scrollbar'),
+    require("@tailwindcss/typography")
+  ],
 } 

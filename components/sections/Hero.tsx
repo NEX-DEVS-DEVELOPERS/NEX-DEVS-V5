@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo, useCallback, useEffect } from "react"
 import { useIsMobile } from '@/app/utils/deviceDetection'
-import TrustedBy from './TrustedBy'
+import TrustedSection from "./TrustedSection"
 
 // Move static data outside component to prevent recreation
 const expertise = [
@@ -344,19 +344,42 @@ export default function Hero() {
       animate="visible"
       variants={isMobile ? mobileVariants : variants}
       transition={{ duration: isMobile ? 0.3 : 0.5 }}
-      className="relative min-h-screen flex flex-col justify-center items-center py-20 px-6 mt-16 sm:mt-20"
+      className="relative min-h-screen flex flex-col justify-center items-center py-20 px-6 mt-16 sm:mt-20 bg-black will-change-transform"
+      style={{
+        transform: 'translate3d(0, 0, 0)', // Force GPU acceleration
+        backfaceVisibility: 'hidden',
+        perspective: '1000px'
+      }}
     >
+      {/* Dark gradient background - Enhanced for more darkness while preserving purple effects */}
+      <div className="fixed inset-0 bg-[#050509] z-[-1] will-change-transform"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-[#050509] via-[#07051a] to-[#050509] opacity-95 will-change-transform"></div>
+      
       {/* Optimize gradient effects by reducing blur radius and using will-change */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[24px] will-change-transform" 
-             style={{ transform: 'translate3d(0, 0, 0)' }} />
-        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-500/20 rounded-full blur-[24px] will-change-transform" 
-             style={{ transform: 'translate3d(0, 0, 0)' }} />
-        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-500/10 rounded-full blur-[24px] will-change-transform" 
-             style={{ transform: 'translate3d(0, 0, 0)' }} />
+        {/* Add a dark vignette effect */}
+        <div className="absolute inset-0 z-0 will-change-transform"
+             style={{ 
+               background: 'radial-gradient(circle, rgba(0, 0, 0, 0.7) 0%, rgba(0, 0, 0, 0.95) 100%)',
+               transform: 'translate3d(0, 0, 0)',
+               backfaceVisibility: 'hidden'
+             }} 
+        ></div>
+        
+        <div className="absolute top-0 right-1/4 w-[500px] h-[500px] bg-purple-900/25 rounded-full blur-[30px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }} />
+        <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] bg-indigo-900/25 rounded-full blur-[30px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }} />
+        <div className="absolute top-1/2 right-1/2 translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-violet-900/15 rounded-full blur-[30px] will-change-transform" 
+             style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }} />
+             
+        {/* Add an additional darker effect */}
+        <div className="absolute inset-0 bg-gradient-to-tr from-black via-purple-950/15 to-black opacity-90 will-change-transform"
+             style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}></div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 relative z-10 overflow-x-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 relative z-10 overflow-x-hidden will-change-transform"
+           style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}>
         {/* Left Column - Adjusted for mobile */}
         <div className="space-y-8 sm:space-y-12 mt-8 md:mt-0">
           <motion.div 
@@ -527,21 +550,31 @@ export default function Hero() {
         >
           {/* Replace the Text Showcase Section with Tech Skills Carousel */}
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="relative h-[240px] sm:h-[280px] w-full group"
+            key={activeSkillSet}
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: 20 }}
+            transition={{ duration: 0.2 }}
+            className="text-center space-y-4 pt-2"
           >
-            <div className="absolute inset-0 rounded-[24px] overflow-hidden backdrop-blur-xl">
-              {/* Simplified, consistent background for all slides */}
-              <div className="absolute inset-0 bg-white/[0.03] border border-white/10 z-0"></div>
+            {/* Mobile-optimized skills showcase */}
+            <div className="relative h-[180px] sm:h-[220px] w-full group backdrop-blur-xl rounded-xl sm:rounded-2xl overflow-hidden border border-white/10 shadow-2xl"
+                 style={{
+                   background: 'linear-gradient(180deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%)',
+                   transform: 'translate3d(0, 0, 0)',
+                   backfaceVisibility: 'hidden',
+                   willChange: 'transform'
+                 }}>
+              {/* Enhanced frosted glass background effect */}
+              <div className="absolute inset-0 backdrop-blur-md bg-black/10"></div>
               
-              {/* Subtle glass effect */}
-              <div className="absolute inset-0 backdrop-blur-sm backdrop-saturate-150 z-0"></div>
+              {/* Refined gradient overlay */}
+              <div className="absolute inset-0 bg-gradient-to-b from-purple-500/5 via-purple-400/3 to-transparent pointer-events-none"></div>
               
-              <div className="h-full w-full p-4 sm:p-5 relative z-10 transition-all duration-300">
+              <div className="h-full w-full p-3 sm:p-5 relative z-10">
                 <div className="h-full flex flex-col justify-between">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-base sm:text-lg font-medium flex items-center gap-2">
+                  <div className="flex items-center justify-between mb-2 sm:mb-4">
+                    <h3 className="text-sm sm:text-base font-medium flex items-center gap-1.5 sm:gap-2">
                       <span className="text-white/90">{currentSkillSet.category}</span>
                       <motion.span 
                         animate={{ rotate: [0, 5, 0, -5, 0] }}
@@ -557,51 +590,67 @@ export default function Hero() {
                          currentSkillSet.category === "Backend" ? "🛢️" : "✨"}
                       </motion.span>
                     </h3>
-                    <div className="flex gap-2 items-center">
-                      <button 
+                    <div className="flex items-center gap-2 sm:gap-3">
+                      {/* Compact auto/manual toggle for mobile */}
+                      <motion.button
                         onClick={toggleAutoAnimation}
-                        className={`text-xs px-3 py-1 rounded-full transition-all flex items-center gap-1.5
-                                    ${isAutoAnimating 
-                                      ? 'bg-white/10 text-white/90' 
-                                      : 'bg-white/5 text-white/70 hover:bg-white/10'}`}
-                        aria-label={isAutoAnimating ? "Turn off auto-slide" : "Turn on auto-slide"}
+                        whileHover={{ scale: 1.02 }}
+                        whileTap={{ scale: 0.98 }}
+                        className={`
+                          px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg transition-all duration-300
+                          flex items-center gap-1.5 sm:gap-2
+                          border backdrop-blur-sm
+                          ${isAutoAnimating 
+                            ? 'bg-white/10 text-white border-purple-500/30 shadow-[0_0_10px_rgba(139,92,246,0.1)]' 
+                            : 'bg-black/20 text-white/70 border-white/10 hover:bg-white/10 hover:border-purple-500/20'
+                          }
+                        `}
+                        aria-label={isAutoAnimating ? "Switch to manual mode" : "Switch to auto mode"}
                       >
-                        <span className={`text-xs ${isAutoAnimating ? 'text-white/90' : 'text-white/70'}`}>
+                        <span className={`text-sm sm:text-base ${isAutoAnimating ? 'text-purple-300' : 'text-white/70'}`}>
                           {isAutoAnimating ? '🔄' : '⏸️'}
                         </span>
-                        <span className="text-xs font-medium">
+                        <span className="text-[10px] sm:text-xs font-medium tracking-wide">
                           {isAutoAnimating ? 'Auto' : 'Manual'}
                         </span>
-                      </button>
-                      <div className="flex gap-1.5">
-                        <button 
+                      </motion.button>
+
+                      {/* Compact navigation controls */}
+                      <div className="flex gap-1 sm:gap-1.5">
+                        <motion.button 
                           onClick={prevSkillSet}
-                          className="p-1.5 rounded-full bg-white/5 hover:bg-white/10
-                                   active:scale-95 transition-all group"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-white/10
+                                   border border-white/10 hover:border-purple-500/30
+                                   transition-all duration-300 group"
                           aria-label="Previous skill set"
                         >
-                          <span className="text-base text-white/70 group-hover:text-white/90 transition-colors">←</span>
-                        </button>
-                        <button 
+                          <span className="text-xs sm:text-sm text-white/70 group-hover:text-white/90 transition-colors">←</span>
+                        </motion.button>
+                        <motion.button 
                           onClick={nextSkillSet}
-                          className="p-1.5 rounded-full bg-white/5 hover:bg-white/10
-                                   active:scale-95 transition-all group"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="p-1 sm:p-1.5 rounded-lg bg-white/5 hover:bg-white/10
+                                   border border-white/10 hover:border-purple-500/30
+                                   transition-all duration-300 group"
                           aria-label="Next skill set"
                         >
-                          <span className="text-base text-white/70 group-hover:text-white/90 transition-colors">→</span>
-                        </button>
+                          <span className="text-xs sm:text-sm text-white/70 group-hover:text-white/90 transition-colors">→</span>
+                        </motion.button>
                       </div>
                     </div>
                   </div>
 
-                  <div className="flex-1 overflow-y-auto thin-scrollbar pr-1">
+                  <div className="flex-1 overflow-y-auto thin-scrollbar pr-1 space-y-2">
                     <AnimatePresence mode="wait">
                       <motion.div 
                         key={activeSkillSet}
                         initial="hidden"
                         animate="visible"
                         exit="exit"
-                        className="space-y-3"
+                        className="space-y-1.5 sm:space-y-2.5"
                       >
                         {currentSkillSet.skills.map((skill, idx) => (
                           <motion.div
@@ -612,27 +661,27 @@ export default function Hero() {
                               delay: idx * 0.03,
                               ease: "easeOut"
                             }}
-                            className="flex items-center gap-2.5 transition-all group/skill hover:bg-white/[0.05] p-1.5 rounded-lg"
+                            className="flex items-center gap-2 sm:gap-2.5 transition-all group/skill hover:bg-white/[0.03] p-1.5 sm:p-2 rounded-lg"
                             style={{
                               willChange: 'transform, opacity',
                               transform: 'translate3d(0, 0, 0)'
                             }}
                           >
-                            <div className="w-8 h-8 flex items-center justify-center rounded-lg 
-                                         bg-white/[0.05] group-hover/skill:bg-white/[0.08] transition-all duration-300">
-                              <span className="text-base group-hover/skill:scale-110 transition-transform duration-300">{skill.icon}</span>
+                            <div className="w-6 h-6 sm:w-7 sm:h-7 flex items-center justify-center rounded-lg 
+                                         bg-white/[0.03] group-hover/skill:bg-white/[0.05] transition-all duration-300">
+                              <span className="text-xs sm:text-sm group-hover/skill:scale-110 transition-transform duration-300">{skill.icon}</span>
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center justify-between mb-1.5">
-                                <span className="text-white/90 text-sm font-medium group-hover/skill:text-white/100 transition-colors">{skill.name}</span>
-                                <span className="text-xs text-white/70 font-medium tabular-nums bg-white/[0.05] px-1.5 py-0.5 rounded-full group-hover/skill:text-white/90 group-hover/skill:bg-white/[0.08] transition-all">{skill.level}%</span>
+                              <div className="flex items-center justify-between mb-1 sm:mb-1.5">
+                                <span className="text-white/90 text-[10px] sm:text-xs font-medium group-hover/skill:text-white/100 transition-colors">{skill.name}</span>
+                                <span className="text-[9px] sm:text-[10px] text-white/70 font-medium tabular-nums bg-white/[0.03] px-1.5 sm:px-2 py-0.5 rounded-full group-hover/skill:text-white/90 group-hover/skill:bg-white/[0.05] transition-all">{skill.level}%</span>
                               </div>
-                              <div className="h-1.5 bg-white/[0.03] rounded-full overflow-hidden backdrop-blur-sm">
+                              <div className="h-1 bg-white/[0.03] rounded-full overflow-hidden backdrop-blur-sm">
                                 <motion.div 
                                   className="h-full rounded-full"
                                   style={{
-                                    background: "linear-gradient(90deg, rgba(139,92,246,0.6) 0%, rgba(168,85,247,0.8) 100%)",
-                                    boxShadow: "0 0 8px rgba(139,92,246,0.2)",
+                                    background: "linear-gradient(90deg, rgba(139,92,246,0.3) 0%, rgba(168,85,247,0.4) 100%)",
+                                    boxShadow: "0 0 8px rgba(139,92,246,0.1)",
                                     willChange: 'width',
                                     transform: 'translate3d(0, 0, 0)'
                                   }}
@@ -645,9 +694,6 @@ export default function Hero() {
                                       ease: "easeOut"
                                     }
                                   }}
-                                  whileHover={{ 
-                                    boxShadow: "0 0 12px rgba(139,92,246,0.4)"
-                                  }}
                                 ></motion.div>
                               </div>
                             </div>
@@ -657,8 +703,8 @@ export default function Hero() {
                     </AnimatePresence>
                   </div>
 
-                  {/* Updated carousel indicators */}
-                  <div className="flex justify-center gap-1.5 pt-4">
+                  {/* Compact carousel indicators */}
+                  <div className="flex justify-center gap-1 sm:gap-1.5 pt-2 sm:pt-3">
                     {techSkills.map((skillSet, idx) => (
                       <button
                         key={idx}
@@ -666,14 +712,11 @@ export default function Hero() {
                         className="group flex flex-col items-center"
                         aria-label={`Go to ${skillSet.category} skills`}
                       >
-                        <span className="text-[10px] text-white/50 group-hover:text-white/80 transition-colors mb-1.5 hidden sm:block">
-                          {skillSet.category.substring(0, 3)}
-                        </span>
                         <div 
-                          className={`h-1 rounded-full transition-all duration-300 ${
+                          className={`h-0.5 rounded-full transition-all duration-300 ${
                             idx === activeSkillSet 
-                              ? 'bg-gradient-to-r from-purple-500 to-purple-400 w-6 shadow-[0_0_8px_rgba(139,92,246,0.3)]' 
-                              : 'bg-white/10 group-hover:bg-white/20 w-3'
+                              ? 'bg-gradient-to-r from-purple-500/50 to-purple-400/50 w-4 sm:w-5 shadow-[0_0_8px_rgba(139,92,246,0.2)]' 
+                              : 'bg-white/10 group-hover:bg-white/20 w-2 sm:w-2.5'
                           }`}
                         />
                       </button>
@@ -780,6 +823,16 @@ export default function Hero() {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Trusted By Section */}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5, delay: 0.7 }}
+        className="w-full mt-12 sm:mt-16 max-w-7xl mx-auto relative"
+      >
+        <TrustedSection />
+      </motion.div>
 
       {/* Fun Facts Modal - Mobile Optimized */}
       <AnimatePresence>

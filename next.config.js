@@ -17,7 +17,6 @@ const nextConfig = {
   eslint: {
     ignoreDuringBuilds: true, // Temporarily ignore ESLint errors during build
   },
-  swcMinify: true,
   poweredByHeader: false,
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? {

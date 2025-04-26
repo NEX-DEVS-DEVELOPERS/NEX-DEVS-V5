@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
+import Link from 'next/link'
+import CodeHighlighter from './CodeHighlighter'
 
 // Project type definition
 type Project = {
@@ -34,47 +37,76 @@ export default function ProjectImageGallery() {
   const [isLoading, setIsLoading] = useState(true)
   const [hoveredProject, setHoveredProject] = useState<number | null>(null)
   const [enlargedImage, setEnlargedImage] = useState<{projectId: number, image: string} | null>(null)
+  const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true)
+  const [fetchError, setFetchError] = useState<string | null>(null)
+  const [lastFetchTime, setLastFetchTime] = useState<number | null>(null)
+  const projectsCache = useRef<{data: Project[], timestamp: number} | null>(null)
   
-  // Add state for carousel with memoized values
-  const [currentBannerIndex, setCurrentBannerIndex] = useState(0)
-  const [bannerProjects, setBannerProjects] = useState<Project[]>([])
-  
-  // Add refs for carousel optimization
+  // Carousel state
+  const [currentIndex, setCurrentIndex] = useState(0)
   const carouselRef = useRef<HTMLDivElement>(null)
   const autoplayRef = useRef<NodeJS.Timeout | null>(null)
   const touchStartXRef = useRef<number | null>(null)
-
-  // Fetch all projects with caching using useMemo
+  
+  // Fetch all projects with improved caching
   useEffect(() => {
     const controller = new AbortController();
     
     const fetchProjects = async () => {
       try {
-        // Add timestamp to force fresh data and prevent browser caching
-        const timestamp = new Date().getTime();
-        const response = await fetch(`/api/projects?t=${timestamp}`, {
+        // Check if we have cached data and it's less than 5 minutes old
+        const currentTime = new Date().getTime();
+        if (
+          projectsCache.current && 
+          projectsCache.current.data.length > 0 && 
+          currentTime - projectsCache.current.timestamp < 5 * 60 * 1000
+        ) {
+          console.log('[ProjectImageGallery] Using cached projects data');
+          setProjects(projectsCache.current.data);
+          setIsLoading(false);
+          setLastFetchTime(projectsCache.current.timestamp);
+          return;
+        }
+        
+        // Enhanced cache busting with multiple random values
+        const timestamp = currentTime;
+        const randomValue = Math.floor(Math.random() * 10000000);
+        const cache = `nocache=${timestamp}-${randomValue}`;
+        
+        console.log(`[ProjectImageGallery] Fetching projects at timestamp: ${timestamp}`);
+        setFetchError(null);
+        
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
           signal: controller.signal,
           cache: 'no-store',
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
             'Pragma': 'no-cache',
-            'Expires': '0'
+            'Expires': '0',
+            'X-Force-Refresh': 'true',
+            'X-Random-Value': randomValue.toString()
           }
         })
         
-        if (!response.ok) throw new Error('Failed to fetch projects');
+        if (!response.ok) {
+          throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
+        }
         
         const data = await response.json()
+        console.log(`[ProjectImageGallery] Received ${data.length} projects`);
         
-        // Filter projects that have valid images
+        // Filter projects that have valid images and exclude code screenshots
         const projectsWithImages = data.filter((project: Project) => 
           project.image && 
           !project.image.includes('placeholder')
+          // Code screenshots are now included
         )
         
-        // Sort projects by image priority - use stable sort for better performance
+        console.log(`[ProjectImageGallery] After filtering: ${projectsWithImages.length} projects with valid images`);
+        
+        // Sort projects - featured first, then by priority if available
         const sortedProjects = [...projectsWithImages].sort((a: Project, b: Project) => {
-          // Handle numeric priority (this is the primary way to sort)
+          // Handle numeric priority
           if (typeof a.imagePriority === 'number' && typeof b.imagePriority === 'number') {
             return a.imagePriority - b.imagePriority;
           }
@@ -94,25 +126,33 @@ export default function ProjectImageGallery() {
           return a.id - b.id;
         });
         
-        // Find all projects with priority 1 for the banner carousel
-        const priority1Projects = sortedProjects.filter(
-          (p: Project) => typeof p.imagePriority === 'number' && p.imagePriority === 1
-        );
+        // Update cache
+        projectsCache.current = {
+          data: sortedProjects,
+          timestamp: currentTime
+        };
         
-        setBannerProjects(priority1Projects);
-        setProjects(sortedProjects)
+        setProjects(sortedProjects);
+        setLastFetchTime(currentTime);
       } catch (error) {
         if (error instanceof DOMException && error.name === 'AbortError') {
           // Ignore abort errors
           return;
         }
-        console.error('Error fetching projects for gallery:', error)
+        console.error('Error fetching projects for gallery:', error);
+        setFetchError(error instanceof Error ? error.message : 'Failed to load projects');
+        
+        // If we have cached data, use it as fallback
+        if (projectsCache.current && projectsCache.current.data.length > 0) {
+          console.log('[ProjectImageGallery] Using cached data as fallback after error');
+          setProjects(projectsCache.current.data);
+        }
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchProjects()
+    fetchProjects();
     
     return () => {
       controller.abort();
@@ -120,18 +160,11 @@ export default function ProjectImageGallery() {
         clearInterval(autoplayRef.current);
       }
     }
-  }, [])
+  }, []);
 
-  // Memoize non-carousel projects for better performance
-  const regularProjects = useMemo(() => {
-    return projects.filter(project => 
-      !(typeof project.imagePriority === 'number' && project.imagePriority === 1)
-    );
-  }, [projects]);
-
-  // Use requestAnimationFrame for smoother carousel animation
+  // Setup autoplay carousel
   useEffect(() => {
-    if (bannerProjects.length <= 1) return;
+    if (projects.length <= 1 || !isAutoplayEnabled) return;
     
     const startAutoplay = () => {
       if (autoplayRef.current) {
@@ -139,22 +172,22 @@ export default function ProjectImageGallery() {
       }
       
       autoplayRef.current = setInterval(() => {
-        setCurrentBannerIndex(prevIndex => 
-          prevIndex === bannerProjects.length - 1 ? 0 : prevIndex + 1
+        setCurrentIndex(prevIndex => 
+          prevIndex === projects.length - 1 ? 0 : prevIndex + 1
         );
       }, 5000); // Rotate every 5 seconds
     };
     
     startAutoplay();
     
-    // Pause carousel on tab/window inactive to save resources
+    // Pause carousel on tab/window inactive
     const handleVisibilityChange = () => {
       if (document.hidden) {
         if (autoplayRef.current) {
           clearInterval(autoplayRef.current);
           autoplayRef.current = null;
         }
-      } else {
+      } else if (isAutoplayEnabled) {
         startAutoplay();
       }
     };
@@ -168,7 +201,34 @@ export default function ProjectImageGallery() {
         autoplayRef.current = null;
       }
     };
-  }, [bannerProjects.length]);
+  }, [projects.length, isAutoplayEnabled]);
+
+  // Toggle autoplay function
+  const toggleAutoplay = useCallback(() => {
+    setIsAutoplayEnabled(prev => {
+      const newState = !prev;
+      
+      // Clear existing interval if turning off
+      if (!newState && autoplayRef.current) {
+        clearInterval(autoplayRef.current);
+        autoplayRef.current = null;
+      }
+      
+      // Start new interval if turning on
+      if (newState && projects.length > 1) {
+        if (autoplayRef.current) {
+          clearInterval(autoplayRef.current);
+        }
+        autoplayRef.current = setInterval(() => {
+          setCurrentIndex(prevIndex => 
+            prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+          );
+        }, 5000);
+      }
+      
+      return newState;
+    });
+  }, [projects.length]);
 
   // Handle image click to navigate to project
   const handleImageClick = useCallback((projectId: number) => {
@@ -203,27 +263,36 @@ export default function ProjectImageGallery() {
     );
   }, []);
 
-  // Handle banner navigation with debounce for better performance
-  const goToBanner = useCallback((index: number) => {
+  // Navigate carousel 
+  const goToSlide = useCallback((index: number) => {
     if (autoplayRef.current) {
       clearInterval(autoplayRef.current);
       autoplayRef.current = null;
     }
     
-    setCurrentBannerIndex(index);
+    setCurrentIndex(index);
     
     // Restart autoplay after 10 seconds of user inactivity
     autoplayRef.current = setTimeout(() => {
       if (autoplayRef.current) {
         clearTimeout(autoplayRef.current);
         autoplayRef.current = setInterval(() => {
-          setCurrentBannerIndex(prevIndex => 
-            prevIndex === bannerProjects.length - 1 ? 0 : prevIndex + 1
+          setCurrentIndex(prevIndex => 
+            prevIndex === projects.length - 1 ? 0 : prevIndex + 1
           );
         }, 5000);
       }
     }, 10000);
-  }, [bannerProjects.length]);
+  }, [projects.length]);
+
+  // Previous/Next navigation
+  const goToPrevious = useCallback(() => {
+    setCurrentIndex(prevIndex => prevIndex === 0 ? projects.length - 1 : prevIndex - 1);
+  }, [projects.length]);
+  
+  const goToNext = useCallback(() => {
+    setCurrentIndex(prevIndex => prevIndex === projects.length - 1 ? 0 : prevIndex + 1);
+  }, [projects.length]);
 
   // Add swipe functionality for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -240,25 +309,21 @@ export default function ProjectImageGallery() {
     if (Math.abs(diff) > 50) {
       if (diff > 0) {
         // Swipe left - go to next
-        setCurrentBannerIndex(prev => 
-          prev === bannerProjects.length - 1 ? 0 : prev + 1
-        );
+        goToNext();
       } else {
         // Swipe right - go to previous
-        setCurrentBannerIndex(prev => 
-          prev === 0 ? bannerProjects.length - 1 : prev - 1
-        );
+        goToPrevious();
       }
     }
     
     touchStartXRef.current = null;
-  }, [bannerProjects.length]);
+  }, [goToNext, goToPrevious]);
 
   if (isLoading) {
     return (
-      <section className="max-w-7xl mx-auto mb-16">
+      <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
         <div className="relative overflow-hidden rounded-xl bg-black/20 border border-purple-500/20 p-4">
-          <div className="h-40 flex justify-center items-center">
+          <div className="h-60 md:h-80 flex justify-center items-center">
             <div className="flex space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -275,351 +340,444 @@ export default function ProjectImageGallery() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto mb-16 px-4 md:px-0">
+    <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
       <div className="relative overflow-hidden rounded-xl bg-black/20 border border-purple-500/20 p-4 md:p-6">
-        <div className="mb-6">
+        <div className="mb-6 flex justify-between items-center">
+          <div>
           <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-2">
             Project Gallery
           </h2>
           <p className="text-gray-400 text-sm md:text-base">
-            Visual showcase of my projects. Click any image to learn more.
+            Visual showcase of my projects. Swipe or use arrows to browse. Click any image to learn more.
           </p>
+          </div>
+          
+          {/* Autoplay toggle button */}
+          {projects.length > 1 && (
+            <button
+              onClick={toggleAutoplay}
+              className="flex items-center gap-2 px-3 py-2 bg-black/50 rounded-lg border border-purple-500/30 hover:bg-black/70 transition-colors"
+              aria-label={isAutoplayEnabled ? "Switch to manual slideshow" : "Switch to automatic slideshow"}
+            >
+              {isAutoplayEnabled ? (
+                <>
+                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-purple-300 hidden sm:inline">Auto</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-sm text-purple-300 hidden sm:inline">Manual</span>
+                </>
+              )}
+            </button>
+          )}
         </div>
         
         {/* Enlarged Image Overlay */}
         {enlargedImage && (
           <div 
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-10"
             onClick={() => setEnlargedImage(null)}
           >
-            <div className="relative max-w-4xl max-h-[90vh] w-full">
-              <button 
-                className="absolute -top-12 right-0 text-white hover:text-purple-300 transition-colors"
-                onClick={() => setEnlargedImage(null)}
+            <div className="relative max-w-7xl w-full h-[80vh] rounded-xl overflow-hidden">
+              <div 
+                className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm rounded-full p-2 cursor-pointer hover:bg-black/80 transition-colors"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEnlargedImage(null);
+                }}
               >
-                <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
-              </button>
-              <div className="relative w-full" style={{ height: 'calc(90vh - 48px)' }}>
-                <Image 
-                  src={enlargedImage.image} 
-                  alt="Enlarged project view"
-                  fill
-                  className="object-contain"
-                  sizes="100vw"
-                  quality={95}
-                  priority
-                />
               </div>
-              {/* Project with the enlarged image */}
-              {projects.find(p => p.id === enlargedImage.projectId)?.secondImage && (
-                <div className="absolute bottom-4 right-4">
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      const project = projects.find(p => p.id === enlargedImage.projectId);
-                      if (project && project.secondImage) {
-                        // If current enlarged image is the main image, switch to second image
-                        if (enlargedImage.image === project.image) {
-                          setEnlargedImage({
-                            projectId: enlargedImage.projectId,
-                            image: project.secondImage
-                          });
-                        } else {
-                          // Otherwise switch back to main image
-                          setEnlargedImage({
-                            projectId: enlargedImage.projectId,
-                            image: project.image
-                          });
-                        }
-                      }
-                    }}
-                    className="px-3 py-2 bg-purple-600/80 text-white text-sm rounded-lg hover:bg-purple-600 transition-colors flex items-center gap-2"
-                  >
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                    </svg>
-                    Switch View
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Featured Projects Carousel Banner */}
-        {bannerProjects.length > 0 && (
-          <div className="mb-8">
-            {/* Carousel Container */}
-            <div 
-              ref={carouselRef} 
-              className="relative aspect-[16/9] sm:aspect-[16/9] rounded-lg overflow-hidden border-2 border-purple-500/50 shadow-[0_0_20px_rgba(147,51,234,0.3)]"
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-            >
-              {/* Show the current banner project */}
-              {bannerProjects.map((project, index) => (
-                <div 
-                  key={project.id}
-                  className={`absolute inset-0 will-change-transform transition-all duration-700 ${
-                    index === currentBannerIndex ? 'opacity-100 z-10 translate-x-0' : 
-                    index < currentBannerIndex ? 'opacity-0 -translate-x-full z-0' : 'opacity-0 translate-x-full z-0'
-                  } cursor-pointer`}
-                  onClick={() => handleImageClick(project.id)}
-                  onMouseEnter={() => setHoveredProject(project.id)}
-                  onMouseLeave={() => setHoveredProject(null)}
-                  style={{ 
-                    transform: `translateX(${index === currentBannerIndex ? 0 : index < currentBannerIndex ? -100 : 100}%)`,
-                    WebkitBackfaceVisibility: 'hidden', 
-                    backfaceVisibility: 'hidden',
-                    perspective: 1000
-                  }}
-                >
-                  {project.secondImage && project.showBothImagesInPriority ? (
-                    <div className="flex h-full w-full">
-                      <div className="w-1/2 relative h-full">
-                        <Image 
-                          src={project.image} 
-                          alt={project.title}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          priority={index === currentBannerIndex}
-                          quality={index === currentBannerIndex ? 95 : 70}
-                          loading={index === currentBannerIndex ? 'eager' : 'lazy'}
-                          fetchPriority={index === currentBannerIndex ? 'high' : 'low'}
-                          onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
-                        />
-                      </div>
-                      <div className="w-1/2 relative h-full">
-                        <Image 
-                          src={project.secondImage} 
-                          alt={`${project.title} - alternate view`}
-                          fill
-                          sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
-                          className="object-cover transition-transform duration-500 group-hover:scale-105"
-                          priority={index === currentBannerIndex}
-                          quality={index === currentBannerIndex ? 95 : 70}
-                          loading={index === currentBannerIndex ? 'eager' : 'lazy'}
-                          fetchPriority={index === currentBannerIndex ? 'high' : 'low'}
-                          onClick={(e) => handleImageEnlarge(e, project.id, project.secondImage || '')}
-                        />
-                      </div>
-                      
-                      {/* Enlarge indicator */}
-                      {index === currentBannerIndex && (
-                        <div 
-                          className={`absolute top-4 left-4 transition-opacity duration-200 ${
-                            hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          <div className="bg-black/60 backdrop-blur-sm text-white text-xs py-1.5 px-3 rounded-md flex items-center gap-2 shadow-lg">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v5m4-2h-4" />
-                            </svg>
-                            <span>Click to enlarge</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <div className="relative h-full w-full">
-                      <Image 
-                        src={project.image} 
-                        alt={project.title}
-                        fill
-                        sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 1200px"
-                        className="object-cover transition-transform duration-500 group-hover:scale-105"
-                        priority={index === currentBannerIndex || index === ((currentBannerIndex + 1) % bannerProjects.length)}
-                        quality={index === currentBannerIndex ? 95 : 70}
-                        loading={index === currentBannerIndex || index === ((currentBannerIndex + 1) % bannerProjects.length) ? 'eager' : 'lazy'}
-                        fetchPriority={index === currentBannerIndex ? 'high' : 'low'}
-                        onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
-                        unoptimized={project.image.startsWith('data:')}
-                      />
-                      
-                      {/* Display Switch Image button when hovered */}
-                      {project.secondImage && project.secondImage !== '/projects/placeholder.jpg' && !project.showBothImagesInPriority && (
-                        <div 
-                          className={`absolute bottom-4 right-4 transition-opacity duration-200 ${
-                            hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          <button
-                            onClick={(e) => handleSwitchImage(e, project.id)}
-                            className="bg-purple-600/70 hover:bg-purple-600 text-white p-2 rounded-lg transition-colors flex items-center gap-2"
-                            aria-label="Switch image"
-                          >
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                            </svg>
-                            <span className="text-xs font-medium">Switch View</span>
-                          </button>
-                        </div>
-                      )}
-                      
-                      {/* Enlarge indicator */}
-                      {index === currentBannerIndex && (
-                        <div 
-                          className={`absolute top-4 left-4 transition-opacity duration-200 ${
-                            hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                          }`}
-                        >
-                          <div className="bg-black/60 backdrop-blur-sm text-white text-xs py-1.5 px-3 rounded-md flex items-center gap-2 shadow-lg">
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v5m4-2h-4" />
-                            </svg>
-                            <span>Click to enlarge</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                  
-                  {/* Overlay with project title on hover */}
-                  <div 
-                    className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-end p-4 md:p-6 lg:p-8 transition-opacity duration-300 ${
-                      hoveredProject === project.id ? 'opacity-100' : 'opacity-0'
-                    }`}
-                  >
-                    <div className="max-w-3xl">
-                      <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 text-white">
-                        {project.title}
-                      </h3>
-                      <p className="text-sm md:text-base text-purple-300">
-                        {project.category}
-                      </p>
-                      <div className="mt-2 md:mt-3 flex flex-wrap gap-2">
-                        {project.technologies.slice(0, 3).map((tech, index) => (
-                          <span key={index} className="px-2 py-1 bg-purple-500/30 text-white text-xs rounded-full">
-                            {tech}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  
-                  {/* Priority badge */}
-                  <div className="absolute top-4 right-4 px-3 py-1.5 bg-purple-600 text-white text-xs font-medium rounded-full border border-purple-400/30 shadow-lg">
-                    Top Featured
-                  </div>
-                </div>
-              ))}
               
-              {/* Navigation Dots (only if more than one banner project) */}
-              {bannerProjects.length > 1 && (
-                <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-20">
-                  {bannerProjects.map((_, index) => (
-                    <button
-                      key={index}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        goToBanner(index);
-                      }}
-                      className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 ${
-                        index === currentBannerIndex 
-                          ? 'bg-white scale-110' 
-                          : 'bg-white/50 hover:bg-white/70'
-                      }`}
-                      aria-label={`Go to slide ${index + 1}`}
-                    />
-                  ))}
-                </div>
-              )}
-              
-              {/* Navigation Arrows (only if more than one banner project) */}
-              {bannerProjects.length > 1 && (
-                <>
-                  <button 
-                    className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentBannerIndex(prev => 
-                        prev === 0 ? bannerProjects.length - 1 : prev - 1
-                      );
-                    }}
-                    aria-label="Previous slide"
-                  >
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                    </svg>
-                  </button>
-                  <button 
-                    className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-20"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setCurrentBannerIndex(prev => 
-                        prev === bannerProjects.length - 1 ? 0 : prev + 1
-                      );
-                    }}
-                    aria-label="Next slide"
-                  >
-                    <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </svg>
-                  </button>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-        
-        {/* Regular Grid - Skip all banner projects (priority 1) - Use CSS Grid for better responsive layout */}
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-4">
-          {regularProjects.map((project, index) => (
-            <div 
-              key={project.id}
-              className="relative rounded-xl overflow-hidden aspect-video shadow-lg hover:shadow-xl transition-shadow duration-300 border border-purple-500/30"
-              onMouseEnter={() => setHoveredProject(project.id)}
-              onMouseLeave={() => setHoveredProject(null)}
-              onClick={() => handleImageClick(project.id)}
-            >
+              <div className="h-full w-full relative" onClick={(e) => e.stopPropagation()}>
+                  <div className="absolute inset-0 rounded-xl overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
                     <Image 
-                      src={project.image} 
-                      alt={project.title}
+                      src={enlargedImage.image} 
+                      alt={projects.find(p => p.id === enlargedImage.projectId)?.title || ''}
                       fill
-                className="object-cover transform-gpu transition-transform duration-700 hover:scale-105"
-                sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-                loading={index < 5 ? "eager" : "lazy"}
-                quality={95}
-                style={{ 
-                  WebkitBackfaceVisibility: 'hidden', 
-                  WebkitPerspective: 1000, 
-                  WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
-                  objectFit: 'cover',
-                  transform: 'translateZ(0)'
-                }}
-                unoptimized={project.image.startsWith('data:')}
-              />
-              
-              {/* Overlay with project title on hover - Optimized for better performance */}
-              <div 
-                className={`absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent flex items-end p-3 transition-opacity duration-200 ${
-                  hoveredProject === project.id ? 'opacity-100' : 'md:opacity-0 opacity-100'
-                }`}
-              >
-                <div>
-                  <h3 className="text-white text-xs md:text-base font-medium line-clamp-2">
-                    {project.title}
-                  </h3>
-                  <p className="text-purple-300 text-[10px] md:text-xs mt-1">
-                    {project.category}
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 1200px"
+                      className="object-contain transition-transform duration-500"
+                      priority={true}
+                      quality={100}
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        WebkitPerspective: 1000, 
+                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                        transform: 'translateZ(0)'
+                      }}
+                      unoptimized={enlargedImage.image.startsWith('data:')}
+                    />
+                  
+                  {/* Gradient overlay for text readability */}
+                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+                </div>
+                
+                {/* Toggle between images - ALWAYS VISIBLE */}
+                {projects.find(p => p.id === enlargedImage.projectId)?.secondImage && (
+                  <div className="absolute top-4 left-4 z-10">
+                    <button 
+                      className="bg-purple-600/90 hover:bg-purple-600 text-white p-2.5 rounded-lg shadow-lg transition-colors flex items-center gap-2 border border-purple-400/30"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        console.log('Enlarged image switch view button clicked');
+                        const project = projects.find(p => p.id === enlargedImage.projectId);
+                        if (project && project.secondImage) {
+                          // Check if current enlarged image is primary or secondary
+                          if (enlargedImage.image === project.image) {
+                            // Switch to secondary
+                            setEnlargedImage({
+                              projectId: enlargedImage.projectId,
+                              image: project.secondImage
+                            });
+                          } else {
+                            // Switch to primary
+                            setEnlargedImage({
+                              projectId: enlargedImage.projectId, 
+                              image: project.image
+                            });
+                          }
+                        }
+                      }}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                      </svg>
+                      <span className="text-xs font-medium">Switch View</span>
+                    </button>
+                  </div>
+                )}
+                
+                {/* Project details overlay on enlarged image */}
+                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-4 text-white">
+                  <h3 className="text-xl font-bold mb-1">
+                      {projects.find(p => p.id === enlargedImage.projectId)?.title || ''}
+                    </h3>
+                  <p className="text-sm text-gray-300 mb-1 line-clamp-2">
+                    {projects.find(p => p.id === enlargedImage.projectId)?.description}
+                  </p>
+                  <p className="text-xs text-purple-300">
+                    {enlargedImage.image === projects.find(p => p.id === enlargedImage.projectId)?.image ? 
+                      'Primary View' : 'Secondary View'}
                   </p>
                 </div>
               </div>
-              
-              {/* Priority badge for high priority images */}
-              {((typeof project.imagePriority === 'boolean' && project.imagePriority === true) || 
-                (typeof project.imagePriority === 'number' && project.imagePriority <= 3)) && (
-                <div className="absolute top-2 right-2 px-1.5 py-0.5 bg-purple-600/80 text-white text-[10px] rounded-full">
-                  Priority
-                </div>
+            </div>
+          </div>
+        )}
+        
+        {/* Main Carousel */}
+        <div 
+          ref={carouselRef} 
+          className="relative rounded-xl overflow-hidden will-change-transform"
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+        >
+          {/* Carousel container */}
+          <div className="relative aspect-[16/9] sm:aspect-[16/8] rounded-lg overflow-hidden border-2 border-purple-500/50 shadow-[0_0_20px_rgba(147,51,234,0.3)] transform-gpu">
+            <AnimatePresence initial={false} mode="wait">
+              <motion.div
+                key={currentIndex}
+                initial={{ opacity: 0, x: 100 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -100 }}
+                transition={{ duration: 0.3, ease: 'easeInOut' }}
+                className="absolute inset-0 cursor-pointer overflow-hidden transform-gpu"
+                onClick={() => handleImageClick(projects[currentIndex].id)}
+                onMouseEnter={() => setHoveredProject(projects[currentIndex].id)}
+                onMouseLeave={() => setHoveredProject(null)}
+              >
+                {projects[currentIndex].secondImage && projects[currentIndex].showBothImagesInPriority ? (
+                  <div className="flex h-full w-full">
+                    <div className="w-1/2 relative h-full border-r border-purple-500/20 group">
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
+                      <Image 
+                        src={projects[currentIndex].image} 
+                        alt={projects[currentIndex].title}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
+                        className="object-contain transition-transform duration-500 group-hover:scale-[1.02] transform-gpu"
+                        priority={true}
+                        quality={85}
+                        onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].image)}
+                        style={{ 
+                          WebkitBackfaceVisibility: 'hidden', 
+                          WebkitPerspective: 1000, 
+                          WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                          objectFit: 'contain',
+                          transform: 'translateZ(0)',
+                          willChange: 'transform'
+                        }}
+                        unoptimized={projects[currentIndex].image.startsWith('data:')}
+                      />
+                      
+                      {/* Image info overlay on hover - with improved performance */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
+                        <h4 className="text-white font-semibold text-lg">{projects[currentIndex].title} - Primary</h4>
+                        <p className="text-gray-300 text-sm line-clamp-1">{projects[currentIndex].description}</p>
+                      </div>
+                      
+                      {/* Primary label */}
+                      <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-md z-20">
+                        Primary
+                      </div>
+                    </div>
+                    <div className="w-1/2 relative h-full group">
+                      {/* Similar optimizations for second image */}
+                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
+                      <Image 
+                        src={projects[currentIndex].secondImage || ''} 
+                        alt={`${projects[currentIndex].title} - alternate view`}
+                        fill
+                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
+                        className="object-contain transition-transform duration-500 group-hover:scale-[1.02] transform-gpu"
+                        priority={true}
+                        quality={85}
+                        onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].secondImage || '')}
+                        style={{ 
+                          WebkitBackfaceVisibility: 'hidden', 
+                          WebkitPerspective: 1000, 
+                          WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                          objectFit: 'contain',
+                          transform: 'translateZ(0)',
+                          willChange: 'transform'
+                        }}
+                        unoptimized={projects[currentIndex].secondImage?.startsWith('data:')}
+                      />
+                      
+                      {/* Image info overlay with improved performance */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
+                        <h4 className="text-white font-semibold text-lg">{projects[currentIndex].title} - Secondary</h4>
+                        <p className="text-gray-300 text-sm line-clamp-1">{projects[currentIndex].description}</p>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="relative h-full w-full group">
+                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
+                    <Image 
+                      src={projects[currentIndex].image} 
+                      alt={projects[currentIndex].title}
+                      fill
+                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 1200px"
+                      className="object-contain transition-transform duration-500 group-hover:scale-[1.01] transform-gpu"
+                      priority={true}
+                      quality={85}
+                      onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].image)}
+                      style={{ 
+                        WebkitBackfaceVisibility: 'hidden', 
+                        WebkitPerspective: 1000, 
+                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
+                        objectFit: 'contain',
+                        transform: 'translateZ(0)',
+                        willChange: 'transform'
+                      }}
+                      unoptimized={projects[currentIndex].image.startsWith('data:')}
+                    />
+                    
+                    {/* Optimized gradient overlay */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
+                      <h3 className="text-white font-bold text-xl sm:text-2xl">{projects[currentIndex].title}</h3>
+                      <p className="text-gray-300 text-sm sm:text-base line-clamp-2 mt-1 max-w-3xl">{projects[currentIndex].description}</p>
+                      
+                      <div className="flex flex-wrap gap-2 mt-2">
+                        {projects[currentIndex].technologies.slice(0, 3).map((tech, idx) => (
+                          <span key={idx} className="px-2 py-1 bg-purple-500/30 text-white text-xs rounded-full">
+                            {tech}
+                          </span>
+                        ))}
+                        {projects[currentIndex].technologies.length > 3 && (
+                          <span className="px-2 py-1 bg-purple-500/20 text-white text-xs rounded-full">
+                            +{projects[currentIndex].technologies.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            </AnimatePresence>
+          </div>
+          
+          {/* Optimized navigation dots */}
+          {projects.length > 1 && (
+            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex flex-wrap justify-center gap-1.5 max-w-full py-2 will-change-transform">
+              {projects.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => goToSlide(index)}
+                  className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 transform-gpu ${
+                    index === currentIndex 
+                      ? 'bg-white scale-110' 
+                      : 'bg-white/30 hover:bg-white/70'
+                  }`}
+                  aria-label={`Go to slide ${index + 1}`}
+                />
+              ))}
+            </div>
+          )}
+          
+          {/* Optimized navigation arrows */}
+          {projects.length > 1 && (
+            <>
+              <button 
+                className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-30 transform-gpu"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToPrevious();
+                }}
+                aria-label="Previous slide"
+              >
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button 
+                className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-30 transform-gpu"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  goToNext();
+                }}
+                aria-label="Next slide"
+              >
+                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </>
+          )}
+        </div>
+        
+        {/* Project Info Card */}
+        <div className="mt-12 p-4 md:p-6 bg-gradient-to-br from-gray-900/80 to-black/80 border border-purple-500/20 rounded-xl">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
+            <div>
+            <h3 className="text-lg md:text-xl font-semibold text-white">Current Project: {projects[currentIndex].title}</h3>
+              {projects[currentIndex].secondImage && (
+                <p className="text-xs text-purple-300 mt-1">This project has multiple views available</p>
               )}
             </div>
-          ))}
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleImageClick(projects[currentIndex].id)}
+                className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
+              >
+                View Details
+              </button>
+              <a
+                href={projects[currentIndex].link}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-3 py-1.5 bg-transparent border border-purple-500/50 text-purple-300 text-sm rounded-md hover:bg-purple-500/10 transition-colors"
+              >
+                Live Preview
+              </a>
+            </div>
+          </div>
+          
+          <p className="text-sm text-gray-300 mb-4 line-clamp-2 md:line-clamp-none">
+            {projects[currentIndex].description}
+          </p>
+          
+          <div className="flex flex-wrap gap-2 mt-2 mb-4">
+            {projects[currentIndex].technologies.map((tech, index) => (
+              <span 
+                key={index} 
+                className="px-2.5 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-500/30"
+              >
+                {tech}
+              </span>
+            ))}
+          </div>
+          
+          {/* Agency info & upcoming projects section */}
+          <div className="mt-6 pt-6 border-t border-purple-500/20 grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div>
+              <h4 className="text-md text-purple-300 font-medium mb-2 flex items-center">
+                <svg className="w-4 h-4 mr-1.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                Why Choose NEX-DEVS
+              </h4>
+              <p className="text-xs text-gray-400 mb-2">
+                At NEX-DEVS, we combine technical expertise with creative innovation to deliver cutting-edge solutions that transform businesses and user experiences.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
+                  Expert Development
+                </span>
+                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
+                  Modern Tech Stack
+                </span>
+                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
+                  Creative Solutions
+                </span>
+                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
+                  Client-Focused
+                </span>
+              </div>
+            </div>
+            
+            <div>
+              <h4 className="text-md text-blue-300 font-medium mb-2 flex items-center">
+                <svg className="w-4 h-4 mr-1.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
+                </svg>
+                Upcoming Projects
+              </h4>
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
+                  <p className="text-xs text-gray-300">AI-Enhanced Portfolio Builder <span className="text-blue-400 text-[10px]">86% Complete</span></p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  <p className="text-xs text-gray-300">Web3 Integration Framework <span className="text-green-400 text-[10px]">Coming Soon</span></p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
+                  <p className="text-xs text-gray-300">Cross-Platform Mobile Solutions <span className="text-yellow-400 text-[10px]">In Planning</span></p>
+                </div>
+              </div>
+              <div className="mt-2">
+                <Link href="/contact" className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
+                  Discuss a custom project →
+                </Link>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
+      
+      {/* Show error message if database load failed */}
+      {fetchError && !isLoading && projects.length === 0 && (
+        <div className="mt-4 p-3 bg-red-500/20 text-red-200 rounded-lg text-sm border border-red-500/30">
+          <p className="flex items-center">
+            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {fetchError}
+          </p>
+          <p className="text-xs mt-1 text-gray-300">Please refresh the page to try again.</p>
+        </div>
+      )}
+      
+      {/* Last fetch time indicator for debugging */}
+      {lastFetchTime && (
+        <div className="hidden">
+          Last fetch: {new Date(lastFetchTime).toLocaleTimeString()}
+        </div>
+      )}
     </section>
   )
 } 

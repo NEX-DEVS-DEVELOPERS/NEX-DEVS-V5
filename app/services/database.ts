@@ -280,10 +280,27 @@ export function createProject(project: Omit<Project, 'id'>): Project {
 }
 
 // Update an existing project
-export function updateProject(project: Project): boolean {
+export function updateProject(idOrProject: number | Project, projectData?: Project): boolean {
   try {
+    // Handle both function signatures:
+    // 1. updateProject(project) - where project contains its own ID
+    // 2. updateProject(id, project) - where id and project are separate parameters
+    
+    let id: number;
+    let project: Project;
+    
+    if (typeof idOrProject === 'number') {
+      // Called as updateProject(id, project)
+      id = idOrProject;
+      project = projectData as Project;
+    } else {
+      // Called as updateProject(project)
+      id = idOrProject.id;
+      project = idOrProject;
+    }
+    
     if (READ_ONLY_MODE) {
-      console.log(`[Read-only mode] Would update project ID: ${project.id}`);
+      console.log(`[Read-only mode] Would update project ID: ${id}`);
       
       // In read-only mode, pretend the operation succeeded
       return true;
@@ -321,7 +338,7 @@ export function updateProject(project: Project): boolean {
     const result = updateStmt.run(projectToRow(project));
     return result.changes > 0;
   } catch (error) {
-    console.error(`Error updating project ID ${project.id}:`, error);
+    console.error(`Error updating project ID ${typeof idOrProject === 'number' ? idOrProject : idOrProject.id}:`, error);
     throw error;
   }
 }

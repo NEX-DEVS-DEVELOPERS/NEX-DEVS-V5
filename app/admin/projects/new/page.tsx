@@ -15,6 +15,11 @@ interface FormState {
   technologies: string[];
   link: string;
   featured: boolean;
+  isCodeScreenshot?: boolean;
+  codeLanguage?: string;
+  codeTitle?: string;
+  codeContent?: string;
+  useDirectCodeInput?: boolean;
 }
 
 interface NewlyAddedProject extends FormState {
@@ -44,6 +49,11 @@ interface NewlyAddedProject extends FormState {
   status: string;
   updatedDays: number;
   progress: number;
+  isCodeScreenshot?: boolean;
+  codeLanguage?: string;
+  codeTitle?: string;
+  codeContent?: string;
+  useDirectCodeInput?: boolean;
 }
 
 const categories = [
@@ -152,6 +162,11 @@ export default function NewProjectPage() {
     technologies: [''],
     link: '',
     featured: false,
+    isCodeScreenshot: false,
+    codeLanguage: '',
+    codeTitle: '',
+    codeContent: '',
+    useDirectCodeInput: false,
   })
 
   // Newly Added project form state
@@ -188,7 +203,12 @@ export default function NewProjectPage() {
     imagePriority: 1,
     status: 'In Development',
     updatedDays: 1,
-    progress: 50
+    progress: 50,
+    isCodeScreenshot: false,
+    codeLanguage: '',
+    codeTitle: '',
+    codeContent: '',
+    useDirectCodeInput: false
   })
 
   // Handle change for regular project form
@@ -509,203 +529,159 @@ export default function NewProjectPage() {
 
   // Form submission handler
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsSubmitting(true)
+    e.preventDefault();
+    setIsSubmitting(true);
 
     try {
-      // Get admin password
-      const password = sessionStorage.getItem('adminPassword') || prompt('Enter admin password to add new project:')
+      // Get admin password for authorization
+      const password = sessionStorage.getItem('adminPassword');
       
       if (!password) {
-        toast.error('Password required to add project')
+        toast.error('Admin password required to add project')
         setIsSubmitting(false)
         return
       }
 
-      // Store password for session
-      sessionStorage.setItem('adminPassword', password)
+      // Process form data based on form type
+      let submissionData;
 
-      // Check if required fields are present
       if (formType === 'regularProject') {
-        if (!project.title || !project.description || !project.category || !project.link) {
-          toast.error('Please fill in all required fields')
-          setIsSubmitting(false)
-          return
-        }
-      } else {
-        if (!project.title || !newlyAddedProject.description || !newlyAddedProject.category || !newlyAddedProject.link) {
-          toast.error('Please fill in all required fields')
-          setIsSubmitting(false)
-          return
-        }
-      }
-
-      // Generate a cache-busting timestamp
-      const timestamp = Date.now();
-      
-      // Format form data for SQLite compatibility
-      let finalProjectData;
-      
-      if (formType === 'regularProject') {
-        // For regular projects
-        finalProjectData = {
+        submissionData = {
           ...project,
-          // Ensure all arrays are properly filtered to remove empty entries
-          technologies: project.technologies.filter(t => t.trim() !== ''),
-          // Ensure boolean flags are properly formatted
-          featured: Boolean(project.featured),
-          // Make sure the link field is properly set
-          link: project.link.trim(),
-          // Ensure we have an image path
-          image: project.image || '/projects/placeholder.jpg',
-          // Include proper timestamp for SQLite
-          lastUpdated: new Date().toISOString()
+          technologies: project.technologies.filter(tech => tech.trim() !== ''),
+          // Handle code content for direct input
+          codeContent: project.useDirectCodeInput ? project.codeContent : undefined,
+          password
         };
       } else {
-        // For newly added projects
-        finalProjectData = {
-          // Base project fields
-          title: `NEWLY ADDED: ${project.title}`.trim(), // Prefix title
-          description: newlyAddedProject.description.trim(),
-          category: newlyAddedProject.category.trim(),
-          // Make sure the link field is properly set
-          link: newlyAddedProject.link.trim(),
-          // Other fields with proper formatting
-            technologies: newlyAddedProject.technologies.filter(t => t.trim() !== ''),
-          features: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''), // Map to features field
-            exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(f => f.trim() !== ''),
-          // Ensure proper number formatting
-          progress: typeof newlyAddedProject.progress === 'string' ? 
-            parseInt(newlyAddedProject.progress) : 
-            newlyAddedProject.progress,
-          developmentProgress: typeof newlyAddedProject.developmentProgress === 'string' ? 
-            parseInt(newlyAddedProject.developmentProgress) : 
-            newlyAddedProject.developmentProgress,
-          // Set other required fields
-          updatedDays: 1, // Start with 1 day ago
-          status: newlyAddedProject.status || 'In Development',
-          estimatedCompletion: newlyAddedProject.estimatedCompletion,
-          // Format booleans
-          featured: true, // Always featured
-            showBothImagesInPriority: Boolean(newlyAddedProject.showBothImagesInPriority),
-          // Ensure proper formatting of image paths
-          image: newlyAddedProject.image || '/projects/placeholder.jpg',
-          secondImage: newlyAddedProject.secondImage || null,
-          // Set visual effects with proper JSON format for SQLite
-            visualEffects: {
-            ...newlyAddedProject.visualEffects,
-              morphTransition: Boolean(newlyAddedProject.visualEffects.morphTransition),
-              rippleEffect: Boolean(newlyAddedProject.visualEffects.rippleEffect),
-              floatingElements: Boolean(newlyAddedProject.visualEffects.floatingElements),
-              shimmering: Boolean(newlyAddedProject.visualEffects.shimmering),
-            showBadge: Boolean(newlyAddedProject.visualEffects.showBadge),
-              spotlight: Boolean(newlyAddedProject.visualEffects.spotlight),
-              glassmorphism: Boolean(newlyAddedProject.visualEffects.glassmorphism),
-              particles: Boolean(newlyAddedProject.visualEffects.particles),
-            animation: newlyAddedProject.visualEffects.animation || 'none',
-            shadows: newlyAddedProject.visualEffects.shadows || 'none',
-            border: newlyAddedProject.visualEffects.border || 'none',
-            hover: newlyAddedProject.visualEffects.hover || 'none',
-            backdrop: newlyAddedProject.visualEffects.backdrop || 'none',
-              animationTiming: newlyAddedProject.visualEffects.animationTiming || 'normal',
-              animationIntensity: newlyAddedProject.visualEffects.animationIntensity || 'normal'
-            },
-          // Set image priority with proper number
-          imagePriority: typeof newlyAddedProject.imagePriority === 'string' ? 
-            parseInt(newlyAddedProject.imagePriority) : 
-            newlyAddedProject.imagePriority || 1,
-          // Include proper timestamp for SQLite
-          lastUpdated: new Date().toISOString()
+        submissionData = {
+          ...newlyAddedProject,
+          technologies: newlyAddedProject.technologies.filter(tech => tech.trim() !== ''),
+          exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(feature => feature.trim() !== ''),
+          password
         };
       }
-
-      console.log('Submitting project data:', finalProjectData);
-
-      // Send the request to create the project
-      const response = await fetch(`/api/projects?t=${timestamp}`, {
+      
+      // Submit the data
+      const response = await fetch('/api/projects', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Cache-Control': 'no-cache, no-store, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0',
-          'X-Timestamp': timestamp.toString()
+          'X-Admin-Password': password
         },
-        body: JSON.stringify({
-          project: finalProjectData,
-          password
-        }),
-        cache: 'no-store'
-      })
+        body: JSON.stringify(submissionData)
+      });
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({ error: `HTTP error ${response.status}` }));
         throw new Error(errorData.error || `Failed to add project: ${response.status}`);
       }
       
-      const newProject = await response.json().catch(() => null);
-      console.log('Project created successfully:', newProject);
-      toast.success('Project added successfully');
+      // Successfully added project
+      toast.success(`${formType === 'regularProject' ? 'Regular' : 'Newly Added'} Project created successfully!`);
       
-      // Force cache revalidation for main pages
-      try {
-        const revalidatePaths = [
-          `/api/revalidate?path=/&secret=${password}`,
-          `/api/revalidate?path=/projects&secret=${password}`
-        ];
-        
-        if (newProject && newProject.id) {
-          revalidatePaths.push(`/api/revalidate?path=/projects/${newProject.id}&secret=${password}`);
-        }
-        
-        await Promise.all(revalidatePaths.map(path => 
-          fetch(path, {
-            method: 'GET',
-            cache: 'no-store',
-            headers: {
-              'Cache-Control': 'no-cache, no-store, must-revalidate',
-              'Pragma': 'no-cache',
-              'Expires': '0'
-            }
-          }).catch(err => console.error(`Error revalidating ${path}:`, err))
-        ));
-    } catch (error) {
-        console.error('Error during revalidation:', error);
-        // Continue despite revalidation errors
+      // Reset form state
+      if (formType === 'regularProject') {
+        setProject({
+          title: '',
+          description: '',
+          image: '/projects/placeholder.jpg',
+          category: 'Web Development',
+          technologies: [''],
+          link: '',
+          featured: false,
+          isCodeScreenshot: false,
+          codeLanguage: '',
+          codeTitle: '',
+          codeContent: '',
+          useDirectCodeInput: false,
+        });
+        setUploadedImage(null);
+      } else {
+        setNewlyAddedProject({
+          title: 'NEWLY ADDED: ',
+          description: '',
+          image: '/projects/placeholder.jpg',
+          secondImage: '/projects/placeholder.jpg',
+          showBothImagesInPriority: false,
+          category: 'Web Development',
+          technologies: [''],
+          link: '',
+          featured: true,
+          developmentProgress: 0,
+          estimatedCompletion: '',
+          exclusiveFeatures: [''],
+          visualEffects: {
+            morphTransition: false,
+            rippleEffect: false,
+            floatingElements: false,
+            shimmering: false,
+            animation: 'none',
+            showBadge: true,
+            spotlight: false,
+            shadows: 'none',
+            border: 'none',
+            glassmorphism: false,
+            particles: false,
+            hover: 'none',
+            backdrop: 'none',
+            animationTiming: 'normal',
+            animationIntensity: 'normal'
+          },
+          imagePriority: 1,
+          status: 'In Development',
+          updatedDays: 1,
+          progress: 50,
+          isCodeScreenshot: false,
+          codeLanguage: '',
+          codeTitle: '',
+          codeContent: '',
+          useDirectCodeInput: false
+        });
       }
-
-      // Add a small delay to ensure revalidation completes
-      setTimeout(() => {
+      
+      // Navigate back to projects page
         router.push('/admin/projects');
-      }, 800);
     } catch (error) {
       console.error('Error adding project:', error);
-      toast.error(error instanceof Error ? error.message : 'Error adding project');
+      toast.error(error instanceof Error ? error.message : 'Failed to add project');
     } finally {
       setIsSubmitting(false);
     }
-  }
+  };
 
   return (
     <AdminAuthCheck>
       <div className="min-h-screen bg-[#0a0a0a] pt-32 p-6">
         <Toaster position="top-right" />
         
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-8">
             <div>
               <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent">
-                Add New Project
+                New Project
               </h1>
-              <p className="text-gray-400 mt-1">Create a new project in your portfolio</p>
+              <p className="text-gray-400 mt-1">Add a new project to your portfolio</p>
             </div>
             
-            <Link 
-              href="/admin/projects" 
-              className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Back to Projects
-            </Link>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  sessionStorage.setItem('adminPassword', 'nex-devs.org889123');
+                  toast.success("Admin access granted!");
+                }}
+                className="px-2 py-1 bg-red-800/50 text-xs text-white rounded border border-red-600/30 hover:bg-red-700/50"
+              >
+                Get Access
+              </button>
+              <Link 
+                href="/admin/projects" 
+                className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Back to Projects
+              </Link>
+            </div>
           </div>
 
           {/* Form Type Selector */}
@@ -924,6 +900,145 @@ export default function NewProjectPage() {
                   <label htmlFor="featured" className="ml-2 text-sm text-gray-300">
                     Mark as Featured Project
                   </label>
+                </div>
+
+                {/* Code Screenshot Options */}
+                <div className="mt-6 border-t border-gray-800 pt-6">
+                  <h3 className="text-lg font-medium text-purple-300 mb-4">Code Screenshot Options</h3>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="isCodeScreenshot"
+                        name="isCodeScreenshot"
+                        checked={project.isCodeScreenshot}
+                        onChange={(e) => setProject({...project, isCodeScreenshot: e.target.checked})}
+                        className="h-4 w-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500/20 bg-black/50"
+                      />
+                      <label htmlFor="isCodeScreenshot" className="ml-2 block text-sm font-medium text-gray-300">
+                        This is a code screenshot
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">Enable this option if your image is a code screenshot that should be displayed in an IDE-like frame</p>
+                  </div>
+                  
+                  {project.isCodeScreenshot && (
+                    <div className="space-y-4 bg-black/40 p-4 rounded-lg border border-purple-500/10">
+                      <div>
+                        <label htmlFor="codeTitle" className="block text-sm font-medium text-gray-300">File Name/Title</label>
+                        <input
+                          type="text"
+                          id="codeTitle"
+                          name="codeTitle"
+                          value={project.codeTitle || ''}
+                          onChange={handleChange}
+                          placeholder="e.g. main.jsx"
+                          className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                        />
+                        <p className="mt-1 text-xs text-gray-400">This will appear in the code editor tab</p>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="codeLanguage" className="block text-sm font-medium text-gray-300">Programming Language</label>
+                        <select
+                          id="codeLanguage"
+                          name="codeLanguage"
+                          value={project.codeLanguage || ''}
+                          onChange={handleChange}
+                          className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                        >
+                          <option value="">Select language</option>
+                          <option value="javascript">JavaScript</option>
+                          <option value="typescript">TypeScript</option>
+                          <option value="jsx">JSX/React</option>
+                          <option value="tsx">TSX</option>
+                          <option value="python">Python</option>
+                          <option value="java">Java</option>
+                          <option value="csharp">C#</option>
+                          <option value="cpp">C++</option>
+                          <option value="php">PHP</option>
+                          <option value="go">Go</option>
+                          <option value="rust">Rust</option>
+                          <option value="ruby">Ruby</option>
+                          <option value="swift">Swift</option>
+                          <option value="kotlin">Kotlin</option>
+                          <option value="sql">SQL</option>
+                          <option value="html">HTML</option>
+                          <option value="css">CSS</option>
+                          <option value="scss">SCSS</option>
+                          <option value="json">JSON</option>
+                          <option value="yaml">YAML</option>
+                          <option value="markdown">Markdown</option>
+                          <option value="shell">Shell/Bash</option>
+                        </select>
+                        <p className="mt-1 text-xs text-gray-400">Used for syntax highlighting</p>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="useDirectCodeInput"
+                          name="useDirectCodeInput"
+                          checked={project.useDirectCodeInput || false}
+                          onChange={(e) => setProject({...project, useDirectCodeInput: e.target.checked})}
+                          className="h-4 w-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500/20 bg-black/50"
+                        />
+                        <label htmlFor="useDirectCodeInput" className="ml-2 block text-sm font-medium text-gray-300">
+                          Paste code directly instead of upload
+                        </label>
+                      </div>
+                      
+                      {project.useDirectCodeInput && (
+                        <div>
+                          <label htmlFor="codeContent" className="block text-sm font-medium text-gray-300">Code Content</label>
+                          <textarea
+                            id="codeContent"
+                            name="codeContent"
+                            value={project.codeContent || ''}
+                            onChange={handleChange}
+                            placeholder="Paste your code here..."
+                            rows={10}
+                            className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white font-mono text-sm shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="p-4 bg-gray-900/60 rounded-lg">
+                        <h4 className="text-sm font-medium text-purple-300 mb-2">Preview</h4>
+                        <div className="bg-gradient-to-br from-gray-900 via-black to-[#121212] overflow-hidden rounded-xl border border-gray-800">
+                          {/* Decorative elements */}
+                          <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 opacity-80"></div>
+                          
+                          {/* Code editor header */}
+                          <div className="bg-black/80 backdrop-blur-sm py-2 px-4 flex items-center justify-between border-b border-gray-800">
+                            <div className="flex gap-1.5">
+                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                            <div className="text-xs text-gray-500 font-mono">{project.codeTitle || 'code-snippet.tsx'}</div>
+                            <div className="w-4"></div> {/* Spacer for balance */}
+                          </div>
+                          
+                          {project.useDirectCodeInput ? (
+                            <div className="p-4 text-xs text-left font-mono text-gray-300 max-h-[300px] overflow-auto whitespace-pre-wrap">
+                              {project.codeContent ? project.codeContent : 
+                                <p className="text-center text-gray-500">Paste your code to see a preview</p>
+                              }
+                            </div>
+                          ) : (
+                            <div className="p-4 text-xs text-center text-gray-500">
+                              {uploadedImage ? 
+                                <p>Your code screenshot will be displayed here</p> :
+                                <p>Upload an image to preview your code screenshot</p>
+                              }
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Submit Button */}
@@ -1865,10 +1980,9 @@ export default function NewProjectPage() {
                   </button>
                 </div>
 
-                {/* Project Features */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Features*</label>
-                  <div className="space-y-2">
+                {/* Features */}
+                <div className="space-y-3">
+                  <label className="block text-sm font-medium text-gray-300">Features/Highlights*</label>
                     {newlyAddedProject.exclusiveFeatures.map((feature, index) => (
                       <div key={index} className="flex gap-2">
                         <input
@@ -1888,14 +2002,152 @@ export default function NewProjectPage() {
                         </button>
                       </div>
                     ))}
-                  </div>
                   <button
                     type="button"
                     onClick={addFeatureField}
-                    className="mt-2 px-3 py-1 bg-purple-500/20 text-purple-400 rounded hover:bg-purple-500/30"
+                    className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded hover:bg-purple-500/30"
                   >
                     Add Feature
                   </button>
+                </div>
+
+                {/* Code Screenshot Options - Added to "Newly Added" Form */}
+                <div className="mt-6 border-t border-gray-800 pt-6">
+                  <h3 className="text-lg font-medium text-purple-300 mb-4">Code Screenshot Options</h3>
+                  
+                  <div className="mb-4">
+                    <div className="flex items-center">
+                      <input
+                        type="checkbox"
+                        id="newIsCodeScreenshot"
+                        name="isCodeScreenshot"
+                        checked={newlyAddedProject.isCodeScreenshot}
+                        onChange={(e) => setNewlyAddedProject({...newlyAddedProject, isCodeScreenshot: e.target.checked})}
+                        className="h-4 w-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500/20 bg-black/50"
+                      />
+                      <label htmlFor="newIsCodeScreenshot" className="ml-2 block text-sm font-medium text-gray-300">
+                        This is a code screenshot
+                      </label>
+                    </div>
+                    <p className="mt-1 text-xs text-gray-400">Enable this option if your image is a code screenshot that should be displayed in an IDE-like frame</p>
+                  </div>
+                  
+                  {newlyAddedProject.isCodeScreenshot && (
+                    <div className="space-y-4 bg-black/40 p-4 rounded-lg border border-purple-500/10">
+                      <div>
+                        <label htmlFor="newCodeTitle" className="block text-sm font-medium text-gray-300">File Name/Title</label>
+                        <input
+                          type="text"
+                          id="newCodeTitle"
+                          name="codeTitle"
+                          value={newlyAddedProject.codeTitle || ''}
+                          onChange={handleNewlyAddedChange}
+                          placeholder="e.g. main.jsx"
+                          className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                        />
+                        <p className="mt-1 text-xs text-gray-400">This will appear in the code editor tab</p>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="newCodeLanguage" className="block text-sm font-medium text-gray-300">Programming Language</label>
+                        <select
+                          id="newCodeLanguage"
+                          name="codeLanguage"
+                          value={newlyAddedProject.codeLanguage || ''}
+                          onChange={handleNewlyAddedChange}
+                          className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                        >
+                          <option value="">Select language</option>
+                          <option value="javascript">JavaScript</option>
+                          <option value="typescript">TypeScript</option>
+                          <option value="jsx">JSX/React</option>
+                          <option value="tsx">TSX</option>
+                          <option value="python">Python</option>
+                          <option value="java">Java</option>
+                          <option value="csharp">C#</option>
+                          <option value="cpp">C++</option>
+                          <option value="php">PHP</option>
+                          <option value="go">Go</option>
+                          <option value="rust">Rust</option>
+                          <option value="ruby">Ruby</option>
+                          <option value="swift">Swift</option>
+                          <option value="kotlin">Kotlin</option>
+                          <option value="sql">SQL</option>
+                          <option value="html">HTML</option>
+                          <option value="css">CSS</option>
+                          <option value="scss">SCSS</option>
+                          <option value="json">JSON</option>
+                          <option value="yaml">YAML</option>
+                          <option value="markdown">Markdown</option>
+                          <option value="shell">Shell/Bash</option>
+                        </select>
+                        <p className="mt-1 text-xs text-gray-400">Used for syntax highlighting</p>
+                      </div>
+                      
+                      <div className="flex items-center">
+                        <input
+                          type="checkbox"
+                          id="newUseDirectCodeInput"
+                          name="useDirectCodeInput"
+                          checked={newlyAddedProject.useDirectCodeInput || false}
+                          onChange={(e) => setNewlyAddedProject({...newlyAddedProject, useDirectCodeInput: e.target.checked})}
+                          className="h-4 w-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500/20 bg-black/50"
+                        />
+                        <label htmlFor="newUseDirectCodeInput" className="ml-2 block text-sm font-medium text-gray-300">
+                          Paste code directly instead of upload
+                        </label>
+                      </div>
+                      
+                      {newlyAddedProject.useDirectCodeInput && (
+                        <div>
+                          <label htmlFor="newCodeContent" className="block text-sm font-medium text-gray-300">Code Content</label>
+                          <textarea
+                            id="newCodeContent"
+                            name="codeContent"
+                            value={newlyAddedProject.codeContent || ''}
+                            onChange={handleNewlyAddedChange}
+                            placeholder="Paste your code here..."
+                            rows={10}
+                            className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white font-mono text-sm shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                          />
+                        </div>
+                      )}
+                      
+                      <div className="p-4 bg-gray-900/60 rounded-lg">
+                        <h4 className="text-sm font-medium text-purple-300 mb-2">Preview</h4>
+                        <div className="bg-gradient-to-br from-gray-900 via-black to-[#121212] overflow-hidden rounded-xl border border-gray-800">
+                          {/* Decorative elements */}
+                          <div className="h-1 bg-gradient-to-r from-purple-500 via-blue-500 to-purple-600 opacity-80"></div>
+                          
+                          {/* Code editor header */}
+                          <div className="bg-black/80 backdrop-blur-sm py-2 px-4 flex items-center justify-between border-b border-gray-800">
+                            <div className="flex gap-1.5">
+                              <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                              <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                            </div>
+                            <div className="text-xs text-gray-500 font-mono">{newlyAddedProject.codeTitle || 'code-snippet.tsx'}</div>
+                            <div className="w-4"></div> {/* Spacer for balance */}
+                          </div>
+                          
+                          {newlyAddedProject.useDirectCodeInput ? (
+                            <div className="p-4 text-xs text-left font-mono text-gray-300 max-h-[300px] overflow-auto whitespace-pre-wrap">
+                              {newlyAddedProject.codeContent ? newlyAddedProject.codeContent : 
+                                <p className="text-center text-gray-500">Paste your code to see a preview</p>
+                              }
+                            </div>
+                          ) : (
+                            <div className="p-4 text-xs text-center text-gray-500">
+                              {uploadedImage ? 
+                                <p>Your code screenshot will be displayed here</p> :
+                                <p>Upload an image to preview your code screenshot</p>
+                              }
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Project Link */}

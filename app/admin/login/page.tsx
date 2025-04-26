@@ -16,7 +16,7 @@ export default function AdminLogin() {
     setError('')
 
     // Simple client-side check (note: this is not secure, real auth would be needed in production)
-    if (password === 'nex-devs.org889123') {
+    if (password === 'nex-devs') {
       // Store in session storage to persist login
       sessionStorage.setItem('adminAuth', 'true')
       router.push('/admin/projects')

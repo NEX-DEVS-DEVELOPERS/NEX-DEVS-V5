@@ -30,8 +30,8 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: "NEX-DEVS - Professional Web/App Solutions",
-  description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+  title: 'NEX-DEVS | Professional Web Development Solutions',
+  description: 'NEX-DEVS provides professional web development services including custom websites, applications, and digital solutions for businesses of all sizes.',
   metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
   openGraph: {
     title: "NEX-WEBS - Professional Web Solutions",
@@ -46,6 +46,8 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       { url: '/icons/favicon.svg', type: 'image/svg+xml' },
+      { url: '/icons/favicon-192.png', type: 'image/png', sizes: '192x192' },
+      { url: '/icons/favicon-512.png', type: 'image/png', sizes: '512x512' },
     ],
     shortcut: '/icons/favicon.svg',
     apple: '/icons/favicon.svg',
@@ -72,7 +74,7 @@ export default function RootLayout({
           crossOrigin="anonymous"
         />
       </head>
-      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col")}>
+      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"

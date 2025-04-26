@@ -13,6 +13,7 @@ import TransitionEffect from '../components/TransitionEffect';
 import { useLocalStorage } from '@/app/hooks/useLocalStorage';
 import { createRoot } from 'react-dom/client';
 import confetti from 'canvas-confetti';
+import { FaStore, FaWordpress } from 'react-icons/fa';
 
 // Add these type definitions at the top of the file
 type PricingFeature = string;
@@ -496,7 +497,7 @@ const pricingPlans: PricingPlan[] = [
       maintenance: "Monthly Updates",
       revisions: "3 Rounds of Revisions"
     }
-  }
+  },
 ];
 
 
@@ -1061,7 +1062,11 @@ const GuidedTour = memo(({
           element.style.zIndex = '999';
           
           // Add CSS classes for highlighting
-          element.classList.add(`highlight-${style}`);
+          if (style === 'pulse') {
+            element.classList.add('highlight-pulse-no-shadow');
+          } else {
+            element.classList.add(`highlight-${style}`);
+          }
           
           // Preserve text color for Get Started button
           if (element.classList.contains('get-started-btn')) {
@@ -1083,7 +1088,12 @@ const GuidedTour = memo(({
           element.addEventListener('click', handleClick);
           return () => {
             element.removeEventListener('click', handleClick);
-            element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+            if (stepContent.highlightStyle === 'pulse') {
+              element.classList.remove('highlight-pulse-no-shadow');
+              element.classList.remove('highlight-pulse-with-shadow');
+            } else {
+              element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+            }
             // Reset any inline styles we added
             if (element.classList.contains('get-started-btn')) {
               element.style.color = '';
@@ -1096,12 +1106,22 @@ const GuidedTour = memo(({
           element.addEventListener('mouseenter', handleHover);
           return () => {
             element.removeEventListener('mouseenter', handleHover);
-            element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+            if (stepContent.highlightStyle === 'pulse') {
+              element.classList.remove('highlight-pulse-no-shadow');
+              element.classList.remove('highlight-pulse-with-shadow');
+            } else {
+              element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+            }
           };
         }
         
         return () => {
-          element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+          if (stepContent.highlightStyle === 'pulse') {
+            element.classList.remove('highlight-pulse-no-shadow');
+            element.classList.remove('highlight-pulse-with-shadow');
+          } else {
+            element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
+          }
           // Reset any inline styles we added
           if (element.classList.contains('get-started-btn')) {
             element.style.color = '';
@@ -1123,47 +1143,56 @@ const GuidedTour = memo(({
     [isMobile, currentStep]
   );
 
+  // Define the CSS classes without interpolation
+  const pulseClass = currentStep === 0 ? 'highlight-pulse-no-shadow' : 'highlight-pulse-with-shadow';
+
   return (
     <AnimatePresence>
       {isOpen && (
         <>
-          {/* Semi-transparent overlay with enhanced contrast */}
+          {/* Semi-transparent overlay with NO blur */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ 
               opacity: 1,
-              backgroundColor: ['rgba(0, 0, 0, 0.5)', 'rgba(0, 0, 0, 0.55)', 'rgba(0, 0, 0, 0.5)'] // Reduced opacity
-            }}
-            transition={{
-              backgroundColor: {
-                duration: 3,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }
+              backgroundColor: 'rgba(0, 0, 0, 0.6)' // Fixed opacity, no animation
             }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 backdrop-blur-[2px] z-[998]"
-            onClick={(e) => e.target === e.currentTarget && onSkip()}
+            className="fixed inset-0 z-[998]"
+            onClick={onSkip}
           />
 
           {/* CSS for highlighting effects with enhanced visibility */}
           <style jsx global>{`
-            @keyframes highlight-pulse {
+            @keyframes highlight-pulse-base {
               0% { 
-                box-shadow: ${currentStep === 0 ? 'none' : '0 0 0 4000px rgba(0, 0, 0, 0.75)'}, 0 0 20px 5px rgba(168, 85, 247, 0.6); 
                 transform: scale(1);
                 background-color: rgba(168, 85, 247, 0.05);
               }
               50% { 
-                box-shadow: ${currentStep === 0 ? 'none' : '0 0 0 4000px rgba(0, 0, 0, 0.75)'}, 0 0 35px 10px rgba(168, 85, 247, 0.9); 
-                transform: scale(1.03);
+                transform: scale(1.02);
                 background-color: rgba(168, 85, 247, 0.1);
               }
               100% { 
-                box-shadow: ${currentStep === 0 ? 'none' : '0 0 0 4000px rgba(0, 0, 0, 0.75)'}, 0 0 20px 5px rgba(168, 85, 247, 0.6); 
                 transform: scale(1);
                 background-color: rgba(168, 85, 247, 0.05);
               }
+            }
+            
+            .highlight-pulse-no-shadow {
+              animation: highlight-pulse-base 2s infinite ease-in-out;
+              position: relative;
+              z-index: 1000 !important;
+              border-radius: 4px;
+              box-shadow: 0 0 20px 5px rgba(168, 85, 247, 0.6);
+            }
+            
+            .highlight-pulse-with-shadow {
+              animation: highlight-pulse-base 2s infinite ease-in-out;
+              position: relative;
+              z-index: 1000 !important;
+              border-radius: 4px;
+              box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6), 0 0 20px 5px rgba(168, 85, 247, 0.6);
             }
             
             @keyframes highlight-glow {
@@ -1189,18 +1218,15 @@ const GuidedTour = memo(({
             
             @keyframes highlight-spotlight {
               0% { 
-                filter: brightness(1.2) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
-                background-color: rgba(168, 85, 247, 0.05);
+                filter: brightness(1.1) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
                 transform: scale(1);
               }
               50% { 
-                filter: brightness(1.4) drop-shadow(0 0 25px rgba(168, 85, 247, 0.9)); 
-                background-color: rgba(168, 85, 247, 0.1);
-                transform: scale(1.03);
+                filter: brightness(1.2) drop-shadow(0 0 25px rgba(168, 85, 247, 0.9)); 
+                transform: scale(1.01);
               }
               100% { 
-                filter: brightness(1.2) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
-                background-color: rgba(168, 85, 247, 0.05);
+                filter: brightness(1.1) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
                 transform: scale(1);
               }
             }
@@ -1209,22 +1235,22 @@ const GuidedTour = memo(({
               0% { 
                 outline: 3px solid rgba(168, 85, 247, 0.7); 
                 outline-offset: 3px;
-                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.1);
+                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
               }
               50% { 
-                outline: 4px solid rgba(168, 85, 247, 1); 
-                outline-offset: 8px;
-                box-shadow: 0 0 30px rgba(168, 85, 247, 0.8), inset 0 0 20px rgba(168, 85, 247, 0.2);
+                outline: 3px solid rgba(168, 85, 247, 1); 
+                outline-offset: 6px;
+                box-shadow: 0 0 25px rgba(168, 85, 247, 0.8);
               }
               100% { 
                 outline: 3px solid rgba(168, 85, 247, 0.7); 
                 outline-offset: 3px;
-                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5), inset 0 0 10px rgba(168, 85, 247, 0.1);
+                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
               }
             }
             
             .highlight-pulse {
-              animation: ${currentStep === 0 ? 'none' : 'highlight-pulse 2s infinite ease-in-out'};
+              animation: highlight-pulse-base 2s infinite ease-in-out;
               position: relative;
               z-index: 1000 !important;
               border-radius: 4px;
@@ -1255,7 +1281,9 @@ const GuidedTour = memo(({
             .get-started-btn.highlight-outline,
             .get-started-btn.highlight-glow,
             .get-started-btn.highlight-pulse,
-            .get-started-btn.highlight-spotlight {
+            .get-started-btn.highlight-spotlight,
+            .get-started-btn.highlight-pulse-no-shadow,
+            .get-started-btn.highlight-pulse-with-shadow {
               color: black !important;
             }
             
@@ -1272,7 +1300,7 @@ const GuidedTour = memo(({
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             style={guidePosition}
-            className="bg-black/90 border border-purple-500/30 rounded-xl backdrop-blur-md shadow-lg shadow-purple-900/20 overflow-hidden z-[10000] max-w-md"
+            className="bg-black/90 border border-purple-500/30 rounded-xl shadow-lg shadow-purple-900/20 overflow-hidden z-[10000] max-w-md"
           >
             {/* Progress indicator */}
             <div className="w-full h-1 bg-gray-800">
@@ -1811,8 +1839,8 @@ export default function PricingPage() {
   // Enhanced guide steps with better descriptions and highlighting
   const guideSteps: GuideStep[] = [
     {
-      title: "Select Your Currency",
-      content: "Start by selecting your preferred currency. We support multiple currencies including USD, GBP, AED, and PKR with automatic conversion at current market rates.",
+      title: "Your Currency",
+      content: "Your currency is automatically set based on your location. You can view pricing in multiple currencies including USD, GBP, AED, and PKR with real-time conversion rates.",
       target: "currency-selector",
       placement: "bottom",
       emoji: "💰",
@@ -1898,19 +1926,7 @@ export default function PricingPage() {
       root.render(
         <TransitionEffect 
           isExit={false} 
-          message={
-            <div className="text-center space-y-3">
-              <h3 className="text-2xl font-bold text-purple-300">Preparing Your Exclusive Offer</h3>
-              <p className="text-lg text-purple-100">
-                Redirecting you to our contact page with a special consultation package and personalized discount
-              </p>
-              <div className="flex justify-center gap-2">
-                <span className="animate-bounce text-2xl delay-100">✨</span>
-                <span className="animate-bounce text-2xl delay-200">🎉</span>
-                <span className="animate-bounce text-2xl delay-300">💫</span>
-              </div>
-            </div>
-          } 
+          message="Preparing your exclusive offer"
         />
       );
       
@@ -2231,6 +2247,119 @@ export default function PricingPage() {
             </motion.p>
           )}
         </div>
+
+        {/* E-Commerce Store Management Section */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="mt-12 mb-16 max-w-6xl mx-auto"
+        >
+          <div className="flex flex-col items-center text-center mb-8">
+            <span className="text-2xl mb-2">🛍️</span>
+            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">E-Commerce Store Management</h2>
+            <p className="text-purple-200 max-w-2xl text-sm md:text-base">
+              Elevate your e-commerce business with our professional store management services. 
+              Our AI-driven approach increases sales by 40-60% through optimized customer experience and automated operations.
+            </p>
+          </div>
+          
+          {/* E-Commerce Service Cards Slider */}
+          <div className="mt-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {/* Shopify Card */}
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-black/90 border-2 border-blue-600/30 hover:border-blue-600/50 rounded-xl overflow-hidden cursor-pointer group transition-all duration-300"
+              >
+                <Link href="/e-commerce-services/shopify">
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="text-xl p-3 bg-gradient-to-r from-pink-500 to-blue-600 rounded-lg flex items-center justify-center">
+                        <span role="img" aria-label="shopping">🏪</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-white">Shopify Store</h3>
+                    </div>
+                    <p className="text-gray-300 mb-6 text-sm">
+                      Professional Shopify store development with AI-powered features to increase sales by 35-55%.
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div className="bg-gradient-to-r from-pink-500 to-blue-600 px-3 py-1.5 rounded-lg">
+                        <span className="text-white font-semibold">$900</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-blue-400 group-hover:text-blue-300 transition-colors">
+                        <span>View Details</span>
+                        <motion.svg 
+                          initial={{ x: 0 }}
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="w-5 h-5" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </motion.svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+              
+              {/* WordPress Card */}
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                whileTap={{ scale: 0.98 }}
+                className="bg-black/90 border-2 border-purple-600/30 hover:border-purple-600/50 rounded-xl overflow-hidden cursor-pointer group transition-all duration-300"
+              >
+                <Link href="/e-commerce-services/wordpress">
+                  <div className="p-6">
+                    <div className="flex items-center gap-4 mb-4">
+                      <div className="text-xl p-3 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                        <span role="img" aria-label="cart">🛒</span>
+                      </div>
+                      <h3 className="text-xl font-bold text-white">WordPress E-commerce</h3>
+                    </div>
+                    <p className="text-gray-300 mb-6 text-sm">
+                      Custom WordPress e-commerce solution with WooCommerce optimization to boost sales by 40-60%.
+                    </p>
+                    <div className="flex justify-between items-center">
+                      <div className="bg-gradient-to-r from-blue-500 to-purple-600 px-3 py-1.5 rounded-lg">
+                        <span className="text-white font-semibold">$800</span>
+                      </div>
+                      <div className="flex items-center gap-2 text-purple-400 group-hover:text-purple-300 transition-colors">
+                        <span>View Details</span>
+                        <motion.svg 
+                          initial={{ x: 0 }}
+                          animate={{ x: [0, 5, 0] }}
+                          transition={{ duration: 1.5, repeat: Infinity }}
+                          className="w-5 h-5" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+                        </motion.svg>
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              </motion.div>
+            </div>
+            
+            <div className="flex justify-center mt-6">
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: 0.3 }}
+                className="bg-black px-4 py-2 rounded-lg text-purple-300 text-sm border border-purple-500/20"
+              >
+                Slide between options or click to view detailed service pages
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
 
         {/* Simplified Pricing Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4 relative z-[1]">

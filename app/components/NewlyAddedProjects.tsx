@@ -642,7 +642,8 @@ export default function NewlyAddedProjects() {
               ${shadowClasses} ${borderClasses} 
               transition-all duration-300 
               ${expandedProject === project.id ? 'md:col-span-2 ring-2 ring-purple-500/50' : ''}
-              ${animationClasses}`;
+              ${animationClasses}
+              backdrop-blur-md bg-gray-900/40`;
           
           // Animation timing classes based on intensity if provided, but only when not expanded
           const animationTimingClass = expandedProject === project.id ? '' : 
@@ -668,8 +669,8 @@ export default function NewlyAddedProjects() {
               <div 
                 className={`${
                 project.visualEffects?.border === 'gradient' 
-                  ? 'rounded-xl h-full bg-gray-900/90 border border-purple-500/30' 
-                  : 'bg-gray-900/50'
+                  ? 'rounded-xl h-full bg-gray-900/40 backdrop-blur-md border border-purple-500/30' 
+                  : 'bg-gray-900/40 backdrop-blur-md'
                 }`}
                 data-expanded={expandedProject === project.id}
               >
@@ -1040,7 +1041,7 @@ export default function NewlyAddedProjects() {
                   )}
                   
                   {/* Action Buttons */}
-                  <div className={`flex gap-3 ${expandedProject === project.id ? 'mt-6' : ''}`}>
+                  <div className={`flex gap-3 ${expandedProject === project.id ? 'mt-6' : 'hidden'}`}>
                     <Link 
                       href={`/projects/${project.id}`} 
                       className={`flex-1 text-center py-2.5 rounded-lg ${
@@ -1057,8 +1058,8 @@ export default function NewlyAddedProjects() {
                       rel="noopener noreferrer" 
                       className={`${
                         expandedProject === project.id 
-                          ? 'w-auto px-4 flex items-center justify-center rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition text-sm' 
-                          : 'w-10 flex items-center justify-center rounded-lg bg-gray-800 text-gray-300 hover:bg-gray-700 transition'
+                          ? 'w-auto px-4 flex items-center justify-center rounded-lg bg-gray-800/60 backdrop-blur-sm text-gray-300 hover:bg-gray-700/60 transition text-sm' 
+                          : 'w-10 flex items-center justify-center rounded-lg bg-gray-800/60 backdrop-blur-sm text-gray-300 hover:bg-gray-700/60 transition'
                       }`}
                     >
                       {expandedProject === project.id ? (

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useIsMobile } from '@/app/utils/deviceDetection'
+import FloatingActionButton from '@/app/components/FloatingActionButton'
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -85,7 +86,7 @@ export default function MobileMenu() {
         <div className="flex flex-col justify-between w-7 h-6">
           <motion.span
             animate={isOpen 
-              ? { rotate: 45, y: 10, backgroundColor: "#fff" } 
+              ? { rotate: 45, y: 10, backgroundColor: "#4B5563" } 
               : { rotate: 0, y: 0, backgroundColor: "currentColor" }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="w-full h-[2px] bg-current block transition-all duration-300 group-hover:w-3/4"
@@ -99,7 +100,7 @@ export default function MobileMenu() {
           />
           <motion.span
             animate={isOpen 
-              ? { rotate: -45, y: -10, backgroundColor: "#fff" } 
+              ? { rotate: -45, y: -10, backgroundColor: "#4B5563" } 
               : { rotate: 0, y: 0, backgroundColor: "currentColor" }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="w-full h-[2px] bg-current block transition-all duration-300 group-hover:w-1/2"
@@ -124,7 +125,7 @@ export default function MobileMenu() {
             onClick={() => setIsOpen(false)}
             className="fixed inset-0 backdrop-blur-2xl z-40"
             style={{
-              background: "linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(88,28,135,0.3))"
+              background: "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.05))"
             }}
           />
         )}
@@ -137,21 +138,16 @@ export default function MobileMenu() {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-4 right-4 h-[60vh] w-[280px] rounded-[30px] bg-purple-900 z-40 origin-right shadow-2xl shadow-purple-900/30 will-change-transform touch-manipulation overflow-hidden border border-purple-700/50"
+            className="fixed top-4 right-4 h-[60vh] w-[280px] rounded-[30px] bg-white/10 z-40 origin-right shadow-2xl shadow-white/10 will-change-transform touch-manipulation overflow-hidden border border-white/30"
           >
             {/* Glass reflection effect - keeping subtle reflection */}
-            <div className="absolute inset-x-0 top-0 h-[120%] w-[200%] -translate-x-1/2 -translate-y-[10%] rotate-[-12deg] bg-gradient-to-b from-white/5 to-transparent" />
+            <div className="absolute inset-x-0 top-0 h-[120%] w-[200%] -translate-x-1/2 -translate-y-[10%] rotate-[-12deg] bg-gradient-to-b from-white/10 to-transparent" />
             
-            {/* Purple glow effect - enhanced for solid background */}
-            <motion.div 
-              className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(168,85,247,0.3),transparent_70%)] pointer-events-none"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3, duration: 0.8 }}
-            />
+            {/* Frosted glass effect */}
+            <div className="absolute inset-0 backdrop-blur-xl backdrop-saturate-150 z-0"></div>
             
             {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-purple-800 to-purple-950 opacity-90 pointer-events-none" />
+            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-white/5 opacity-90 pointer-events-none" />
             
             {/* Content container */}
             <div className="relative flex flex-col justify-start h-full px-6 pt-12 pb-8">
@@ -168,16 +164,26 @@ export default function MobileMenu() {
                   >
                     <Link
                       href={href}
-                      className="group relative block text-base font-medium text-white/80 transition-all duration-300 hover:text-white"
+                      className="group relative block text-base font-medium text-gray-800 transition-all duration-300 hover:text-black"
                       onClick={() => setIsOpen(false)}
                     >
                       <span className="relative z-10 block transform transition-all duration-500 ease-out group-hover:translate-x-2">
                         {text}
-                        <span className="absolute inset-0 -z-10 block h-full w-0 rounded-lg bg-gradient-to-r from-purple-600/30 via-purple-500/30 to-purple-600/30 transition-all duration-500 group-hover:w-full"></span>
+                        <span className="absolute inset-0 -z-10 block h-full w-0 rounded-lg bg-gradient-to-r from-white/30 via-white/50 to-white/30 transition-all duration-500 group-hover:w-full"></span>
                       </span>
                     </Link>
                   </motion.div>
                 ))}
+                <motion.div
+                  variants={itemVariants}
+                  custom={menuItems.length}
+                  initial="closed"
+                  animate="open"
+                  exit="closed"
+                  className="pt-4"
+                >
+                  <FloatingActionButton />
+                </motion.div>
               </div>
             </div>
 
@@ -189,7 +195,7 @@ export default function MobileMenu() {
                 background: transparent;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb {
-                background-color: rgba(255, 255, 255, 0.3);
+                background-color: rgba(75, 85, 99, 0.3);
                 border-radius: 20px;
               }
             `}</style>
