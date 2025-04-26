@@ -1,94 +1,93 @@
 const mysql = require('mysql2/promise');
 require('dotenv').config({ path: '.env.local' });
 
-// MySQL connection configuration
-const mysqlConfig = {
-  host: process.env.MYSQL_HOST || 'metro.proxy.rlwy.net',
-  port: parseInt(process.env.MYSQL_PORT || '28228', 10),
-  user: process.env.MYSQL_USER || 'root',
-  password: process.env.MYSQL_PASSWORD || 'ippEdXwIlTCRKIYuCzsvnVqeJjmxufIc',
-  database: process.env.MYSQL_DATABASE || 'railway',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-};
-
-async function verifyMysqlData() {
-  console.log('Starting MySQL verification...');
-  console.log('Connection details:');
-  console.log(`Host: ${mysqlConfig.host}`);
-  console.log(`Port: ${mysqlConfig.port}`);
-  console.log(`User: ${mysqlConfig.user}`);
-  console.log(`Database: ${mysqlConfig.database}`);
-  console.log('-------------------');
+async function verifyConnection() {
+  console.log('Verifying MySQL connection...');
   
+  const config = {
+    host: process.env.MYSQL_HOST || 'metro.proxy.rlwy.net',
+    port: parseInt(process.env.MYSQL_PORT || '28228', 10),
+    user: process.env.MYSQL_USER || 'root',
+    password: process.env.MYSQL_PASSWORD || 'ippEdXwIlTCRKIYuCzsvnVqeJjmxufIc',
+    database: process.env.MYSQL_DATABASE || 'railway',
+    ssl: process.env.NODE_ENV === 'production' ? {} : undefined
+  };
+
   try {
-    // Create connection
-    const connection = await mysql.createConnection(mysqlConfig);
-    console.log('Connected to MySQL database ✅');
+    console.log(`Attempting to connect to MySQL at ${config.host}:${config.port}`);
+    const connection = await mysql.createConnection(config);
+    
+    console.log('Successfully connected to MySQL');
+    
+    // Test query
+    const [result] = await connection.execute('SELECT 1 as test');
+    console.log('Test query successful:', result);
     
     // Check if projects table exists
-    const [tables] = await connection.execute("SHOW TABLES LIKE 'projects'");
+    const [tables] = await connection.execute('SHOW TABLES LIKE "projects"');
     if (tables.length === 0) {
-      console.log('❌ Projects table not found!');
-      await connection.end();
-      return;
+      console.log('Projects table does not exist, creating it...');
+      await connection.execute(`
+        CREATE TABLE IF NOT EXISTS projects (
+          id INT AUTO_INCREMENT PRIMARY KEY,
+          title VARCHAR(255) NOT NULL,
+          description TEXT NOT NULL,
+          detailed_description TEXT,
+          image_url TEXT NOT NULL,
+          second_image TEXT,
+          show_both_images_in_priority BOOLEAN DEFAULT FALSE,
+          category VARCHAR(255) NOT NULL,
+          technologies TEXT NOT NULL,
+          tech_details TEXT,
+          project_link TEXT NOT NULL,
+          featured BOOLEAN DEFAULT FALSE,
+          completion_date VARCHAR(255),
+          client_name VARCHAR(255),
+          duration VARCHAR(255),
+          status VARCHAR(100),
+          updated_days INT,
+          progress INT,
+          development_progress INT,
+          estimated_completion VARCHAR(255),
+          features TEXT,
+          exclusive_features TEXT,
+          image_priority INT DEFAULT 5,
+          visual_effects TEXT,
+          is_code_screenshot BOOLEAN DEFAULT FALSE,
+          code_language VARCHAR(255),
+          code_title VARCHAR(255),
+          code_content TEXT,
+          use_direct_code_input BOOLEAN DEFAULT FALSE,
+          last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+      console.log('Projects table created successfully');
+    } else {
+      console.log('Projects table already exists');
+      
+      // Count projects
+      const [count] = await connection.execute('SELECT COUNT(*) as count FROM projects');
+      console.log(`Found ${count[0].count} projects in the database`);
     }
-    console.log('Projects table exists ✅');
     
-    // Count records
-    const [countResult] = await connection.execute('SELECT COUNT(*) as count FROM projects');
-    const count = countResult[0].count;
-    console.log(`Found ${count} projects in the database ✅`);
-    
-    if (count > 0) {
-      // Get project titles
-      const [projects] = await connection.execute('SELECT id, title, category FROM projects');
-      console.log('\nProject List:');
-      console.log('-------------------');
-      projects.forEach(project => {
-        console.log(`${project.id}. ${project.title} (${project.category})`);
-      });
-      
-      // Show sample project data
-      const [sampleProject] = await connection.execute('SELECT * FROM projects LIMIT 1');
-      console.log('\nSample Project Data:');
-      console.log('-------------------');
-      const project = sampleProject[0];
-      
-      // Show key fields in a more readable format
-      console.log(`ID: ${project.id}`);
-      console.log(`Title: ${project.title}`);
-      console.log(`Description: ${project.description.substring(0, 100)}...`);
-      console.log(`Category: ${project.category}`);
-      
-      try {
-        const technologies = JSON.parse(project.technologies);
-        console.log(`Technologies: ${Array.isArray(technologies) ? technologies.join(', ') : technologies}`);
-      } catch {
-        console.log(`Technologies: ${project.technologies}`);
-      }
-      
-      console.log(`Featured: ${project.featured ? 'Yes' : 'No'}`);
-      console.log(`Status: ${project.status || 'Not set'}`);
-      console.log(`Last Updated: ${project.last_updated}`);
-    }
-    
-    // Show column information
-    const [columns] = await connection.execute('SHOW COLUMNS FROM projects');
-    console.log('\nTable Schema:');
-    console.log('-------------------');
-    columns.forEach(column => {
-      console.log(`${column.Field} (${column.Type}${column.Null === 'NO' ? ', NOT NULL' : ''}${column.Key === 'PRI' ? ', PRIMARY KEY' : ''})`);
-    });
-    
-    // Close connection
     await connection.end();
-    console.log('\nVerification complete ✅');
-    
+    console.log('MySQL connection closed');
+    return true;
   } catch (error) {
-    console.error('Error during verification:', error);
+    console.error('MySQL connection error:', error);
+    return false;
   }
 }
 
-verifyMysqlData(); 
+// Run the verification
+verifyConnection()
+  .then(success => {
+    if (!success) {
+      process.exit(1);
+    }
+  })
+  .catch(error => {
+    console.error('Verification script error:', error);
+    process.exit(1);
+  }); 
