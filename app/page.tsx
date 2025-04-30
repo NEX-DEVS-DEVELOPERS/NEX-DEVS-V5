@@ -1,6 +1,10 @@
 'use client'
 import Hero from "@/components/sections/Hero"
+import BusinessHero from "@/components/sections/BusinessHero"
+import HeroToggle from "@/components/sections/HeroToggle"
 import HomeProjectGallery from "@/components/HomeProjectGallery"
+import WorkflowProcess from "@/components/sections/WorkflowProcess"
+import AIFeatures from "@/components/sections/AIFeatures"
 // import TrustedCompanies from "@/components/sections/TrustedCompanies"
 // import TrustedSection from "@/components/sections/TrustedSection"
 // import Details from "@/components/sections/Details"
@@ -80,6 +84,8 @@ export default function Home() {
   ])
   const [foundEasterEggs, setFoundEasterEggs] = useState<Set<string>>(new Set())
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
+  // New state for hero section toggle
+  const [currentHero, setCurrentHero] = useState<'original' | 'business'>('original')
 
   // Track total number of possible easter eggs
   const TOTAL_EASTER_EGGS = 4
@@ -386,10 +392,63 @@ export default function Home() {
              transform: 'translate3d(0, 0, 0)',
              backfaceVisibility: 'hidden'
            }}>
-        <Hero />
+        {/* Hero Section Toggle */}
+        <AnimatePresence mode="wait">
+          {currentHero === 'original' ? (
+            <motion.div
+              key="original-hero"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ 
+                duration: 0.5,
+                ease: [0.22, 1, 0.36, 1] // Custom ease curve for smoother animation
+              }}
+              className="will-change-transform"
+              style={{
+                transform: 'translate3d(0, 0, 0)',
+                backfaceVisibility: 'hidden'
+              }}
+            >
+              <HeroToggle 
+                currentHero={currentHero} 
+                onToggle={(hero) => setCurrentHero(hero)} 
+              />
+              <Hero />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="business-hero"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ 
+                duration: 0.5,
+                ease: [0.22, 1, 0.36, 1] // Custom ease curve for smoother animation
+              }}
+              className="will-change-transform"
+              style={{
+                transform: 'translate3d(0, 0, 0)',
+                backfaceVisibility: 'hidden'
+              }}
+            >
+              <HeroToggle 
+                currentHero={currentHero} 
+                onToggle={(hero) => setCurrentHero(hero)} 
+              />
+              <BusinessHero />
+            </motion.div>
+          )}
+        </AnimatePresence>
         
         {/* Project Gallery Section - Added below Hero */}
         <HomeProjectGallery />
+        
+        {/* Workflow Process - Detailed NEX-DEVS process with AI emphasis */}
+        <WorkflowProcess />
+        
+        {/* AI Features Section */}
+        <AIFeatures />
         
         {/* Services Section */}
         <section className="py-12 sm:py-20 relative overflow-hidden transition-all duration-500 ease-in-out will-change-transform"
