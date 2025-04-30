@@ -56,6 +56,8 @@ export default function NewlyAddedProjects() {
   const [newlyAddedProjects, setNewlyAddedProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null)
   const projectRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
   // Fetch newly added projects with memoization
@@ -64,6 +66,9 @@ export default function NewlyAddedProjects() {
     
     const fetchProjects = async () => {
       try {
+        setIsLoading(true)
+        setError(null)
+        
         // Enhanced cache busting with multiple random values
         const timestamp = new Date().getTime();
         const randomValue = Math.floor(Math.random() * 10000000);
@@ -80,7 +85,16 @@ export default function NewlyAddedProjects() {
             'X-Random-Value': randomValue.toString()
           }
         })
+        
+        if (!response.ok) {
+          throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
+        }
+        
         const data = await response.json()
+        
+        if (!Array.isArray(data)) {
+          throw new Error('API did not return an array of projects')
+        }
         
         // Filter projects with "NEWLY ADDED" in title or status is set
         const filtered = data.filter((project: Project) => 
@@ -106,20 +120,61 @@ export default function NewlyAddedProjects() {
           if (projectsToUpdate.length > 0) {
             const updateFeaturedProjects = async () => {
               try {
+                let updateResults = []
                 for (const project of projectsToUpdate) {
-                  await fetch(`/api/projects/${project.id}`, {
+                  const updateResponse = await fetch(`/api/projects/${project.id}`, {
                     method: 'PUT',
                     headers: {
                       'Content-Type': 'application/json',
+                      'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+                      'Pragma': 'no-cache',
+                      'Expires': '0',
+                      'X-Force-Refresh': 'true',
                     },
                     body: JSON.stringify({
                       ...project,
+                      featured: true,
+                      // Include a few fields in both camelCase and snake_case for compatibility
+                      status: project.status,
+                      updatedDays: project.updatedDays,
+                      updated_days: project.updatedDays,
                       featured: true
                     })
                   });
+                  
+                  if (!updateResponse.ok) {
+                    const errorText = await updateResponse.text()
+                    updateResults.push({
+                      id: project.id,
+                      success: false,
+                      status: updateResponse.status,
+                      error: errorText
+                    })
+                  } else {
+                    updateResults.push({
+                      id: project.id,
+                      success: true
+                    })
+                  }
                 }
+                
+                // Fetch debug info if there were errors
+                if (updateResults.some(r => !r.success)) {
+                  fetchDebugInfo()
+                }
+                
+                // Add update results to debug info
+                setDebugInfo(prev => ({
+                  ...prev,
+                  updateResults
+                }))
+                
               } catch (error) {
                 console.error('Error updating projects to featured:', error);
+                setDebugInfo(prev => ({
+                  ...prev,
+                  updateError: error instanceof Error ? error.message : String(error)
+                }))
               }
             };
             
@@ -129,6 +184,8 @@ export default function NewlyAddedProjects() {
       } catch (error) {
         if (!(error instanceof DOMException && error.name === 'AbortError')) {
           console.error('Error fetching newly added projects:', error)
+          setError(error instanceof Error ? error.message : String(error))
+          fetchDebugInfo() // Get debug info when there's an error
         }
       } finally {
         setIsLoading(false)
@@ -139,6 +196,17 @@ export default function NewlyAddedProjects() {
     
     return () => controller.abort()
   }, [])
+  
+  // Function to fetch debug information when there's an error
+  const fetchDebugInfo = async () => {
+    try {
+      const response = await fetch('/api/debug')
+      const data = await response.json()
+      setDebugInfo(data)
+    } catch (error) {
+      console.error('Error fetching debug info:', error)
+    }
+  }
 
   // Function to handle project expansion and scroll to it
   const handleProjectExpand = (projectId: number) => {
@@ -165,6 +233,37 @@ export default function NewlyAddedProjects() {
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+  
+  // Show error state
+  if (error) {
+    return (
+      <section className="max-w-7xl mx-auto mb-16 px-4">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-800/40 to-purple-800/40 border border-red-600/30 p-6">
+          <div className="flex flex-col justify-center items-center">
+            <div className="text-red-400 text-xl font-bold mb-3">Error Loading New Projects</div>
+            <div className="text-white mb-4">{error}</div>
+            <button 
+              onClick={() => window.location.reload()}
+              className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+            >
+              Retry
+            </button>
+            
+            {debugInfo && (
+              <div className="mt-6 w-full max-w-2xl mx-auto">
+                <details className="bg-black/30 rounded-md p-3 border border-purple-500/30">
+                  <summary className="text-purple-400 cursor-pointer">Debug Information</summary>
+                  <div className="mt-2 text-xs font-mono text-gray-300 whitespace-pre-wrap max-h-40 overflow-auto">
+                    {JSON.stringify(debugInfo, null, 2)}
+                  </div>
+                </details>
+              </div>
+            )}
           </div>
         </div>
       </section>

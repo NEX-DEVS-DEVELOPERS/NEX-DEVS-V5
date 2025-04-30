@@ -95,6 +95,7 @@ export default function ProjectsGrid() {
   const [showEasterEgg, setShowEasterEgg] = useState(false)
   const [easterEggMessage, setEasterEggMessage] = useState('')
   const [error, setError] = useState<string | null>(null)
+  const [debugInfo, setDebugInfo] = useState<any>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
 
   // Fetch projects
@@ -111,6 +112,8 @@ export default function ProjectsGrid() {
         const categoryParam = selectedCategory !== 'All' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
         const apiUrl = `/api/projects?t=${timestamp}&r=${randomValue}${categoryParam}&${cache}`;
         
+        console.log(`Fetching projects from: ${apiUrl}`);
+        
         const response = await fetch(apiUrl, {
           method: 'GET',
           cache: 'no-store',
@@ -124,17 +127,17 @@ export default function ProjectsGrid() {
         });
         
         if (!response.ok) {
-          throw new Error(`Server returned ${response.status}: ${response.statusText}`);
+          const errorText = await response.text().catch(() => 'Could not read error response');
+          throw new Error(`Server returned ${response.status}: ${response.statusText}. Details: ${errorText}`);
         }
         
         const data = await response.json();
         
         if (!Array.isArray(data)) {
-          setError('API did not return an array of projects');
-          setProjects([]);
-          setIsLoading(false);
-          return;
+          throw new Error('API did not return an array of projects');
         }
+        
+        console.log(`Received ${data.length} projects from API`);
         
         const normalizedData = data.map(normalizeProjectForRender);
         
@@ -153,6 +156,9 @@ export default function ProjectsGrid() {
         setError((error as Error).message);
         setProjects([]);
         setIsLoading(false);
+        
+        // Fetch debug info when there's an error
+        fetchDebugInfo();
       }
     };
 
@@ -166,6 +172,20 @@ export default function ProjectsGrid() {
     
     return () => clearInterval(refreshInterval);
   }, [selectedCategory]);
+
+  // Function to fetch debug information
+  const fetchDebugInfo = async () => {
+    try {
+      const response = await fetch('/api/debug');
+      if (response.ok) {
+        const data = await response.json();
+        setDebugInfo(data);
+        console.log('Debug info:', data);
+      }
+    } catch (e) {
+      console.error('Error fetching debug info:', e);
+    }
+  };
 
   // Add manual refresh function for admins
   const handleManualRefresh = () => {
@@ -182,6 +202,8 @@ export default function ProjectsGrid() {
       .catch(error => {
         console.error('Error revalidating:', error);
         setIsLoading(false);
+        setError('Failed to revalidate: ' + error.message);
+        fetchDebugInfo();
       });
   };
 
@@ -272,15 +294,32 @@ export default function ProjectsGrid() {
       <section className="max-w-7xl mx-auto mb-12 md:mb-16 px-4 md:px-6">
         <div className="bg-red-900/30 border border-red-500/30 rounded-xl p-6 text-center">
           <h3 className="text-xl font-semibold text-red-300 mb-2">Error Loading Projects</h3>
-          <p className="text-white">{error}</p>
-          <div className="mt-4">
+          <p className="text-white mb-4">{error}</p>
+          <div className="flex justify-center gap-4">
             <button
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-red-600 text-white rounded-md"
+              className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
-              Retry
+              Reload Page
+            </button>
+            <button
+              onClick={fetchDebugInfo}
+              className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+            >
+              Refresh Debug Info
             </button>
           </div>
+          
+          {debugInfo && (
+            <div className="mt-6">
+              <details className="bg-black/30 rounded-md p-3 border border-red-500/30 text-left">
+                <summary className="text-red-400 cursor-pointer font-medium">Debug Information</summary>
+                <div className="mt-3 text-xs font-mono text-gray-300 whitespace-pre-wrap max-h-80 overflow-auto p-2 bg-black/40 rounded">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </div>
+              </details>
+            </div>
+          )}
         </div>
       </section>
     );
@@ -316,6 +355,16 @@ export default function ProjectsGrid() {
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
             </svg>
           </button>
+          
+          <button
+            onClick={fetchDebugInfo}
+            className="px-4 py-2 rounded-full text-sm transition-colors bg-purple-600/30 text-purple-300 hover:bg-purple-600/50"
+            title="Debug info"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </button>
         </div>
         
         <div className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/20 text-center">
@@ -336,6 +385,17 @@ export default function ProjectsGrid() {
             >
               Show All Projects
             </button>
+          )}
+          
+          {debugInfo && (
+            <div className="mt-6 max-w-2xl mx-auto">
+              <details className="bg-black/30 rounded-md p-3 border border-purple-500/30 text-left">
+                <summary className="text-purple-400 cursor-pointer font-medium">Debug Information</summary>
+                <div className="mt-3 text-xs font-mono text-gray-300 whitespace-pre-wrap max-h-80 overflow-auto p-2 bg-black/40 rounded">
+                  {JSON.stringify(debugInfo, null, 2)}
+                </div>
+              </details>
+            </div>
           )}
         </div>
       </section>
@@ -373,12 +433,50 @@ export default function ProjectsGrid() {
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
+        
+        <button
+          onClick={fetchDebugInfo}
+          className="px-4 py-2 rounded-full text-sm transition-colors bg-purple-600/30 text-purple-300 hover:bg-purple-600/50"
+          title="Debug info"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </button>
       </div>
 
       {/* Easter Egg Message */}
       {showEasterEgg && (
         <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 py-4 bg-black/90 rounded-xl border border-purple-500/30 z-50 backdrop-blur-md">
           <p className="text-white text-lg font-medium">{easterEggMessage}</p>
+        </div>
+      )}
+
+      {/* Debug Info Modal */}
+      {debugInfo && (
+        <div className="fixed bottom-4 right-4 z-50">
+          <details className="bg-black/90 backdrop-blur-md rounded-md border border-purple-500/30 p-3 max-w-sm text-left shadow-xl">
+            <summary className="text-purple-400 cursor-pointer font-medium">Database Status</summary>
+            <div className="mt-3 text-xs font-mono text-gray-300 whitespace-pre-wrap max-h-60 overflow-auto p-2 bg-black/40 rounded">
+              <div className="text-green-400 font-semibold mb-1">Environment: {debugInfo.environment}</div>
+              <div className="mb-2">Server Time: {debugInfo.serverTime}</div>
+              {debugInfo.database && (
+                <>
+                  <div className="text-yellow-400 font-semibold mb-1">Database:</div>
+                  <div className={debugInfo.database.connectivity === 'connected' ? 'text-green-400' : 'text-red-400'}>
+                    Status: {debugInfo.database.connectivity}
+                  </div>
+                  {debugInfo.database.projects && (
+                    <div className="mt-1">
+                      Projects: {debugInfo.database.projects.total} 
+                      (Featured: {debugInfo.database.projects.featured}, 
+                      New: {debugInfo.database.projects.newlyAdded})
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+          </details>
         </div>
       )}
 
