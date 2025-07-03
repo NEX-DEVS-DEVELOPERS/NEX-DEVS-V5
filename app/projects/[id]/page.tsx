@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, use } from 'react';
 import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
@@ -39,7 +39,8 @@ type Project = {
   }
 }
 
-export default function ProjectDetailPage({ params }: { params: { id: string } }) {
+export default function ProjectDetailPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
@@ -51,15 +52,6 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
       try {
         // Add timestamp to force fresh data and prevent browser caching
         const timestamp = new Date().getTime();
-        const response = await fetch(`/api/projects?t=${timestamp}`, {
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
-          }
-        })
-        const projects = await response.json()
         
         // Safely handle params.id with appropriate type checking
         const projectId = typeof params?.id === 'string' ? parseInt(params.id, 10) : 0
@@ -70,10 +62,24 @@ export default function ProjectDetailPage({ params }: { params: { id: string } }
           return
         }
         
-        const foundProject = projects.find((p: Project) => p.id === projectId)
+        // Use the dedicated API endpoint for fetching a single project
+        const response = await fetch(`/api/projects/${projectId}?t=${timestamp}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0'
+          }
+        })
         
-        if (foundProject) {
-          setProject(foundProject)
+        if (!response.ok) {
+          throw new Error(`Failed to fetch project: ${response.status}`)
+        }
+        
+        const projectData = await response.json()
+        
+        if (projectData) {
+          setProject(projectData)
           // Add a small delay before enabling effects to ensure smooth animation
           setTimeout(() => {
             setEffectsLoaded(true)

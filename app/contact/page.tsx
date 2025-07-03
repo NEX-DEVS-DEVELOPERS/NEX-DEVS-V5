@@ -4,6 +4,8 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub, FaTwitter, FaWhatsapp, FaClock, FaGlobe, FaCode, FaPalette, FaRocket, FaMobile, FaWordpress, FaShoppingCart } from 'react-icons/fa';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
+import { PlanReview } from '../components/ReviewsDrawer';
+import { carouselReviews, planReviews, Review } from '../components/ReviewsData';
 
 // Add glowing dots component
 const GlowingDot = ({ className = "", size = "small" }) => (
@@ -116,6 +118,28 @@ const currencySymbols = {
 };
 
 const packages: Package[] = [
+  {
+    name: "MODERN AI BASED SAAS PRODUCT",
+    price: "93500",
+    features: [
+      "Enterprise AI Model Integration",
+      "Advanced SaaS Architecture",
+      "Real-time Data Processing",
+      "Predictive Analytics Engine",
+      "Scalable Cloud Infrastructure",
+      "Enterprise API Development",
+      "Machine Learning Pipeline",
+      "Automated Business Workflows",
+      "Multi-tenant Architecture",
+      "Advanced Security Protocols",
+      "Custom AI Solutions",
+      "Business Intelligence Tools",
+      "Performance Monitoring",
+      "Automated Scaling",
+      "24/7 Premium Support"
+    ],
+    hasDiscount: true
+  },
   {
     name: "WordPress Basic",
     price: "38500",
@@ -444,6 +468,535 @@ const SuccessMessage = ({ message, onClose }: { message: string; onClose: () => 
   );
 };
 
+// Add the ReviewFormModal component before the ContactPageContent function
+const ReviewFormModal = ({ isOpen, onClose, onSubmit }: { 
+  isOpen: boolean; 
+  onClose: () => void; 
+  onSubmit: (review: Partial<PlanReview>) => void;
+}) => {
+  const [reviewData, setReviewData] = useState<Partial<PlanReview>>({
+    author: '',
+    role: '',
+    company: '',
+    country: '',
+    rating: 5,
+    text: '',
+    planTitle: '',
+    projectType: '',
+    date: new Date().toISOString().split('T')[0],
+    successMetrics: [{ label: '', value: '' }]
+  });
+  const [currentStep, setCurrentStep] = useState(1);
+  const [formSubmitted, setFormSubmitted] = useState(false);
+  const totalSteps = 3;
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    const { name, value } = e.target;
+    setReviewData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleRatingChange = (rating: number) => {
+    setReviewData(prev => ({ ...prev, rating }));
+  };
+
+  const handleSuccessMetricChange = (index: number, field: 'label' | 'value', value: string) => {
+    setReviewData(prev => {
+      const metrics = [...(prev.successMetrics || [])];
+      if (!metrics[index]) {
+        metrics[index] = { label: '', value: '' };
+      }
+      metrics[index][field] = value;
+      return { ...prev, successMetrics: metrics };
+    });
+  };
+
+  const addSuccessMetric = () => {
+    setReviewData(prev => ({
+      ...prev,
+      successMetrics: [...(prev.successMetrics || []), { label: '', value: '' }]
+    }));
+  };
+
+  const removeSuccessMetric = (index: number) => {
+    setReviewData(prev => {
+      const metrics = [...(prev.successMetrics || [])];
+      metrics.splice(index, 1);
+      return { ...prev, successMetrics: metrics };
+    });
+  };
+
+  const nextStep = () => {
+    setCurrentStep(prev => Math.min(prev + 1, totalSteps));
+  };
+
+  const prevStep = () => {
+    setCurrentStep(prev => Math.max(prev - 1, 1));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormSubmitted(true);
+    
+    // Generate a unique ID for the review
+    const reviewWithId = {
+      ...reviewData,
+      id: `review-${Date.now()}`,
+      isVerified: true // Auto-verify for now
+    };
+    
+    // Show animation for 1.5 seconds before closing
+    setTimeout(() => {
+      onSubmit(reviewWithId);
+      setTimeout(() => {
+        onClose();
+        setFormSubmitted(false);
+        setCurrentStep(1);
+      }, 500);
+    }, 1500);
+  };
+
+  // Check if a step is valid
+  const isStepValid = (step: number): boolean => {
+    switch(step) {
+      case 1:
+        return !!reviewData.author && !!reviewData.role;
+      case 2:
+        return !!reviewData.planTitle && !!reviewData.rating;
+      case 3:
+        return !!reviewData.text;
+      default:
+        return false;
+    }
+  };
+
+  // Determine if next button should be disabled
+  const isNextDisabled = !isStepValid(currentStep);
+
+  if (!isOpen) return null;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 flex items-center justify-center z-50 px-4 sm:px-0 backdrop-blur-md bg-black/70"
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+    >
+      {formSubmitted ? (
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ type: "spring", stiffness: 300, damping: 25 }}
+          className="bg-zinc-900/95 text-white p-8 rounded-xl shadow-2xl border border-green-500/40 
+            max-w-md w-full relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-br from-green-500/10 via-purple-500/10 to-green-500/10 opacity-50"></div>
+          
+          <div className="relative z-10 flex flex-col items-center justify-center text-center py-12">
+            {/* Success animation */}
+            <motion.div
+              initial={{ scale: 0, rotate: -180 }}
+              animate={{ scale: 1, rotate: 0 }}
+              transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              className="w-24 h-24 rounded-full bg-gradient-to-br from-green-500/20 to-green-400/20 
+                flex items-center justify-center mb-8 border border-green-500/30"
+            >
+              <motion.svg 
+                className="w-12 h-12 text-green-500" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
+              >
+                <motion.path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
+              </motion.svg>
+            </motion.div>
+            
+            <motion.h2 
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="text-2xl font-bold mb-3 text-white"
+            >
+              Thank You!
+            </motion.h2>
+            
+            <motion.p
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="text-green-300 mb-4"
+            >
+              Your review has been submitted successfully
+            </motion.p>
+            
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: "100%" }}
+              transition={{ duration: 1.5 }}
+              className="h-1 bg-green-500/50 rounded-full w-full max-w-xs mt-4"
+            />
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0, y: 20 }}
+          animate={{ scale: 1, opacity: 1, y: 0 }}
+          transition={{ type: "spring", stiffness: 200, damping: 20 }}
+          className="bg-zinc-900/95 text-white p-5 md:p-8 rounded-xl shadow-2xl border border-purple-500/30 
+            w-[95%] max-w-2xl max-h-[90vh] overflow-y-auto custom-scrollbar relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* Decorative elements */}
+          <div className="absolute inset-0 bg-gradient-to-br from-purple-600/5 via-purple-500/5 to-purple-400/5 rounded-xl"></div>
+          <div className="absolute -inset-0.5 bg-gradient-to-br from-purple-500/10 to-purple-400/10 blur-xl opacity-30 rounded-xl"></div>
+          
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-purple-300 hover:text-white transition-colors z-10"
+          >
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+
+          <div className="relative z-10">
+            <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-purple-300 to-pink-300 bg-clip-text text-transparent">
+              Share Your Experience
+            </h2>
+            
+            {/* Progress indicator */}
+            <div className="mb-8">
+              <div className="flex justify-between items-center mb-2">
+                {Array.from({ length: totalSteps }).map((_, index) => (
+                  <motion.div 
+                    key={index}
+                    className={`flex items-center justify-center w-8 h-8 md:w-10 md:h-10 rounded-full text-sm md:text-base font-medium z-10
+                      ${index + 1 === currentStep 
+                        ? 'bg-purple-600 text-white' 
+                        : index + 1 < currentStep 
+                          ? 'bg-green-600 text-white' 
+                          : 'bg-zinc-800 text-gray-400'}`}
+                    initial={false}
+                    animate={index + 1 === currentStep ? { scale: [1, 1.1, 1] } : {}}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {index + 1 < currentStep ? (
+                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : (
+                      index + 1
+                    )}
+                  </motion.div>
+                ))}
+                
+                {/* Connecting lines */}
+                <div className="absolute left-0 right-0 flex justify-between h-0.5">
+                  {Array.from({ length: totalSteps - 1 }).map((_, index) => (
+                    <motion.div 
+                      key={index}
+                      className="h-0.5 bg-zinc-700 flex-1 mx-4"
+                      initial={false}
+                      animate={{
+                        backgroundColor: index + 1 < currentStep ? '#16a34a' : '#3f3f46'
+                      }}
+                    />
+                  ))}
+                </div>
+              </div>
+              <div className="flex justify-between px-1 text-xs text-gray-400">
+                <span>Basic Info</span>
+                <span>Project Details</span>
+                <span>Your Review</span>
+              </div>
+            </div>
+            
+            <form onSubmit={handleSubmit} className="space-y-5">
+              <AnimatePresence mode="wait">
+                {currentStep === 1 && (
+                  <motion.div
+                    key="step1"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="space-y-5"
+                  >
+                    <h3 className="text-xl font-medium text-purple-300 mb-4">Basic Information</h3>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-purple-200">Your Name*</label>
+                        <input
+                          type="text"
+                          name="author"
+                          value={reviewData.author}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-purple-200">Your Role/Position*</label>
+                        <input
+                          type="text"
+                          name="role"
+                          value={reviewData.role}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          required
+                          placeholder="e.g. Marketing Director"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-purple-200">Company/Organization</label>
+                        <input
+                          type="text"
+                          name="company"
+                          value={reviewData.company || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          placeholder="e.g. Acme Corp"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-purple-200">Country</label>
+                        <input
+                          type="text"
+                          name="country"
+                          value={reviewData.country || ''}
+                          onChange={handleInputChange}
+                          className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                          placeholder="e.g. Pakistan"
+                        />
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+                
+                {currentStep === 2 && (
+                  <motion.div
+                    key="step2"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="space-y-5"
+                  >
+                    <h3 className="text-xl font-medium text-purple-300 mb-4">Project Details</h3>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-purple-200">Which package did you use?*</label>
+                      <select
+                        name="planTitle"
+                        value={reviewData.planTitle}
+                        onChange={handleInputChange}
+                        required
+                        className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                      >
+                        <option value="">Select a package</option>
+                        <option value="WordPress Basic">WordPress Basic</option>
+                        <option value="WordPress Professional">WordPress Professional</option>
+                        <option value="WordPress Enterprise">WordPress Enterprise</option>
+                        <option value="WordPress E-commerce">WordPress E-commerce</option>
+                        <option value="Shopify Store">Shopify Store</option>
+                        <option value="Full-Stack Basic">Full-Stack Basic</option>
+                        <option value="Full-Stack Professional">Full-Stack Professional</option>
+                        <option value="Full-Stack Enterprise">Full-Stack Enterprise</option>
+                        <option value="AI Agents/WebApps">AI Agents/WebApps</option>
+                        <option value="SEO/Content Writing">SEO/Content Writing</option>
+                        <option value="UI/UX Design">UI/UX Design</option>
+                        <option value="Mobile App Development">Mobile App Development</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-purple-200">Project Type</label>
+                      <input
+                        type="text"
+                        name="projectType"
+                        value={reviewData.projectType || ''}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                        placeholder="e.g. E-commerce Website, Corporate Site, Blog"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-purple-200">Your Rating*</label>
+                      <div className="flex items-center space-x-2">
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <button
+                            key={star}
+                            type="button"
+                            onClick={() => handleRatingChange(star)}
+                            className="text-2xl focus:outline-none transition-transform hover:scale-110"
+                          >
+                            <motion.span 
+                              className={star <= reviewData.rating! ? "text-yellow-400" : "text-gray-400"}
+                              whileHover={{ scale: 1.2 }}
+                              whileTap={{ scale: 0.9 }}
+                              animate={star <= reviewData.rating! ? { 
+                                scale: [1, 1.2, 1],
+                                rotate: [0, 5, 0, -5, 0],
+                                transition: { duration: 0.5 }
+                              } : {}}
+                            >
+                              ★
+                            </motion.span>
+                          </button>
+                        ))}
+                        <span className="ml-2 text-sm text-gray-400">
+                          {reviewData.rating} out of 5 stars
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {currentStep === 3 && (
+                  <motion.div
+                    key="step3"
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0, x: 20 }}
+                    className="space-y-5"
+                  >
+                    <h3 className="text-xl font-medium text-purple-300 mb-4">Your Review</h3>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-1 text-purple-200">Your Review*</label>
+                      <textarea
+                        name="text"
+                        value={reviewData.text}
+                        onChange={handleInputChange}
+                        rows={4}
+                        required
+                        className="w-full px-3 py-2 text-sm rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                        placeholder="Please share your experience working with us. What did you like? Was there anything we could improve?"
+                      ></textarea>
+                    </div>
+
+                    <div className="space-y-3">
+                      <div className="flex justify-between items-center">
+                        <label className="block text-sm font-medium text-purple-200">Success Metrics (Optional)</label>
+                        <button 
+                          type="button"
+                          onClick={addSuccessMetric}
+                          className="text-xs bg-purple-700/50 text-purple-200 px-2 py-1 rounded-md hover:bg-purple-700/70 transition-colors flex items-center gap-1"
+                        >
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                          </svg>
+                          Add Metric
+                        </button>
+                      </div>
+                      
+                      <p className="text-xs text-gray-400">What measurable improvements did you see after working with us?</p>
+                      
+                      {reviewData.successMetrics?.map((metric, index) => (
+                        <motion.div 
+                          key={index} 
+                          className="grid grid-cols-5 gap-2 items-center"
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                        >
+                          <div className="col-span-2">
+                            <input
+                              type="text"
+                              value={metric.label}
+                              onChange={(e) => handleSuccessMetricChange(index, 'label', e.target.value)}
+                              className="w-full px-3 py-2 text-xs rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                              placeholder="e.g. Conversion Rate"
+                            />
+                          </div>
+                          <div className="col-span-2">
+                            <input
+                              type="text"
+                              value={metric.value}
+                              onChange={(e) => handleSuccessMetricChange(index, 'value', e.target.value)}
+                              className="w-full px-3 py-2 text-xs rounded-lg bg-zinc-800 border border-zinc-700 focus:border-purple-500 focus:ring-1 focus:ring-purple-500"
+                              placeholder="e.g. +30%"
+                            />
+                          </div>
+                          <button 
+                            type="button"
+                            onClick={() => removeSuccessMetric(index)}
+                            className="text-red-400 hover:text-red-300 transition-colors"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        </motion.div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <div className="pt-4 mt-4 border-t border-zinc-800 flex justify-between">
+                {currentStep > 1 ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={prevStep}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white font-medium py-2.5 px-5 rounded-lg transition-all flex items-center gap-1"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                    </svg>
+                    Back
+                  </motion.button>
+                ) : <div></div>}
+                
+                {currentStep < totalSteps ? (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="button"
+                    onClick={nextStep}
+                    disabled={isNextDisabled}
+                    className={`${isNextDisabled ? 'bg-zinc-700 cursor-not-allowed' : 'bg-purple-600 hover:bg-purple-700'} 
+                      text-white font-medium py-2.5 px-5 rounded-lg transition-all flex items-center gap-1`}
+                  >
+                    Next
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    </svg>
+                  </motion.button>
+                ) : (
+                  <motion.button
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    type="submit"
+                    disabled={!isStepValid(currentStep)}
+                    className={`${!isStepValid(currentStep) ? 'bg-zinc-700 cursor-not-allowed' : 'bg-gradient-to-r from-purple-600 to-purple-800 hover:from-purple-700 hover:to-purple-900'} 
+                      text-white font-medium py-2.5 px-6 rounded-lg transition-all shadow-lg shadow-purple-900/30`}
+                  >
+                    Submit Review
+                  </motion.button>
+                )}
+              </div>
+            </form>
+          </div>
+        </motion.div>
+      )}
+    </motion.div>
+  );
+};
+
 function ContactPageContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
@@ -491,6 +1044,46 @@ function ContactPageContent() {
   // Toggle requirements panel visibility
   const toggleRequirementsPanel = () => {
     setShowRequirementsPanel(prev => !prev);
+  };
+
+  // Add these new states for review functionality
+  const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
+  const [reviews, setReviews] = useState<PlanReview[]>([...planReviews]);
+  
+  // Add this function to handle submitting a review
+  const handleReviewSubmit = async (newReview: Partial<PlanReview>) => {
+    try {
+      setIsLoading(true);
+      
+      // Submit the review to the API
+      const response = await fetch('/api/reviews', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(newReview),
+      });
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        // Add the new review to the local state
+        setReviews(prevReviews => [result.review, ...prevReviews]);
+        
+        // Show success message
+        setSuccessMessage('Thank you! Your review has been submitted successfully.');
+        
+        // Close the review modal
+        setIsReviewModalOpen(false);
+      } else {
+        setErrorMessage(result.message || 'Failed to submit review. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error submitting review:', error);
+      setErrorMessage('An unexpected error occurred. Please try again later.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -1791,8 +2384,216 @@ function ContactPageContent() {
               ))}
             </div>
           </section>
+
+          {/* Enhanced Client Review Section */}
+          <section className="mt-16 mb-12 relative z-10">
+            <div className="relative">
+              {/* Purple glow background effect */}
+              <div className="absolute -inset-10 bg-purple-600/10 blur-3xl opacity-50 rounded-full"></div>
+              
+              <div className="relative bg-zinc-900/60 border border-purple-500/30 rounded-2xl p-6 md:p-8 backdrop-blur-sm shadow-xl">
+                <div className="text-center space-y-4 mb-8">
+                  <h2 className="text-2xl md:text-3xl font-bold">
+                    <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
+                      Share Your Experience With Us
+                    </span>
+                  </h2>
+                  <p className="text-gray-300 max-w-2xl mx-auto">
+                    We value your feedback and appreciate your time. Let us know about your experience working with NEX-DEVS.
+                  </p>
+                </div>
+                
+                {/* Featured Reviews Grid - Displays the most recent client reviews */}
+                <div className="mb-10 relative">
+                  <h3 className="text-xl font-medium text-center mb-6 flex items-center justify-center gap-2">
+                    <span className="text-purple-300">★</span>
+                    Recent Client Reviews
+                    <span className="text-purple-300">★</span>
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                    {reviews.slice(0, 3).map((review, index) => (
+                      <motion.div
+                        key={review.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: index * 0.1 }}
+                        className="bg-black/40 rounded-xl p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/10 group"
+                      >
+                        <div className="flex justify-between items-start mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center text-white font-bold">
+                              {review.author.charAt(0)}
+                            </div>
+                            <div>
+                              <h4 className="text-white font-medium text-sm md:text-base">{review.author}</h4>
+                              <p className="text-purple-200 text-xs">{review.role} {review.company && `at ${review.company}`}</p>
+                            </div>
+                          </div>
+                          <div className="text-yellow-400 text-sm flex">
+                            {'★'.repeat(review.rating)}
+                          </div>
+                        </div>
+                        
+                        <div className="text-gray-300 text-sm mb-3 h-16 overflow-hidden relative">
+                          <p className="line-clamp-3">{review.text}</p>
+                          <div className="absolute bottom-0 left-0 right-0 h-6 bg-gradient-to-t from-black/40 to-transparent"></div>
+                        </div>
+                        
+                        <div className="flex justify-between items-center text-xs text-purple-300/70">
+                          <div>
+                            {review.projectType || review.planTitle}
+                          </div>
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            {new Date(review.date).toLocaleDateString()}
+                          </div>
+                        </div>
+                      </motion.div>
+                    ))}
+                  </div>
+                </div>
+                
+                {/* Review CTAs */}
+                <div className="flex flex-col md:flex-row gap-4 md:gap-8 items-center justify-center">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => setIsReviewModalOpen(true)}
+                    className="group relative overflow-hidden px-8 py-4 rounded-xl 
+                      bg-gradient-to-r from-purple-600 to-purple-800 
+                      hover:from-purple-500 hover:to-purple-700
+                      text-white font-medium shadow-lg shadow-purple-700/30
+                      border border-purple-500/40 hover:border-purple-500/60
+                      transition-all duration-300 flex-1 flex items-center justify-center max-w-md w-full"
+                  >
+                    {/* Shine animation effect */}
+                    <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-15 bg-gradient-to-r from-transparent to-white opacity-20 group-hover:animate-shine" />
+                    
+                    <div className="flex items-center gap-2 relative z-10">
+                      <svg className="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z" />
+                      </svg>
+                      <span className="text-lg">Leave a Review</span>
+                    </div>
+                  </motion.button>
+                  
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => router.push('/pricing')}
+                    className="group relative overflow-hidden px-8 py-4 rounded-xl 
+                      bg-black/40
+                      text-white font-medium 
+                      border border-purple-500/20 hover:border-purple-500/40
+                      transition-all duration-300 flex-1 flex items-center justify-center max-w-md w-full"
+                  >
+                    <div className="flex items-center gap-2 relative z-10">
+                      <svg className="w-5 h-5 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      <span className="text-lg">See All Reviews</span>
+                    </div>
+                  </motion.button>
+                </div>
+              </div>
+            </div>
+          </section>
         </div>
       </main>
+      
+      {/* Review Modal */}
+      <AnimatePresence>
+        {isReviewModalOpen && (
+          <ReviewFormModal 
+            isOpen={isReviewModalOpen} 
+            onClose={() => setIsReviewModalOpen(false)} 
+            onSubmit={handleReviewSubmit}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Package Details Section */}
+      {selectedPlan && (
+        <div className="mt-8">
+          <div className="bg-black/40 rounded-xl p-6 border border-purple-500/30">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                {selectedPlan === "MODERN AI BASED SAAS PRODUCT" && <span>🤖</span>}
+                {selectedPlan}
+              </h3>
+              <div className="text-purple-300 font-semibold">
+                {formatPrice(Number(packages.find(p => p.name === selectedPlan)?.price || 0), selectedCurrency)}
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Features List */}
+              <div className="grid gap-2">
+                {packages.find(p => p.name === selectedPlan)?.features.map((feature, index) => (
+                  <div key={index} className="flex items-start gap-2 bg-purple-900/20 p-3 rounded-lg">
+                    <svg className="w-5 h-5 text-purple-400 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-gray-300">{feature}</span>
+                  </div>
+                ))}
+              </div>
+
+              {/* SAAS-specific additional info */}
+              {selectedPlan === "MODERN AI BASED SAAS PRODUCT" && (
+                <div className="mt-6 space-y-4">
+                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                    <h4 className="text-white font-medium mb-2">Enterprise AI Integration</h4>
+                    <p className="text-gray-300 text-sm">
+                      Our SAAS solution comes with advanced AI capabilities, real-time data processing, 
+                      and scalable architecture designed for enterprise-level operations.
+                    </p>
+                  </div>
+                  <div className="bg-purple-900/20 rounded-lg p-4 border border-purple-500/20">
+                    <h4 className="text-white font-medium mb-2">Performance & Scalability</h4>
+                    <p className="text-gray-300 text-sm">
+                      Built with cutting-edge technology to handle high loads and scale automatically 
+                      based on your business needs. Includes advanced monitoring and analytics.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Display SAAS Reviews if SAAS package is selected */}
+          {selectedPlan === "MODERN AI BASED SAAS PRODUCT" && (
+            <div className="mt-8 bg-black/40 rounded-xl p-6 border border-purple-500/30">
+              <h3 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                <span>🤖</span>
+                Client Reviews for SAAS Solutions
+              </h3>
+              <div className="grid gap-4">
+                {Array.isArray(planReviews) && planReviews.filter(review => review.projectType === "MODERN AI BASED SAAS PRODUCT").map((review, index: number) => (
+                  <div key={index} className="bg-white rounded-lg shadow-md p-6 mb-4">
+                    <div className="flex items-center mb-4">
+                      <div>
+                        <h4 className="text-lg font-semibold">{review.name}</h4>
+                        <p className="text-gray-600">{review.role}</p>
+                      </div>
+                      <div className="ml-auto">
+                        <div className="flex items-center">
+                          {[...Array(review.rating)].map((_, i) => (
+                            <span key={i} className="text-yellow-400">★</span>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-gray-700 mb-2">{review.comment}</p>
+                    <p className="text-gray-500 text-sm">{review.date}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </>
   );
 }

@@ -81,29 +81,36 @@ export default function Logo() {
 
           {/* Modern Logo Text */}
           <div className="relative">
+            <div className="absolute -top-4 left-[65%] transform -translate-x-1/2 text-[8px] font-bold bg-purple-600/90 text-white px-1.5 py-0.5 rounded-[3px] tracking-wider shadow-sm shadow-purple-500/30">
+              <motion.span
+                animate={{
+                  opacity: [0.7, 1, 0.7],
+                  scale: [0.98, 1, 0.98]
+                }}
+                transition={{
+                  duration: 2,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="inline-block"
+              >
+                BETA
+              </motion.span>
+            </div>
             <motion.div 
               className="text-xl font-extrabold tracking-tight flex items-center gap-1"
             >
-              <span className="bg-gradient-to-r from-white via-purple-300 to-white bg-clip-text text-transparent">
+              <span className="text-white font-extrabold">
                 NEX-
               </span>
               <motion.span
-                className="relative cursor-pointer bg-gradient-to-r from-amber-400 to-yellow-600 bg-clip-text text-transparent"
+                className="relative cursor-pointer text-yellow-400 font-extrabold"
                 onClick={handleDevsClick}
                 whileHover={{
                   scale: 1.05,
-                  textShadow: [
-                    "0 0 10px rgba(255,215,0,0.5)",
-                    "0 0 15px rgba(255,215,0,0.3)",
-                  ],
                 }}
                 animate={{
                   y: [0, -3, 0],
-                  textShadow: [
-                    "0 0 5px rgba(255,215,0,0.2)",
-                    "0 0 10px rgba(255,215,0,0.1)",
-                    "0 0 5px rgba(255,215,0,0.2)"
-                  ],
                 }}
                 transition={{
                   y: {
@@ -111,11 +118,6 @@ export default function Logo() {
                     repeat: Infinity,
                     ease: "easeInOut"
                   },
-                  textShadow: {
-                    duration: 1.5,
-                    repeat: Infinity,
-                    repeatType: "reverse"
-                  }
                 }}
               >
                 DEVS
@@ -206,6 +208,7 @@ export default function Logo() {
           >
             <motion.div 
               className="relative overflow-hidden rounded-xl bg-gradient-to-br from-slate-800 to-gray-900 border border-indigo-500/30 shadow-xl shadow-purple-900/10"
+              style={{ backdropFilter: 'blur(12px)' }}
             >
               {/* Detailed glass effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-600/5 to-purple-600/5" />
@@ -237,17 +240,22 @@ export default function Logo() {
                   ✕
                 </motion.button>
                 
-                {/* Enhanced title with animated underline */}
+                {/* Enhanced title with professional background */}
                 <div className="relative mb-4">
-                  <h3 className="text-base font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                    NEX-DEVS Evolution
-                  </h3>
-                  <motion.div 
-                    className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500"
-                    initial={{ width: "0%" }}
-                    animate={{ width: "100%" }}
-                    transition={{ duration: 0.8, delay: 0.2 }}
-                  />
+                  <div className="bg-gradient-to-r from-indigo-900/80 to-purple-900/80 p-3 rounded-lg border border-indigo-500/50 shadow-lg shadow-purple-900/20 backdrop-blur-md">
+                    <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-purple-500/50 blur-sm animate-pulse"></div>
+                    <div className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-indigo-500/50 blur-sm animate-pulse"></div>
+                    
+                    <h3 className="text-base font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
+                      <span className="text-white bg-purple-700/50 p-1 rounded-md">NEX-DEVS</span> Evolution
+                    </h3>
+                    <motion.div 
+                      className="absolute -bottom-1 left-0 h-[2px] bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 w-full"
+                      initial={{ width: "0%" }}
+                      animate={{ width: "100%" }}
+                      transition={{ duration: 0.8, delay: 0.2 }}
+                    />
+                  </div>
                 </div>
                 
                 {/* Brand evolution message */}

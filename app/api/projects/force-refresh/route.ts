@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import mysqlDb from '@/lib/mysql';
+import neonDb from '@/lib/neon';
 
 // Admin password for authentication
 const ADMIN_PASSWORD = 'nex-devs.org889123';
@@ -28,7 +28,7 @@ export async function GET(request: NextRequest) {
     console.log(`Force refreshing project with ID: ${projectId}`);
     
     // Fetch the project from the database
-    const project = await mysqlDb.getProjectById(projectId);
+    const project = await neonDb.getProjectById(projectId);
     
     if (!project) {
       return NextResponse.json({ error: 'Project not found' }, { status: 404 });
@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
     };
     
     // Save the updated project back to the database
-    const result = await mysqlDb.updateProject(projectId, updatedProject);
+    const result = await neonDb.updateProject(projectId, updatedProject);
     
     // Revalidate paths
     try {

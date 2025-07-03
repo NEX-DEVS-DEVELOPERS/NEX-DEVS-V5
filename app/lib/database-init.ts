@@ -1,4 +1,4 @@
-import { migrateJsonToSqlite } from '../services/database';
+import { initDatabase } from '@/lib/neon';
 
 // Initialize the database when the app starts
 let initialized = false;
@@ -11,8 +11,8 @@ export async function initializeDatabase() {
   try {
     // Only run on the server
     if (typeof window === 'undefined') {
-      console.log('Initializing database...');
-      await migrateJsonToSqlite();
+      console.log('Initializing Neon PostgreSQL database...');
+      await initDatabase();
       console.log('Database initialization completed');
     }
     

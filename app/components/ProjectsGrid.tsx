@@ -91,9 +91,6 @@ export default function ProjectsGrid() {
   const [selectedCategory, setSelectedCategory] = useState('All')
   const [categories, setCategories] = useState(['All'])
   const [isLoading, setIsLoading] = useState(true)
-  const [easterEggCount, setEasterEggCount] = useState(0)
-  const [showEasterEgg, setShowEasterEgg] = useState(false)
-  const [easterEggMessage, setEasterEggMessage] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<any>(null)
   const sliderRef = useRef<HTMLDivElement>(null)
@@ -206,31 +203,6 @@ export default function ProjectsGrid() {
         fetchDebugInfo();
       });
   };
-
-  // Handle title click for easter egg
-  const handleTitleClick = (project: Project) => {
-    setEasterEggCount(prev => prev + 1)
-    if (easterEggCount === 9) {
-      const messages: Record<string, string> = {
-        "NEX-WEBS Tools": "🚀 Unlocked: Secret SEO optimization mode activated!",
-        "NEXTJS-WEBSITE": "✨ Found the hidden animation sequence!",
-        "Morse Code Translator": "... . -.-. .-. . - (SECRET) found!",
-        "WEB-APP-(Gratuity Calculator 2025)": "💰 Bonus calculator mode unlocked!",
-        "Invisible Character Generator": "🔍 You found the invisible Easter egg!",
-        "CPU & GPU Bottleneck Calculator": "⚡ Turbo mode activated!",
-        "AI Code Assistant": "🤖 AI assistant level upgraded!",
-        "3D Portfolio Showcase": "🎮 Unlocked secret 3D view!",
-        "Smart Home Dashboard": "🏠 Secret room discovered!",
-        "Crypto Trading Bot": "💎 Diamond hands mode activated!"
-      }
-      setEasterEggMessage(messages[project.title] || "🎉 You found a secret!")
-      setShowEasterEgg(true)
-      setTimeout(() => {
-        setShowEasterEgg(false)
-        setEasterEggCount(0)
-      }, 3000)
-    }
-  }
 
   // Memoize filtered projects
   const filteredProjects = useMemo(() => 
@@ -445,13 +417,6 @@ export default function ProjectsGrid() {
         </button>
       </div>
 
-      {/* Easter Egg Message */}
-      {showEasterEgg && (
-        <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 py-4 bg-black/90 rounded-xl border border-purple-500/30 z-50 backdrop-blur-md">
-          <p className="text-white text-lg font-medium">{easterEggMessage}</p>
-        </div>
-      )}
-
       {/* Debug Info Modal */}
       {debugInfo && (
         <div className="fixed bottom-4 right-4 z-50">
@@ -550,7 +515,6 @@ export default function ProjectsGrid() {
                   <div>
                     <div 
                       className="mb-4 text-center py-4 bg-gradient-to-b from-purple-500/10 to-transparent rounded-lg border border-purple-500/20 cursor-pointer hover:from-purple-500/20 transition-colors"
-                      onClick={() => handleTitleClick(project)}
                       style={{ transform: 'translateZ(0)' }}
                     >
                       <h3 className="text-xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent">

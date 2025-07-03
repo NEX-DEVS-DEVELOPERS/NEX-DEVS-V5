@@ -2,42 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Add custom animation keyframes */
-@keyframes blob {
-  0% {
-    transform: translate(0px, 0px) scale(1);
-  }
-  33% {
-    transform: translate(30px, -30px) scale(1.1);
-  }
-  66% {
-    transform: translate(-20px, 20px) scale(0.9);
-  }
-  100% {
-    transform: translate(0px, 0px) scale(1);
-  }
-}
-
-@keyframes meshFloat {
-  0% {
-    background-position: 0 0;
-  }
-  100% {
-    background-position: 200px 200px;
-  }
-}
-
-@keyframes gradientAnimation {
-  0% {
-    background-position: 0% 50%;
-  }
-  50% {
-    background-position: 100% 50%;
-  }
-  100% {
-    background-position: 0% 50%;
-  }
-}
+/* GSAP will handle all animations - CSS keyframes removed to prevent conflicts */
 
 /* Add main dark theme */
 :root {
@@ -58,32 +23,236 @@
   --border: 240 3.7% 15.9%;
   --input: 240 3.7% 15.9%;
   --ring: 240 4.9% 83.9%;
+  
+  /* Enhanced colors for NEX-DEVS theme */
+  --nex-purple: 266 100% 50%;
+  --nex-blue: 235 89% 70%;
+  --nex-amber: 45 93% 47%;
+  --nex-pink: 336 80% 58%;
+  --nex-gradient-1: linear-gradient(to right, #a855f7, #8b5cf6);
+  --nex-gradient-2: linear-gradient(to right, #f59e0b, #d97706);
+  --nex-gradient-3: linear-gradient(90deg, rgba(79,70,229,1) 0%, rgba(129,140,248,1) 100%);
+  --nex-gradient-text: linear-gradient(to right, #f59e0b, #f59e0b, #fbbf24);
+  --nex-dark-bg: #050509;
+  --nex-dark-card: #0f0f13;
+  --nex-glass-bg: rgba(15, 15, 19, 0.8);
+  --nex-glass-border: rgba(79, 70, 229, 0.3);
+  --tw-blur: 0; /* Avoid default blur */
+  --tw-backdrop-blur: 0;
 }
 
-/* Add utility classes for animations */
+/* GSAP Classes for animations - CSS animations removed to prevent conflicts */
 .animate-blob {
-  animation-duration: 25s;
-  animation-fill-mode: both;
-  animation-iteration-count: infinite;
-  animation-timing-function: ease-in-out;
+  /* GSAP will handle blob animation via .gsap-blob class */
 }
 
 .animate-pulse {
-  animation: pulse 6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  /* GSAP will handle pulse animation via .gsap-loading-pulse class */
 }
 
-@keyframes pulse {
-  0%, 100% {
-    opacity: 0.1;
-  }
-  50% {
-    opacity: 0.2;
-  }
+/* Highlight animation for Full-Stack plans - now handled by GSAP */
+.highlight-pulse {
+  /* GSAP will handle this via .gsap-glow-pulse class */
+  position: relative;
+  z-index: 10;
 }
 
 /* Add additional styling */
 body {
-  background-color: #050509;
+  background-color: var(--nex-dark-bg);
   color: #f8fafc;
   overflow-x: hidden;
-} 
+}
+
+/* Custom glass effect utilities */
+.nex-glass {
+  background-color: var(--nex-glass-bg);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--nex-glass-border);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.nex-gradient-text {
+  background: var(--nex-gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  display: inline-block;
+}
+
+.nex-gradient-border {
+  position: relative;
+}
+
+.nex-gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: var(--nex-gradient-3);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Fix for blurry text with gradients */
+.text-gradient, .bg-clip-text {
+  transform: translateZ(0);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Performance Optimizations */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Enable hardware acceleration for animations */
+* {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Optimize animations */
+.transform-gpu {
+  transform: translateZ(0);
+  will-change: transform;
+}
+
+/* Smooth animation transitions */
+.transition-smooth {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Prevent layout shifts */
+img, video {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Optimize scrolling */
+@media (prefers-reduced-motion: no-preference) {
+  :root {
+    scroll-behavior: smooth;
+  }
+}
+
+/* Prevent CLS (Cumulative Layout Shift) */
+.preserve-layout {
+  contain: layout size;
+}
+
+/* Remove any excessive blur effects from components */
+.blur-reset {
+  filter: none !important;
+  backdrop-filter: none !important;
+}
+
+/* Nexious Chatbot Styles */
+.nexious-chatbot-wrapper {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  left: auto !important;
+  z-index: 99999 !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: auto !important;
+  transition: all 0.3s ease-in-out;
+}
+
+.nexious-chatbot-icon {
+  position: relative !important;
+  z-index: 99999 !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  will-change: transform !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  display: block !important;
+  pointer-events: auto !important;
+  transition: transform 0.3s ease-in-out;
+}
+
+.nexious-chatbot-icon:hover {
+  transform: scale(1.1);
+}
+
+/* AI Model Info Panel Styles */
+.ai-model-info {
+  background: linear-gradient(to bottom, rgba(30, 30, 40, 0.9), rgba(20, 20, 30, 0.9));
+  border: 1px solid rgba(138, 43, 226, 0.3);
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+/* Chatbot Message Animations */
+.message-slide-in {
+  animation: slideIn 0.3s ease-out forwards;
+}
+
+.user-message {
+  background: linear-gradient(to right, #8A2BE2, #5D3FD3);
+}
+
+.assistant-message {
+  background: linear-gradient(to right, #1E1E2E, #2E2E3E);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Suggested Questions Styles */
+.suggested-questions button {
+  transition: all 0.2s ease;
+  background: rgba(30, 30, 40, 0.7);
+  border: 1px solid rgba(138, 43, 226, 0.3);
+}
+
+.suggested-questions button:hover {
+  background: rgba(93, 63, 211, 0.3);
+  border-color: rgba(138, 43, 226, 0.6);
+}
+
+/* Fix for floating elements on mobile */
+@media (max-width: 768px) {
+  .nexious-chatbot-wrapper {
+    max-width: calc(100vw - 40px);
+  }
+}
+
+/* Optimize GPU acceleration for smooth animations */
+.gpu-accelerated {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: transform;
+}
+
+/* Float animation class */
+.float {
+}

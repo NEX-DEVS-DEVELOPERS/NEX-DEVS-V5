@@ -4,6 +4,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect } from 'react'
+import { FiCode, FiLayout, FiShoppingBag, FiChevronRight } from 'react-icons/fi'
+import { BiCodeBlock, BiPalette, BiStore, BiMobile, BiServer, BiAnalyse } from 'react-icons/bi'
 
 const services = [
   {
@@ -108,21 +110,6 @@ const workflowSteps = [
   }
 ]
 
-const easterEggs = [
-  {
-    trigger: "wordpress",
-    message: "💡 Fun fact: Our WordPress sites are so fast, they make Flash jealous!",
-  },
-  {
-    trigger: "webdev",
-    message: "🚀 Next.js is like coffee for your website - it makes everything faster!",
-  },
-  {
-    trigger: "design",
-    message: "🎨 Our designs are so pixel-perfect, even the pixels thank us!",
-  }
-]
-
 const funFacts = [
   "Did you know? We've written enough code to reach the moon... if printed on paper! 🌙",
   "Our fastest website loads faster than you can say 'NEX-WEBS'! ⚡",
@@ -132,9 +119,6 @@ const funFacts = [
   "Our designs are so responsive, they reply to your emails! 📱",
   "We've used so many gradients, we're practically color scientists! 🌈"
 ]
-
-const secretCode = ['ArrowUp', 'ArrowUp', 'ArrowDown', 'ArrowDown', 'KeyA', 'KeyB', 'Enter']
-let secretCodeProgress: string[] = []
 
 const serviceFacts = [
   {
@@ -169,10 +153,7 @@ const serviceFacts = [
 export default function ServicesPage() {
   const [currentFact, setCurrentFact] = useState(funFacts[0])
   const [showFact, setShowFact] = useState(false)
-  const [easterEggFound, setEasterEggFound] = useState(false)
-  const [showFactModal, setShowFactModal] = useState(false)
   const [currentFactIndex, setCurrentFactIndex] = useState(0)
-  const [clickCount, setClickCount] = useState(0)
 
   const personalFacts = [
     "I once debugged a production issue while sleeping! (In my dreams, of course)",
@@ -187,43 +168,11 @@ export default function ServicesPage() {
     setCurrentFactIndex((prev) => (prev + 1) % personalFacts.length)
   }
 
-  // Handle key presses for secret code
-  useEffect(() => {
-    const handleKeyPress = (event: KeyboardEvent) => {
-      secretCodeProgress.push(event.code)
-      
-      // Keep only the last N keys pressed, where N is the length of the secret code
-      if (secretCodeProgress.length > secretCode.length) {
-        secretCodeProgress.shift()
-      }
-
-      // Check if the secret code has been entered
-      if (JSON.stringify(secretCodeProgress) === JSON.stringify(secretCode)) {
-        setCurrentFact("🎮 You found the secret code! You're a true explorer! 🏆")
-        setShowFact(true)
-        setEasterEggFound(true)
-        setTimeout(() => setShowFact(false), 5000)
-        secretCodeProgress = []
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyPress)
-    return () => window.removeEventListener('keydown', handleKeyPress)
-  }, [])
-
-  // Easter egg triggers
+  // Handle icon click - simplified
   const handleIconClick = (type: string) => {
     let newFact = funFacts[Math.floor(Math.random() * funFacts.length)]
-    
-    // Check for specific triggers
-    const matchingEasterEgg = easterEggs.find(egg => egg.trigger === type)
-    if (matchingEasterEgg) {
-      newFact = matchingEasterEgg.message
-    }
-
     setCurrentFact(newFact)
     setShowFact(true)
-    setEasterEggFound(true)
     setTimeout(() => setShowFact(false), 3000)
   }
 
@@ -264,68 +213,6 @@ export default function ServicesPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Find Easter Eggs Box */}
-      <div className="fixed top-24 right-8 z-50 hidden sm:block">
-        <motion.div
-          initial={{ opacity: 0, x: 100 }}
-          animate={{ opacity: 1, x: 0 }}
-          className="bg-purple-500/10 backdrop-blur-md rounded-lg border border-purple-500/20 p-2 shadow-lg w-[140px] cursor-pointer"
-          onClick={() => {
-            setClickCount(prev => prev + 1)
-            if (clickCount >= 2) {
-              setShowFactModal(true)
-              setClickCount(0)
-            }
-          }}
-        >
-          <div className="flex items-center gap-2 text-white">
-            <span role="img" aria-label="dice" className="text-lg">🎲</span>
-            <h3 className="font-semibold text-xs">Easter Eggs</h3>
-          </div>
-          <p className="text-gray-300 text-[10px] mt-0.5">
-            {clickCount === 0 ? "Click to play!" : clickCount === 1 ? "Once more!" : "Last click!"}
-          </p>
-        </motion.div>
-      </div>
-
-      {/* Fun Facts Modal */}
-      {showFactModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="bg-[#1a1625] rounded-xl border border-purple-500/20 p-6 max-w-md mx-4 relative"
-          >
-            <button
-              onClick={() => setShowFactModal(false)}
-              className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
-            >
-              <span className="text-xl">×</span>
-            </button>
-
-            <div className="flex flex-col items-center text-center space-y-4">
-              <div className="w-16 h-16 bg-purple-500/10 rounded-full flex items-center justify-center">
-                <span className="text-3xl">🚀</span>
-              </div>
-              
-              <h2 className="text-xl font-semibold text-purple-400">Code Wizard</h2>
-              
-              <p className="text-white text-lg">
-                {personalFacts[currentFactIndex]}
-              </p>
-
-              <button
-                onClick={handleNextFact}
-                className="mt-6 px-6 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 
-                         rounded-lg transition-colors duration-200 flex items-center gap-2"
-              >
-                Next Fun Fact →
-              </button>
-            </div>
-          </motion.div>
-        </div>
-      )}
 
       {/* Stats Section */}
       <section className="py-8 sm:py-12 relative">
@@ -518,7 +405,7 @@ export default function ServicesPage() {
             </div>
           </div>
 
-          {/* Easter Egg Notification */}
+          {/* Keep only the fact notification, but remove Easter Egg references */}
           {showFact && (
             <motion.div
               initial={{ opacity: 0, y: 50 }}
@@ -528,28 +415,13 @@ export default function ServicesPage() {
                         text-white text-xs sm:text-sm max-w-[250px] sm:max-w-xs z-50"
             >
               <div className="flex items-center gap-2">
-                <span className="text-base sm:text-lg">🎉</span>
+                <span className="text-base sm:text-lg">💡</span>
                 <p>{currentFact}</p>
               </div>
             </motion.div>
           )}
-
-          {/* Hidden Easter Egg Hint */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.5 }}
-            className="text-center mt-8 sm:mt-16 text-xs sm:text-sm text-gray-500"
-          >
-            <p>Psst... try clicking the service icons or pressing ↑↑↓↓AB↵ for surprises! 🎮</p>
-          </motion.div>
         </div>
       </section>
-
-      {/* Konami Code Easter Egg */}
-      <div className="hidden">
-        ↑↑↓↓←→←→BA
-        {/* This comment helps curious developers find the Konami code! */}
-      </div>
     </main>
   )
 } 

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
-import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf } from 'react-icons/fa';
+import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf, FaRegCheckCircle, FaRocket, FaClipboardCheck } from 'react-icons/fa';
 import { motion } from 'framer-motion';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { formatPrice, convertPrice, baseExchangeRates } from '@/app/utils/pricing';
@@ -17,6 +17,25 @@ const globalStyles = `
 
 .animate-fadeIn {
   animation: fadeIn 0.3s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.7; }
+}
+
+.animate-pulse-slow {
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+  20%, 40%, 60%, 80% { transform: translateX(2px); }
+}
+
+.animate-shake {
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 `;
 
@@ -60,19 +79,19 @@ const pakistaniBanks: BankAccount[] = [
   {
     bank: "HBL",
     accountTitle: "NEX-DEVS",
-    accountNumber: "1234-5678-9012-3456",
+    accountNumber: "CURRENTLY-NOT AVAILABLE",
     iban: "PK36HABB0000123456789012"
   },
   {
     bank: "Meezan Bank",
     accountTitle: "NEX-DEVS",
-    accountNumber: "9876-5432-1098-7654",
+    accountNumber: "CURRENTLY-NOT AVAILABLE",
     iban: "PK36MEZN0000987654321098"
   },
   {
     bank: "UBL",
     accountTitle: "NEX-DEVS",
-    accountNumber: "4567-8901-2345-6789",
+    accountNumber: "CURRENTLY-NOT AVAILABLE",
     iban: "PK36UNIL0000456789012345"
   }
 ];
@@ -173,10 +192,193 @@ function LoadingInvoice() {
   );
 }
 
+interface AddOn {
+  id: string;
+  name: string;
+  description: string;
+  price: number;
+  category: string;
+}
+
+const availableAddOns: AddOn[] = [
+  {
+    id: 'monthly-maintenance',
+    name: 'Monthly Maintenance & Updates',
+    description: 'Regular updates, bug fixes, and performance optimization',
+    price: 39,
+    category: 'maintenance'
+  },
+  {
+    id: 'additional-language',
+    name: 'Additional Language Support',
+    description: 'Support for one additional language (per language)',
+    price: 29,
+    category: 'features'
+  },
+  {
+    id: 'whatsapp-integration',
+    name: 'WhatsApp Business Integration',
+    description: 'Connect your chatbot to WhatsApp Business API',
+    price: 89,
+    category: 'integrations'
+  },
+  {
+    id: 'private-training',
+    name: 'Private Data Training (per file)',
+    description: 'Train the AI on your private documents and data',
+    price: 19,
+    category: 'ai'
+  },
+  {
+    id: 'voice-integration',
+    name: 'Voice AI Integration (Beta)',
+    description: 'Add voice input/output capabilities to your chatbot',
+    price: 149,
+    category: 'ai'
+  },
+  {
+    id: 'voice-training',
+    name: 'Custom Voice Training (2 hours)',
+    description: 'Train a custom voice model for your brand',
+    price: 299,
+    category: 'ai'
+  },
+  {
+    id: 'voice-recording',
+    name: 'Professional Voice Recording',
+    description: 'High-quality voice recording for custom voice models',
+    price: 499,
+    category: 'ai'
+  },
+  {
+    id: 'model-finetuning',
+    name: 'Custom AI Model Fine-tuning',
+    description: 'Fine-tune AI model specifically for your use case',
+    price: 799,
+    category: 'ai'
+  },
+  {
+    id: 'multi-platform',
+    name: 'Multi-Platform Integration Package',
+    description: 'Deploy across multiple platforms (Slack, Discord, Telegram)',
+    price: 249,
+    category: 'integrations'
+  },
+  {
+    id: 'analytics-dashboard',
+    name: 'Advanced Analytics Dashboard',
+    description: 'Detailed analytics with custom reports and insights',
+    price: 179,
+    category: 'analytics'
+  },
+  {
+    id: 'sentiment-analysis',
+    name: 'Sentiment Analysis Module',
+    description: 'Real-time sentiment analysis of user interactions',
+    price: 129,
+    category: 'analytics'
+  }
+];
+
 function CheckoutPageContent() {
-  const searchParams = useSearchParams();
   const router = useRouter();
-  const { currency, isExemptCountry, exchangeRate } = useCurrency();
+  const urlParams = useSearchParams();
+  const { isExemptCountry, exchangeRate } = useCurrency();
+  
+  // Get all URL parameters once
+  const planParam = urlParams?.get('plan');
+  const sourceParam = urlParams?.get('source') || '';
+  const packageParam = urlParams?.get('package');
+  const priceParam = urlParams?.get('price');
+  const voiceBotParam = urlParams?.get('voiceBot');
+  const dataParam = urlParams?.get('data');
+  const isFromMainPage = sourceParam === 'page' || planParam?.includes('ai-integration');
+
+  // Define available add-ons for AI chatbot services
+  const availableAddOns: AddOn[] = [
+    {
+      id: 'monthly-maintenance',
+      name: 'Monthly Maintenance & Updates',
+      description: 'Regular updates, bug fixes, and performance optimization',
+      price: 39,
+      category: 'maintenance'
+    },
+    {
+      id: 'additional-language',
+      name: 'Additional Language Support',
+      description: 'Support for one additional language (per language)',
+      price: 29,
+      category: 'features'
+    },
+    {
+      id: 'whatsapp-integration',
+      name: 'WhatsApp Business Integration',
+      description: 'Connect your chatbot to WhatsApp Business API',
+      price: 89,
+      category: 'integrations'
+    },
+    {
+      id: 'private-training',
+      name: 'Private Data Training (per file)',
+      description: 'Train the AI on your private documents and data',
+      price: 19,
+      category: 'ai'
+    },
+    {
+      id: 'voice-integration',
+      name: 'Voice AI Integration (Beta)',
+      description: 'Add voice input/output capabilities to your chatbot',
+      price: 149,
+      category: 'ai'
+    },
+    {
+      id: 'voice-training',
+      name: 'Custom Voice Training (2 hours)',
+      description: 'Train a custom voice model for your brand',
+      price: 299,
+      category: 'ai'
+    },
+    {
+      id: 'voice-recording',
+      name: 'Professional Voice Recording',
+      description: 'High-quality voice recording for custom voice models',
+      price: 499,
+      category: 'ai'
+    },
+    {
+      id: 'model-finetuning',
+      name: 'Custom AI Model Fine-tuning',
+      description: 'Fine-tune AI model specifically for your use case',
+      price: 799,
+      category: 'ai'
+    },
+    {
+      id: 'multi-platform',
+      name: 'Multi-Platform Integration Package',
+      description: 'Deploy across multiple platforms (Slack, Discord, Telegram)',
+      price: 249,
+      category: 'integrations'
+    },
+    {
+      id: 'analytics-dashboard',
+      name: 'Advanced Analytics Dashboard',
+      description: 'Detailed analytics with custom reports and insights',
+      price: 179,
+      category: 'analytics'
+    },
+    {
+      id: 'sentiment-analysis',
+      name: 'Sentiment Analysis Module',
+      description: 'Real-time sentiment analysis of user interactions',
+      price: 129,
+      category: 'analytics'
+    }
+  ];
+
+  // Keep our forced USD currency declaration
+  const [currency, setCurrency] = useState<string>("USD");
+  
+  // Initialize state based on URL parameters
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<string>('credit-card');
   const [invoice, setInvoice] = useState<InvoiceDetails | null>(null);
@@ -196,6 +398,61 @@ function CheckoutPageContent() {
   const [isMobile, setIsMobile] = useState(false);
   const [isInvoiceLoading, setIsInvoiceLoading] = useState(true);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showReviewModal, setShowReviewModal] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [reviewSuccess, setReviewSuccess] = useState(false);
+  const [requestCount, setRequestCount] = useState(0);
+  const [requestLimitReached, setRequestLimitReached] = useState(false);
+
+  // New state for chatbot checkout
+  const [checkoutSource, setCheckoutSource] = useState<string | null>(null);
+  const [chatbotPackage, setChatbotPackage] = useState<string | null>(null);
+  const [chatbotPrice, setChatbotPrice] = useState<number>(0);
+  const [voiceBotEnabled, setVoiceBotEnabled] = useState<boolean>(false);
+  const [enterpriseData, setEnterpriseData] = useState<any>(null);
+  const [selectedAddOns, setSelectedAddOns] = useState<string[]>([]);
+  const [addOnPrices, setAddOnPrices] = useState<Record<string, number>>({});
+  const [addOnsCollapsed, setAddOnsCollapsed] = useState<boolean>(false);
+
+  // Initialize from URL params
+  useEffect(() => {
+    // Always set currency to USD
+    setCurrency("USD");
+    
+    // Handle AI chatbot specific params
+    if (sourceParam === 'chatbot') {
+      setCheckoutSource('chatbot');
+      
+      if (packageParam) {
+        setChatbotPackage(packageParam);
+        setSelectedPlan(packageParam === 'basic' ? 'Basic Plan' : 
+                       packageParam === 'advanced' ? 'Advanced Plan' : 
+                       packageParam === 'enterprise' ? 'Enterprise Plan' : null);
+      }
+      
+      // If price is provided in URL, use it directly
+      if (priceParam) {
+        const price = parseInt(priceParam, 10);
+        if (!isNaN(price)) {
+          setChatbotPrice(price);
+          
+          // Generate invoice immediately with the correct price
+          setTimeout(() => {
+            const planName = packageParam === 'basic' ? 'Basic Plan' : 
+                            packageParam === 'advanced' ? 'Advanced Plan' : 
+                            packageParam === 'enterprise' ? 'Enterprise Plan' : '';
+            
+            generateInvoiceWithPrice(planName, price);
+          }, 300);
+        }
+      }
+      
+      // Handle voice bot option
+      if (voiceBotParam === 'true') {
+        setVoiceBotEnabled(true);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Fetch location data when component mounts
@@ -210,15 +467,58 @@ function CheckoutPageContent() {
   }, []);
 
   useEffect(() => {
-    const plan = searchParams?.get('plan');
+    const plan = urlParams?.get('plan');
+    const source = urlParams?.get('source');
+    const packageType = urlParams?.get('package');
+    const price = urlParams?.get('price');
+    const voiceBot = urlParams?.get('voiceBot');
+    const data = urlParams?.get('data');
+
+    // Handle traditional plan-based checkout
     if (plan) {
       setSelectedPlan(decodeURIComponent(plan));
-      // Generate invoice details
+      setCheckoutSource('traditional');
       if (selectedPlan) {
         generateInvoice(selectedPlan);
       }
     }
-  }, [searchParams, locationData]); // Add locationData as dependency
+
+    // Handle new chatbot/enterprise checkout
+    if (source && (source === 'chatbot' || source === 'enterprise')) {
+      setCheckoutSource(source);
+
+      if (source === 'chatbot' && packageType && price) {
+        setChatbotPackage(packageType);
+        setChatbotPrice(parseInt(price));
+        setVoiceBotEnabled(voiceBot === 'true');
+
+        // Set plan name for chatbot packages
+        const planName = `AI Chatbot ${packageType.charAt(0).toUpperCase() + packageType.slice(1)} Plan`;
+        setSelectedPlan(planName);
+
+        // Force USD currency for chatbot packages
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('preferredCurrency', 'USD');
+        }
+      }
+
+      if (source === 'enterprise' && data) {
+        try {
+          const enterpriseInfo = JSON.parse(decodeURIComponent(data));
+          setEnterpriseData(enterpriseInfo);
+          setSelectedPlan('Enterprise AI Solution');
+          setChatbotPrice(enterpriseInfo.budget || 5000);
+
+          // Force USD currency for enterprise AI services
+          if (typeof window !== 'undefined') {
+            localStorage.setItem('preferredCurrency', 'USD');
+          }
+        } catch (error) {
+          console.error('Error parsing enterprise data:', error);
+        }
+      }
+    }
+  }, [urlParams, locationData, selectedPlan]);
 
   useEffect(() => {
     if (invoice) {
@@ -264,26 +564,19 @@ function CheckoutPageContent() {
   }, [selectedPlan, currency, exchangeRate]);
 
   const getBaseAmount = (plan: string): number => {
-    const prices: { [key: string]: number } = {
-      'WordPress Basic': 38500,
-      'WordPress Professional': 49500,
-      'WordPress Enterprise': 71500,
-      'WordPress E-commerce': 280000,
-      'Shopify Store': 252000,
-      'Shopify/WooCommerce': 60500,
-      'Full-Stack Basic': 60500,
-      'Full-Stack Professional': 82500,
-      'Full-Stack Enterprise': 104500,
-      'UI/UX Design': 55000,
-      'Web Apps & AI Solutions': 93500,
-      'SEO & Content Writing': 33000
-    };
-    
-    const matchingKey = Object.keys(prices).find(
-      key => key.toLowerCase() === plan.toLowerCase()
-    );
-    
-    return matchingKey ? prices[matchingKey] : 0;
+    // Return prices in USD
+    switch (plan.toLowerCase()) {
+      case 'basic-ai-integration':
+        return 499;
+      case 'advanced-ai-integration':
+        return voiceBotEnabled ? 999 : 899;
+      case 'enterprise-ai-integration':
+        return 1499;
+      case 'voice-ai-addon':
+        return 899;
+      default:
+        return 0;
+    }
   };
 
   const getTimelineSurcharge = (timeline: string): number => {
@@ -308,33 +601,119 @@ function CheckoutPageContent() {
   };
 
   const getInternationalTransactionFee = (currency: string, amount: number): number => {
-    const internationalCurrencies = ['USD', 'INR', 'AED', 'GBP'];
-    return internationalCurrencies.includes(currency) ? Math.round(amount * 0.10) : 0;
+    // Since we're always using USD, we can simplify this function
+    return 0; // No international fee for USD
   };
 
+  // Add-on management functions
+  const toggleAddOn = (addOnId: string) => {
+    setSelectedAddOns(prev => {
+      if (prev.includes(addOnId)) {
+        return prev.filter(id => id !== addOnId);
+      } else {
+        return [...prev, addOnId];
+      }
+    });
+  };
+
+  const getAddOnPrice = (addOnId: string): number => {
+    const addOn = availableAddOns.find((addon: AddOn) => addon.id === addOnId);
+    return addOn ? addOn.price : 0;
+  };
+
+  const getTotalAddOnPrice = (): number => {
+        return selectedAddOns.reduce((acc, addOnId) => acc + getAddOnPrice(addOnId), 0);
+  };
+
+  const shouldShowAddOns = (): boolean => {
+    return checkoutSource === 'chatbot' || checkoutSource === 'enterprise';
+  };
+
+  // Add a new function to generate invoice with direct price
+  const generateInvoiceWithPrice = (plan: string, directPrice: number) => {
+    // Set the selectedPlan state to trigger invoice generation
+    setSelectedPlan(plan);
+    
+    // Create invoice with direct price
+    const newInvoice: InvoiceDetails = {
+      invoiceNumber: `INV-${Date.now()}`,
+      date: new Date().toISOString().split('T')[0],
+      dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      package: plan,
+      timeline: 'Normal Time (2-3 weeks)',
+      amount: directPrice,
+      discount: 0,
+      subTotal: directPrice,
+      taxRate: 0,
+      taxAmount: 0,
+      total: directPrice,
+      currency: "USD",
+      items: [
+        {
+          description: `${plan} Package`,
+          quantity: 1,
+          rate: directPrice,
+          amount: directPrice,
+          features: []
+        }
+      ],
+      billingDetails: {
+        name: '',
+        email: '',
+        phone: '',
+        address: ''
+      }
+    };
+    
+    setInvoice(newInvoice);
+    setIsInvoiceLoading(false);
+  };
+
+  // Modify the generateInvoice function to ensure it uses chatbotPrice for chatbot packages
   const generateInvoice = async (plan: string) => {
     try {
-      const baseAmount = getBaseAmount(plan);
+      // For chatbot packages, use the chatbotPrice if available
+      let baseAmount = 0;
+      
+      if (checkoutSource === 'chatbot' && chatbotPrice > 0) {
+        baseAmount = chatbotPrice;
+      } else {
+        baseAmount = getBaseAmount(plan);
+      }
       
       if (!exchangeRate) {
         console.error('Exchange rate not available');
         return;
       }
 
-      const convertedAmount = Math.round(baseAmount * exchangeRate);
+      // For AI services (chatbot and enterprise), use direct USD pricing without conversion
+      const convertedAmount = (checkoutSource === 'chatbot' || checkoutSource === 'enterprise') ? baseAmount : Math.round(baseAmount * exchangeRate);
       const currentTimeline = editedDetails.timeline;
       const timelineSurchargeRate = getTimelineSurcharge(currentTimeline);
       const timelineSurchargeAmount = Math.round(convertedAmount * timelineSurchargeRate);
-      const subTotal = convertedAmount;
-      const discountPercentage = plan === 'Full-Stack Basic' ? 10 : 20;
-      const discountAmount = Math.round((subTotal * discountPercentage) / 100);
+
+      // Calculate add-ons total (always in USD for AI services)
+      const addOnsTotal = getTotalAddOnPrice();
+      const convertedAddOnsTotal = (checkoutSource === 'chatbot' || checkoutSource === 'enterprise') ? addOnsTotal : Math.round(addOnsTotal * exchangeRate);
+
+      const subTotal = convertedAmount + convertedAddOnsTotal;
+
+      // No discount for AI services (chatbot and enterprise) or users from page.tsx
+      let discountPercentage = 0;
+      if (!isFromMainPage && checkoutSource !== 'chatbot' && checkoutSource !== 'enterprise') {
+        discountPercentage = plan === 'Full-Stack Basic' ? 10 : 20;
+      }
+
+      const discountAmount = Math.round((convertedAmount * discountPercentage) / 100); // Only apply discount to base amount
       const taxRate = 0;
       const taxAmount = Math.round((subTotal * taxRate) / 100);
-      
+
       // Calculate international transaction fee
       const internationalFee = getInternationalTransactionFee(currency, subTotal);
-      
-      const total = subTotal + timelineSurchargeAmount - discountAmount + taxAmount + internationalFee;
+
+      // Calculate final total, ensuring it's not zero if we have a base amount
+      const calculatedTotal = subTotal + timelineSurchargeAmount - discountAmount + taxAmount + internationalFee;
+      const finalTotal = calculatedTotal <= 0 && baseAmount > 0 ? baseAmount : calculatedTotal;
 
       const newInvoice: InvoiceDetails = {
         invoiceNumber: `INV-${Date.now()}`,
@@ -347,8 +726,8 @@ function CheckoutPageContent() {
         subTotal: subTotal,
         taxRate: taxRate,
         taxAmount: taxAmount,
-        total: total,
-        currency: currency,
+        total: finalTotal,
+        currency: "USD", // Force USD here
         items: [
           {
             description: `${plan} Package`,
@@ -382,6 +761,22 @@ function CheckoutPageContent() {
           features: []
         });
       }
+
+      // Add selected add-ons to invoice
+      selectedAddOns.forEach(addOnId => {
+        const addOn = availableAddOns.find(addon => addon.id === addOnId);
+        if (addOn) {
+          const convertedAddOnPrice = Math.round(addOn.price * exchangeRate);
+          newInvoice.items.push({
+            description: addOn.name,
+            details: addOn.description,
+            quantity: 1,
+            rate: convertedAddOnPrice,
+            amount: convertedAddOnPrice,
+            features: []
+          });
+        }
+      });
 
       // Add international transaction fee if applicable
       if (internationalFee > 0) {
@@ -423,9 +818,17 @@ function CheckoutPageContent() {
       const timelineSurchargeRate = getTimelineSurcharge(value);
       const timelineSurchargeAmount = Math.round(convertedAmount * timelineSurchargeRate);
       const subTotal = convertedAmount;
-      const discountPercentage = selectedPlan === 'Full-Stack Basic' ? 10 : 20;
-      const discountAmount = Math.round((subTotal * discountPercentage) / 100);
-      const total = subTotal + timelineSurchargeAmount - discountAmount;
+      const calculatedTotal = subTotal + timelineSurchargeAmount;
+
+      // No discount for AI services (chatbot and enterprise) or users from page.tsx
+      let discountPercentage = 0;
+      if (!isFromMainPage && checkoutSource !== 'chatbot' && checkoutSource !== 'enterprise') {
+        discountPercentage = selectedPlan === 'Full-Stack Basic' ? 10 : 20;
+      }
+
+      const discountAmount = Math.round((convertedAmount * discountPercentage) / 100);
+      const taxRate = 0;
+      const taxAmount = Math.round((subTotal * taxRate) / 100);
 
       console.log('Calculated amounts:', {
         baseAmount,
@@ -435,19 +838,17 @@ function CheckoutPageContent() {
         total
       });
 
+      // Create new invoice with updated timeline
       const newInvoice: InvoiceDetails = {
-        invoiceNumber: `INV-${Date.now()}`,
-        date: new Date().toISOString().split('T')[0],
-        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-        package: selectedPlan,
+        ...invoice!,
         timeline: value,
         amount: convertedAmount,
-        subTotal: subTotal,
         discount: discountAmount,
-        total: total,
-        currency: currency,
-        taxRate: 0,
-        taxAmount: 0,
+        subTotal: subTotal,
+        taxRate: taxRate,
+        taxAmount: taxAmount,
+        total: calculatedTotal,
+        currency: "USD", // Force USD here
         items: [
           {
             description: `${selectedPlan} Package`,
@@ -456,13 +857,7 @@ function CheckoutPageContent() {
             amount: convertedAmount,
             features: []
           }
-        ],
-        billingDetails: invoice?.billingDetails || {
-          name: editedDetails.name,
-          email: editedDetails.email,
-          phone: editedDetails.phone,
-          address: editedDetails.address
-        }
+        ]
       };
 
       // Add timeline adjustment item if applicable
@@ -501,12 +896,12 @@ function CheckoutPageContent() {
     return null;
   };
 
-  // Add effect to regenerate invoice when currency or exchange rate changes
+  // Add effect to regenerate invoice when currency, exchange rate, or add-ons change
   useEffect(() => {
     if (selectedPlan && exchangeRate) {
       generateInvoice(selectedPlan);
     }
-  }, [currency, exchangeRate, isExemptCountry]);
+  }, [currency, exchangeRate, isExemptCountry, selectedAddOns]);
 
   const downloadInvoice = (invoiceData: InvoiceDetails) => {
     const invoiceContent = `
@@ -1055,7 +1450,7 @@ function CheckoutPageContent() {
                         <span>${formatPrice(invoiceData.taxAmount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
                 <div class="summary-row">
-                    <span>Discount (${selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
+                    <span>Discount (${checkoutSource === 'chatbot' || checkoutSource === 'enterprise' ? '0%' : selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
                         <span>-${formatPrice(invoiceData.discount, invoiceData.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                 </div>
                 <div class="summary-row total">
@@ -1244,6 +1639,400 @@ function CheckoutPageContent() {
     setShowPaymentModal(false);
   };
 
+  const handleReviewClick = () => {
+    // Check if request limit has been reached
+    const storedRequestCount = localStorage.getItem('reviewRequestCount') || '0';
+    const storedRequestDate = localStorage.getItem('reviewRequestDate');
+    const today = new Date().toDateString();
+    
+    let currentCount = parseInt(storedRequestCount);
+    
+    // Reset count if it's a new day
+    if (storedRequestDate !== today) {
+      currentCount = 0;
+      localStorage.setItem('reviewRequestDate', today);
+    }
+    
+    if (currentCount >= 19) {
+      setRequestLimitReached(true);
+      setShowReviewModal(true);
+      return;
+    }
+    
+    // Increment request count
+    currentCount += 1;
+    localStorage.setItem('reviewRequestCount', currentCount.toString());
+    localStorage.setItem('reviewRequestDate', today);
+    
+    setRequestCount(currentCount);
+    setShowReviewModal(true);
+  };
+
+  const closeReviewModal = () => {
+    setShowReviewModal(false);
+    setReviewSuccess(false);
+  };
+
+  const getPackageFeatures = (packageName: string) => {
+    const featuresByPackage: { [key: string]: string[] } = {
+      'WordPress Basic': [
+        'Responsive Design',
+        'SEO Optimization',
+        'Contact Form',
+        'Social Media Integration',
+        '1 Month Support'
+      ],
+      'WordPress Professional': [
+        'All Basic Features',
+        'Custom Design',
+        'E-commerce Ready',
+        'Performance Optimization',
+        '3 Months Support'
+      ],
+      'WordPress Enterprise': [
+        'All Professional Features',
+        'Advanced Security',
+        'Custom Functionality',
+        'Multi-language Support',
+        '6 Months Support'
+      ],
+      'WordPress E-commerce': [
+        'Full E-commerce Functionality',
+        'Payment Gateway Integration',
+        'Inventory Management',
+        'Customer Accounts',
+        '12 Months Support'
+      ],
+      'Shopify Store': [
+        'Custom Theme Design',
+        'Product Setup',
+        'Payment Gateway Integration',
+        'Shipping Configuration',
+        '3 Months Support'
+      ],
+      'Shopify/WooCommerce': [
+        'Platform Setup',
+        'Product Migration',
+        'Custom Extensions',
+        'Analytics Integration',
+        '3 Months Support'
+      ],
+      'Full-Stack Basic': [
+        'Front-end Development',
+        'Back-end API',
+        'Database Integration',
+        'User Authentication',
+        '3 Months Support'
+      ],
+      'Full-Stack Professional': [
+        'All Basic Features',
+        'Advanced API Development',
+        'Third-party Integrations',
+        'Performance Optimization',
+        '6 Months Support'
+      ],
+      'Full-Stack Enterprise': [
+        'All Professional Features',
+        'Scalable Architecture',
+        'Load Balancing',
+        'Custom Admin Dashboard',
+        '12 Months Support'
+      ],
+      'UI/UX Design': [
+        'User Research',
+        'Wireframing',
+        'Interactive Prototypes',
+        'Visual Design',
+        'Usability Testing'
+      ],
+      'Web Apps & AI Solutions': [
+        'Custom Web Application',
+        'AI Integration',
+        'Data Processing',
+        'API Development',
+        '6 Months Support'
+      ],
+      'SEO & Content Writing': [
+        'Keyword Research',
+        'On-page Optimization',
+        'Content Strategy',
+        'Link Building',
+        '3 Months Support'
+      ]
+    };
+
+    return featuresByPackage[packageName] || [
+      'Custom Development',
+      'Responsive Design',
+      'SEO Optimization',
+      'Technical Support',
+      'Regular Updates'
+    ];
+  };
+
+  // Add this utility function for generating unique IDs
+  const generateUniqueId = () => {
+    const timestamp = Date.now().toString(36);
+    const randomStr = Math.random().toString(36).substring(2, 8).toUpperCase();
+    return `NEX-${timestamp}-${randomStr}`;
+  };
+
+  const submitProjectReview = async () => {
+    // Validate that a base package is selected
+    if (!selectedPlan) {
+      alert('Please select a package before proceeding.');
+      return;
+    }
+
+    if (!invoice || !invoice.billingDetails?.email) {
+      setButtonShake(true);
+      setTimeout(() => setButtonShake(false), 500);
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    // Generate a unique request ID
+    const requestId = generateUniqueId();
+
+    try {
+      // Format client details with proper validation
+      const clientName = invoice.billingDetails?.name?.trim() || 'Not provided';
+      const clientEmail = invoice.billingDetails?.email?.trim() || 'Not provided';
+      const clientPhone = invoice.billingDetails?.phone?.trim() || 'Not provided';
+      const clientAddress = invoice.billingDetails?.address?.trim() || 'Not provided';
+
+      // Prepare add-ons information
+      const addOnsInfo = selectedAddOns.length > 0
+        ? selectedAddOns.map(addOnId => {
+            const addOn = availableAddOns.find(a => a.id === addOnId);
+            return addOn ? `- ${addOn.name}: $${addOn.price}` : '';
+          }).filter(Boolean).join('\n')
+        : 'None selected';
+
+      // Email configuration with improved formatting
+      const emailData = {
+        to: "nexdevs.org@gmail.com",
+        from: clientEmail !== 'Not provided' ? clientEmail : "system@nexdevs.org",
+        subject: `New Project Review: ${invoice.package} - ${requestId}`,
+        text: `
+New Project Review Submission (ID: ${requestId})
+
+PROJECT DETAILS:
+Package: ${invoice.package}
+Timeline: ${invoice.timeline}
+Amount: ${formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}
+${checkoutSource === 'chatbot' || checkoutSource === 'enterprise' ? `
+SELECTED ADD-ONS:
+${addOnsInfo}
+Total Add-ons Cost: $${getTotalAddOnPrice()}
+` : ''}
+${checkoutSource === 'enterprise' && enterpriseData ? `
+ENTERPRISE CONSULTATION DATA:
+${Object.entries(enterpriseData).map(([key, value]) => `${key}: ${value}`).join('\n')}
+` : ''}
+
+CLIENT DETAILS:
+Name: ${clientName}
+Email: ${clientEmail}
+Phone: ${clientPhone}
+Address: ${clientAddress}
+
+Invoice Number: ${invoice.invoiceNumber}
+Request ID: ${requestId}
+Submission Date: ${new Date().toLocaleString()}
+        `,
+        html: `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Project Review</title>
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; }
+    .container { padding: 20px; }
+    .header { background: #4f46e5; color: white; padding: 15px; border-radius: 5px; margin-bottom: 20px; }
+    .section { background: #f9fafb; padding: 15px; border-radius: 5px; margin-bottom: 15px; }
+    .id-box { background: #4f46e5; color: white; padding: 10px; border-radius: 5px; font-weight: bold; text-align: center; margin: 15px 0; }
+    h2 { color: #4f46e5; border-bottom: 2px solid #4f46e5; padding-bottom: 10px; }
+    h3 { color: #4f46e5; margin-top: 0; }
+    .footer { margin-top: 30px; padding-top: 15px; border-top: 1px solid #ddd; font-size: 12px; color: #666; text-align: center; }
+    table { width: 100%; border-collapse: collapse; }
+    td { padding: 8px; vertical-align: top; }
+    .label { font-weight: bold; width: 120px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>New Project Review Submission</h2>
+    
+    <div class="id-box">
+      Request ID: ${requestId}
+    </div>
+    
+    <div class="section">
+      <h3>Project Details</h3>
+      <table>
+        <tr>
+          <td class="label">Package:</td>
+          <td>${invoice.package}</td>
+        </tr>
+        <tr>
+          <td class="label">Timeline:</td>
+          <td>${invoice.timeline}</td>
+        </tr>
+        <tr>
+          <td class="label">Amount:</td>
+          <td>${formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</td>
+        </tr>
+      </table>
+    </div>
+
+    ${(checkoutSource === 'chatbot' || checkoutSource === 'enterprise') && selectedAddOns.length > 0 ? `
+    <div class="section">
+      <h3>Selected Add-ons</h3>
+      <table>
+        ${selectedAddOns.map(addOnId => {
+          const addOn = availableAddOns.find(a => a.id === addOnId);
+          return addOn ? `
+            <tr>
+              <td class="label">${addOn.name}:</td>
+              <td>$${addOn.price}</td>
+            </tr>
+          ` : '';
+        }).join('')}
+        <tr style="border-top: 1px solid #ddd; font-weight: bold;">
+          <td class="label">Total Add-ons:</td>
+          <td>$${getTotalAddOnPrice()}</td>
+        </tr>
+      </table>
+    </div>
+    ` : ''}
+
+    ${checkoutSource === 'enterprise' && enterpriseData ? `
+    <div class="section">
+      <h3>Enterprise Consultation Data</h3>
+      <table>
+        ${Object.entries(enterpriseData).map(([key, value]) => `
+          <tr>
+            <td class="label">${key}:</td>
+            <td>${value}</td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+    ` : ''}
+    
+    <div class="section">
+      <h3>Client Details</h3>
+      <table>
+        <tr>
+          <td class="label">Name:</td>
+          <td>${clientName}</td>
+        </tr>
+        <tr>
+          <td class="label">Email:</td>
+          <td>${clientEmail}</td>
+        </tr>
+        <tr>
+          <td class="label">Phone:</td>
+          <td>${clientPhone}</td>
+        </tr>
+        <tr>
+          <td class="label">Address:</td>
+          <td>${clientAddress}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div class="section">
+      <h3>Additional Information</h3>
+      <table>
+        <tr>
+          <td class="label">Invoice Number:</td>
+          <td>${invoice.invoiceNumber}</td>
+        </tr>
+        <tr>
+          <td class="label">Submission Date:</td>
+          <td>${new Date().toLocaleString()}</td>
+        </tr>
+      </table>
+    </div>
+    
+    <div class="footer">
+      <p>This is an automated message from the NEX-DEVS Project Review System.</p>
+    </div>
+  </div>
+</body>
+</html>
+        `
+      };
+
+      // Direct email sending with proper error handling
+      try {
+        // Create a structured email payload
+        const emailPayload = {
+          recipientEmail: "nexdevs.org@gmail.com",
+          appPassword: "emcu oyjc armd ychz",
+          subject: `New Project Request: ${invoice.package} (${requestId})`,
+          clientName: clientName,
+          clientEmail: clientEmail,
+          clientPhone: clientPhone,
+          clientAddress: clientAddress,
+          projectDetails: {
+            package: invoice.package,
+            timeline: invoice.timeline,
+            amount: formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry),
+            invoiceNumber: invoice.invoiceNumber,
+            requestId: requestId,
+            submissionDate: new Date().toLocaleString()
+          },
+          htmlContent: emailData.html
+        };
+        
+        const response = await fetch('/api/send-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(emailPayload)
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Email sending failed: ${response.status} - ${errorText}`);
+        }
+        
+        const responseData = await response.json();
+        console.log('Email sent successfully:', responseData);
+      } catch (error: any) {
+        console.error('Error sending email:', error.message || error);
+        // Continue with the process even if email fails
+      }
+
+      // Store the request ID for display to the user
+      localStorage.setItem('lastRequestId', requestId);
+      
+      // Simulate API delay
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
+      setReviewSuccess(true);
+    } catch (error: any) {
+      console.error('Error submitting project review:', error.message || error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // Ensure formatting functions always use USD
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(amount);
+  };
+
   return (
     <>
       <style jsx global>{globalStyles}</style>
@@ -1263,7 +2052,37 @@ function CheckoutPageContent() {
               <span className="text-xs md:text-sm font-medium">Back</span>
             </div>
           </div>
-          
+
+          {/* Selected Package Display - For AI Chatbot Services */}
+          {(checkoutSource === 'chatbot' || checkoutSource === 'enterprise') && (
+            <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/30 rounded-xl p-4 mb-6 shadow-lg">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-white mb-1">Selected Package</h3>
+                  <p className="text-purple-200 text-sm">{selectedPlan}</p>
+                  {checkoutSource === 'chatbot' && voiceBotEnabled && (
+                    <div className="mt-2">
+                      <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">
+                        + Voice Bot Integration
+                      </span>
+                    </div>
+                  )}
+                  {checkoutSource === 'enterprise' && enterpriseData && (
+                    <div className="mt-2 text-xs text-gray-300">
+                      <p>Custom solution based on your consultation requirements</p>
+                    </div>
+                  )}
+                </div>
+                <div className="text-right">
+                  <div className="text-2xl font-bold text-purple-300">
+                    ${chatbotPrice.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-gray-400">Base Price</div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Updated Pricing Notice */}
           {['USD', 'GBP', 'AED'].includes(currency) && (
             <div className="bg-gradient-to-r from-purple-900/30 to-purple-800/30 border border-purple-500/30 rounded-xl p-4 mt-4 md:mt-0 mb-6 shadow-lg">
@@ -1282,8 +2101,9 @@ function CheckoutPageContent() {
           <div className="grid lg:grid-cols-2 gap-6 sm:gap-8">
             {/* Left Column - Project Timeline and Payment Details */}
             <div className="space-y-6">
-              {/* Project Timeline Section */}
-              <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+              {/* Project Timeline Section - Hidden for AI integration plans */}
+              {!isFromMainPage && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
                 <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Project Timeline</h2>
                 
                 <div className="space-y-3 sm:space-y-4">
@@ -1390,6 +2210,364 @@ function CheckoutPageContent() {
                   </div>
                 </div>
               </div>
+              )}
+
+              {/* Enterprise Roadmap Display - Only for enterprise AI consultation users */}
+              {checkoutSource === 'enterprise' && enterpriseData && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5 relative overflow-hidden">
+                  {/* Neural Network Background */}
+                  <div className="absolute inset-0 opacity-10 pointer-events-none">
+                    <svg className="w-full h-full" viewBox="0 0 400 300" fill="none">
+                      {/* Neural Network Nodes */}
+                      <circle cx="50" cy="50" r="3" fill="#8B5CF6" className="animate-pulse" />
+                      <circle cx="150" cy="40" r="3" fill="#3B82F6" className="animate-pulse" style={{animationDelay: '0.5s'}} />
+                      <circle cx="250" cy="60" r="3" fill="#10B981" className="animate-pulse" style={{animationDelay: '1s'}} />
+                      <circle cx="350" cy="45" r="3" fill="#F59E0B" className="animate-pulse" style={{animationDelay: '1.5s'}} />
+
+                      <circle cx="80" cy="120" r="3" fill="#EF4444" className="animate-pulse" style={{animationDelay: '2s'}} />
+                      <circle cx="180" cy="110" r="3" fill="#8B5CF6" className="animate-pulse" style={{animationDelay: '2.5s'}} />
+                      <circle cx="280" cy="130" r="3" fill="#3B82F6" className="animate-pulse" style={{animationDelay: '3s'}} />
+
+                      <circle cx="60" cy="190" r="3" fill="#10B981" className="animate-pulse" style={{animationDelay: '3.5s'}} />
+                      <circle cx="160" cy="180" r="3" fill="#F59E0B" className="animate-pulse" style={{animationDelay: '4s'}} />
+                      <circle cx="260" cy="200" r="3" fill="#EF4444" className="animate-pulse" style={{animationDelay: '4.5s'}} />
+                      <circle cx="360" cy="185" r="3" fill="#8B5CF6" className="animate-pulse" style={{animationDelay: '5s'}} />
+
+                      <circle cx="120" cy="250" r="3" fill="#3B82F6" className="animate-pulse" style={{animationDelay: '5.5s'}} />
+                      <circle cx="220" cy="240" r="3" fill="#10B981" className="animate-pulse" style={{animationDelay: '6s'}} />
+                      <circle cx="320" cy="260" r="3" fill="#F59E0B" className="animate-pulse" style={{animationDelay: '6.5s'}} />
+
+                      {/* Neural Network Connections */}
+                      <path d="M50 50 L150 40" stroke="#8B5CF6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M150 40 L250 60" stroke="#3B82F6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M250 60 L350 45" stroke="#10B981" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M50 50 L80 120" stroke="#8B5CF6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M150 40 L180 110" stroke="#3B82F6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M250 60 L280 130" stroke="#10B981" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M80 120 L180 110" stroke="#EF4444" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M180 110 L280 130" stroke="#8B5CF6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M80 120 L60 190" stroke="#EF4444" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M180 110 L160 180" stroke="#8B5CF6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M280 130 L260 200" stroke="#3B82F6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M350 45 L360 185" stroke="#F59E0B" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M60 190 L160 180" stroke="#10B981" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M160 180 L260 200" stroke="#F59E0B" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M260 200 L360 185" stroke="#EF4444" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M60 190 L120 250" stroke="#10B981" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M160 180 L220 240" stroke="#F59E0B" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M260 200 L320 260" stroke="#EF4444" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M120 250 L220 240" stroke="#3B82F6" strokeWidth="0.5" opacity="0.3" />
+                      <path d="M220 240 L320 260" stroke="#10B981" strokeWidth="0.5" opacity="0.3" />
+                    </svg>
+                  </div>
+
+                  <div className="relative z-10">
+                    <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                      </svg>
+                      Project Roadmap Summary
+                    </h2>
+
+                    <div className="space-y-4">
+                      {/* Neural Network Style Configuration Overview - All 14 Data Points */}
+                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                        {/* Row 1 - Core Configuration */}
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-500/10 to-purple-600/5 rounded-lg border border-purple-500/20 relative">
+                          <div className="w-3 h-3 bg-purple-400 rounded-full shadow-lg shadow-purple-400/50 animate-pulse"></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-purple-300 rounded-full animate-ping"></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Website Status</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[1] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-500/10 to-blue-600/5 rounded-lg border border-blue-500/20 relative">
+                          <div className="w-3 h-3 bg-blue-400 rounded-full shadow-lg shadow-blue-400/50 animate-pulse" style={{animationDelay: '0.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-blue-300 rounded-full animate-ping" style={{animationDelay: '0.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">AI Model</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[2] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-green-500/10 to-green-600/5 rounded-lg border border-green-500/20 relative">
+                          <div className="w-3 h-3 bg-green-400 rounded-full shadow-lg shadow-green-400/50 animate-pulse" style={{animationDelay: '1s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-green-300 rounded-full animate-ping" style={{animationDelay: '1s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Timeline</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[3] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Row 2 - Business Configuration */}
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-yellow-500/10 to-yellow-600/5 rounded-lg border border-yellow-500/20 relative">
+                          <div className="w-3 h-3 bg-yellow-400 rounded-full shadow-lg shadow-yellow-400/50 animate-pulse" style={{animationDelay: '1.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-yellow-300 rounded-full animate-ping" style={{animationDelay: '1.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Budget</span>
+                            <span className="text-sm font-medium text-purple-300">{enterpriseData.budget ? `$${enterpriseData.budget.toLocaleString()}` : 'Custom pricing'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-indigo-500/10 to-indigo-600/5 rounded-lg border border-indigo-500/20 relative">
+                          <div className="w-3 h-3 bg-indigo-400 rounded-full shadow-lg shadow-indigo-400/50 animate-pulse" style={{animationDelay: '2s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-indigo-300 rounded-full animate-ping" style={{animationDelay: '2s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Platform</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[5] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-pink-500/10 to-pink-600/5 rounded-lg border border-pink-500/20 relative">
+                          <div className="w-3 h-3 bg-pink-400 rounded-full shadow-lg shadow-pink-400/50 animate-pulse" style={{animationDelay: '2.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-pink-300 rounded-full animate-ping" style={{animationDelay: '2.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Business Niche</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[6] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Row 3 - Security & Compliance */}
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-red-500/10 to-red-600/5 rounded-lg border border-red-500/20 relative">
+                          <div className="w-3 h-3 bg-red-400 rounded-full shadow-lg shadow-red-400/50 animate-pulse" style={{animationDelay: '3s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-red-300 rounded-full animate-ping" style={{animationDelay: '3s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Security</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[7] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-orange-500/10 to-orange-600/5 rounded-lg border border-orange-500/20 relative">
+                          <div className="w-3 h-3 bg-orange-400 rounded-full shadow-lg shadow-orange-400/50 animate-pulse" style={{animationDelay: '3.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-orange-300 rounded-full animate-ping" style={{animationDelay: '3.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">User Volume</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[8] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-teal-500/10 to-teal-600/5 rounded-lg border border-teal-500/20 relative">
+                          <div className="w-3 h-3 bg-teal-400 rounded-full shadow-lg shadow-teal-400/50 animate-pulse" style={{animationDelay: '4s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-teal-300 rounded-full animate-ping" style={{animationDelay: '4s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Integration</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[9] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Row 4 - Performance & Storage */}
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-cyan-500/10 to-cyan-600/5 rounded-lg border border-cyan-500/20 relative">
+                          <div className="w-3 h-3 bg-cyan-400 rounded-full shadow-lg shadow-cyan-400/50 animate-pulse" style={{animationDelay: '4.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-cyan-300 rounded-full animate-ping" style={{animationDelay: '4.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Data Storage</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[10] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-violet-500/10 to-violet-600/5 rounded-lg border border-violet-500/20 relative">
+                          <div className="w-3 h-3 bg-violet-400 rounded-full shadow-lg shadow-violet-400/50 animate-pulse" style={{animationDelay: '5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-violet-300 rounded-full animate-ping" style={{animationDelay: '5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Performance</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[11] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-emerald-500/10 to-emerald-600/5 rounded-lg border border-emerald-500/20 relative">
+                          <div className="w-3 h-3 bg-emerald-400 rounded-full shadow-lg shadow-emerald-400/50 animate-pulse" style={{animationDelay: '5.5s'}}></div>
+                          <div className="absolute top-1 right-1 w-1 h-1 bg-emerald-300 rounded-full animate-ping" style={{animationDelay: '5.5s'}}></div>
+                          <div>
+                            <span className="text-xs text-gray-400 block">Support Level</span>
+                            <span className="text-sm font-medium text-white">{enterpriseData[12] || 'Not specified'}</span>
+                          </div>
+                        </div>
+
+                        {/* Row 5 - Additional Details */}
+                        {enterpriseData.additionalDetails && (
+                          <div className="md:col-span-2 lg:col-span-3 flex items-start gap-3 p-3 bg-gradient-to-r from-slate-500/10 to-slate-600/5 rounded-lg border border-slate-500/20 relative">
+                            <div className="w-3 h-3 bg-slate-400 rounded-full shadow-lg shadow-slate-400/50 animate-pulse mt-1" style={{animationDelay: '6s'}}></div>
+                            <div className="absolute top-1 right-1 w-1 h-1 bg-slate-300 rounded-full animate-ping" style={{animationDelay: '6s'}}></div>
+                            <div className="flex-1">
+                              <span className="text-xs text-gray-400 block">Additional Details</span>
+                              <span className="text-sm font-medium text-white">{enterpriseData.additionalDetails}</span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Neural Network Style Recommended Package */}
+                      <div className="mt-6 p-4 bg-gradient-to-r from-purple-500/10 to-blue-500/10 rounded-lg border border-purple-500/20 relative overflow-hidden">
+                        {/* Animated connection lines */}
+                        <div className="absolute inset-0 opacity-20">
+                          <svg className="w-full h-full" viewBox="0 0 300 100">
+                            <path d="M0 50 Q75 20 150 50 T300 50" stroke="#8B5CF6" strokeWidth="1" fill="none" opacity="0.5">
+                              <animate attributeName="stroke-dasharray" values="0,300;150,150;300,0" dur="3s" repeatCount="indefinite" />
+                            </path>
+                          </svg>
+                        </div>
+                        <div className="relative z-10">
+                          <h4 className="text-sm font-semibold text-purple-300 mb-2 flex items-center gap-2">
+                            <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                            Recommended Solution
+                          </h4>
+                          <p className="text-sm text-gray-300">
+                            Based on your consultation, we recommend our <span className="text-purple-300 font-semibold">Enterprise AI Solution</span>
+                            with custom configuration to meet your specific requirements.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Optional Add-ons Section - Only for AI Chatbot Services */}
+              {shouldShowAddOns() && (
+                <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
+                  <div className="flex items-center justify-between mb-4 sm:mb-6">
+                    <h2 className="text-lg sm:text-xl font-bold">Optional Add-ons</h2>
+                    <div className="flex items-center gap-3">
+                      <div className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">
+                        {selectedAddOns.length} selected
+                      </div>
+                      <button
+                        onClick={() => setAddOnsCollapsed(!addOnsCollapsed)}
+                        className="flex items-center gap-2 px-3 py-1.5 bg-zinc-700/50 hover:bg-zinc-600/50 rounded-lg text-xs font-medium transition-all duration-200 border border-white/10 hover:border-white/20"
+                      >
+                        <span>{addOnsCollapsed ? 'Show' : 'Hide'}</span>
+                        <svg
+                          className={`w-4 h-4 transition-transform duration-200 ${addOnsCollapsed ? 'rotate-180' : ''}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Collapsed Summary */}
+                  {addOnsCollapsed && selectedAddOns.length > 0 && (
+                    <div className="mb-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-purple-300">
+                          {selectedAddOns.length} add-on{selectedAddOns.length !== 1 ? 's' : ''} selected
+                        </span>
+                        <span className="text-lg font-bold text-purple-300">
+                          ${getTotalAddOnPrice()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  <motion.div
+                    initial={false}
+                    animate={{
+                      height: addOnsCollapsed ? 0 : 'auto',
+                      opacity: addOnsCollapsed ? 0 : 1
+                    }}
+                    transition={{
+                      duration: 0.3,
+                      ease: "easeInOut",
+                      opacity: { duration: 0.2 }
+                    }}
+                    style={{ overflow: 'hidden' }}
+                  >
+                    <div className="space-y-3">
+                    {/* Group add-ons by category */}
+                    {['maintenance', 'features', 'integrations', 'ai', 'analytics'].map(category => {
+                      const categoryAddOns = availableAddOns.filter(addon => addon.category === category);
+                      if (categoryAddOns.length === 0) return null;
+
+                      const categoryNames = {
+                        maintenance: 'Maintenance & Support',
+                        features: 'Additional Features',
+                        integrations: 'Platform Integrations',
+                        ai: 'AI Enhancements',
+                        analytics: 'Analytics & Insights'
+                      };
+
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h3 className="text-sm font-semibold text-purple-300 border-b border-purple-500/20 pb-1">
+                            {categoryNames[category as keyof typeof categoryNames]}
+                          </h3>
+                          {categoryAddOns.map(addon => (
+                            <div
+                              key={addon.id}
+                              className={`p-3 rounded-lg border cursor-pointer transition-all duration-300 ${
+                                selectedAddOns.includes(addon.id)
+                                  ? 'border-purple-500 bg-purple-500/10'
+                                  : 'border-white/10 hover:border-white/30'
+                              }`}
+                              onClick={() => toggleAddOn(addon.id)}
+                            >
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="flex items-start gap-3 flex-1">
+                                  <div className="mt-0.5">
+                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${
+                                      selectedAddOns.includes(addon.id)
+                                        ? 'border-purple-500 bg-purple-500'
+                                        : 'border-gray-500'
+                                    }`}>
+                                      {selectedAddOns.includes(addon.id) && (
+                                        <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex-1">
+                                    <h4 className="font-semibold text-white text-sm">{addon.name}</h4>
+                                    <p className="text-xs text-gray-400 mt-1">{addon.description}</p>
+                                  </div>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-purple-300 font-semibold text-sm">
+                                    ${addon.price}
+                                  </span>
+                                  {addon.id === 'additional-language' && (
+                                    <p className="text-xs text-gray-500">per language</p>
+                                  )}
+                                  {addon.id === 'private-training' && (
+                                    <p className="text-xs text-gray-500">per file</p>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {selectedAddOns.length > 0 && (
+                    <div className="mt-4 p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                      <div className="flex justify-between items-center">
+                        <span className="text-sm font-medium text-purple-300">
+                          Total Add-ons ({selectedAddOns.length} items):
+                        </span>
+                        <span className="text-lg font-bold text-purple-300">
+                          ${getTotalAddOnPrice()}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                    <div className="mt-4 bg-zinc-800/50 p-3 rounded-lg text-sm text-gray-300">
+                      <div className="flex items-start gap-2">
+                        <svg className="w-5 h-5 text-purple-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <p>Add-ons enhance your AI chatbot with additional features and capabilities. Select only what you need - you can always add more later.</p>
+                      </div>
+                    </div>
+                  </motion.div>
+                </div>
+              )}
 
               {/* Payment Method Section */}
               <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
@@ -1839,7 +3017,7 @@ function CheckoutPageContent() {
                             <span>{formatPrice(0, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                           </div>
                           <div className="flex justify-between text-emerald-400 font-medium">
-                            <span>Discount ({selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
+                            <span>Discount ({checkoutSource === 'chatbot' || checkoutSource === 'enterprise' ? '0%' : selectedPlan === 'Full-Stack Basic' ? '10%' : '20%'}):</span>
                             <span>-{formatPrice(invoice.discount, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</span>
                           </div>
                           
@@ -1937,10 +3115,20 @@ function CheckoutPageContent() {
                   </div>
                 </div>
 
-                {/* Enhance payment button */}
-                <div className="flex justify-end mt-6">
+                {/* Action Buttons - Updated with Review & Start button */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-6">
                   <motion.button
-                    className={`pay-button w-full bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 text-sm sm:text-base shadow-lg shadow-purple-900/20 ${buttonShake ? 'animate-shake' : ''}`}
+                    className={`review-button bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 text-sm sm:text-base shadow-lg shadow-blue-900/20 ${buttonShake ? 'animate-shake' : ''}`}
+                    whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(59, 130, 246, 0.3)' }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={handleReviewClick}
+                  >
+                    <FaClipboardCheck className="w-3 h-3 sm:w-4 sm:h-4" />
+                    <span>Review & Start</span>
+                  </motion.button>
+                  
+                  <motion.button
+                    className={`pay-button bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 text-white font-bold py-3 sm:py-4 px-6 sm:px-8 rounded-lg transition-all duration-300 flex items-center justify-center space-x-3 text-sm sm:text-base shadow-lg shadow-purple-900/20 ${buttonShake ? 'animate-shake' : ''}`}
                     whileHover={{ scale: 1.02, boxShadow: '0 8px 20px rgba(139, 92, 246, 0.3)' }}
                     whileTap={{ scale: 0.98 }}
                     onClick={handlePayClick}
@@ -2091,6 +3279,298 @@ function CheckoutPageContent() {
                   Cancel
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Project Review Modal */}
+        {showReviewModal && (
+          <div className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 transition-all duration-300 animate-fadeIn overflow-y-auto pt-16 pb-6">
+            <div className="relative bg-zinc-900 p-4 sm:p-5 rounded-lg border border-indigo-500/20 max-w-2xl w-full mx-4 shadow-xl">
+              <motion.button
+                initial={{ opacity: 0.6 }}
+                whileHover={{ opacity: 1 }}
+                className="absolute right-3 top-3 text-gray-400 hover:text-white"
+                onClick={closeReviewModal}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </motion.button>
+              
+              {requestLimitReached ? (
+                <div className="text-center py-5 space-y-4">
+                  <div className="inline-flex items-center justify-center bg-yellow-500/20 rounded-full p-3 mx-auto">
+                    <svg className="w-8 h-8 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-white">Request Limit Reached</h3>
+                    <p className="text-gray-300 text-sm max-w-md mx-auto">
+                      You've reached the maximum of 2 project review requests per day. Please try again tomorrow or contact our support team directly.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-indigo-900/30 rounded-lg p-3 border border-indigo-500/20 max-w-md mx-auto">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-indigo-500/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                        <svg className="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-indigo-300">Contact Support</h4>
+                        <p className="text-xs text-gray-300 mt-1">
+                          Please call our support team at 03089080171 for immediate assistance with your project.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="pt-3">
+                    <button
+                      onClick={closeReviewModal}
+                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : reviewSuccess ? (
+                <div className="text-center py-5 space-y-4">
+                  <div className="inline-flex items-center justify-center bg-green-500/20 rounded-full p-3 mx-auto">
+                    <FaRegCheckCircle className="w-10 h-10 text-green-400" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold text-white">Project Review Submitted!</h3>
+                    <p className="text-gray-300 text-sm max-w-md mx-auto">
+                      Your project is being reviewed and our team will contact you within 30 minutes to discuss next steps.
+                    </p>
+                  </div>
+                  
+                  <div className="bg-indigo-900/30 rounded-lg p-3 border border-indigo-500/20 max-w-md mx-auto">
+                    <div className="flex items-start gap-2">
+                      <div className="bg-indigo-500/30 p-1.5 rounded-full flex-shrink-0 mt-0.5">
+                        <svg className="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div className="flex-1">
+                        <h4 className="text-sm font-semibold text-indigo-300">What happens next?</h4>
+                        <p className="text-xs text-gray-300 mt-1">
+                          A dedicated consultant will be assigned to your project and will contact you within 30 minutes to discuss your requirements in detail.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="bg-indigo-600/20 rounded-lg p-3 border border-indigo-500/20 max-w-md mx-auto">
+                    <h4 className="text-sm font-semibold text-indigo-300 mb-1">Your Request ID</h4>
+                    <div className="bg-indigo-900/50 p-2 rounded border border-indigo-500/30 font-mono text-base text-white tracking-wider">
+                      {localStorage.getItem('lastRequestId')}
+                    </div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Please save this ID for reference when contacting support.
+                    </p>
+                  </div>
+                  
+                  <div className="pt-3">
+                    <button
+                      onClick={closeReviewModal}
+                      className="px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300"
+                    >
+                      Close
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  <div className="text-center mb-2">
+                    <div className="inline-flex items-center justify-center bg-indigo-500/20 rounded-full p-2 mx-auto mb-2">
+                      <FaRocket className="w-5 h-5 text-indigo-400" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white">Review Your Project</h3>
+                    <p className="text-gray-400 text-xs mt-1 max-w-lg mx-auto">
+                      Submit your project for review and our team will contact you within 30 minutes.
+                    </p>
+                  </div>
+                  
+                  {invoice ? (
+                    <div className="space-y-3">
+                      <div className="max-h-[50vh] overflow-y-auto pr-1 space-y-3 scrollbar-thin scrollbar-thumb-indigo-500/20 scrollbar-track-transparent">
+                        {/* Project Details */}
+                        <div className="bg-indigo-900/20 p-3 rounded-lg border border-indigo-500/20">
+                          <h4 className="text-base font-semibold text-indigo-300 mb-2">Project Details</h4>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-gray-400 text-xs">Package:</span>
+                                <p className="font-medium text-white text-sm">{invoice.package}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-xs">Timeline:</span>
+                                <p className="font-medium text-white text-sm">{invoice.timeline}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-xs">Total Amount:</span>
+                                <p className="font-medium text-green-400 text-sm">{formatPrice(invoice.total, invoice.currency as SupportedCurrency, 1, isExemptCountry)}</p>
+                              </div>
+                            </div>
+                            <div>
+                              <span className="text-gray-400 text-xs">Key Features:</span>
+                              <ul className="mt-1 space-y-0.5">
+                                {getPackageFeatures(invoice.package).map((feature, index) => (
+                                  <li key={index} className="flex items-start gap-1.5 text-xs">
+                                    <svg className="w-3.5 h-3.5 text-indigo-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                                    </svg>
+                                    <span className="text-gray-300">{feature}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Client Details */}
+                        <div className="bg-indigo-900/20 p-3 rounded-lg border border-indigo-500/20">
+                          <h4 className="text-base font-semibold text-indigo-300 mb-2">Client Details</h4>
+                          <div className="grid sm:grid-cols-2 gap-3">
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-gray-400 text-xs">Name:</span>
+                                <p className="font-medium text-white text-sm">{invoice.billingDetails?.name || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-xs">Email:</span>
+                                <p className="font-medium text-white text-sm">{invoice.billingDetails?.email || 'Not provided'}</p>
+                              </div>
+                            </div>
+                            <div className="space-y-2">
+                              <div>
+                                <span className="text-gray-400 text-xs">Phone:</span>
+                                <p className="font-medium text-white text-sm">{invoice.billingDetails?.phone || 'Not provided'}</p>
+                              </div>
+                              <div>
+                                <span className="text-gray-400 text-xs">Address:</span>
+                                <p className="font-medium text-white text-sm">{invoice.billingDetails?.address || 'Not provided'}</p>
+                              </div>
+                            </div>
+                          </div>
+                          
+                          {(!invoice.billingDetails?.name || !invoice.billingDetails?.email) && (
+                            <div className="mt-3 p-2 bg-yellow-900/20 rounded-md border border-yellow-500/20">
+                              <div className="flex items-start gap-2">
+                                <svg className="w-4 h-4 text-yellow-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                </svg>
+                                <p className="text-yellow-100 text-xs">
+                                  Please complete your billing details before submitting for review.
+                                </p>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Process Information */}
+                        <div className="bg-indigo-900/20 p-3 rounded-lg border border-indigo-500/20">
+                          <h4 className="text-base font-semibold text-indigo-300 mb-2">Our Process</h4>
+                          <ol className="space-y-2">
+                            <li className="flex items-start gap-2">
+                              <div className="bg-indigo-500/30 h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-indigo-200 text-xs font-medium">1</span>
+                              </div>
+                              <div>
+                                <p className="text-white text-sm font-medium">Project Review</p>
+                                <p className="text-xs text-gray-400">Our team will review your project requirements within 30 minutes.</p>
+                              </div>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="bg-indigo-500/30 h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-indigo-200 text-xs font-medium">2</span>
+                              </div>
+                              <div>
+                                <p className="text-white text-sm font-medium">Dedicated Consultant</p>
+                                <p className="text-xs text-gray-400">A dedicated consultant will be assigned to your project.</p>
+                              </div>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="bg-indigo-500/30 h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-indigo-200 text-xs font-medium">3</span>
+                              </div>
+                              <div>
+                                <p className="text-white text-sm font-medium">Payment Processing</p>
+                                <p className="text-xs text-gray-400">We'll guide you through the payment process once requirements are confirmed.</p>
+                              </div>
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <div className="bg-indigo-500/30 h-5 w-5 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                                <span className="text-indigo-200 text-xs font-medium">4</span>
+                              </div>
+                              <div>
+                                <p className="text-white text-sm font-medium">Project Kickoff</p>
+                                <p className="text-xs text-gray-400">Development begins with regular updates throughout the process.</p>
+                              </div>
+                            </li>
+                          </ol>
+                        </div>
+                      </div>
+                      
+                      <div className="flex justify-center pt-3">
+                        <motion.button
+                          whileHover={{ scale: 1.01 }}
+                          whileTap={{ scale: 0.99 }}
+                          disabled={isSubmitting || !invoice.billingDetails?.email}
+                          onClick={submitProjectReview}
+                          className={`px-6 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-all duration-300 flex items-center gap-2 ${
+                            (isSubmitting || !invoice.billingDetails?.email) ? 'opacity-70 cursor-not-allowed' : ''
+                          }`}
+                        >
+                          {isSubmitting ? (
+                            <>
+                              <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                              </svg>
+                              Processing...
+                            </>
+                          ) : (
+                            <>
+                              <FaRocket className="w-3.5 h-3.5" />
+                              Submit for Review
+                            </>
+                          )}
+                        </motion.button>
+                      </div>
+                      
+                      <div className="text-center text-xs text-gray-500 pt-1">
+                        <p>You have {2 - requestCount} review requests remaining today</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-6">
+                      <div className="inline-flex items-center justify-center bg-indigo-500/20 rounded-full p-2 mx-auto mb-3">
+                        <svg className="w-6 h-6 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                        </svg>
+                      </div>
+                      <h4 className="text-lg font-bold text-white">No Project Details</h4>
+                      <p className="text-gray-400 text-xs mt-2">
+                        Please select a plan and complete your billing details first.
+                      </p>
+                      <button
+                        onClick={closeReviewModal}
+                        className="mt-4 px-5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-sm font-medium transition-colors"
+                      >
+                        Close
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -3,7 +3,7 @@ import db from '@/app/services/database';
 import fs from 'fs';
 import path from 'path';
 
-const ADMIN_PASSWORD = 'nex-devs.org889123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
 
 // API endpoint to export all database data
 export async function GET(request: NextRequest) {

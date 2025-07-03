@@ -9,14 +9,43 @@ export default function AdminAuthCheck({ children }: { children: React.ReactNode
   const router = useRouter()
 
   useEffect(() => {
-    // Check if user is authenticated
-    const auth = sessionStorage.getItem('adminAuth')
-    if (auth === 'true') {
-      setIsAuthenticated(true)
-    } else {
-      router.push('/admin/login')
+    const checkAuthentication = async () => {
+      try {
+        // First check sessionStorage for quick client-side validation
+        const auth = sessionStorage.getItem('adminAuth')
+        const adminPassword = sessionStorage.getItem('adminPassword')
+        const databasePassword = sessionStorage.getItem('databasePassword')
+
+        if (auth === 'true' && adminPassword && databasePassword) {
+          // Also verify with server-side cookie
+          const response = await fetch('/api/test-auth', {
+            method: 'GET',
+            credentials: 'include'
+          })
+
+          if (response.ok) {
+            // Authentication verified - no console logging for security
+            setIsAuthenticated(true)
+          } else {
+            // Server-side authentication failed - no console logging for security
+            sessionStorage.clear()
+            router.push('/hasnaat/login')
+          }
+        } else {
+          // Client-side authentication data missing - no console logging for security
+          sessionStorage.clear()
+          router.push('/hasnaat/login')
+        }
+      } catch (error) {
+        // Authentication check failed - no console logging for security
+        sessionStorage.clear()
+        router.push('/hasnaat/login')
+      }
+
+      setIsLoading(false)
     }
-    setIsLoading(false)
+
+    checkAuthentication()
   }, [router])
 
   if (isLoading) {

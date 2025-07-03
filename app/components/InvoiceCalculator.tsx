@@ -27,6 +27,9 @@ const InvoiceCalculator: React.FC<InvoiceCalculatorProps> = ({ basePrice }) => {
           <span className={timeline === 'urgent' ? 'text-red-400' : 'text-green-400'}>
             {timeline === 'urgent' ? '+' : '-'}{formatPrice(Math.abs(difference), currency)}
           </span>
+        </div>
+      )}
+      <div className="flex justify-between">
         <span>Total:</span>
         <span>{formatPrice(adjustedPrice, currency)}</span>
       </div>

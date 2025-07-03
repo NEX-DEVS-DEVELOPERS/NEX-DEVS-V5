@@ -1,12 +1,11 @@
 'use client';
 
-import React from 'react';
-import { motion, MotionProps, useReducedMotion, Transition } from 'framer-motion';
+import React, { useEffect, useRef } from 'react';
 import { cn } from '@/lib/utils';
 
 type AnimationType = 'fade' | 'slide-up' | 'slide-down' | 'slide-left' | 'slide-right' | 'scale' | 'none';
 
-export interface SmoothAnimationProps extends Omit<MotionProps, 'initial' | 'animate' | 'exit' | 'transition'> {
+export interface SmoothAnimationProps {
   children: React.ReactNode;
   type?: AnimationType;
   className?: string;
@@ -15,44 +14,28 @@ export interface SmoothAnimationProps extends Omit<MotionProps, 'initial' | 'ani
   repeat?: number;
   shouldAnimate?: boolean;
   forceAnimation?: boolean; // Force animation even if reduced motion is preferred
+  onComplete?: () => void;
+  trigger?: 'mount' | 'hover' | 'manual';
 }
 
-const animationVariants = {
-  'fade': {
-    initial: { opacity: 0 },
-    animate: { opacity: 1 },
-    exit: { opacity: 0 },
-  },
-  'slide-up': {
-    initial: { opacity: 0, y: 50 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: 50 },
-  },
-  'slide-down': {
-    initial: { opacity: 0, y: -50 },
-    animate: { opacity: 1, y: 0 },
-    exit: { opacity: 0, y: -50 },
-  },
-  'slide-left': {
-    initial: { opacity: 0, x: 50 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: 50 },
-  },
-  'slide-right': {
-    initial: { opacity: 0, x: -50 },
-    animate: { opacity: 1, x: 0 },
-    exit: { opacity: 0, x: -50 },
-  },
-  'scale': {
-    initial: { opacity: 0, scale: 0.9 },
-    animate: { opacity: 1, scale: 1 },
-    exit: { opacity: 0, scale: 0.9 },
-  },
-  'none': {
-    initial: {},
-    animate: {},
-    exit: {},
-  },
+// CSS animation class mappings
+const getAnimationClass = (type: AnimationType) => {
+  switch (type) {
+    case 'fade':
+      return 'fade-in';
+    case 'slide-up':
+      return 'slide-up';
+    case 'slide-down':
+      return 'slide-down';
+    case 'slide-left':
+      return 'slide-left';
+    case 'slide-right':
+      return 'slide-right';
+    case 'scale':
+      return 'scale-in';
+    default:
+      return '';
+  }
 };
 
 export function SmoothAnimation({
@@ -64,34 +47,81 @@ export function SmoothAnimation({
   repeat = 0,
   shouldAnimate = true,
   forceAnimation = false,
+  onComplete,
+  trigger = 'mount',
   ...props
 }: SmoothAnimationProps) {
-  // Respect user's reduced motion preferences
-  const prefersReducedMotion = useReducedMotion();
+  const elementRef = useRef<HTMLDivElement>(null);
+
+  // Check for reduced motion preference
+  const prefersReducedMotion = typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const shouldReduceMotion = prefersReducedMotion && !forceAnimation;
-  
+
   // If reduced motion is preferred, use 'none' animation type
   const animationType = shouldReduceMotion || !shouldAnimate ? 'none' : type;
-  const variants = animationVariants[animationType];
-  
-  const transition: Transition = {
-    duration: shouldReduceMotion ? 0 : duration,
-    delay,
-    repeat: repeat > 0 ? repeat : undefined,
-    ease: [0.25, 0.1, 0.25, 1], // Cubic bezier for smooth easing
+  const animationClass = getAnimationClass(animationType);
+
+  useEffect(() => {
+    if (!elementRef.current || animationType === 'none') return;
+    
+    const element = elementRef.current;
+    
+    // Set initial state
+    element.style.opacity = '0';
+    
+    // Apply animation with delay
+    setTimeout(() => {
+      element.classList.add(animationClass);
+      
+      // Handle animation completion
+      const handleAnimationEnd = () => {
+        if (onComplete) onComplete();
+        element.removeEventListener('animationend', handleAnimationEnd);
+      };
+      
+      element.addEventListener('animationend', handleAnimationEnd);
+      
+      // Handle repeat if needed
+      if (repeat > 0) {
+        let count = 0;
+        const intervalId = setInterval(() => {
+          if (count >= repeat) {
+            clearInterval(intervalId);
+            return;
+          }
+          
+          element.classList.remove(animationClass);
+          void element.offsetWidth; // Force reflow
+          element.classList.add(animationClass);
+          count++;
+        }, (duration + delay) * 1000);
+        
+        return () => clearInterval(intervalId);
+      }
+    }, delay * 1000);
+    
+  }, [animationType, animationClass, duration, delay, repeat, shouldReduceMotion, onComplete]);
+
+  // Apply custom duration and delay via inline styles
+  const customStyles = {
+    animationDuration: duration ? `${duration}s` : undefined,
+    animationDelay: delay ? `${delay}s` : undefined,
   };
-  
+
   return (
-    <motion.div
-      initial={variants.initial}
-      animate={variants.animate}
-      exit={variants.exit}
-      transition={transition}
-      className={cn(className)}
+    <div
+      ref={elementRef}
+      className={cn(
+        'gpu-accelerated',
+        animationType !== 'none' ? 'will-change-transform-opacity' : '',
+        className
+      )}
+      style={customStyles}
       {...props}
     >
       {children}
-    </motion.div>
+    </div>
   );
 }
 

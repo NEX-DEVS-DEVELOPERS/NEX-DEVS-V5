@@ -1,0 +1,102 @@
+[
+  {
+    "id": "review-1751467716426",
+    "author": "ABDUL HANAN",
+    "role": "Founder & Lead Developer",
+    "company": "FUSION DEVS",
+    "country": "Pakistan",
+    "rating": 5,
+    "text": "ONE OF THEBEST CLEAN DESIGN WITH AI INTIGRATIONS ",
+    "planTitle": "Full-Stack Professional",
+    "projectType": "portfolio website ",
+    "date": "2025-07-02",
+    "successMetrics": [],
+    "isVerified": true,
+    "isInternational": false
+  },
+  {
+    "id": "review-1749908649217",
+    "author": "FARHAN-AHMAD",
+    "role": "AGENTIC-WORKFLOWS",
+    "company": "ZEUS-WORKFLOWS",
+    "country": "IRAN",
+    "rating": 5,
+    "text": "ONE OF THE BEST AI WORKFLOWS REALLY BOST MY WORKFLOW ! HIGHY RECOMEND",
+    "planTitle": "AI Agents/WebApps",
+    "projectType": "AI AGENT SAAS PRODUCT",
+    "date": "2025-06-14",
+    "successMetrics": [],
+    "isVerified": true,
+    "isInternational": true
+  },
+  {
+    "id": "api-review-001",
+    "planTitle": "WordPress Professional",
+    "author": "Ahmad Malik",
+    "role": "Business Owner",
+    "company": "Malik Enterprises",
+    "country": "Pakistan",
+    "rating": 5,
+    "text": "The WordPress Professional package delivered exceptional results for our business website. The SEO implementation was top-notch and the site performance has improved dramatically. Our clients are impressed with the new design!",
+    "date": "2024-05-01",
+    "projectType": "Business Website",
+    "successMetrics": [
+      {
+        "label": "Site Speed",
+        "value": "+80%"
+      },
+      {
+        "label": "Organic Traffic",
+        "value": "+45%"
+      }
+    ],
+    "isVerified": true
+  },
+  {
+    "id": "api-review-002",
+    "planTitle": "Full-Stack Basic",
+    "author": "Sarah Johnson",
+    "role": "Product Manager",
+    "company": "Tech Innovations LLC",
+    "country": "United States",
+    "rating": 5,
+    "text": "The web application NEX-WEBS built for us works flawlessly. The user interface is intuitive and the backend is robust. Our team loves how easy it is to manage our data now.",
+    "date": "2024-04-15",
+    "projectType": "Web Application",
+    "successMetrics": [
+      {
+        "label": "User Adoption",
+        "value": "95%"
+      },
+      {
+        "label": "Time Saved",
+        "value": "20 hrs/week"
+      }
+    ],
+    "isVerified": true,
+    "isInternational": true
+  },
+  {
+    "id": "api-review-003",
+    "planTitle": "SEO/Content Writing",
+    "author": "Ayesha Khan",
+    "role": "Marketing Director",
+    "company": "GrowthHub Pakistan",
+    "country": "Pakistan",
+    "rating": 5,
+    "text": "The SEO and content strategy implemented by NEX-WEBS has transformed our online presence. Our website now ranks on the first page for several competitive keywords and our organic traffic has doubled.",
+    "date": "2024-03-20",
+    "projectType": "Content Marketing",
+    "successMetrics": [
+      {
+        "label": "Search Rankings",
+        "value": "Page 1 for 12 keywords"
+      },
+      {
+        "label": "Content Engagement",
+        "value": "+65%"
+      }
+    ],
+    "isVerified": true
+  }
+]

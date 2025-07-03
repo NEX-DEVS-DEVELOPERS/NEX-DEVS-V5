@@ -4,13 +4,27 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MobilePopup = () => {
-  const [isVisible, setIsVisible] = useState(true);
-  const [isMobile, setIsMobile] = useState(true);
+  const [isVisible, setIsVisible] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
 
   useEffect(() => {
-    // Check if user is on mobile
+    // Check if user is on mobile - only show for actual mobile devices
     const checkMobile = () => {
-      setIsMobile(window.innerWidth <= 768);
+      const userAgent = navigator.userAgent;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 640; // Stricter mobile detection
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+      // Only consider it mobile if it's actually a mobile device AND has small screen
+      const actuallyMobile = isMobileDevice && isSmallScreen && isTouchDevice;
+      setIsMobile(actuallyMobile);
+
+      // Only show popup for actual mobile devices, never for desktop
+      if (actuallyMobile) {
+        setIsVisible(true);
+      } else {
+        setIsVisible(false);
+      }
     };
 
     // Run check immediately
@@ -21,6 +35,7 @@ const MobilePopup = () => {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
+  // Never show for desktop users - double check
   if (!isMobile || !isVisible) return null;
 
   return (

@@ -2,9 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import { useIsMobile } from '@/app/utils/deviceDetection'
-import FloatingActionButton from '@/app/components/FloatingActionButton'
+import { PhoneIcon } from '@heroicons/react/24/solid'
 
 export default function MobileMenu() {
   const [isOpen, setIsOpen] = useState(false)
@@ -21,58 +21,61 @@ export default function MobileMenu() {
     ['Pricing', '/pricing']
   ]
 
-  const menuVariants = {
+  const menuVariants: Variants = {
     closed: {
-      clipPath: 'circle(0% at calc(100% - 48px) 28px)',
-      opacity: 0,
-      scale: 0.95,
+      x: '100%',
+      opacity: 0.9,
+      boxShadow: '0 0 0 0 rgba(139, 92, 246, 0)',
       transition: {
         type: "spring",
-        damping: 40,
-        stiffness: 300,
+        damping: 25,
+        stiffness: 250,
         when: "afterChildren",
-        duration: 0.5
+        duration: 0.3,
+        ease: [0.22, 1, 0.36, 1]
       }
     },
     open: {
-      clipPath: 'circle(150% at calc(100% - 48px) 28px)',
+      x: '0%',
       opacity: 1,
-      scale: 1,
+      boxShadow: '0 0 20px 2px rgba(139, 92, 246, 0.6)',
       transition: {
         type: "spring",
-        damping: 40,
-        stiffness: 200,
+        damping: 20,
+        stiffness: 180,
         mass: 0.8,
-        staggerChildren: 0.08,
-        delayChildren: 0.3,
-        duration: 0.6
+        staggerChildren: 0.06,
+        delayChildren: 0.08,
+        duration: 0.4,
+        ease: [0.22, 1, 0.36, 1]
       }
     }
   }
 
-  const itemVariants = {
+  const itemVariants: Variants = {
     closed: {
-      y: 20,
-      x: -20,
+      y: 8,
+      x: 15,
       opacity: 0,
       transition: {
         type: "spring",
-        damping: 40,
-        stiffness: 300
+        damping: 30,
+        stiffness: 250,
+        duration: 0.2
       }
     },
-    open: (i: number) => ({
+    open: {
       y: 0,
       x: 0,
       opacity: 1,
       transition: {
         type: "spring",
-        damping: 30,
-        stiffness: 200,
+        damping: 25,
+        stiffness: 180,
         mass: 0.8,
-        delay: i * 0.1
+        delay: 0.05
       }
-    })
+    }
   }
 
   return (
@@ -83,24 +86,24 @@ export default function MobileMenu() {
         className="relative z-50 p-2 group"
         aria-label="Toggle Menu"
       >
-        <div className="flex flex-col justify-between w-7 h-6">
+        <div className="flex flex-col justify-between w-6 h-5">
           <motion.span
             animate={isOpen 
-              ? { rotate: 45, y: 10, backgroundColor: "#4B5563" } 
+              ? { rotate: 45, y: 8, backgroundColor: "#8b5cf6" } 
               : { rotate: 0, y: 0, backgroundColor: "currentColor" }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="w-full h-[2px] bg-current block transition-all duration-300 group-hover:w-3/4"
           />
           <motion.span
             animate={isOpen 
-              ? { opacity: 0, x: -10 } 
-              : { opacity: 1, x: 0 }}
+              ? { opacity: 0, x: -10, backgroundColor: "#8b5cf6" } 
+              : { opacity: 1, x: 0, backgroundColor: "currentColor" }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="w-3/4 h-[2px] bg-current block transition-all duration-300 group-hover:w-full"
           />
           <motion.span
             animate={isOpen 
-              ? { rotate: -45, y: -10, backgroundColor: "#4B5563" } 
+              ? { rotate: -45, y: -8, backgroundColor: "#8b5cf6" } 
               : { rotate: 0, y: 0, backgroundColor: "currentColor" }}
             transition={{ type: "spring", stiffness: 260, damping: 20 }}
             className="w-full h-[2px] bg-current block transition-all duration-300 group-hover:w-1/2"
@@ -111,22 +114,12 @@ export default function MobileMenu() {
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(24px)" }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            transition={{ 
-              duration: 0.5, 
-              ease: [0.4, 0, 0.2, 1],
-              backdropFilter: {
-                duration: 0.6,
-                ease: "easeOut"
-              }
-            }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 0.85 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
             onClick={() => setIsOpen(false)}
-            className="fixed inset-0 backdrop-blur-2xl z-40"
-            style={{
-              background: "linear-gradient(to bottom, rgba(255,255,255,0.1), rgba(255,255,255,0.05))"
-            }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40 will-change-transform"
           />
         )}
       </AnimatePresence>
@@ -138,20 +131,37 @@ export default function MobileMenu() {
             initial="closed"
             animate="open"
             exit="closed"
-            className="fixed top-4 right-4 h-[60vh] w-[280px] rounded-[30px] bg-white/10 z-40 origin-right shadow-2xl shadow-white/10 will-change-transform touch-manipulation overflow-hidden border border-white/30"
+            className="fixed top-4 right-4 h-auto max-h-[80vh] w-[220px] rounded-xl bg-black/80 z-40 origin-right will-change-transform overflow-hidden border border-purple-500 mobile-menu-neon"
+            style={{
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              transform: 'translateZ(0)'
+            }}
           >
-            {/* Glass reflection effect - keeping subtle reflection */}
-            <div className="absolute inset-x-0 top-0 h-[120%] w-[200%] -translate-x-1/2 -translate-y-[10%] rotate-[-12deg] bg-gradient-to-b from-white/10 to-transparent" />
+            {/* Neon border glow effect */}
+            <motion.div 
+              className="absolute inset-0 rounded-xl pointer-events-none will-change-transform"
+              animate={{
+                boxShadow: ['0 0 8px 1px rgba(139, 92, 246, 0.4)', '0 0 12px 2px rgba(139, 92, 246, 0.6)', '0 0 8px 1px rgba(139, 92, 246, 0.4)'],
+                borderColor: ['rgba(139, 92, 246, 0.6)', 'rgba(139, 92, 246, 0.8)', 'rgba(139, 92, 246, 0.6)']
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+                times: [0, 0.5, 1]
+              }}
+            />
             
-            {/* Frosted glass effect */}
-            <div className="absolute inset-0 backdrop-blur-xl backdrop-saturate-150 z-0"></div>
-            
-            {/* Subtle gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-b from-white/10 to-white/5 opacity-90 pointer-events-none" />
+            {/* Animated corner accents */}
+            <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-purple-500 rounded-tr-xl" />
+            <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-purple-500 rounded-tl-xl" />
+            <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-purple-500 rounded-br-xl" />
+            <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-purple-500 rounded-bl-xl" />
             
             {/* Content container */}
-            <div className="relative flex flex-col justify-start h-full px-6 pt-12 pb-8">
-              <div className="space-y-4 overflow-y-auto custom-scrollbar">
+            <div className="relative flex flex-col justify-start h-full px-4 pt-8 pb-6">
+              <div className="space-y-3 overflow-y-auto custom-scrollbar max-h-[60vh]">
                 {menuItems.map(([text, href], index) => (
                   <motion.div
                     key={text}
@@ -161,28 +171,59 @@ export default function MobileMenu() {
                     animate="open"
                     exit="closed"
                     className="overflow-hidden"
+                    style={{ 
+                      transitionDelay: `${index * 0.08}s`
+                    }}
                   >
                     <Link
                       href={href}
-                      className="group relative block text-base font-medium text-gray-800 transition-all duration-300 hover:text-black"
+                      className="group relative block text-sm font-medium text-white/95 transition-all duration-300 hover:text-white"
                       onClick={() => setIsOpen(false)}
                     >
-                      <span className="relative z-10 block transform transition-all duration-500 ease-out group-hover:translate-x-2">
+                      <span className="relative z-10 block transform transition-all duration-200 ease-out group-hover:translate-x-1 will-change-transform">
                         {text}
-                        <span className="absolute inset-0 -z-10 block h-full w-0 rounded-lg bg-gradient-to-r from-white/30 via-white/50 to-white/30 transition-all duration-500 group-hover:w-full"></span>
+                        <motion.span 
+                          className="absolute bottom-0 left-0 h-[1px] bg-gradient-to-r from-purple-500 to-transparent w-0 group-hover:w-full will-change-transform"
+                          transition={{ duration: 0.2 }}
+                        />
                       </span>
+                      <motion.div
+                        className="absolute inset-0 w-0 opacity-0 bg-gradient-to-r from-purple-600/10 to-transparent rounded-sm -z-10 will-change-transform"
+                        animate={{
+                          width: ["0%", "0%"],
+                          opacity: [0, 0]
+                        }}
+                        whileHover={{
+                          width: "100%",
+                          opacity: 1,
+                          transition: { duration: 0.2 }
+                        }}
+                      />
                     </Link>
                   </motion.div>
                 ))}
                 <motion.div
                   variants={itemVariants}
-                  custom={menuItems.length}
                   initial="closed"
                   animate="open"
                   exit="closed"
-                  className="pt-4"
+                  className="pt-3"
+                  style={{ 
+                    transitionDelay: `${menuItems.length * 0.08}s`
+                  }}
                 >
-                  <FloatingActionButton />
+                  <Link 
+                    href="/discovery-call"
+                    className="discovery-call-button flex items-center gap-2 w-full justify-center py-2 text-sm relative overflow-hidden group will-change-transform"
+                    onClick={() => setIsOpen(false)}
+                  >
+                    <motion.div
+                      className="absolute inset-0 bg-gradient-to-r from-purple-600/80 to-indigo-600/80 opacity-0 group-hover:opacity-100 will-change-transform"
+                      transition={{ duration: 0.2 }}
+                    />
+                    <PhoneIcon className="h-3 w-3 relative z-10" />
+                    <span className="relative z-10">Discovery Call</span>
+                  </Link>
                 </motion.div>
               </div>
             </div>
@@ -195,7 +236,7 @@ export default function MobileMenu() {
                 background: transparent;
               }
               .custom-scrollbar::-webkit-scrollbar-thumb {
-                background-color: rgba(75, 85, 99, 0.3);
+                background-color: rgba(139, 92, 246, 0.4);
                 border-radius: 20px;
               }
             `}</style>

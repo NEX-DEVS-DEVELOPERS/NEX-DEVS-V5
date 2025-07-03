@@ -4,7 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import { Project } from '../projects/index';
 
-const ADMIN_PASSWORD = 'nex-devs.org889123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
 
 export async function POST(request: NextRequest) {
   try {

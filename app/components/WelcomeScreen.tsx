@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion, AnimatePresence, useWillChange } from 'framer-motion';
+import { motion, AnimatePresence, useWillChange, Variants } from 'framer-motion';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti'; // Import the confetti library
@@ -9,7 +9,7 @@ import confetti from 'canvas-confetti'; // Import the confetti library
 const services = [
   {
     id: 1,
-    title: 'MOBILE APPS',
+    title: 'Ai-MOBILE APPS',
     description: 'Premium iOS and Android applications with advanced AI integration, delivering intelligent experiences that generate passive income through automation.',
     skills: [
       'Cross-Platform AI-Powered Development',
@@ -77,27 +77,27 @@ const services = [
   },
   {
     id: 3,
-    title: 'WordPress Development',
-    description: 'AI-Enhanced WordPress solutions featuring advanced automation and intelligent content management systems.',
+    title: 'Full-Stack Development',
+    description: 'Comprehensive AI-integrated development combining advanced Machine Learning with robust cloud-native architecture.',
     skills: [
-      'AI-Powered Content Generation & SEO',
-      'Smart Media Processing & Optimization',
-      'Intelligent User Engagement Systems',
-      'Automated Content Scheduling & Distribution'
+      'AI-Driven Full Stack Solutions',
+      'Advanced ML Model Integration',
+      'Intelligent Microservices',
+      'Smart Cloud Infrastructure'
     ],
     subFeatures: [
       {
-        title: 'AI Content Tools',
-        items: ['Smart SEO Optimization', 'Ai Agent for content creation', 'Content Performance Analysis']
+        title: 'AI Integration',
+        items: ['Smart Model Training', 'Automated Predictions', 'Intelligent Pipeline']
       },
       {
-        title: 'Automation Suite',
-        items: ['Smart Publishing', 'Dynamic Templates', 'Intelligent Backups']
+        title: 'Cloud AI Architecture',
+        items: ['Smart Orchestration', 'Intelligent Scaling', 'Automated DevOps']
       }
     ],
-    color: 'from-purple-500/30 to-purple-600/30',
-    accent: 'border-purple-400/50',
-    bgAccent: 'bg-purple-500/5'
+    color: 'from-indigo-500/30 to-indigo-600/30',
+    accent: 'border-indigo-400/50',
+    bgAccent: 'bg-indigo-500/5'
   },
   {
     id: 4,
@@ -149,22 +149,22 @@ const services = [
   },
   {
     id: 6,
-    title: 'Web Applications',
-    description: 'Enterprise-grade web applications powered by AI, delivering scalable and intelligent solutions for complex business needs.',
+    title: 'MODERN AI BASED SAAS PRODUCT',
+    description: 'Enterprise-grade SaaS solutions powered by advanced AI, delivering intelligent and scalable business applications with modern cloud architecture.',
     skills: [
-      'AI-Enhanced PWA Development',
-      'Real-Time AI Processing & Analytics',
-      'Smart Authentication Systems',
-      'Intelligent Cloud Architecture'
+      'Enterprise AI Integration',
+      'Advanced SaaS Architecture',
+      'Predictive Analytics Engine',
+      'Intelligent Cloud Infrastructure'
     ],
     subFeatures: [
       {
-        title: 'Enterprise AI Solutions',
-        items: ['Smart CRM Systems', 'AI-Powered ERP', 'Intelligent Analytics']
+        title: 'Enterprise SaaS Solutions',
+        items: ['AI-Powered Business Apps', 'Predictive Analytics', 'Intelligent Automation']
       },
       {
-        title: 'Advanced SaaS',
-        items: ['ML-Based Architecture', 'Intelligent Scaling', 'Smart API Management']
+        title: 'Advanced Architecture',
+        items: ['Multi-tenant Design', 'Scalable Infrastructure', 'Enterprise Security']
       }
     ],
     color: 'from-yellow-500/30 to-yellow-600/30',
@@ -173,27 +173,27 @@ const services = [
   },
   {
     id: 7,
-    title: 'Full-Stack Development',
-    description: 'Comprehensive AI-integrated development combining advanced Machine Learning with robust cloud-native architecture.',
+    title: 'WordPress Development',
+    description: 'AI-Enhanced WordPress solutions featuring advanced automation and intelligent content management systems.',
     skills: [
-      'AI-Driven Full Stack Solutions',
-      'Advanced ML Model Integration',
-      'Intelligent Microservices',
-      'Smart Cloud Infrastructure'
+      'AI-Powered Content Generation & SEO',
+      'Smart Media Processing & Optimization',
+      'Intelligent User Engagement Systems',
+      'Automated Content Scheduling & Distribution'
     ],
     subFeatures: [
       {
-        title: 'AI Integration',
-        items: ['Smart Model Training', 'Automated Predictions', 'Intelligent Pipeline']
+        title: 'AI Content Tools',
+        items: ['Smart SEO Optimization', 'Ai Agent for content creation', 'Content Performance Analysis']
       },
       {
-        title: 'Cloud AI Architecture',
-        items: ['Smart Orchestration', 'Intelligent Scaling', 'Automated DevOps']
+        title: 'Automation Suite',
+        items: ['Smart Publishing', 'Dynamic Templates', 'Intelligent Backups']
       }
     ],
-    color: 'from-indigo-500/30 to-indigo-600/30',
-    accent: 'border-indigo-400/50',
-    bgAccent: 'bg-indigo-500/5'
+    color: 'from-purple-500/30 to-purple-600/30',
+    accent: 'border-purple-400/50',
+    bgAccent: 'bg-purple-500/5'
   },
   {
     id: 8,
@@ -243,67 +243,28 @@ const techStack = [
   { name: 'Framer Motion', color: 'text-purple-500', importance: 'medium' }
 ];
 
-// Enhance slide variants for smoother transitions with performance optimizations
-const slideVariants = {
+// Update the slideVariants with correct typing
+const slideVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? '100%' : '-100%',
     opacity: 0,
-    scale: 0.94,
-    filter: 'blur(6px)',
-    rotateY: direction > 0 ? '5deg' : '-5deg', // Reduced rotation for smoother animation
-    transition: {
-      x: { 
-        type: "spring", // Changed to spring for smoother motion
-        stiffness: 300,
-        damping: 35, // Increased damping for smoother motion
-        mass: 0.7, // Reduced mass for quicker response
-        restDelta: 0.0005 // Smaller restDelta for more precision
-      },
-      opacity: { duration: 0.4, ease: [0.33, 1, 0.68, 1] }, // Modern cubic-bezier ease
-      scale: { duration: 0.5, ease: [0.33, 1, 0.68, 1] },
-      filter: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-      rotateY: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-    }
+    scale: 0.95,
+    filter: 'blur(4px)',
+    rotateY: direction > 0 ? '3deg' : '-3deg'
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
     filter: 'blur(0px)',
-    rotateY: '0deg',
-    transition: {
-      x: { 
-        type: "spring", // Spring physics for smoother motion
-        stiffness: 400, // Increased stiffness for more responsive animation
-        damping: 40, // Increased damping for less oscillation
-        mass: 0.6, // Reduced mass for quicker, more refined movement
-        restDelta: 0.0005 // Smaller restDelta for more precision
-      },
-      opacity: { duration: 0.4, ease: [0.33, 1, 0.68, 1] },
-      scale: { duration: 0.5, ease: [0.33, 1, 0.68, 1] },
-      filter: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-      rotateY: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-    }
+    rotateY: '0deg'
   },
   exit: (direction: number) => ({
     x: direction < 0 ? '100%' : '-100%',
     opacity: 0,
-    scale: 0.94,
-    filter: 'blur(6px)',
-    rotateY: direction < 0 ? '5deg' : '-5deg', // Reduced rotation for smoother animation
-    transition: {
-      x: { 
-        type: "spring", // Spring physics for smoother motion
-        stiffness: 300,
-        damping: 35, // Increased damping for smoother motion
-        mass: 0.7, // Reduced mass for quicker response
-        restDelta: 0.0005 // Smaller restDelta for more precision
-      },
-      opacity: { duration: 0.4, ease: [0.33, 1, 0.68, 1] },
-      scale: { duration: 0.5, ease: [0.33, 1, 0.68, 1] },
-      filter: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-      rotateY: { duration: 0.35, ease: [0.33, 1, 0.68, 1] },
-    }
+    scale: 0.95,
+    filter: 'blur(4px)',
+    rotateY: direction < 0 ? '3deg' : '-3deg'
   })
 };
 
@@ -331,36 +292,91 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   const router = useRouter();
   const [direction, setDirection] = useState(initialDirection);
   const [isMobile, setIsMobile] = useState(false);
+  const [scrollPosition, setScrollPosition] = useState(0); // Add this state to store scroll position
+  const [hideMobilePreview, setHideMobilePreview] = useState(true); // State to control mobile preview popup
 
   // Add will-change optimization for better performance
   const willChange = useWillChange();
 
-  // Detect mobile devices
+  // Detect mobile devices with better detection
   useEffect(() => {
     const checkMobile = () => {
-      setIsMobile(window.innerWidth < 640);
+      const userAgent = navigator.userAgent;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth < 640;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+      // Only consider it mobile if it's actually a mobile device
+      const actuallyMobile = isMobileDevice && isSmallScreen && isTouchDevice;
+      setIsMobile(actuallyMobile);
+
+      // Never show mobile preview popup for desktop users
+      if (!actuallyMobile) {
+        setHideMobilePreview(true); // Always hide for desktop
+      } else {
+        // For actual mobile devices, show after a delay
+        setTimeout(() => {
+          setHideMobilePreview(false);
+        }, 1500);
+      }
     };
-    
+
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Add effect to prevent body scrolling when welcome screen is shown
+  // Enhanced scroll locking effect with immediate application
   useEffect(() => {
     if (mounted) {
-      // Prevent scrolling on the body
-      document.body.style.overflow = 'hidden';
-      document.body.style.height = '100vh';
-      document.body.style.position = 'fixed';
-      document.body.style.width = '100%';
+      // Store current scroll position
+      const scrollPos = window.scrollY;
+      setScrollPosition(scrollPos);
+
+      // Create and append a style tag for global styles - apply instantly
+      const styleTag = document.createElement('style');
+      styleTag.setAttribute('data-welcome-screen', 'true');
+      styleTag.innerHTML = `
+        html, body {
+          overflow: hidden !important;
+          height: 100vh !important;
+          touch-action: none !important;
+          position: fixed !important;
+          width: 100% !important;
+          top: 0 !important;
+          left: 0 !important;
+        }
+        
+        #welcome-screen-overlay {
+          position: fixed !important;
+          top: 0 !important;
+          left: 0 !important;
+          right: 0 !important;
+          bottom: 0 !important;
+          overflow: hidden !important;
+          touch-action: none !important;
+          -webkit-overflow-scrolling: none !important;
+          overscroll-behavior: none !important;
+          pointer-events: all !important;
+          z-index: 9999 !important;
+        }
+      `;
+      document.head.appendChild(styleTag);
+
+      // Apply inline styles immediately
+      document.body.style.top = `-${scrollPos}px`;
       
       return () => {
-        // Restore scrolling when unmounted
-        document.body.style.overflow = '';
-        document.body.style.height = '';
-        document.body.style.position = '';
-        document.body.style.width = '';
+        // Remove the style tag
+        if (styleTag.parentNode) {
+          document.head.removeChild(styleTag);
+        }
+        
+        // Reset inline styles
+        document.body.style.top = '';
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollPos);
       };
     }
   }, [mounted]);
@@ -368,29 +384,47 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   // Get the appropriate service content based on device type
   const serviceContent = getServiceContent(isMobile);
 
+  // Update the mounting effect
   useEffect(() => {
     if (!localStorage.getItem('welcomeScreenShown')) {
+      // Set mounted and initial slide immediately
       setMounted(true);
-      // Add a small delay before showing the content to ensure smooth animation
-      const timer = setTimeout(() => {
-        setCurrentSlide(-1);
-      }, 100);
-      return () => clearTimeout(timer);
+      setCurrentSlide(-1);
+      
+      // Set initial state for animations
+      const setInitialState = () => {
+        // Set any initial state needed for animations
+        document.documentElement.style.setProperty('--initial-background-opacity', '0');
+        document.documentElement.style.setProperty('--initial-blur', '0px');
+      };
+
+      // Run initial state setup
+      setInitialState();
+
+      // Clean up
+      return () => {
+        document.documentElement.style.removeProperty('--initial-background-opacity');
+        document.documentElement.style.removeProperty('--initial-blur');
+      };
     }
   }, []);
 
-  // Add entrance animation effect
+  // Add enhanced entrance animation effect
   useEffect(() => {
     if (mounted) {
-      // Simulate the entrance animation completion after a delay
+      // Register animation completion after a consistent delay
       const timer = setTimeout(() => {
         setAnimationComplete(true);
-      }, 2000); // 2 seconds for the entrance animation
+        // Update CSS variables for smooth transitions
+        document.documentElement.style.setProperty('--initial-background-opacity', '1');
+        document.documentElement.style.setProperty('--initial-blur', '2px');
+      }, 100);
+      
       return () => clearTimeout(timer);
     }
   }, [mounted]);
 
-  // Add smooth scroll optimization
+  // Add smooth scroll optimization with passive events
   useEffect(() => {
     // Optimize scroll performance
     const optimizeScroll = () => {
@@ -412,10 +446,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     optimizeScroll();
   }, []);
 
-  // Add performance optimization
+  // Add performance optimization for preloading
   useEffect(() => {
-    // Preload critical assets
+    // Preload critical assets and optimize rendering
     const preloadAssets = async () => {
+      // Preload critical images
       const criticalImages = document.querySelectorAll('img[data-priority="true"]');
       const imagePromises = Array.from(criticalImages).map((img: any) => {
         return new Promise((resolve) => {
@@ -424,6 +459,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           img.onerror = () => resolve(null);
         });
       });
+      
+      // Hint to browser about animations
+      const animationElements = document.querySelectorAll('.will-change-transform, .hardware-accelerated');
+      animationElements.forEach((el: any) => {
+        if (el.style) {
+          el.style.willChange = 'transform, opacity';
+          el.style.backfaceVisibility = 'hidden';
+        }
+      });
+      
       await Promise.all(imagePromises);
     };
 
@@ -432,6 +477,25 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
   // Add close button handler
   const handleClose = () => {
+    // Remove any lingering scroll lock styles
+    const existingStyleTag = document.querySelector('style[data-welcome-screen]');
+    if (existingStyleTag) {
+      existingStyleTag.remove();
+    }
+    
+    // Reset body styles
+    document.body.style.removeProperty('overflow');
+    document.body.style.removeProperty('position');
+    document.body.style.removeProperty('top');
+    document.body.style.removeProperty('width');
+    
+    // Reset html styles
+    document.documentElement.style.removeProperty('overflow');
+    document.documentElement.style.removeProperty('height');
+    
+    // Restore scroll position
+    window.scrollTo(0, scrollPosition);
+    
     // Set localStorage to indicate welcome screen was shown
     localStorage.setItem('welcomeScreenShown', 'true');
     onComplete();
@@ -509,42 +573,42 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     if (isMobile) return null;
     
     return (
-      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"> {/* Added z-index to stay behind content */}
-        {/* Enhanced lines with better visibility but lower z-index */}
-        {[...Array(5)].map((_, i) => {
-          const topPosition = 20 + i * 15;  // Adjusted positions
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]">
+        {[...Array(3)].map((_, i) => {
+          const topPosition = 30 + i * 20;
           const isEven = i % 2 === 0;
-          const duration = 10 + i * 2;      // Slower, more elegant movement
+          const duration = 15 + i * 2;
           
           return (
             <motion.div
               key={`line-${i}`}
-              className={`absolute h-[2.5px] bg-gradient-to-r 
+              className={`absolute h-[2px] bg-gradient-to-r 
                         ${isEven 
-                          ? 'from-transparent via-blue-500/30 to-purple-500/30' 
-                          : 'from-transparent via-purple-500/30 to-emerald-500/30'}`}
+                          ? 'from-transparent via-blue-500/20 to-purple-500/20' 
+                          : 'from-transparent via-purple-500/20 to-emerald-500/20'}`}
               style={{
-                filter: 'drop-shadow(0 0 4px rgba(125, 125, 255, 0.3))',
-                boxShadow: isEven ? '0 0 8px rgba(59, 130, 246, 0.3)' : '0 0 8px rgba(168, 85, 247, 0.3)',
-                zIndex: 1, // Lower z-index so it doesn't overlap content
+                filter: 'blur(2px)',
+                boxShadow: isEven ? '0 0 4px rgba(59, 130, 246, 0.2)' : '0 0 4px rgba(168, 85, 247, 0.2)',
+                zIndex: 1,
                 width: "120%",
-                willChange: "transform, opacity" // Performance optimization
+                willChange: "transform, opacity",
+                transition: 'all 0.6s ease-out'
               }}
               initial={{ 
                 left: isEven ? "100%" : "-120%",
                 top: `${topPosition}%`,
-                opacity: 0
+                opacity: 0.3
               }}
               animate={{ 
                 left: isEven ? "-120%" : "100%",
-                opacity: [0, 0.6, 0.6, 0]
+                opacity: [0.3, 0.4, 0.3]
               }}
               transition={{
                 duration: duration,
                 repeat: Infinity,
                 ease: "linear",
                 repeatType: "loop",
-                delay: i * 0.2 // Reduced delay for faster initial appearance
+                delay: i * 0.2
               }}
             />
           );
@@ -655,27 +719,223 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     );
   };
 
+  // Add neural network animation to welcome screen
+  const renderNeuralNetworkAnimation = () => {
+    if (isMobile || currentSlide !== -1) return null; // Only show on welcome screen
+    
+      // Define neural network nodes with more spread out positioning
+  const nodes = [
+    { id: 1, x: '15%', y: '25%' },
+    { id: 2, x: '38%', y: '18%' },
+    { id: 3, x: '50%', y: '32%' },
+    { id: 4, x: '70%', y: '22%' },
+    { id: 5, x: '85%', y: '38%' },
+    { id: 6, x: '20%', y: '65%' },
+    { id: 7, x: '42%', y: '75%' },
+    { id: 8, x: '65%', y: '68%' },
+    { id: 9, x: '82%', y: '52%' }
+  ];
+    
+      // Define connections between nodes - removed a few for better performance
+  const connections = [
+    { from: 1, to: 2 },
+    { from: 1, to: 3 },
+    { from: 2, to: 4 },
+    { from: 3, to: 4 },
+    { from: 3, to: 7 },
+    { from: 4, to: 5 },
+    { from: 6, to: 7 },
+    { from: 7, to: 8 },
+    { from: 8, to: 9 }
+  ];
+    
+    return (
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]">
+        {/* Render neural network connections (lines) */}
+        {connections.map((connection, i) => {
+          const fromNode = nodes.find(n => n.id === connection.from);
+          const toNode = nodes.find(n => n.id === connection.to);
+          
+          if (!fromNode || !toNode) return null;
+          
+          // Calculate line length for animation timing
+          const dx = parseInt(toNode.x) - parseInt(fromNode.x);
+          const dy = parseInt(toNode.y) - parseInt(fromNode.y);
+          const distance = Math.sqrt(dx * dx + dy * dy);
+          const animationDuration = distance / 20; // Speed factor
+          
+          return (
+            <div key={`connection-${i}`} className="absolute" style={{
+              left: fromNode.x,
+              top: fromNode.y,
+              width: '100%',
+              height: '100%',
+              zIndex: 2
+            }}>
+              <motion.div 
+                className="absolute origin-left"
+                style={{
+                  height: '1px',
+                  backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+                  width: `${distance}%`,
+                  boxShadow: i % 3 === 0 ? '0 0 4px #60A5FA' : i % 3 === 1 ? '0 0 4px #A855F7' : '0 0 4px #34D399',
+                  transformOrigin: 'left center',
+                  transform: `rotate(${Math.atan2(dy, dx) * (180 / Math.PI)}deg)`,
+                  willChange: 'opacity'
+                }}
+                animate={{
+                  opacity: [0.6, 1, 0.6]
+                }}
+                transition={{
+                  duration: 3 + i % 3,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+              >
+                {/* Add static dot at the end of the line */}
+                <motion.div
+                  className="absolute w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+                    boxShadow: i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
+                    right: '-1px',
+                    top: '-2px',
+                    transform: 'translate(50%, -50%)'
+                  }}
+                  animate={{
+                    scale: [0.8, 1.1, 0.8],
+                    opacity: [0.7, 1, 0.7]
+                  }}
+                  transition={{
+                    duration: 2 + i % 2,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                />
+                {/* Moving dots along the lines */}
+                <motion.div
+                  className="absolute w-1.5 h-1.5 rounded-full"
+                  style={{
+                    backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+                    boxShadow: i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
+                    top: '-2px',
+                    willChange: 'transform, left, opacity'
+                  }}
+                  animate={{
+                    left: ['0%', '100%'],
+                    scale: [0.8, 1.2, 0.8],
+                    opacity: [0.7, 1, 0.7]
+                  }}
+                  transition={{
+                    left: {
+                      duration: animationDuration,
+                      ease: "linear",
+                      repeat: Infinity,
+                      delay: i * 0.2 % 2,
+                      repeatDelay: 0
+                    },
+                    scale: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      repeatDelay: 0
+                    },
+                    opacity: {
+                      duration: 1.5,
+                      repeat: Infinity,
+                      ease: "easeInOut",
+                      repeatDelay: 0
+                    }
+                  }}
+                />
+              </motion.div>
+            </div>
+          );
+        })}
+        
+        {/* Render neural network nodes */}
+        {nodes.map((node, i) => (
+                  <motion.div
+          key={`node-${i}`}
+          className="absolute w-2.5 h-2.5 rounded-full"
+          style={{
+            left: node.x,
+            top: node.y,
+            backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+            boxShadow: i % 3 === 0 ? '0 0 8px #60A5FA' : i % 3 === 1 ? '0 0 8px #A855F7' : '0 0 8px #34D399',
+            transform: 'translate(-50%, -50%)',
+            zIndex: 3
+          }}
+          animate={{
+            scale: [1, 1.3, 1],
+            opacity: [0.7, 1, 0.7],
+            boxShadow: [
+              i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
+              i % 3 === 0 ? '0 0 10px #60A5FA' : i % 3 === 1 ? '0 0 10px #A855F7' : '0 0 10px #34D399',
+              i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399'
+            ]
+          }}
+          transition={{
+            duration: 2 + i * 0.2,
+            repeat: Infinity,
+            ease: "easeInOut",
+            repeatDelay: 0
+          }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center z-[9999] overflow-hidden" 
-         style={{ 
-           position: 'fixed', 
-           top: 0, 
-           left: 0, 
-           right: 0, 
-           bottom: 0, 
-           height: '100vh', 
-           width: '100vw', 
-           margin: 0, 
-           padding: 0,
-           overscrollBehavior: 'none' // Prevent bounce effects
-         }}>
+    <div 
+      id="welcome-screen-overlay"
+      className="fixed inset-0 flex items-center justify-center overflow-hidden transform-gpu" 
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        height: '100vh', 
+        width: '100vw', 
+        margin: 0, 
+        padding: 0,
+        overscrollBehavior: 'none',
+        touchAction: 'none',
+        userSelect: 'none',
+        WebkitOverflowScrolling: 'touch',
+        WebkitUserSelect: 'none',
+        msUserSelect: 'none',
+        backfaceVisibility: 'hidden',
+        display: 'flex' // Always show welcome screen, mobile popup is handled separately
+      }}
+      onTouchMove={(e) => e.preventDefault()}
+      onWheel={(e) => e.preventDefault()}
+      onScroll={(e) => e.preventDefault()}
+      onKeyDown={(e) => {
+        if (['Space', 'ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'].includes(e.code)) {
+          e.preventDefault();
+        }
+      }}
+    >
       {/* Dark overlay with better visibility */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-        style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
+        transition={{ duration: 0.5 }}
+        className="absolute inset-0 bg-black/80"
+        style={{ 
+          position: 'absolute', 
+          top: 0, 
+          left: 0, 
+          right: 0, 
+          bottom: 0,
+          backdropFilter: 'blur(2px)',
+          WebkitBackdropFilter: 'blur(2px)',
+          transition: 'all 0.5s ease-out'
+        }}
       />
 
       <div className="absolute inset-0 flex items-center justify-center z-[9999]" 
@@ -687,89 +947,63 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
            }}>
         {/* Dynamic background elements - optimized for visibility and performance */}
         <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
-          {/* Main background with enhanced visibility */}
-          <motion.div 
-            initial={{ opacity: 0, backdropFilter: "blur(0px)" }}
-            animate={{ opacity: 1, backdropFilter: "blur(8px)" }}
-            exit={{ opacity: 1, backdropFilter: "blur(8px)" }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-            className="absolute inset-0 bg-black/50"
+          {/* Main background with enhanced visibility and smoother animation */}
+          <motion.div
+            initial={{ opacity: 0, backdropFilter: "blur(0px)", scale: 1.05 }}
+            animate={{ opacity: 1, backdropFilter: "blur(8px)", scale: 1 }}
+            exit={{ opacity: 0, backdropFilter: "blur(0px)", scale: 0.95 }}
+            transition={{
+              duration: 0.8,
+              ease: [0.22, 1, 0.36, 1],
+              opacity: { duration: 0.6 },
+              scale: { duration: 0.8 }
+            }}
+            className="absolute inset-0 bg-black/60"
             style={{
               WebkitBackdropFilter: "blur(8px)",
-              willChange: "backdrop-filter", // Performance optimization
+              willChange: "backdrop-filter, transform, opacity",
               position: 'absolute',
               top: 0,
-              left: 0, 
+              left: 0,
               right: 0,
-              bottom: 0
+              bottom: 0,
+              transform: 'translate3d(0, 0, 0)'
             }}
           />
           
-          {/* Gradient orbs with improved visibility */}
+          {/* Gradient orbs with improved visibility and more professional staggered animation */}
           <div className="absolute inset-0 z-[1]"> {/* Added z-index */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 0.12, scale: 1 }}
-              transition={{ 
-                duration: 0.7, 
-                ease: "easeOut",
-                opacity: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                },
-                scale: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                }
-              }}
+              transition={{ duration: 0.6 }}
               className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-blue-600/30 rounded-full"
               style={{ 
-                filter: 'blur(50px)',
-                willChange: "opacity, transform" // Performance optimization
+                filter: 'blur(40px)',
+                willChange: "transform, opacity",
+                transition: 'all 0.6s ease-out'
               }}
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 0.12, scale: 1 }}
-              transition={{ 
-                duration: 0.7, 
-                delay: 0.1, 
-                ease: "easeOut",
-                opacity: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                },
-                scale: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                }
-              }}
+              transition={{ duration: 0.6, delay: 0.1 }}
               className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/30 rounded-full"
               style={{ 
-                filter: 'blur(50px)',
-                willChange: "opacity, transform" // Performance optimization
+                filter: 'blur(40px)',
+                willChange: "transform, opacity",
+                transition: 'all 0.6s ease-out'
               }}
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 0.12, scale: 1 }}
-              transition={{ 
-                duration: 0.7, 
-                delay: 0.15, 
-                ease: "easeOut",
-                opacity: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                },
-                scale: {
-                  duration: 0.8,
-                  ease: [0.33, 1, 0.68, 1]
-                }
-              }}
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 0.15, scale: 1 }}
+              transition={{ duration: 0.6, delay: 0.2 }}
               className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-[30rem] sm:h-[30rem] bg-black/40 rounded-full"
               style={{ 
                 filter: 'blur(60px)',
-                willChange: "opacity, transform" // Performance optimization
+                willChange: "transform, opacity",
+                transition: 'all 0.6s ease-out'
               }}
             />
           </div>
@@ -777,16 +1011,19 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           {/* Add moving gradient lines - now with proper z-index */}
           {renderGradientLines()}
 
+          {/* Add neural network animation to welcome screen */}
+          {renderNeuralNetworkAnimation()}
+
           {/* Add tech stack background only on welcome screen */}
           {renderTechStack()}
 
-          {/* Simplified starry background with performance optimizations */}
-          <div className="absolute inset-0 z-[1]"> {/* Added z-index */}
-            {/* Fewer stars with better performance */}
-            {[...Array(window.innerWidth < 640 ? 15 : 30)].map((_, i) => (
+          {/* Simplified starry background with improved performance */}
+          <div className="absolute inset-0 z-[1]">
+            {/* Fewer stars with staggered animation for better performance */}
+            {[...Array(typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 24)].map((_, i) => (
               <motion.div
                 key={`star-${i}`}
-                className="absolute w-1 h-1 bg-white rounded-full"
+                className="absolute w-1 h-1 bg-white rounded-full transform-gpu"
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{
                   opacity: [0, 0.8, 0.1],
@@ -794,14 +1031,14 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 }}
                 transition={{
                   duration: Math.random() * 2 + 1,
-                  delay: i * 0.03,
+                  delay: i * 0.04, // Slightly faster appearance
                   repeat: Infinity,
                   repeatType: "reverse",
                 }}
                 style={{
                   top: `${Math.random() * 100}%`,
                   left: `${Math.random() * 100}%`,
-                  willChange: "opacity, transform" // Performance optimization
+                  willChange: "opacity, transform"
                 }}
               />
             ))}
@@ -844,21 +1081,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           initial={false} 
           custom={direction}
           onExitComplete={() => {
-            // Minimal delay after exit
             setTimeout(() => {
-              // Any cleanup or state updates can go here
-            }, 10); // Reduced timeout for better performance
+              // Minimal cleanup
+            }, 5); // Further reduced timeout for better performance
           }}
         >
           <div className="flex items-center justify-center w-full h-full" 
                style={{ 
                  padding: '0', 
                  margin: '0 auto', 
-                 paddingBottom: '5vh', // Add bottom spacing for better centering
-                 maxWidth: '95vw'  // Ensure content doesn't overflow on small screens
+                 paddingBottom: '5vh',
+                 maxWidth: '95vw'
                }}>
             {currentSlide === -1 ? (
-              // Welcome Screen with performance optimizations
+              // Welcome Screen with enhanced animations
               <motion.div
                 key="welcome"
                 custom={direction}
@@ -866,36 +1102,58 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="relative max-w-3xl w-full mx-auto will-change-transform perspective-1000 z-10"
+                transition={{
+                  duration: 0.35,
+                  ease: [0.32, 0.72, 0, 1],
+                  opacity: { duration: 0.35 },
+                  scale: { duration: 0.35 },
+                  filter: { duration: 0.35 },
+                  rotateY: { duration: 0.35 }
+                }}
+                className="relative max-w-3xl w-full mx-auto will-change-transform perspective-1000 z-10 transform-gpu"
                 style={{ 
                   transformStyle: 'preserve-3d',
                   perspective: '1000px',
                   transformOrigin: direction < 0 ? 'left center' : 'right center',
-                  willChange: "transform, opacity, filter, transform", // Performance optimization
+                  willChange: "transform, opacity, filter",
                   position: 'relative',
-                  margin: '0 auto'
+                  margin: '0 auto',
+                  backfaceVisibility: 'hidden'
                 }}
               >
-                {/* Close button */}
+                {/* Close button with improved animation */}
                 <motion.button
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.5, duration: 0.3 }}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.4, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
                   whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.95 }}
                   onClick={handleClose}
                   className="absolute top-3 right-3 z-50 w-7 h-7 flex items-center justify-center
                            bg-white/15 hover:bg-white/25 rounded-full backdrop-blur-sm
-                           border border-white/20 hover:border-white/50 transition-all duration-300"
+                           border border-white/20 hover:border-white/50 transition-all duration-300 transform-gpu"
                 >
                   <span className="text-white/90 text-base">×</span>
                 </motion.button>
 
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                  className="bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl"
-                  style={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset' }}
+                <motion.div
+                  initial={{ opacity: 0, y: 30, scale: 0.95, rotateX: 5 }}
+                  animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
+                  exit={{ opacity: 0, y: -20, scale: 0.98, rotateX: -3 }}
+                  transition={{
+                    duration: 0.8,
+                    ease: [0.22, 1, 0.36, 1],
+                    opacity: { duration: 0.6 },
+                    y: { duration: 0.8 },
+                    scale: { duration: 0.8 },
+                    rotateX: { duration: 0.8 }
+                  }}
+                  className="bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl transform-gpu"
+                  style={{
+                    boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                    transformStyle: 'preserve-3d',
+                    perspective: '1000px'
+                  }}
                 >
                   {/* Background elements */}
                   <motion.div 
@@ -918,6 +1176,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             boxShadow: '0 0 8px rgba(59, 130, 246, 0.25)',
                             zIndex: 2
                           }}
+                          initial={{ left: '-100%' }}
                           animate={{ 
                             left: ['-100%', '100%']
                           }}
@@ -935,6 +1194,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             boxShadow: '0 0 8px rgba(168, 85, 247, 0.25)',
                             zIndex: 2
                           }}
+                          initial={{ left: '100%' }}
                           animate={{ 
                             left: ['100%', '-100%']
                           }}
@@ -952,6 +1212,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             boxShadow: '0 0 8px rgba(34, 211, 238, 0.25)',
                             zIndex: 2
                           }}
+                          initial={{ left: '-100%' }}
                           animate={{ 
                             left: ['-100%', '100%']
                           }}
@@ -970,32 +1231,65 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       className="text-center"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
+                      transition={{ duration: 0.3, delay: 0.1 }}
                     >
                       <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5 }}
+                        transition={{ duration: 0.3, delay: 0.15 }}
                         className="relative mb-4 sm:mb-6"
+                        style={{ visibility: 'visible', display: 'block' }}
                       >
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: "100%" }}
-                          transition={{ duration: 0.7, ease: "easeOut" }}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
                           className="absolute h-[2px] bg-gradient-to-r from-transparent via-blue-500/70 to-transparent top-0 left-0"
                           style={{ filter: 'drop-shadow(0 0 2px rgba(59, 130, 246, 0.5))' }}
                         />
-                        <motion.h1 
-                          className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-emerald-400 py-3 flex flex-col items-center gap-1 sm:gap-2"
-                          style={{ filter: 'drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5))' }}
+                        <motion.h1
+                          className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold py-3 flex flex-col items-center gap-1 sm:gap-2 z-50"
+                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          transition={{
+                            duration: 0.8,
+                            delay: 0.4,
+                            ease: [0.22, 1, 0.36, 1],
+                            opacity: { duration: 0.6, delay: 0.4 },
+                            y: { duration: 0.8, delay: 0.4 },
+                            scale: { duration: 0.8, delay: 0.4 }
+                          }}
+                          style={{
+                            opacity: 1,
+                            visibility: 'visible',
+                            display: 'flex',
+                            position: 'relative',
+                            padding: '10px 20px',
+                            backgroundColor: 'rgba(0,0,0,0.2)',
+                            borderRadius: '16px',
+                            transform: 'translate3d(0, 0, 0)'
+                          }}
                         >
-                          <span>Welcome to</span>
-                          <span>NEX-DEVS</span>
+                          <span style={{ 
+                            color: '#b4a7f5', 
+                            opacity: 1, 
+                            visibility: 'visible', 
+                            letterSpacing: '1px',
+                            fontWeight: '600'
+                          }}>Welcome to</span>
+                          <span style={{ 
+                            color: '#b4a7f5', 
+                            opacity: 1, 
+                            visibility: 'visible', 
+                            letterSpacing: '1.5px',
+                            fontWeight: '800',
+                            WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)'
+                          }}>NEX-DEVS</span>
                         </motion.h1>
                         <motion.div
                           initial={{ width: 0 }}
                           animate={{ width: "100%" }}
-                          transition={{ duration: 0.7, ease: "easeOut" }}
+                          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
                           className="absolute h-[2px] bg-gradient-to-r from-transparent via-blue-500/70 to-transparent bottom-0 left-0"
                           style={{ filter: 'drop-shadow(0 0 2px rgba(59, 130, 246, 0.5))' }}
                         />
@@ -1004,7 +1298,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       <motion.div
                         initial={{ opacity: 0, y: 5 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.1 }}
+                        transition={{ duration: 0.5, delay: 0.3 }}
                         className="text-blue-300/90 text-sm uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center"
                         style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' }}
                       >
@@ -1015,7 +1309,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
                           animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.2 }}
+                          transition={{ duration: 0.5, delay: 0.35 }}
                           className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-3 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
                         >
                           <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
@@ -1030,7 +1324,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
+                        transition={{ duration: 0.5, delay: 0.4 }}
                       >
                         <p className="text-sm xs:text-base sm:text-lg text-gray-300 mb-4 sm:mb-6 max-w-3xl mx-auto">
                           Transform your digital presence with our 
@@ -1048,16 +1342,32 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <motion.button
                         onClick={handleNext}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
-                        whileHover={{ scale: 1.03 }}
+                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        transition={{
+                          duration: 0.8,
+                          delay: 0.7,
+                          ease: [0.22, 1, 0.36, 1],
+                          opacity: { duration: 0.6, delay: 0.7 },
+                          y: { duration: 0.8, delay: 0.7 },
+                          scale: { duration: 0.8, delay: 0.7 }
+                        }}
+                        whileHover={{
+                          scale: 1.05,
+                          y: -2,
+                          transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
+                        }}
+                        whileTap={{
+                          scale: 0.98,
+                          transition: { duration: 0.1 }
+                        }}
                         className="group px-5 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
                                  hover:from-blue-600/80 hover:via-purple-600/80 hover:to-emerald-600/80 transition-all duration-300
-                                 backdrop-blur-sm border border-white/10 relative overflow-hidden shadow-lg shadow-purple-500/20"
-                        style={{ 
+                                 backdrop-blur-sm border border-white/10 relative overflow-hidden shadow-lg shadow-purple-500/20 transform-gpu"
+                        style={{
                           filter: 'drop-shadow(0 0 10px rgba(168, 85, 247, 0.25))',
-                          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 10px -2px rgba(139, 92, 246, 0.3)'
+                          boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 10px -2px rgba(139, 92, 246, 0.3)',
+                          transform: 'translate3d(0, 0, 0)'
                         }}
                       >
                         <span className="relative z-10 flex items-center gap-2">
@@ -1078,7 +1388,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 </motion.div>
               </motion.div>
             ) : (
-              // Service Slides with performance optimizations
+              // Service Slides with optimized animations
               <motion.div
                 key={`service-${currentSlide}`}
                 custom={direction}
@@ -1086,13 +1396,21 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 initial="enter"
                 animate="center"
                 exit="exit"
-                className="relative max-w-4xl w-full mx-auto will-change-transform perspective-1000 z-10"
+                transition={{
+                  duration: 0.35,
+                  ease: [0.32, 0.72, 0, 1],
+                  opacity: { duration: 0.35 },
+                  scale: { duration: 0.35 },
+                  filter: { duration: 0.35 },
+                  rotateY: { duration: 0.35 }
+                }}
+                className="relative max-w-4xl w-full mx-auto will-change-transform perspective-1000 z-10 transform-gpu"
                 style={{ 
                   transformStyle: 'preserve-3d',
                   perspective: '1500px',
                   transformOrigin: 'center center',
                   backfaceVisibility: 'hidden',
-                  willChange: "transform, opacity, filter, transform", // Performance optimization
+                  willChange: "transform, opacity, filter",
                   position: 'relative',
                   margin: '0 auto'
                 }}
@@ -1235,6 +1553,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               }}
                             />
                           ))}
+                        </motion.span>
+                      ) : serviceContent[currentSlide].title === 'WordPress Development' ? (
+                        <motion.span className="relative inline-flex items-center">
+                          WordPress Development
+                          <motion.div 
+                            className="absolute -top-6 left-0 bg-red-500/20 text-red-300 text-[10px] px-2 py-0.5 rounded-full border border-red-500/30 whitespace-nowrap"
+                            initial={{ opacity: 0, y: 5 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            Discontinuing in 3 months
+                          </motion.div>
                         </motion.span>
                       ) : serviceContent[currentSlide].title} 
                       <motion.span className="text-purple-400 bg-purple-500/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded-lg border border-purple-500/50 font-bold text-xs sm:text-lg">AI</motion.span> 

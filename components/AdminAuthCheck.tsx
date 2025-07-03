@@ -14,7 +14,7 @@ export default function AdminAuthCheck({ children }: { children: React.ReactNode
     if (auth === 'true') {
       setIsAuthenticated(true)
     } else {
-      router.push('/admin/login')
+      router.push('/hasnaat/login')
     }
     setIsLoading(false)
   }, [router])

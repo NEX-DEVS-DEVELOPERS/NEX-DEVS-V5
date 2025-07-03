@@ -1,16 +1,26 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
 import { cn } from "@/lib/utils"
-import Footer from "@/components/layout/Footer"
-import { ThemeProvider } from "@/components/ThemeProvider"
-import Navbar from "@/components/layout/Navbar"
-import EasterEggCounter from "@/components/layout/EasterEggCounter"
-import { EasterEggProvider } from "@/context/EasterEggContext"
 import type { Metadata } from 'next'
+import dynamic from 'next/dynamic'
+
+// Import the client component wrapper that will handle the chatbot
+import ChatbotClientWrapper from './components/ChatbotClientWrapper'
+
+// Dynamic imports for better code splitting
+const Footer = dynamic(() => import("@/components/layout/Footer"), {
+  loading: () => <div className="h-20 bg-black" />
+})
+const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
+  loading: () => <div className="h-16 bg-black" />
+})
+
+// Import directly since dynamic import was causing type issues
+import { ThemeProvider } from "@/components/ThemeProvider"
 import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
-import MobilePopup from './components/MobilePopup'
-import { Analytics } from "@vercel/analytics/react"
+
+// Initialize database only on server side
 import { initializeDatabase } from './lib/database-init'
 
 // Initialize the database when the server starts
@@ -73,8 +83,58 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* Add CSS animation optimization flags */}
+        <style dangerouslySetInnerHTML={{ __html: `
+          :root {
+            --animation-enabled: true;
+          }
+          
+          @media (prefers-reduced-motion: reduce) {
+            :root {
+              --animation-enabled: false;
+            }
+          }
+          
+          /* Chatbot positioning handled by GSAP */
+          
+          /* Optimize float animation */
+          @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+            100% { transform: translateY(0px); }
+          }
+          
+          .float {
+            animation: float 3s ease-in-out infinite !important;
+          }
+          
+          /* Performance optimizations */
+          body {
+            overscroll-behavior-y: none;
+          }
+          
+          /* Ensure proper sticky elements */
+          .navbar, nav, header {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+          }
+          
+          /* Optimize Hero section */
+          [class*="hero-section"],
+          [class*="Hero"] {
+            contain: layout style;
+          }
+          
+          /* Disable animations on mobile */
+          @media (max-width: 768px) {
+            .float {
+              animation: none !important;
+            }
+          }
+        `}} />
       </head>
-      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll")}>
+      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll optimized-element")}>
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -83,16 +143,12 @@ export default function RootLayout({
         >
           <CurrencyProvider>
             <TimelineProvider>
-              <EasterEggProvider>
-                <MobilePopup />
-                <Navbar />
-                <EasterEggCounter />
-                <div className="flex-1">
-                  {children}
-                </div>
-                <Footer />
-                <Analytics />
-              </EasterEggProvider>
+              <Navbar />
+              <div className="flex-1 gpu-accelerated overflow-visible" style={{ contain: 'paint style' }} data-page-content="true">
+                {children}
+              </div>
+              <Footer />
+              <ChatbotClientWrapper />
             </TimelineProvider>
           </CurrencyProvider>
         </ThemeProvider>

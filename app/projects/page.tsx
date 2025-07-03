@@ -131,9 +131,6 @@ export default function ProjectsPage() {
     damping: 30,
     restDelta: 0.001
   })
-  const [easterEggCount, setEasterEggCount] = useState(0)
-  const [showEasterEgg, setShowEasterEgg] = useState(false)
-  const [easterEggMessage, setEasterEggMessage] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [hasProjects, setHasProjects] = useState(false)
   const [randomFact, setRandomFact] = useState<string>('')
@@ -176,8 +173,8 @@ export default function ProjectsPage() {
       
       {/* Progress Bar */}
       <motion.div
-        className="fixed top-0 left-0 right-0 h-1 bg-gradient-to-r from-purple-500 to-blue-500 z-50 origin-left"
-        style={{ scaleX }}
+        className="fixed top-0 left-0 right-0 h-1 bg-purple-500 transform-gpu will-change-transform"
+        style={{ scaleX, transformOrigin: '0%' }}
       />
       
       <div className="min-h-screen pt-24 lg:pt-32 px-2 sm:px-4 md:px-6 bg-[#0a0a0a] content-wrapper">
@@ -202,17 +199,6 @@ export default function ProjectsPage() {
               <p className="text-purple-300 text-sm italic">💡 {randomFact}</p>
             </div>
           </div>
-          
-          {showEasterEgg && (
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0 }}
-              className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 px-8 py-4 bg-black/90 rounded-xl border border-purple-500/30 z-50 backdrop-blur-md shadow-xl"
-            >
-              <p className="text-white text-lg font-medium antialiased">{easterEggMessage}</p>
-            </motion.div>
-          )}
         </motion.div>
 
         {isLoading ? (
@@ -223,11 +209,7 @@ export default function ProjectsPage() {
             transition={{ duration: 0.3 }}
           >
             <div className="max-w-7xl mx-auto py-16 flex justify-center">
-              <div className="flex space-x-2">
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
-              </div>
+              <LoadingDots />
             </div>
           </motion.section>
         ) : hasProjects ? (
@@ -237,56 +219,102 @@ export default function ProjectsPage() {
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Project Gallery Carousel */}
+            {/* Featured Projects Section - Directly after hero */}
             <motion.div
-              className="scroll-optimize"
+              className="scroll-optimize transform-gpu will-change-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5 }}
+              transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <ProjectImageGallery />
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+                <h2 className="text-3xl font-bold text-white mb-8">Featured Projects</h2>
+                <FeaturedProject />
+              </div>
             </motion.div>
 
-            {/* Featured Project */}
+            {/* Project Gallery Carousel */}
             <motion.div
               className="scroll-optimize"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3, duration: 0.5 }}
             >
-              <FeaturedProject />
+              <ProjectImageGallery />
             </motion.div>
 
-            {/* New Projects Section */}
+            {/* Cutting-Edge Technologies Section */}
             <motion.div
               className="scroll-optimize"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.4, duration: 0.5 }}
             >
-              <NewlyAddedProjects />
+              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+                <h2 className="text-3xl font-bold text-white mb-8">Cutting-Edge Technologies</h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Frontend Technologies */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-purple-400">Frontend</h3>
+                    <ul className="space-y-2 text-gray-300">
+                      <li>React & Next.js</li>
+                      <li>TypeScript</li>
+                      <li>Tailwind CSS</li>
+                      <li>Framer Motion</li>
+                    </ul>
+                  </div>
+                  {/* Backend Technologies */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-purple-400">Backend</h3>
+                    <ul className="space-y-2 text-gray-300">
+                      <li>Node.js & Express</li>
+                      <li>Python & Django</li>
+                      <li>PostgreSQL & MongoDB</li>
+                      <li>Redis & Prisma</li>
+                    </ul>
+                  </div>
+                  {/* Cloud & DevOps */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-purple-400">Cloud & DevOps</h3>
+                    <ul className="space-y-2 text-gray-300">
+                      <li>AWS & Vercel</li>
+                      <li>Docker & Kubernetes</li>
+                      <li>CI/CD Pipelines</li>
+                      <li>Monitoring & Analytics</li>
+                    </ul>
+                  </div>
+                  {/* AI & Tools */}
+                  <div className="space-y-4">
+                    <h3 className="text-xl font-semibold text-purple-400">AI & Tools</h3>
+                    <ul className="space-y-2 text-gray-300">
+                      <li>OpenAI Integration</li>
+                      <li>Machine Learning</li>
+                      <li>Design Systems</li>
+                      <li>Performance Optimization</li>
+                    </ul>
+                  </div>
+                </div>
+              </section>
             </motion.div>
 
-            {/* Easter Egg Hint */}
-            <motion.section 
-              className="max-w-7xl mx-auto -mt-2 mb-8 scroll-optimize"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.5, duration: 0.3 }}
+            {/* AI Integration Section */}
+            <motion.div
+              className="scroll-optimize"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
             >
-              <div className="text-center">
-                <p className="text-xs text-purple-400/70 cursor-default">
-                  👆 Click any project title 10 times for a surprise!
-                </p>
-              </div>
-            </motion.section>
+              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
+                <h2 className="text-3xl font-bold text-white mb-8">AI Integration & AI Controlled Websites</h2>
+                {/* AI Integration content */}
+              </section>
+            </motion.div>
 
             {/* Projects Grid */}
             <motion.div
               className="scroll-optimize"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              transition={{ delay: 0.6, duration: 0.5 }}
             >
               <ProjectsGrid />
             </motion.div>

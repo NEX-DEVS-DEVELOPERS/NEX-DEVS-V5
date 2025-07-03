@@ -55,6 +55,9 @@ module.exports = {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      maxWidth: {
+        container: "1280px",
+      },
       keyframes: {
         "accordion-down": {
           from: { height: 0 },
@@ -248,6 +251,10 @@ module.exports = {
           "from": { transform: "rotate(0deg) scale(0)" },
           "to": { transform: "rotate(360deg) scale(1)" }
         },
+        "shine": {
+          "from": { transform: "translateX(-100%) skewX(-15deg)" },
+          "to": { transform: "translateX(150%) skewX(-15deg)" }
+        },
         "spin-slow": {
           "0%": { transform: "rotate(0deg)" },
           "100%": { transform: "rotate(360deg)" }
@@ -285,6 +292,10 @@ module.exports = {
         "color-shift": {
           "0%": { filter: "hue-rotate(0deg)" },
           "100%": { filter: "hue-rotate(360deg)" }
+        },
+        "marquee": {
+          from: { transform: 'translateX(0)' },
+          to: { transform: 'translateX(calc(-100% - var(--gap)))' }
         }
       },
       animation: {
@@ -321,7 +332,8 @@ module.exports = {
         "glow": "glow 2s ease-in-out infinite",
         "magnetic": "magnetic 0.2s cubic-bezier(0.25, 0.46, 0.45, 0.94)",
         "tilt": "tilt 0.2s ease-out",
-        "color-shift": "color-shift 3s linear infinite"
+        "color-shift": "color-shift 3s linear infinite",
+        "marquee": 'marquee var(--duration) linear infinite'
       },
       typography: {
         DEFAULT: {

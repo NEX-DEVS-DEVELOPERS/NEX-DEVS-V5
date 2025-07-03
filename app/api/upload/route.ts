@@ -4,7 +4,9 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 
 // Set a password for admin operations (same as projects API)
-const ADMIN_PASSWORD = 'nex-devs.org889123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
+// Set a database password for project operations
+const DB_PASSWORD = process.env.DATABASE_PASSWORD || 'alihasnaat919';
 
 export async function POST(request: NextRequest) {
   try {
@@ -15,8 +17,8 @@ export async function POST(request: NextRequest) {
     const password = formData.get('password') as string;
     const file = formData.get('file') as File;
     
-    // Verify password
-    if (password !== ADMIN_PASSWORD) {
+    // Verify password - check both passwords for backward compatibility
+    if (password !== ADMIN_PASSWORD && password !== DB_PASSWORD) {
       return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
     }
     

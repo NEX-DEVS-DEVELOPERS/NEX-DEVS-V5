@@ -6,21 +6,20 @@ import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 
 // Project type definition with essential fields
-type Project = {
-  id: number
-  title: string
-  description: string
-  image: string
-  secondImage?: string
-  category: string
-  technologies: string[]
-  link: string
-  featured: boolean
+interface Project {
+  id: string | number;
+  title: string;
+  description: string;
+  image: string;
+  secondImage?: string;
+  category: string;
+  technologies: string[] | string;
+  link: string;
   visualEffects?: {
-    animation?: string
-    glow?: boolean
-    showBadge?: boolean
-  }
+    glow?: boolean;
+    animation?: string;
+    showBadge?: boolean;
+  };
 }
 
 export default function HomeProjectGallery() {
@@ -28,10 +27,11 @@ export default function HomeProjectGallery() {
   const [isLoading, setIsLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true)
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null)
+  const [hoveredProject, setHoveredProject] = useState<string | null>(null)
   const autoplayRef = useRef<NodeJS.Timeout | null>(null)
   const touchStartXRef = useRef<number | null>(null)
-  const [imgLoadError, setImgLoadError] = useState<Record<number, boolean>>({})
+  const [imgLoadError, setImgLoadError] = useState<Record<string, boolean>>({})
+  const [showSecondaryImage, setShowSecondaryImage] = useState<Record<string, boolean>>({})
   
   // Fetch projects from API - with optimized caching strategy
   useEffect(() => {
@@ -83,11 +83,12 @@ export default function HomeProjectGallery() {
   }, [])
   
   // Handle image loading errors
-  const handleImageError = (projectId: number) => {
+  const handleImageError = (projectId: string) => {
+    console.error(`Failed to load image for project ${projectId}`);
     setImgLoadError(prev => ({
       ...prev,
       [projectId]: true
-    }))
+    }));
   }
 
   // Setup autoplay carousel with improved performance
@@ -194,6 +195,14 @@ export default function HomeProjectGallery() {
     touchStartXRef.current = null
   }, [goToNext, goToPrevious])
 
+  // Function to toggle between primary and secondary images
+  const toggleSecondaryImage = (projectId: string) => {
+    setShowSecondaryImage(prev => ({
+      ...prev,
+      [projectId]: !prev[projectId]
+    }))
+  }
+
   // If loading or no projects, show appropriate UI
   if (isLoading) {
     return (
@@ -222,338 +231,257 @@ export default function HomeProjectGallery() {
              }}>
       <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/40 to-black/20 border border-purple-500/20 p-2 sm:p-4 backdrop-blur-sm shadow-lg will-change-transform"
            style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}>
-        <div className="absolute inset-0 overflow-hidden z-0">
-          <div className="absolute top-0 right-1/4 w-[250px] sm:w-[400px] h-[250px] sm:h-[400px] bg-purple-900/10 rounded-full blur-[120px] will-change-transform" 
-               style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }} />
-          <div className="absolute bottom-0 left-1/4 w-[150px] sm:w-[300px] h-[150px] sm:h-[300px] bg-indigo-900/10 rounded-full blur-[120px] will-change-transform"
-               style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }} />
+        {isLoading ? (
+          <div className="h-[280px] flex items-center justify-center">
+            <div className="flex space-x-3">
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-2 h-2 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
         </div>
-        
-        <div className="mb-2 sm:mb-4 flex justify-between items-center relative z-10">
-          <div>
-            <h2 className="text-lg sm:text-xl md:text-2xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-0.5 sm:mb-1">
-              Featured Projects
-            </h2>
-            <p className="text-gray-400 text-xs sm:text-sm hidden sm:block">
-              Visual showcase of my latest work
-            </p>
           </div>
-          
-          {/* Improved autoplay toggle button */}
-          {projects.length > 1 && (
-            <motion.button
+        ) : (
+          <>
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-xl sm:text-2xl font-bold text-white">Featured Projects</h2>
+              <div className="flex gap-2">
+                <button 
               onClick={toggleAutoplay}
-              className="flex items-center gap-1 sm:gap-2 px-2 py-1 sm:px-3 sm:py-1.5 bg-black/50 rounded-lg border border-purple-500/30 hover:border-purple-500/60 transition-all duration-300"
-              aria-label={isAutoplayEnabled ? "Switch to manual slideshow" : "Switch to automatic slideshow"}
-              whileTap={{ scale: 0.97 }}
-              whileHover={{ 
-                backgroundColor: "rgba(0, 0, 0, 0.7)",
-                boxShadow: "0 0 8px rgba(167, 139, 250, 0.3)" 
-              }}
-            >
-              <span className={`text-sm ${isAutoplayEnabled ? 'text-purple-300' : 'text-gray-400'}`}>
+                  className={`flex items-center space-x-1 px-2 py-1 rounded-full text-xs transition-colors ${
+                    isAutoplayEnabled
+                      ? 'bg-purple-600/40 text-purple-300 hover:bg-purple-600/60'
+                      : 'bg-gray-800/70 text-gray-400 hover:bg-gray-700'
+                  }`}
+                  aria-label={isAutoplayEnabled ? 'Disable autoplay' : 'Enable autoplay'}
+                  title={isAutoplayEnabled ? 'Disable autoplay' : 'Enable autoplay'}
+                >
+                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 {isAutoplayEnabled ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="6" y="4" width="4" height="16"></rect>
-                    <rect x="14" y="4" width="4" height="16"></rect>
-                  </svg>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                 ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                    )}
                   </svg>
-                )}
-              </span>
-              <span className="text-sm hidden sm:inline font-medium">
-                {isAutoplayEnabled ? 'Auto' : 'Manual'}
-              </span>
-            </motion.button>
-          )}
+                  <span>{isAutoplayEnabled ? 'Pause' : 'Play'}</span>
+                </button>
+              </div>
         </div>
         
-        {/* More compact carousel */}
+            <div className="relative">
         <div 
-          className="relative rounded-xl overflow-hidden z-10 will-change-transform"
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
-          style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}
-        >
-          {/* Reduced height for all devices */}
-          <div className="w-full h-[220px] sm:h-[300px] md:h-[420px] relative will-change-transform"
-               style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}>
-            {/* Optimized carousel animation */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 30 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -30 }}
-                transition={{ 
-                  duration: 0.4, 
-                  ease: [0.25, 0.1, 0.25, 1.0],
-                  opacity: { duration: 0.3 }
-                }}
-                className="absolute inset-0 w-full h-full will-change-transform"
-                style={{
-                  transform: 'translate3d(0, 0, 0)',
-                  backfaceVisibility: 'hidden',
-                  perspective: '1000px'
-                }}
               >
-                {/* Project display - Mobile: single column with image focus, Desktop: two columns with details */}
-                <div className="grid grid-cols-1 md:grid-cols-2 h-full gap-3 will-change-transform"
-                     style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}>
-                  {/* Project image - Always shown */}
+                {projects.map((project, index) => (
                   <div 
-                    className="relative h-full w-full overflow-hidden rounded-lg border border-purple-500/10 group shadow-md will-change-transform"
-                    onMouseEnter={() => setHoveredProject(projects[currentIndex].id)}
-                    onMouseLeave={() => setHoveredProject(null)}
-                    style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}
+                    key={`project-${project.id}-${index}`}
+                    className="w-full flex-shrink-0"
+                    style={{ scrollSnapAlign: 'start' }}
                   >
-                    {/* Optimized gradient overlays */}
-                    <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 via-black/20 to-black/40 z-10 opacity-70 group-hover:opacity-50 transition-opacity duration-500"></div>
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent z-10"></div>
-                    
-                    {/* Reduced decorative elements for better performance */}
-                    <div className="absolute top-0 right-0 h-32 w-32 bg-purple-500/5 rounded-full blur-xl z-0 hidden sm:block"></div>
-                    
-                    <div className="relative h-full w-full overflow-hidden">
-                      {/* Reduced motion for better performance */}
-                      <motion.div
-                        initial={{ scale: 1 }}
-                        animate={{ 
-                          scale: [1, 1.03, 1],
-                          transition: { 
-                            duration: 20, 
-                            repeat: Infinity, 
-                            repeatType: "reverse",
-                            ease: "easeInOut" 
-                          }
-                        }}
-                        className="h-full w-full will-change-transform"
+                    <div className="flex flex-col md:flex-row gap-6 items-center">
+                      {/* Project Image */}
+                      <div className="w-full md:w-1/2">
+                        <div 
+                          className={`relative rounded-xl overflow-hidden aspect-video border ${
+                            project.visualEffects?.glow ? 'border-purple-500/40 shadow-glow' : 'border-gray-700/50'
+                          } transition-all duration-500`}
+                          onMouseEnter={() => setHoveredProject(project.id.toString())}
+                          onMouseLeave={() => setHoveredProject(null)}
+                        >
+                          {/* Badge */}
+                          {project.visualEffects?.showBadge && (
+                            <div className="absolute top-3 left-3 z-10 bg-purple-600/90 text-white text-xs py-1 px-2 rounded-full backdrop-blur-sm">
+                              {project.category}
+                            </div>
+                          )}
+                          
+                          {/* Toggle Image Button - Only show if secondImage exists */}
+                          {project.secondImage && (
+                            <button
+                              onClick={() => toggleSecondaryImage(project.id.toString())}
+                              className="absolute top-3 right-3 z-10 bg-black/60 hover:bg-black/80 text-white p-1.5 rounded-full transition-colors"
+                              aria-label="Toggle image view"
+                              title="Toggle image view"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                            </button>
+                          )}
+                          
+                          {/* Image */}
+                          <div 
+                            className={`relative w-full h-full ${
+                              project.visualEffects?.animation === 'zoom' && hoveredProject === project.id.toString()
+                                ? 'scale-110'
+                                : 'scale-100'
+                            } transition-all duration-700 ease-in-out`}
                       >
                         <Image 
-                          src={projects[currentIndex].image}
-                          alt={projects[currentIndex].title}
-                          fill
-                          sizes="(max-width: 640px) 100vw, (max-width: 768px) 50vw, 600px"
-                          className="object-cover transition-transform duration-700 group-hover:scale-105 will-change-transform"
-                          priority={true}
-                          quality={90} // Slightly reduced for performance
-                          onError={() => handleImageError(projects[currentIndex].id)}
-                          style={{ 
-                            objectFit: 'cover',
-                            backfaceVisibility: 'hidden', // Performance optimization
-                            transform: 'translateZ(0)', // Force GPU acceleration
-                            filter: 'contrast(1.05) brightness(0.95)'
-                          }}
-                        />
-                      </motion.div>
+                              src={showSecondaryImage[project.id.toString()] && project.secondImage ? project.secondImage : project.image}
+                              alt={project.title}
+                              fill
+                              sizes="(max-width: 768px) 100vw, 50vw"
+                              className="object-cover object-center"
+                              onError={() => handleImageError(project.id.toString())}
+                              priority={index === 0}
+                            />
+                            
+                            {/* Image indicator for secondary/primary */}
+                            {project.secondImage && (
+                              <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs py-1 px-2 rounded-full backdrop-blur-sm">
+                                {showSecondaryImage[project.id.toString()] ? 'Secondary View' : 'Primary View'}
                     </div>
-                    
-                    {/* Category badge - Smaller on mobile */}
-                    <div className="absolute top-2 sm:top-3 left-2 sm:left-3 z-20">
-                      <span className="text-[10px] sm:text-xs font-medium text-white px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-full bg-purple-600/80 backdrop-blur-sm shadow-sm">
-                        {projects[currentIndex].category}
-                      </span>
+                            )}
+                            
+                            {/* Hover overlay */}
+                            <div 
+                              className={`absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300`}
+                            >
+                              <div className="text-white text-center p-4">
+                                <h3 className="font-bold text-lg mb-1">{project.title}</h3>
+                                <p className="text-sm text-gray-300 mb-3 line-clamp-2">{project.description}</p>
+                                <a
+                                  href={project.link}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
+                                >
+                                  <span>View Project</span>
+                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                                  </svg>
+                                </a>
+                              </div>
+                            </div>
+                          </div>
                     </div>
-                    
-                    {/* Project title overlay - Compact for mobile */}
-                    <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 z-20 bg-gradient-to-t from-black/90 via-black/60 to-transparent">
-                      <h3 className="text-base sm:text-lg md:text-xl font-bold text-white truncate">
-                        {projects[currentIndex].title}
-                      </h3>
-                      {/* Only on mobile: Brief tag display */}
-                      <div className="flex items-center gap-1 mt-1 md:hidden">
-                        <span className="text-[10px] text-purple-200">
-                          {projects[currentIndex].technologies.slice(0, 2).join(', ')}
-                          {projects[currentIndex].technologies.length > 2 && '...'}
+                      </div>
+                      
+                      {/* Project Info */}
+                      <div className="w-full md:w-1/2 p-2">
+                        <h3 className="text-xl font-bold text-white mb-2">{project.title}</h3>
+                        <p className="text-gray-300 mb-4 text-sm">{project.description}</p>
+                        
+                        {/* Technologies */}
+                        <div className="mb-4">
+                          <h4 className="text-xs text-gray-400 mb-2">Technologies:</h4>
+                          <div className="flex flex-wrap gap-2">
+                            {Array.isArray(project.technologies) ? (
+                              project.technologies.slice(0, 5).map((tech, techIndex) => (
+                                <span 
+                                  key={`tech-${project.id}-${techIndex}`}
+                                  className="bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded-full"
+                                >
+                                  {tech}
+                                </span>
+                              ))
+                            ) : (
+                              <span className="bg-gray-800 text-gray-300 text-xs px-2 py-0.5 rounded-full">
+                                {project.technologies}
+                              </span>
+                            )}
+                            
+                            {Array.isArray(project.technologies) && project.technologies.length > 5 && (
+                              <span className="bg-gray-800 text-gray-400 text-xs px-2 py-0.5 rounded-full">
+                                +{project.technologies.length - 5} more
                         </span>
+                            )}
                       </div>
                     </div>
                     
-                    {/* Improved hover animation for view project button */}
-                    <AnimatePresence>
-                      {hoveredProject === projects[currentIndex].id && (
-                        <motion.div
-                          initial={{ opacity: 0, y: 15 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          exit={{ opacity: 0, y: 15 }}
-                          transition={{ 
-                            type: "spring", 
-                            stiffness: 400, 
-                            damping: 30 
-                          }}
-                          className="absolute bottom-14 left-4 z-20 hidden sm:block"
-                        >
-                          <Link
-                            href={`/projects/${projects[currentIndex].id}`}
-                            className="px-4 py-2 bg-purple-500/80 hover:bg-purple-600/90 rounded-lg text-white text-sm font-medium backdrop-blur-sm transition-all duration-300 flex items-center gap-2 shadow-md hover:shadow-purple-500/20 hover:translate-y-[-2px]"
+                        {/* Link Button */}
+                        <div className="flex gap-3">
+                          <a
+                            href={project.link}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
                           >
                             <span>View Project</span>
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                              <line x1="5" y1="12" x2="19" y2="12"></line>
-                              <polyline points="12 5 19 12 12 19"></polyline>
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>
-                          </Link>
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </div>
-                  
-                  {/* Project details - Hidden on mobile, shown on desktop */}
-                  <div className="hidden md:flex flex-col justify-center h-full p-4 space-y-3 bg-black/30 rounded-lg border border-purple-500/10 shadow-md backdrop-blur-sm">
-                    <motion.div
-                      initial={{ opacity: 0, y: 15 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ 
-                        type: "spring", 
-                        stiffness: 300, 
-                        damping: 30,
-                        delay: 0.1
-                      }}
-                    >
-                      <span className="text-xs font-medium text-purple-400 mb-2 inline-block px-2 py-0.5 rounded-full bg-purple-900/20 border border-purple-500/20">
-                        {projects[currentIndex].category}
-                      </span>
-                      <h3 className="text-xl md:text-2xl font-bold text-white mb-2">
-                        {projects[currentIndex].title}
-                      </h3>
-                      <p className="text-gray-300 mb-3 md:text-sm line-clamp-3">
-                        {projects[currentIndex].description}
-                      </p>
-                      
-                      <div className="space-y-2">
-                        <h4 className="text-xs font-medium text-purple-300">Technologies</h4>
-                        <div className="flex flex-wrap gap-1.5">
-                          {projects[currentIndex].technologies.slice(0, 5).map(tech => (
-                            <span 
-                              key={tech} 
-                              className="px-2 py-0.5 bg-black/40 border border-purple-500/20 rounded-lg text-xs text-purple-200 shadow-sm"
+                          </a>
+                          
+                          {/* Toggle Image Button - Alternative location */}
+                          {project.secondImage && (
+                            <button
+                              onClick={() => toggleSecondaryImage(project.id.toString())}
+                              className="inline-flex items-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
                             >
-                              {tech}
-                            </span>
-                          ))}
+                              <span>{showSecondaryImage[project.id.toString()] ? 'Show Primary' : 'Show Secondary'}</span>
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                              </svg>
+                            </button>
+                          )}
                         </div>
                       </div>
-                    </motion.div>
-                    
-                    <motion.div
-                      whileHover={{ x: 3 }}
-                      transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                    >
-                      <Link
-                        href={`/projects/${projects[currentIndex].id}`}
-                        className="mt-auto inline-flex items-center text-sm text-purple-300 hover:text-purple-200 transition-colors"
-                      >
-                        <span>View Project Details</span>
-                        <motion.span 
-                          className="ml-1 inline-block"
-                          initial={{ x: 0 }}
-                          whileHover={{ x: 3 }}
-                          transition={{ type: "spring", stiffness: 400, damping: 20 }}
-                        >
-                          →
-                        </motion.span>
-                      </Link>
-                    </motion.div>
+                    </div>
                   </div>
-                </div>
-              </motion.div>
-            </AnimatePresence>
+                ))}
           </div>
           
-          {/* Improved navigation buttons */}
+              {/* Navigation controls */}
           {projects.length > 1 && (
             <>
-              <motion.div 
-                className="absolute top-1/2 -translate-y-1/2 -left-1 sm:-left-2 md:left-1 z-10"
-                whileHover={{ scale: 1.05, x: -1 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
                 <button
                   onClick={goToPrevious}
-                  className="p-1.5 sm:p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-all duration-300 border border-white/10 hover:border-purple-500/40 shadow-lg hover:shadow-purple-500/20"
+                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-10 transition-colors"
                   aria-label="Previous project"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:hidden">
-                    <polyline points="15 18 9 12 15 6"></polyline>
-                  </svg>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden sm:block">
-                    <polyline points="15 18 9 12 15 6"></polyline>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
-              </motion.div>
-              
-              <motion.div 
-                className="absolute top-1/2 -translate-y-1/2 -right-1 sm:-right-2 md:right-1 z-10"
-                whileHover={{ scale: 1.05, x: 1 }}
-                whileTap={{ scale: 0.95 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-              >
+                  
                 <button
                   onClick={goToNext}
-                  className="p-1.5 sm:p-2 rounded-full bg-black/60 text-white hover:bg-black/80 transition-all duration-300 border border-white/10 hover:border-purple-500/40 shadow-lg hover:shadow-purple-500/20"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-10 transition-colors"
                   aria-label="Next project"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="sm:hidden">
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="hidden sm:block">
-                    <polyline points="9 18 15 12 9 6"></polyline>
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
-              </motion.div>
             </>
           )}
-        </div>
         
-        {/* Improved pagination dots */}
+              {/* Pagination dots */}
         {projects.length > 1 && (
-          <div className="flex justify-center mt-2 gap-1 sm:gap-1.5">
+                <div className="flex justify-center mt-4 space-x-2">
             {projects.map((_, index) => (
-              <motion.button
-                key={index}
+                    <button
+                      key={`dot-${index}`}
                 onClick={() => setCurrentIndex(index)}
-                className={`h-1.5 rounded-full transition-all ${
-                  index === currentIndex 
-                    ? 'w-4 sm:w-5 bg-purple-500 shadow-md' 
-                    : 'w-1.5 sm:w-1.5 bg-white/30 hover:bg-white/50'
-                }`}
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                aria-label={`Go to slide ${index + 1}`}
+                      className={`w-2 h-2 rounded-full transition-all ${
+                        currentIndex === index
+                          ? 'bg-purple-500 w-4'
+                          : 'bg-gray-600 hover:bg-gray-500'
+                      }`}
+                      aria-label={`Go to project ${index + 1}`}
               />
             ))}
           </div>
         )}
         
-        {/* View All Projects Button */}
-        <div className="flex justify-center mt-3 sm:mt-5">
-          <motion.div
-            whileHover={{ y: -2, scale: 1.02 }}
-            whileTap={{ y: 0, scale: 0.98 }}
-            transition={{ type: "spring", stiffness: 400, damping: 20 }}
-            style={{ willChange: 'transform' }}
-          >
+              {/* View All Projects button */}
+              <div className="flex justify-center mt-6">
             <Link 
               href="/projects" 
-              className="group px-4 py-2 sm:px-5 sm:py-2.5 bg-black/40 backdrop-blur-md border border-purple-500/20 hover:border-purple-500/40 rounded-xl text-white text-sm font-medium transition-all duration-300 flex items-center gap-2 shadow-lg hover:shadow-purple-500/20"
-            >
-              <span className="relative">
-                <span className="relative z-10 bg-gradient-to-r from-purple-200 to-purple-100 text-transparent bg-clip-text">View All Projects</span>
-                <span className="absolute inset-0 bg-gradient-to-r from-purple-400 to-purple-300 text-transparent bg-clip-text blur-sm" aria-hidden="true">View All Projects</span>
-              </span>
-              <motion.span
-                initial={{ x: 0 }}
-                whileHover={{ x: 3 }}
-                transition={{ type: "spring", stiffness: 400, damping: 25 }}
-                className="inline-block text-purple-300 group-hover:text-purple-200"
-              >→</motion.span>
+                  className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg transition-colors text-sm font-medium"
+                >
+                  <span>View All Projects</span>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
             </Link>
-          </motion.div>
+              </div>
         </div>
+          </>
+        )}
       </div>
     </section>
   )

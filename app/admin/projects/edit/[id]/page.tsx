@@ -1,5 +1,6 @@
 'use client'
 
+import React, { use } from 'react';
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -29,6 +30,7 @@ type Project = {
   title: string
   description: string
   image: string
+  imageUrl?: string
   secondImage?: string
   showBothImagesInPriority?: boolean
   isCodeScreenshot?: boolean
@@ -37,6 +39,7 @@ type Project = {
   category: string
   technologies: string[]
   link: string
+  projectLink?: string
   featured: boolean
   status?: string
   updatedDays?: number
@@ -58,26 +61,39 @@ type Project = {
     animationTiming?: string
     animationIntensity?: string
   }
-  projectLink?: string
   githubLink?: string
   githubClientLink?: string
   githubServerLink?: string
   isNewlyAdded?: number
-  is_newly_added?: number
   useDirectCodeInput?: boolean
   codeContent?: string
 }
 
-export default function EditProjectPage({ params }: { params: { id: string } }) {
+export default function EditProjectPage(props: { params: Promise<{ id: string }> }) {
+  const params = use(props.params);
   const router = useRouter()
   const [project, setProject] = useState<Project | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [isUploading, setIsUploading] = useState(false)
+  const [password, setPassword] = useState('alihasnaat919')
+  const [passwordError, setPasswordError] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
-
-  // Determine if this is a "Newly Added" project
+  const secondFileInputRef = useRef<HTMLInputElement>(null)
+  const [isUploading, setIsUploading] = useState(false)
+  const [isSecondImageUploading, setIsSecondImageUploading] = useState(false)
   const [isNewlyAdded, setIsNewlyAdded] = useState(false)
+
+  // Get the project ID from the URL params
+  const projectId = params.id
+
+  // Set the password automatically when component loads
+  useEffect(() => {
+    // Set the password for this component
+    setPassword('alihasnaat919')
+    
+    // Also store it in session storage for other operations
+    sessionStorage.setItem('adminPassword', 'nex-devs919')
+  }, [])
 
   // Fetch project data on component mount
   useEffect(() => {
@@ -87,7 +103,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         const timestamp = Date.now();
         const randomValue = Math.floor(Math.random() * 1000000);
         
-        const response = await fetch(`/api/projects/${params.id}?t=${timestamp}&r=${randomValue}`, {
+        const response = await fetch(`/api/projects/${projectId}?t=${timestamp}&r=${randomValue}`, {
           method: 'GET',
           cache: 'no-store',
           headers: {
@@ -120,13 +136,20 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     }
     
     fetchProjectData()
-  }, [params.id, router])
+  }, [projectId, router])
 
   // Handle text input changes
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     if (!project) return
     
     const { name, value } = e.target
+    
+    if (name === 'password') {
+      setPassword(value)
+      setPasswordError(false)
+      return
+    }
+    
     setProject({
       ...project,
       [name]: value
@@ -230,9 +253,13 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     formData.append('file', file);
     
     try {
-      // Always use the correct admin password
-      const adminPassword = 'nex-devs.org889123';
-      sessionStorage.setItem('adminPassword', adminPassword);
+      // Get admin password from session storage
+      const adminPassword = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123';
+      
+      // Store password for session if not already set
+      if (!sessionStorage.getItem('adminPassword')) {
+        sessionStorage.setItem('adminPassword', adminPassword);
+      }
       
       formData.append('password', adminPassword);
       
@@ -286,16 +313,20 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
     }
     
     const file = e.target.files[0];
-    setIsUploading(true);
+    setIsSecondImageUploading(true);
     
     // Create a FormData object to send the file
     const formData = new FormData();
     formData.append('file', file);
     
     try {
-      // Always use the correct admin password
-      const adminPassword = 'nex-devs.org889123';
-      sessionStorage.setItem('adminPassword', adminPassword);
+      // Get admin password from session storage
+      const adminPassword = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123';
+      
+      // Store password for session if not already set
+      if (!sessionStorage.getItem('adminPassword')) {
+        sessionStorage.setItem('adminPassword', adminPassword);
+      }
       
       formData.append('password', adminPassword);
       
@@ -334,11 +365,11 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       const placeholderImage = '/projects/placeholder.jpg';
       setProject(prev => prev ? { ...prev, secondImage: placeholderImage } : null);
     } finally {
-      setIsUploading(false);
+      setIsSecondImageUploading(false);
     }
   };
 
-  // Form submission handler
+  // Handle submit form
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -349,6 +380,9 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       toast.error('No project data available');
       return;
     }
+    
+    // Get the database password from session storage
+    const dbPassword = sessionStorage.getItem('databasePassword') || 'alihasnaat919';
     
     // Check if project is marked as completed but progress is not 100
     if (project.status === 'Completed' && project.progress && project.progress < 100) {
@@ -361,60 +395,55 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       return;
     }
     
-    // Always use the correct admin password
-    const adminPassword = 'nex-devs.org889123';
+    // Always use the correct admin password from env or fallback
+    const adminPassword = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || 'nex-devs919';
     sessionStorage.setItem('adminPassword', adminPassword);
     
     // Show loading toast
     const loadingToast = toast.loading('Updating project...');
     
-    // Prepare project data - support both SQLite and MySQL field naming conventions
+    // Prepare project data with fields formatted for Neon PostgreSQL
     const projectData = {
-      id: project.id,
       title: project.title,
       description: project.description,
-      image: project.image || '',
-      image_url: project.image || '', // For MySQL compatibility
-      second_image: project.secondImage || '',
-      second_image_url: project.secondImage || '', // For MySQL compatibility
+      // Important: Use image_url field for database compatibility
+      image_url: project.image || project.imageUrl || '',
+      secondImage: project.secondImage || '',
+      showBothImagesInPriority: Boolean(project.showBothImagesInPriority),
+      category: project.category || '',
       technologies: Array.isArray(project.technologies) 
         ? project.technologies 
         : (typeof project.technologies === 'string' 
             ? (project.technologies as string).split(',').map((t: string) => t.trim()) 
             : []),
-      project_link: project.projectLink || '',
-      github_link: project.githubLink || '',
-      github_client_link: project.githubClientLink || '',
-      github_server_link: project.githubServerLink || '',
-      category: project.category || '',
-      featured: project.featured ? 1 : 0,
-      progress: project.progress || 0,
+      projectLink: project.projectLink || project.link || '',
+      link: project.projectLink || project.link || '', // Add this for backward compatibility
+      featured: Boolean(project.featured),
       status: project.status || 'In Progress',
+      updatedDays: project.updatedDays || 0,
+      progress: project.progress || 0,
+      features: project.features || [],
+      exclusiveFeatures: project.exclusiveFeatures || [],
+      imagePriority: typeof project.imagePriority === 'number' ? project.imagePriority : 5,
       visualEffects: project.visualEffects || {},
-      is_newly_added: project.isNewlyAdded || project.is_newly_added || 0,
       // Code screenshot fields
-      isCodeScreenshot: project.isCodeScreenshot || false,
-      is_code_screenshot: project.isCodeScreenshot || false, // MySQL compatibility
+      isCodeScreenshot: Boolean(project.isCodeScreenshot),
       codeLanguage: project.codeLanguage || '',
-      code_language: project.codeLanguage || '', // MySQL compatibility
       codeTitle: project.codeTitle || '',
-      code_title: project.codeTitle || '', // MySQL compatibility
       codeContent: project.codeContent || '',
-      code_content: project.codeContent || '', // MySQL compatibility
-      useDirectCodeInput: project.useDirectCodeInput || false,
-      use_direct_code_input: project.useDirectCodeInput || false, // MySQL compatibility
-      adminPassword: adminPassword
+      useDirectCodeInput: Boolean(project.useDirectCodeInput),
+      // Add last_updated timestamp
+      lastUpdated: new Date().toISOString()
     };
     
     console.log('Prepared project data:', {
-      id: projectData.id,
+      id: project.id,
       title: projectData.title,
+      image_url: projectData.image_url,
+      secondImage: projectData.secondImage,
       technologies: Array.isArray(projectData.technologies) ? projectData.technologies.length + ' items' : typeof projectData.technologies,
       featured: projectData.featured,
-      status: projectData.status,
-      isCodeScreenshot: projectData.isCodeScreenshot,
-      codeTitle: projectData.codeTitle,
-      useDirectCodeInput: projectData.useDirectCodeInput
+      status: projectData.status
     });
 
     try {
@@ -427,7 +456,10 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(projectData),
+        body: JSON.stringify({
+          ...projectData,
+          password: dbPassword // Use the entered password
+        }),
       });
       
       const result = await response.json();
@@ -435,7 +467,7 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       console.log('API response:', result);
       
       if (!response.ok) {
-        throw new Error(result.error || 'Failed to update project');
+        throw new Error(result.error || result.details || 'Failed to update project');
       }
       
       toast.dismiss(loadingToast);
@@ -444,7 +476,11 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       // Refresh the project data from the server
       const fetchProjectData = async () => {
         try {
-          const response = await fetch(`/api/projects/${params.id}?t=${Date.now()}`, {
+          // Add cache busting parameters
+          const timestamp = Date.now();
+          const randomValue = Math.floor(Math.random() * 1000000);
+          
+          const response = await fetch(`/api/projects/${projectId}?t=${timestamp}&r=${randomValue}`, {
             method: 'GET',
             cache: 'no-store',
             headers: {
@@ -467,63 +503,12 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
       
     } catch (error: any) {
       console.error('Error updating project:', error);
-      
-      // Try the alternative endpoint as a fallback
-      try {
-        console.log('Trying alternative update endpoint');
-        const altResponse = await fetch('/api/update-project', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            project: projectData,
-            adminPassword: adminPassword
-          }),
-        });
-        
-        const altResult = await altResponse.json();
-        console.log('Alternative API response:', altResult);
-        
-        if (altResponse.ok) {
-          toast.dismiss(loadingToast);
-          toast.success('Project updated successfully (alt)!');
-          
-          // Refresh project data
-          const fetchProjectData = async () => {
-            try {
-              const response = await fetch(`/api/projects/${params.id}?t=${Date.now()}`, {
-                method: 'GET',
-                cache: 'no-store',
-                headers: {
-                  'Cache-Control': 'no-cache, no-store, must-revalidate',
-                  'Pragma': 'no-cache',
-                  'Expires': '0',
-                  'X-Force-Refresh': 'true'
-                }
-              });
-              if (response.ok) {
-                const projectData = await response.json();
-                setProject(projectData);
-              }
-            } catch (error) {
-              console.error('Error refreshing project data:', error);
-            }
-          };
-          
-          fetchProjectData();
-        } else {
-          throw new Error(altResult.error || 'Failed with alternative endpoint');
-        }
-      } catch (altError) {
-        console.error('Alternative update failed:', altError);
-        toast.dismiss(loadingToast);
-        toast.error(`Failed to update project: ${error.message || 'Unknown error'}`);
-      }
+      toast.dismiss(loadingToast);
+      toast.error(`Failed to update project: ${error.message || 'Unknown error'}`);
     }
   };
 
-  // Handle effect change
+  // Handle effect change for visual effects
   const handleEffectChange = (effect: keyof NonNullable<Project['visualEffects']>, value: boolean | string) => {
     if (!project) return
     
@@ -641,12 +626,18 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
               <button
                 type="button"
                 onClick={() => {
+                  // Set both passwords in session storage
                   sessionStorage.setItem('adminPassword', 'nex-devs.org889123');
-                  toast.success("Admin access granted!");
+                  sessionStorage.setItem('databasePassword', 'alihasnaat919');
+                  // Show success toast
+                  toast.success('Database access granted successfully!');
                 }}
-                className="px-2 py-1 bg-red-800/50 text-xs text-white rounded border border-red-600/30 hover:bg-red-700/50"
+                className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
               >
-                Get Access
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+                Get Database Access
               </button>
               <Link 
                 href="/admin/projects" 
@@ -654,6 +645,16 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
               >
                 Back to Projects
               </Link>
+            </div>
+          </div>
+
+          {/* Password Protection Banner - Simplified to just show the security message */}
+          <div className="bg-gray-800/70 border border-purple-500/30 rounded-lg p-4 mb-6 flex items-center">
+            <div className="flex items-center">
+              <svg className="w-5 h-5 text-purple-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <span className="text-purple-200 font-medium">SECURED BY SECURE WALL / NEX-DEVS</span>
             </div>
           </div>
 
@@ -809,10 +810,10 @@ export default function EditProjectPage({ params }: { params: { id: string } }) 
                           <button
                             type="button"
                             onClick={() => document.getElementById('secondImageUpload')?.click()}
-                            disabled={isUploading}
+                            disabled={isSecondImageUploading}
                             className="px-4 py-2 rounded-md bg-blue-600/40 border border-blue-600/40 text-white hover:bg-blue-600/60 transition-colors flex items-center justify-center gap-2"
                           >
-                            {isUploading ? (
+                            {isSecondImageUploading ? (
                               <>
                                 <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>

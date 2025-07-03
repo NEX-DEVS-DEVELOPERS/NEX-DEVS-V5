@@ -1,0 +1,65 @@
+{
+  "leader": {
+    "name": "Ali Hasnaat-owner",
+    "role": "Founder & Lead Developer",
+    "image": "/team/7d4538f5-4887-40c8-a947-247675c248bf.png",
+    "bio": "Full-stack developer with expertise in AI integration and modern web technologies. Passionate about creating exceptional digital experiences and innovative solutions.",
+    "skills": [
+      "Full Stack Development",
+      "AI Integration",
+      "System Architecture",
+      "Cloud Infrastructure",
+      "Team Leadership"
+    ],
+    "socialLinks": {
+      "github": "https://github.com/NEX-DEVS-DEVELOPERS",
+      "linkedin": "https://linkedin.com/in/alihasnaat",
+      "twitter": "https://twitter.com/alihasnaat",
+      "dribbble": "https://dribbble.com/alihasnaat"
+    }
+  },
+  "members": [
+    {
+      "name": "Mdassir-Ahmad",
+      "role": "Senior Frontend Developer",
+      "image": "/team/c578499b-b778-4b31-a798-72c23608d6f4.png",
+      "skills": [
+        "React",
+        "Next.js",
+        "UI/UX"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/zainahmed",
+        "linkedin": "https://linkedin.com/in/zainahmed"
+      }
+    },
+    {
+      "name": "Faizan-khan",
+      "role": "UI/UX Designer",
+      "image": "/team/fatima.jpg",
+      "skills": [
+        "Figma",
+        "User Research",
+        "Motion Design"
+      ],
+      "socialLinks": {
+        "dribbble": "https://dribbble.com/fatimakhan",
+        "linkedin": "https://linkedin.com/in/fatimakhan"
+      }
+    },
+    {
+      "name": "Eman-Ali",
+      "role": "Backend Developer",
+      "image": "/team/hassan.jpg",
+      "skills": [
+        "Node.js",
+        "Python",
+        "DevOps"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/hassanali",
+        "linkedin": "https://linkedin.com/in/hassanali"
+      }
+    }
+  ]
+}

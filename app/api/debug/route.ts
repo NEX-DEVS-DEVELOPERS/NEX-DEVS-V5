@@ -2,115 +2,108 @@ import { NextRequest, NextResponse } from 'next/server';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import mysqlDb from '@/lib/mysql';
+import neonDb from '@/lib/neon';
 
 // Check if we're in read-only mode on Vercel
 const isVercel = process.env.VERCEL === '1';
 const isProduction = process.env.NODE_ENV === 'production';
+const isDev = process.env.NODE_ENV === 'development';
 const READ_ONLY_MODE = isVercel && isProduction;
 
 // Admin password (should match other files)
-const ADMIN_PASSWORD = 'nex-devs.org889123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
 
+/**
+ * Debug API endpoint to check database status and server information
+ */
 export async function GET(request: NextRequest) {
+  // Check for authentication
+  const authHeader = request.headers.get('Authorization');
+  const url = new URL(request.url);
+  const passwordFromQuery = url.searchParams.get('password');
+  const bearerToken = authHeader?.startsWith('Bearer ') ? authHeader.substring(7) : null;
+  const password = passwordFromQuery || bearerToken || '';
+  
+  // Simple auth check if password provided
+  const isAuthenticated = password === ADMIN_PASSWORD;
+  
   try {
-    const url = new URL(request.url);
-    const password = url.searchParams.get('password');
-    
-    // Check if password is provided and correct
-    const isAuthorized = password === ADMIN_PASSWORD;
-    
-    // Get basic debug info that's safe to expose without auth
-    const basicInfo = {
-      timestamp: new Date().toISOString(),
-      environment: process.env.NODE_ENV || 'unknown',
-      platform: process.env.VERCEL ? 'Vercel' : 'Other',
-      readOnlyMode: READ_ONLY_MODE,
-      region: process.env.VERCEL_REGION || 'unknown',
-      nodejs: process.version
+    // Gather server information
+    const serverInfo = {
+      environment: process.env.NODE_ENV,
+      nodeVersion: process.version,
+      platform: os.platform(),
+      arch: os.arch(),
+      cpuCount: os.cpus().length,
+      memoryTotal: Math.round(os.totalmem() / (1024 * 1024)) + 'MB',
+      memoryFree: Math.round(os.freemem() / (1024 * 1024)) + 'MB',
+      uptime: Math.round(os.uptime()) + ' seconds'
+    };
+
+    // Test Neon PostgreSQL connection (primary database)
+    let neonStatus = {
+      available: Boolean(neonDb),
+      connected: false,
+      lastConnectionTime: null,
+      error: null as string | null,
+      projects: {
+        total: 0,
+        featured: 0,
+        newlyAdded: 0
+      }
     };
     
-    // Return limited info if not authorized
-    if (!isAuthorized) {
-      return NextResponse.json({
-        ...basicInfo,
-        message: 'For detailed debug information, provide the admin password'
-      }, {
-        headers: {
-          'Cache-Control': 'no-store, no-cache, must-revalidate',
-          'Pragma': 'no-cache',
-          'Expires': '0'
+    // Get Neon PostgreSQL status
+    if (neonDb) {
+      try {
+        const neonConnectionTest = await neonDb.testConnection();
+        neonStatus.connected = neonConnectionTest.success;
+        neonStatus.lastConnectionTime = new Date().toISOString();
+        
+        // If authenticated, get project counts
+        if (isAuthenticated && neonStatus.connected) {
+          const allProjects = await neonDb.getProjects();
+          const featuredProjects = await neonDb.getFeaturedProjects();
+          const newlyAddedProjects = await neonDb.getNewlyAddedProjects();
+          
+          neonStatus.projects = {
+            total: allProjects.length,
+            featured: featuredProjects.length,
+            newlyAdded: newlyAddedProjects.length
+          };
         }
-      });
+        
+        // If available, get debug status from Neon
+        if (neonDb.getDebugStatus) {
+          const neonDebug = await neonDb.getDebugStatus();
+          neonStatus = { ...neonStatus, debug: neonDebug };
+        }
+      } catch (error) {
+        neonStatus.error = error instanceof Error ? error.message : 'Unknown Neon PostgreSQL error';
+        console.error('Neon PostgreSQL status check error:', error);
+      }
     }
     
-    // Get detailed database status for authorized users
-    const dbStatus = await mysqlDb.getDebugStatus();
-    
-    // Check connectivity by running a test query
-    let dbConnectivity = 'unknown';
-    try {
-      await mysqlDb.testConnection();
-      dbConnectivity = 'connected';
-    } catch (error) {
-      dbConnectivity = 'disconnected';
-    }
-    
-    // Get project counts
-    let projectStats = {
-      total: 0,
-      featured: 0,
-      newlyAdded: 0,
-      error: null as string | null
+    // Build the response object
+    const responseObj = {
+      timestamp: new Date().toISOString(),
+      server: serverInfo,
+      database: {
+        type: 'PostgreSQL (Neon)',
+        ...neonStatus,
+        primary: neonStatus.connected ? 'neon' : 'none'
+      },
+      authenticated: isAuthenticated
     };
     
-    try {
-      const allProjects = await mysqlDb.getProjects();
-      const featuredProjects = await mysqlDb.getFeaturedProjects();
-      const newlyAddedProjects = await mysqlDb.getNewlyAddedProjects();
-      
-      projectStats = {
-        total: allProjects.length,
-        featured: featuredProjects.length,
-        newlyAdded: newlyAddedProjects.length,
-        error: null
-      };
-    } catch (error) {
-      projectStats.error = error instanceof Error ? error.message : String(error);
-    }
+    return NextResponse.json(responseObj);
     
-    // Return detailed debug information
+    } catch (error) {
+    console.error('Debug API error:', error);
     return NextResponse.json({
-      ...basicInfo,
-      database: {
-        connectivity: dbConnectivity,
-        status: dbStatus,
-        projects: projectStats
-      },
-      serverTime: new Date().toISOString(),
-      processUptime: process.uptime(),
-      memoryUsage: process.memoryUsage(),
-      cpuUsage: process.cpuUsage()
-    }, {
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
-  } catch (error) {
-    console.error('Error getting debug info:', error);
-    return NextResponse.json({ 
-      error: 'Failed to get debug information',
-      message: error instanceof Error ? error.message : String(error),
+      error: 'Failed to gather debug information',
+      details: error instanceof Error ? error.message : String(error),
       timestamp: new Date().toISOString()
-    }, { 
-      status: 500,
-      headers: {
-        'Cache-Control': 'no-store, no-cache, must-revalidate',
-        'Pragma': 'no-cache',
-        'Expires': '0'
-      }
-    });
+    }, { status: 500 });
   }
 } 

@@ -14,19 +14,25 @@ import { useLocalStorage } from '@/app/hooks/useLocalStorage';
 import { createRoot } from 'react-dom/client';
 import confetti from 'canvas-confetti';
 import { FaStore, FaWordpress } from 'react-icons/fa';
+import AiIntegrationSection from '@/app/components/AiIntegrationSection';
+import ReviewsDrawer from '@/app/components/ReviewsDrawer';
+import ReviewsCarousel from '@/app/components/ReviewsCarousel';
+import PlanReviews from '@/app/components/PlanReviews';
+import { PlanReview } from '@/app/components/ReviewsDrawer';
 
 // Add these type definitions at the top of the file
 type PricingFeature = string;
 type BestForItem = string;
 
+// Add interface for PricingPlan
 interface PricingPlanBase {
   title: string;
   basePrice: number;
-  features: PricingFeature[];
+  features: string[];
   description: string;
   icon: string;
   timeline: string;
-  bestFor: BestForItem[];
+  bestFor: string[];
   includes: string[];
   highlightFeatures: string[];
   additionalInfo: {
@@ -37,8 +43,121 @@ interface PricingPlanBase {
   };
 }
 
-// Extend the existing PricingPlan interface
+// Define the PricingPlan interface
 interface PricingPlan extends PricingPlanBase {}
+
+// Define reviewsData locally to avoid import errors
+const reviewsData: PlanReview[] = [
+  {
+    id: '1',
+    planTitle: 'WordPress Basic',
+    author: 'Ali Hassan',
+    role: 'Small Business Owner',
+    rating: 5,
+    text: 'The WordPress Basic package was perfect for my small business website. Clean code and fast loading!',
+    date: '2023-10-15',
+    isVerified: true
+  },
+  {
+    id: '2',
+    planTitle: 'WordPress Professional',
+    author: 'Amina Patel',
+    role: 'E-commerce Manager',
+    rating: 5,
+    text: 'The WordPress Professional package transformed our online store. Sales increased by 45% in the first month!',
+    date: '2023-09-22',
+    isVerified: true
+  },
+  {
+    id: '3',
+    planTitle: 'WordPress Enterprise',
+    author: 'James Thompson',
+    role: 'CEO',
+    rating: 5,
+    text: 'The WordPress Enterprise solution has transformed our digital presence. Comprehensive and powerful!',
+    date: '2023-11-03',
+    isVerified: true
+  },
+  {
+    id: '4',
+    planTitle: 'Full-Stack Basic',
+    author: 'Zain Ahmed',
+    role: 'Startup Founder',
+    rating: 5,
+    text: 'The Full-Stack Basic package was perfect for our MVP. Clean code and great user experience!',
+    date: '2023-10-28',
+    isVerified: true
+  },
+  {
+    id: '5',
+    planTitle: 'Full-Stack Professional',
+    author: 'Layla Khan',
+    role: 'CTO',
+    rating: 5,
+    text: 'The TypeScript integration and NestJS backend have made our codebase robust and maintainable!',
+    date: '2023-09-14',
+    isVerified: true
+  },
+  {
+    id: '6',
+    planTitle: 'Full-Stack Enterprise',
+    author: 'Alexander Wright',
+    role: 'Enterprise Architect',
+    rating: 5,
+    text: 'The microservices architecture has transformed our enterprise application. Exceptional scalability!',
+    date: '2023-11-10',
+    isVerified: true
+  },
+  {
+    id: '7',
+    planTitle: 'AI Agents/WebApps',
+    author: 'Dr. Rahul Mehta',
+    role: 'Research Director',
+    rating: 5,
+    text: 'The AI integration is seamless and powerful. Our data processing has never been more efficient!',
+    date: '2023-10-05',
+    isVerified: true
+  },
+  {
+    id: '8',
+    planTitle: 'SEO/Content Writing',
+    author: 'Benjamin Foster',
+    role: 'Content Strategist',
+    rating: 5,
+    text: 'The semantic keyword research and E-E-A-T content strategy have significantly improved our search rankings!',
+    date: '2023-09-30',
+    isVerified: true
+  },
+  {
+    id: '9',
+    planTitle: 'UI/UX Design',
+    author: 'Ethan Williams',
+    role: 'Product Designer',
+    rating: 5,
+    text: 'The design system and interactive prototypes have streamlined our development process!',
+    date: '2023-11-08',
+    isVerified: true
+  },
+  {
+    id: '10',
+    planTitle: 'Mobile App Development',
+    author: 'Lucas Chen',
+    role: 'App Founder',
+    rating: 5,
+    text: 'Cross-platform development with native features integration is exceptional. Our app is performing brilliantly!',
+    date: '2023-10-20',
+    isVerified: true
+  }
+];
+
+// Add simplified reviews data for the carousel
+const carouselReviews = reviewsData.map(review => ({
+  text: review.text,
+  author: review.author,
+  role: review.role,
+  rating: review.rating,
+  highlightedPhrase: review.planTitle
+}));
 
 const pricingPlans: PricingPlan[] = [
   {
@@ -683,750 +802,629 @@ const PricingCard = memo(({
 PricingCard.displayName = 'PricingCard';
 
 // Optimize the PlanModal component with reduced animations
-const PlanModal = memo(({ 
-  plan, 
-  onClose, 
-  onGetStarted,
-  getFormattedPrice 
-}: PlanModalProps) => {
-  if (!plan) return null;
-
-  // Group features into batches to improve performance
+const PlanModal = memo(({ plan, onClose, onGetStarted, getFormattedPrice }: PlanModalProps) => {
   const featureBatches = useMemo(() => {
-    const batchSize = 6;
     const batches = [];
-    for (let i = 0; i < plan.features.length; i += batchSize) {
-      batches.push(plan.features.slice(i, i + batchSize));
+    for (let i = 0; i < plan.features.length; i += 3) {
+      batches.push(plan.features.slice(i, i + 3));
     }
     return batches;
   }, [plan.features]);
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-black/90 flex items-start justify-center z-[9999] p-4 modal-overlay overflow-y-auto pt-16 md:pt-32"
+    <div 
+      className="fixed inset-0 bg-black/90 flex items-start justify-center z-[9999] p-4 overflow-y-auto pt-16 md:pt-32"
       onClick={onClose}
     >
-      <div
-        className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30 z-[10000]"
+      <motion.div
+        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 20, scale: 0.95 }}
+        className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Close Button */}
+        <button
+          onClick={onClose}
+          className="absolute top-4 right-4 text-gray-400 hover:text-white p-2 rounded-full hover:bg-white/10 transition-colors"
+        >
+          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+
+        {/* Main Content */}
         <div className="space-y-6">
-          <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
-            <p className="text-gray-300 text-sm md:text-base leading-relaxed">{plan.description}</p>
-            <p className="text-purple-300 text-lg md:text-xl mt-4">
-              {getFormattedPrice(plan.basePrice)}
-            </p>
-          </div>
-
-          {/* Features Grid - Optimized with batched rendering */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-            {featureBatches.map((batch, batchIndex) => (
-              <React.Fragment key={batchIndex}>
-                {batch.map((feature, index) => (
-                  <motion.div
-                    key={batchIndex * 6 + index}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.03 * batchIndex }} // Reduced delay 
-                    className="flex items-start bg-purple-500/5 rounded-lg p-3 md:p-4 group hover:bg-purple-500/10 transition-colors duration-200"
-                  >
-                    <svg className="w-4 h-4 md:w-5 md:h-5 text-purple-400 mr-3 flex-shrink-0 mt-0.5 group-hover:text-purple-300 transition-colors duration-200" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-gray-300 text-sm md:text-base group-hover:text-white transition-colors duration-200">{feature}</span>
-                  </motion.div>
-                ))}
-              </React.Fragment>
-            ))}
-          </div>
-
-          {/* Best For Section */}
-          <div className="bg-purple-500/5 rounded-xl p-4 md:p-6">
-            <h3 className="text-white font-semibold mb-4 text-base md:text-lg">Best For:</h3>
-            <div className="flex flex-wrap gap-2">
-              {plan.bestFor.map((item, i) => (
-                <span key={i} className="text-sm bg-purple-500/10 text-purple-300 px-3 py-1.5 rounded-full">
-                  {item}
-                </span>
-              ))}
+          {/* Header */}
+          <div className="flex items-center gap-4">
+            <div className="relative">
+              <div className="text-5xl phone-icon">📱</div>
+              <div className="absolute -top-2 -right-2 text-2xl sparkle-icon">✨</div>
+            </div>
+            <div>
+              <h2 className="text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+                Mobile App Development
+              </h2>
+              <p className="text-purple-300">Transform your ideas into powerful mobile experiences</p>
             </div>
           </div>
 
-          {/* Modal Action Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <button 
-              onClick={onClose}
-              className="flex-1 py-3 px-6 text-white bg-transparent border border-white/20 
-                rounded-xl hover:bg-white/5 transition-all duration-200 font-semibold"
-            >
-              Back
-            </button>
-            <button 
-              onClick={() => onGetStarted(plan)}
-              className="flex-1 py-3 px-6 bg-white text-black rounded-xl 
-                hover:bg-purple-50 transition-all duration-200 font-semibold
-                flex items-center justify-center gap-2"
-            >
-              Get Started
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          {/* Store Requirements Section */}
+          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors">
+            <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
+              App Store Requirements
+            </h3>
+            <div className="grid md:grid-cols-2 gap-6">
+              <div className="space-y-3">
+                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-purple-300">Google Play Store</span>
+                    <span className="text-green-400 font-semibold">$25</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">One-time registration fee</p>
+                </div>
+                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-purple-300">Apple App Store</span>
+                    <span className="text-green-400 font-semibold">$99/year</span>
+                  </div>
+                  <p className="text-gray-400 text-sm">Annual developer membership</p>
+                </div>
+              </div>
+              <div className="bg-purple-900/20 rounded-lg p-4">
+                <h4 className="text-white font-medium mb-3">Additional Requirements:</h4>
+                <ul className="space-y-2 text-gray-300 text-sm">
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Developer account verification
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    App privacy policy
+                  </li>
+                  <li className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
+                    Content guidelines compliance
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          {/* Contact Section */}
+          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30">
+            <div className="grid md:grid-cols-2 gap-4">
+              <a 
+                href="mailto:nexwebs.org@gmail.com" 
+                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                nexwebs.org@gmail.com
+              </a>
+              <a 
+                href="mailto:nexdevs.org@gmail.com" 
+                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+                nexdevs.org@gmail.com
+              </a>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row justify-end gap-4">
+            <button
+              onClick={onClose}
+              className="px-6 py-2 text-gray-300 hover:text-white transition-colors"
+            >
+              Close
             </button>
+            <a
+              href="mailto:nexwebs.org@gmail.com?subject=Mobile App Development Inquiry&body=I'm interested in developing a mobile app. Please schedule a consultation call."
+              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg transition-all hover:from-purple-500 hover:to-pink-500 flex items-center gap-2 justify-center group"
+            >
+              Schedule Consultation
+              <svg 
+                className="w-4 h-4" 
+                fill="none" 
+                stroke="currentColor" 
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
+              </svg>
+            </a>
           </div>
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </div>
   );
 });
 
-PlanModal.displayName = 'PlanModal';
-
-// Enhanced GuideStep interface with better configuration options
-interface GuideStep {
+// Replace the GuidedTour component and related interfaces with our new popup guide
+interface SiteGuideSection {
   title: string;
-  content: string;
-  target: string;
-  placement: 'top' | 'bottom' | 'left' | 'right';
-  arrowPosition?: {
-    top?: string;
-    left?: string;
-    transform?: string;
-    rotate?: string;
-  };
-  highlightTarget?: boolean;
-  highlightStyle?: 'pulse' | 'glow' | 'spotlight' | 'outline';
-  emoji: string;
-  actionType?: 'click' | 'hover' | 'none';
-  targetSelector: string;
-  showArrow?: boolean;
+  content: React.ReactNode;
+  icon: string;
+  description: string;
 }
 
-// Enhanced arrow position calculation for better targeting
-const getArrowPosition = (stepContent: GuideStep, targetElement: HTMLElement | null) => {
-  if (!targetElement) return {};
-
-  const rect = targetElement.getBoundingClientRect();
-  const padding = 15; // Space between the element and the arrow
-  const placement = stepContent.placement;
-
-  switch (placement) {
-    case 'top':
-      return {
-        top: `${rect.top - padding - 10}px`,
-        left: `${rect.left + rect.width / 2}px`,
-        transform: 'rotate(90deg) translateX(-50%)',
-      };
-    case 'bottom':
-      return {
-        top: `${rect.bottom + padding}px`,
-        left: `${rect.left + rect.width / 2}px`,
-        transform: 'rotate(-90deg) translateX(-50%)',
-      };
-    case 'left':
-      return {
-        top: `${rect.top + rect.height / 2}px`,
-        left: `${rect.left - padding - 10}px`,
-        transform: 'rotate(0deg) translateY(-50%)',
-      };
-    case 'right':
-      return {
-        top: `${rect.top + rect.height / 2}px`,
-        left: `${rect.right + padding}px`,
-        transform: 'rotate(180deg) translateY(-50%)',
-      };
-    default:
-      return {};
-  }
-};
-
-// Add this function before the GuidedTour component
-const getGuidePosition = (isMobile: boolean, step: number): React.CSSProperties => {
-  if (isMobile) {
-    return {
-      position: 'fixed' as const,
-      left: '50%',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: '90vw',
-      maxWidth: '400px',
-      margin: '0',
-      zIndex: 9999,
+// New WebsiteGuide popup component
+const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
+  const [currentSection, setCurrentSection] = useState(0);
+  const [showWelcome, setShowWelcome] = useState(true);
+  const [hasCompletedGuide, setHasCompletedGuide] = useState(false);
+  
+  // Close welcome message after a delay
+  useEffect(() => {
+    if (isOpen && showWelcome) {
+      const timer = setTimeout(() => {
+        setShowWelcome(false);
+      }, 2000); // Slightly shorter delay for better UX
+      
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, showWelcome]);
+  
+  // Add CSS for smooth scrolling
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      .smooth-scroll {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: rgba(139, 92, 246, 0.3) rgba(0, 0, 0, 0.2);
+      }
+      .smooth-scroll::-webkit-scrollbar {
+        width: 6px;
+      }
+      .smooth-scroll::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.2);
+        border-radius: 10px;
+      }
+      .smooth-scroll::-webkit-scrollbar-thumb {
+        background: rgba(139, 92, 246, 0.3);
+        border-radius: 10px;
+      }
+      .smooth-scroll::-webkit-scrollbar-thumb:hover {
+        background: rgba(139, 92, 246, 0.5);
+      }
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+      .fade-in-element {
+        animation: fadeIn 0.5s ease-out forwards;
+      }
+      
+      body.no-scroll {
+        overflow: hidden !important;
+        height: 100vh !important;
+        position: fixed !important;
+        width: 100% !important;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
     };
-  }
+  }, [isOpen]);
 
-  // Special position for step 1 (index 0) - positioned to the left
-  if (step === 0) {
-    return {
-      position: 'fixed' as const,
-      left: '20%',
-      top: '50%',
-      transform: 'translate(-50%, -50%)',
-      width: 'auto',
-      maxWidth: '400px',
-      height: 'auto',
-      zIndex: 9999,
+  // Add scroll lock effect when guide is open
+  useEffect(() => {
+    if (isOpen) {
+      // Disable scrolling on body
+      document.body.classList.add('no-scroll');
+    } else {
+      // Re-enable scrolling on body
+      document.body.classList.remove('no-scroll');
+    }
+    
+    return () => {
+      // Cleanup - re-enable scrolling when component unmounts
+      document.body.classList.remove('no-scroll');
     };
-  }
+  }, [isOpen]);
 
-  // Positions for other steps
-  const positions = [
-    { top: '20%', left: '50%', transform: 'translate(-50%, -20%)' }, // Not used for step 1 anymore
-    { top: '20%', right: '20%', transform: 'translate(0, -20%)' },
-    { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' },
-    { bottom: '20%', right: '30%', transform: 'translate(0, 0)' }
+  const handleCloseGuide = () => {
+    setHasCompletedGuide(true);
+    onClose();
+  };
+
+  const sections: SiteGuideSection[] = [
+    {
+      title: "Auto Region Detection",
+      icon: "🌎",
+      description: "Our website automatically detects your region and sets the appropriate currency. View pricing in USD, GBP, AED, and PKR with real-time conversion rates.",
+      content: (
+        <div className="flex flex-col">
+          {/* Details section - scrollable */}
+          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+            <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
+              <h4 className="text-purple-300 font-semibold text-sm mb-3">How It Works:</h4>
+              <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm">
+                <li>Automatic IP geolocation identifies your country</li>
+                <li>Local currency is set based on your location</li>
+                <li>Real-time exchange rates for accurate pricing</li>
+                <li>Manually change currency anytime</li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Image section - fixed below */}
+          <div className="mt-4">
+            <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
+              <img 
+                src="https://ik.imagekit.io/u7ipvwnqb/850_1x_shots_so.png"
+                alt="Region Detection Illustration"
+                className="w-full h-full object-cover rounded-xl relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Pricing Plans",
+      icon: "💰",
+      description: "Our pricing is transparent and flexible, with options for every business size. All plans include premium support and regular updates.",
+      content: (
+        <div className="flex flex-col">
+          {/* Details section - scrollable */}
+          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+            <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
+              <h4 className="text-purple-300 font-semibold text-sm mb-3">Plan Categories:</h4>
+              <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm">
+                <li><span className="text-white font-medium">WordPress Plans</span> - Basic to enterprise</li>
+                <li><span className="text-white font-medium">Full-Stack Development</span> - Modern web apps</li>
+                <li><span className="text-white font-medium">AI Integration</span> - Custom AI solutions</li>
+                <li><span className="text-white font-medium">Specialized Services</span> - SEO, UI/UX, mobile</li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Image section - fixed below */}
+          <div className="mt-4">
+            <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
+              <img 
+                src="https://ik.imagekit.io/u7ipvwnqb/128_1x_shots_so.png"
+                alt="Pricing Plans Overview"
+                className="w-full h-full object-cover rounded-xl relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "AI Integrations",
+      icon: "🤖",
+      description: "Transform websites into intelligent, responsive platforms with cutting-edge technology tailored to your needs.",
+      content: (
+        <div className="flex flex-col">
+          {/* Details section - scrollable */}
+          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+            <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
+              <h4 className="text-purple-300 font-semibold text-sm mb-3">AI Features:</h4>
+              <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm">
+                <li><span className="text-white font-medium">Custom Chatbots</span> - Trained on your data</li>
+                <li><span className="text-white font-medium">Content Generation</span> - Automated marketing</li>
+                <li><span className="text-white font-medium">Business Intelligence</span> - Data insights</li>
+                <li><span className="text-white font-medium">Recommendations</span> - Personalized experience</li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Image section - fixed below */}
+          <div className="mt-4">
+            <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
+              <img 
+                src="https://ik.imagekit.io/u7ipvwnqb/574_1x_shots_so.png"
+                alt="AI Integration Example"
+                className="w-full h-full object-cover rounded-xl relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "Our Reviews",
+      icon: "⭐",
+      description: "Don't just take our word for it - see what our clients have to say about our services.",
+      content: (
+        <div className="flex flex-col">
+          {/* Details section - scrollable */}
+          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+            <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
+              <h4 className="text-purple-300 font-semibold text-sm mb-3">Key Stats:</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="text-center p-3 bg-black/20 rounded-lg">
+                  <p className="text-2xl font-bold text-white">98%</p>
+                  <p className="text-sm text-purple-300">Satisfaction</p>
+                </div>
+                <div className="text-center p-3 bg-black/20 rounded-lg">
+                  <p className="text-2xl font-bold text-white">245+</p>
+                  <p className="text-sm text-purple-300">Projects</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          {/* Image section - fixed below */}
+          <div className="mt-4">
+            <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
+              <img 
+                src="https://ik.imagekit.io/u7ipvwnqb/605_1x_shots_so.png"
+                alt="Client Testimonials"
+                className="w-full h-full object-cover rounded-xl relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    },
+    {
+      title: "WordPress & Shopify",
+      icon: "🛒",
+      description: "Our e-commerce solutions create powerful, high-converting stores with optimized performance, SEO, and user experience.",
+      content: (
+        <div className="flex flex-col">
+          {/* Details section - scrollable */}
+          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+            <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
+              <h4 className="text-purple-300 font-semibold text-sm mb-3">Solutions:</h4>
+              <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm">
+                <li><span className="text-white font-medium">WordPress Basic</span> - Rs38,500</li>
+                <li><span className="text-white font-medium">WordPress Pro</span> - Rs49,500</li>
+                <li><span className="text-white font-medium">WordPress Enterprise</span> - Rs71,500</li>
+                <li><span className="text-white font-medium">Shopify Standard</span> - $900</li>
+              </ul>
+            </div>
+          </div>
+          
+          {/* Image section - fixed below */}
+          <div className="mt-4">
+            <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
+              <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
+              <img 
+                src="https://ik.imagekit.io/u7ipvwnqb/207_1x_shots_so.png"
+                alt="E-Commerce Solutions"
+                className="w-full h-full object-cover rounded-xl relative z-10"
+              />
+            </div>
+          </div>
+        </div>
+      )
+    }
   ];
 
-  // Use position 0 for step 2, position 1 for step 3, etc.
-  const positionIndex = step > 0 ? (step - 1) % (positions.length - 1) + 1 : 0;
-
-  return {
-    position: 'fixed' as const,
-    ...positions[positionIndex],
-    width: 'auto',
-    maxWidth: '450px',
-    height: 'auto',
-  };
-};
-
-// Add these interfaces before the DirectionalArrow component
-interface ArrowProps {
-  fromElement: HTMLElement;
-  toElement: HTMLElement;
-  color?: string;
-  thickness?: number;
-  animate?: boolean;
-}
-
-// Enhance the DirectionalArrow component with better styling and animations
-const DirectionalArrow = ({ 
-  fromElement, 
-  toElement, 
-  color = 'rgba(168, 85, 247, 0.9)',
-  thickness = 3,
-  animate = true 
-}: ArrowProps) => {
-  if (!fromElement || !toElement) return null;
-
-  const fromRect = fromElement.getBoundingClientRect();
-  const toRect = toElement.getBoundingClientRect();
-
-  const fromX = fromRect.left + fromRect.width / 2;
-  const fromY = fromRect.top + fromRect.height / 2;
-  const toX = toRect.left + toRect.width / 2;
-  const toY = toRect.top + toRect.height / 2;
-
-  const angle = Math.atan2(toY - fromY, toX - fromX);
-  const length = Math.sqrt(Math.pow(toX - fromX, 2) + Math.pow(toY - fromY, 2));
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.8 }}
-      animate={{ 
-        opacity: 1, 
-        scale: 1,
-        x: animate ? [0, 5, 0] : 0
-      }}
-      transition={{ 
-        duration: 0.5,
-        x: {
-          duration: 1.5,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }
-      }}
-      style={{
-        position: 'fixed',
-        top: fromY,
-        left: fromX,
-        width: length,
-        height: thickness + 2, // Increased thickness
-        background: `linear-gradient(90deg, rgba(168, 85, 247, 0.9), rgba(138, 43, 226, 0.9))`, // Brighter gradient
-        transformOrigin: 'left',
-        transform: `rotate(${angle}rad)`,
-        zIndex: 1001,
-        pointerEvents: 'none',
-        boxShadow: '0 0 12px 4px rgba(168, 85, 247, 0.7)', // Enhanced glow
-      }}
-    >
-      <div
-        style={{
-          position: 'absolute',
-          right: -12, // Larger arrow
-          top: -10,
-          width: 0,
-          height: 0,
-          borderTop: '10px solid transparent',
-          borderBottom: '10px solid transparent',
-          borderLeft: `20px solid rgba(168, 85, 247, 1)`, // Brighter color
-          filter: 'drop-shadow(0 0 8px rgba(168, 85, 247, 0.8))', // Enhanced glow
-        }}
-      />
-      {/* Add pulsing dot at the start of the arrow for more attention */}
-      <motion.div
-        animate={{
-          scale: [1, 1.5, 1],
-          opacity: [0.7, 1, 0.7],
-        }}
-        transition={{
-          duration: 1.2,
-          repeat: Infinity,
-          ease: "easeInOut"
-        }}
-        style={{
-          position: 'absolute',
-          left: -6,
-          top: -6 + (thickness / 2),
-          width: 12,
-          height: 12,
-          borderRadius: '50%',
-          backgroundColor: 'rgba(168, 85, 247, 1)',
-          boxShadow: '0 0 10px 2px rgba(168, 85, 247, 0.8)',
-        }}
-      />
-    </motion.div>
-  );
-};
-
-// Enhanced GuidedTour component with better UI and animations
-const GuidedTour = memo(({
-  isOpen,
-  onClose,
-  currentStep,
-  totalSteps,
-  stepContent,
-  onNext,
-  onPrev,
-  onSkip,
-  isMobile,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  currentStep: number;
-  totalSteps: number;
-  stepContent: GuideStep;
-  onNext: () => void;
-  onPrev: () => void;
-  onSkip: () => void;
-  isMobile: boolean;
-}) => {
-  const [targetElement, setTargetElement] = useState<HTMLElement | null>(null);
-  const [arrowStartElement, setArrowStartElement] = useState<HTMLElement | null>(null);
-  const tourRef = useRef<HTMLDivElement>(null);
-  
-  // Arrow animation function
-  const getArrowAnimation = () => {
-    return {
-      x: [0, 5, 0],
-      transition: {
-        duration: 1.2,
-        repeat: Infinity,
-        ease: "easeInOut"
-      }
-    };
-  };
-
-  // Function to trigger confetti animation
-  const triggerConfetti = () => {
-    confetti({
-      particleCount: 100,
-      spread: 70,
-      origin: { y: 0.6 },
-      colors: ['#a855f7', '#c084fc', '#d8b4fe', '#f0abfc']
-    });
-  };
-
-  // Handle close with confetti for the last slide
-  const handleLastSlideAction = () => {
-    triggerConfetti();
-    // Add a small delay to allow confetti to be visible before closing
-    setTimeout(() => {
-      onSkip();
-    }, 800);
-  };
-
-  useEffect(() => {
-    if (isOpen && stepContent.targetSelector) {
-      const element = document.querySelector(stepContent.targetSelector) as HTMLElement;
-      
-      if (element) {
-        setTargetElement(element);
-        
-        // Apply highlight effect based on the specified style
-        if (stepContent.highlightTarget) {
-          // Apply highlight effect
-          const style = stepContent.highlightStyle || 'pulse';
-          element.style.position = 'relative';
-          element.style.zIndex = '999';
-          
-          // Add CSS classes for highlighting
-          if (style === 'pulse') {
-            element.classList.add('highlight-pulse-no-shadow');
-          } else {
-            element.classList.add(`highlight-${style}`);
-          }
-          
-          // Preserve text color for Get Started button
-          if (element.classList.contains('get-started-btn')) {
-            element.style.color = 'black';
-          }
-          
-          // Smooth scroll to the element
-          element.scrollIntoView({ 
-            behavior: 'smooth', 
-            block: 'center' 
-          });
-        }
-
-        // Set up action based on actionType
-        if (stepContent.actionType === 'click') {
-          const handleClick = () => {
-            setTimeout(() => onNext(), 500);
-          };
-          element.addEventListener('click', handleClick);
-          return () => {
-            element.removeEventListener('click', handleClick);
-            if (stepContent.highlightStyle === 'pulse') {
-              element.classList.remove('highlight-pulse-no-shadow');
-              element.classList.remove('highlight-pulse-with-shadow');
-            } else {
-              element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
-            }
-            // Reset any inline styles we added
-            if (element.classList.contains('get-started-btn')) {
-              element.style.color = '';
-            }
-          };
-        } else if (stepContent.actionType === 'hover') {
-          const handleHover = () => {
-            setTimeout(() => onNext(), 800);
-          };
-          element.addEventListener('mouseenter', handleHover);
-          return () => {
-            element.removeEventListener('mouseenter', handleHover);
-            if (stepContent.highlightStyle === 'pulse') {
-              element.classList.remove('highlight-pulse-no-shadow');
-              element.classList.remove('highlight-pulse-with-shadow');
-            } else {
-              element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
-            }
-          };
-        }
-        
-        return () => {
-          if (stepContent.highlightStyle === 'pulse') {
-            element.classList.remove('highlight-pulse-no-shadow');
-            element.classList.remove('highlight-pulse-with-shadow');
-          } else {
-            element.classList.remove(`highlight-${stepContent.highlightStyle || 'pulse'}`);
-          }
-          // Reset any inline styles we added
-          if (element.classList.contains('get-started-btn')) {
-            element.style.color = '';
-          }
-        };
-      }
-    }
-  }, [isOpen, stepContent, onNext]);
-
-  // Set arrow start element (the guide panel)
-  useEffect(() => {
-    if (tourRef.current) {
-      setArrowStartElement(tourRef.current);
-    }
-  }, [tourRef.current]);
-
-  const guidePosition = useMemo(() => 
-    getGuidePosition(isMobile, currentStep),
-    [isMobile, currentStep]
-  );
-
-  // Define the CSS classes without interpolation
-  const pulseClass = currentStep === 0 ? 'highlight-pulse-no-shadow' : 'highlight-pulse-with-shadow';
+  if (!isOpen) return null;
 
   return (
     <AnimatePresence>
       {isOpen && (
-        <>
-          {/* Semi-transparent overlay with NO blur */}
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ 
-              opacity: 1,
-              backgroundColor: 'rgba(0, 0, 0, 0.6)' // Fixed opacity, no animation
-            }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[998]"
-            onClick={onSkip}
-          />
-
-          {/* CSS for highlighting effects with enhanced visibility */}
-          <style jsx global>{`
-            @keyframes highlight-pulse-base {
-              0% { 
-                transform: scale(1);
-                background-color: rgba(168, 85, 247, 0.05);
-              }
-              50% { 
-                transform: scale(1.02);
-                background-color: rgba(168, 85, 247, 0.1);
-              }
-              100% { 
-                transform: scale(1);
-                background-color: rgba(168, 85, 247, 0.05);
-              }
-            }
-            
-            .highlight-pulse-no-shadow {
-              animation: highlight-pulse-base 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-              box-shadow: 0 0 20px 5px rgba(168, 85, 247, 0.6);
-            }
-            
-            .highlight-pulse-with-shadow {
-              animation: highlight-pulse-base 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-              box-shadow: 0 0 0 4000px rgba(0, 0, 0, 0.6), 0 0 20px 5px rgba(168, 85, 247, 0.6);
-            }
-            
-            @keyframes highlight-glow {
-              0% { 
-                outline: 3px solid rgba(168, 85, 247, 0.6); 
-                outline-offset: 3px;
-                box-shadow: 0 0 15px 3px rgba(168, 85, 247, 0.4);
-                background-color: rgba(168, 85, 247, 0.05);
-              }
-              50% { 
-                outline: 4px solid rgba(168, 85, 247, 1); 
-                outline-offset: 6px;
-                box-shadow: 0 0 25px 8px rgba(168, 85, 247, 0.7);
-                background-color: rgba(168, 85, 247, 0.1);
-              }
-              100% { 
-                outline: 3px solid rgba(168, 85, 247, 0.6); 
-                outline-offset: 3px;
-                box-shadow: 0 0 15px 3px rgba(168, 85, 247, 0.4);
-                background-color: rgba(168, 85, 247, 0.05);
-              }
-            }
-            
-            @keyframes highlight-spotlight {
-              0% { 
-                filter: brightness(1.1) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
-                transform: scale(1);
-              }
-              50% { 
-                filter: brightness(1.2) drop-shadow(0 0 25px rgba(168, 85, 247, 0.9)); 
-                transform: scale(1.01);
-              }
-              100% { 
-                filter: brightness(1.1) drop-shadow(0 0 12px rgba(168, 85, 247, 0.6)); 
-                transform: scale(1);
-              }
-            }
-            
-            @keyframes highlight-outline {
-              0% { 
-                outline: 3px solid rgba(168, 85, 247, 0.7); 
-                outline-offset: 3px;
-                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
-              }
-              50% { 
-                outline: 3px solid rgba(168, 85, 247, 1); 
-                outline-offset: 6px;
-                box-shadow: 0 0 25px rgba(168, 85, 247, 0.8);
-              }
-              100% { 
-                outline: 3px solid rgba(168, 85, 247, 0.7); 
-                outline-offset: 3px;
-                box-shadow: 0 0 15px rgba(168, 85, 247, 0.5);
-              }
-            }
-            
-            .highlight-pulse {
-              animation: highlight-pulse-base 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-            }
-            
-            .highlight-glow {
-              animation: highlight-glow 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-            }
-            
-            .highlight-spotlight {
-              animation: highlight-spotlight 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-            }
-            
-            .highlight-outline {
-              animation: highlight-outline 2s infinite ease-in-out;
-              position: relative;
-              z-index: 1000 !important;
-              border-radius: 4px;
-            }
-            
-            /* Ensure text color is preserved during highlighting */
-            .get-started-btn.highlight-outline,
-            .get-started-btn.highlight-glow,
-            .get-started-btn.highlight-pulse,
-            .get-started-btn.highlight-spotlight,
-            .get-started-btn.highlight-pulse-no-shadow,
-            .get-started-btn.highlight-pulse-with-shadow {
-              color: black !important;
-            }
-            
-            /* Ensure the pricing card is properly highlighted */
-            .pricing-card.highlight-spotlight {
-              z-index: 1000 !important;
-            }
-          `}</style>
-
-          {/* Tour guide card with improved design */}
-          <motion.div
-            ref={tourRef}
-            initial={{ opacity: 0, scale: 0.9, y: 20 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            style={guidePosition}
-            className="bg-black/90 border border-purple-500/30 rounded-xl shadow-lg shadow-purple-900/20 overflow-hidden z-[10000] max-w-md"
-          >
-            {/* Progress indicator */}
-            <div className="w-full h-1 bg-gray-800">
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 z-[9999] pointer-events-auto"
+        >
+          {/* Welcome message overlay */}
+          <AnimatePresence>
+            {showWelcome && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="absolute inset-0 bg-black/90 z-50 flex items-center justify-center p-4"
+              >
                 <motion.div
-                initial={{ width: `${(currentStep / totalSteps) * 100}%` }}
-                  animate={{ width: `${((currentStep + 1) / totalSteps) * 100}%` }}
-                className="h-full bg-gradient-to-r from-purple-500 to-purple-700"
-                />
-              </div>
-
-            {/* Header with step indicator and close button */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-purple-900/30">
-                    <div className="flex items-center gap-2">
-                <span className="text-xl">{stepContent.emoji}</span>
-                <h3 className="font-semibold text-white text-lg tracking-tight">
-                  {stepContent.title}
-                </h3>
-                  </div>
-                  {/* Show X icon on second+ visit or after step 2 */}
-                  {(typeof window !== 'undefined' && localStorage.getItem('pricing-guide-shown') === 'true' || currentStep >= 2) && (
-                    <button
-                      onClick={onSkip}
-                      className="text-gray-400 hover:text-white p-1 rounded-full hover:bg-white/10 transition-colors"
-                    >
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        className="h-5 w-5" 
-                        fill="none" 
-                        viewBox="0 0 24 24" 
-                        stroke="currentColor"
-                      >
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                      </button>
-                  )}
-                </div>
-
-            {/* Content */}
-            <div className="px-5 py-4">
-              <p className="text-gray-300 leading-relaxed">
-                    {stepContent.content}
-              </p>
-                </div>
-
-            {/* Step indicator and navigation */}
-            <div className="px-5 py-3 bg-purple-900/20 border-t border-purple-900/30 flex items-center justify-between">
-              <div className="flex items-center gap-1.5">
-                {Array.from({ length: totalSteps }).map((_, idx) => (
-                  <div 
-                    key={idx} 
-                    className={`w-2 h-2 rounded-full ${idx === currentStep ? 'bg-purple-500' : 'bg-gray-600'}`}
-                  />
-                ))}
-              </div>
-              
-              <div className="flex items-center gap-2">
-                  <button
-                    onClick={onPrev}
-                    disabled={currentStep === 0}
-                  className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-                    currentStep === 0 
-                      ? 'text-gray-500 cursor-not-allowed' 
-                      : 'text-gray-300 hover:text-white hover:bg-purple-700/30'
-                  }`}
+                  initial={{ scale: 0.9, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 1.1, opacity: 0 }}
+                  transition={{ type: "spring", bounce: 0.4 }}
+                  className="bg-gradient-to-br from-purple-600/20 to-black/80 rounded-2xl p-6 max-w-xs border border-purple-500/40 text-center backdrop-blur-lg"
                 >
-                    Previous
-                  </button>
-                
-                {currentStep === totalSteps - 1 ? (
-                  <button
-                    onClick={handleLastSlideAction}
-                    className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-1"
+                  <div className="text-3xl mb-3">👋</div>
+                  <h2 className="text-xl font-bold text-white mb-2">Welcome to NEX-WEBS</h2>
+                  <p className="text-purple-200 text-sm mb-4">
+                    Explore our guide to discover pricing options and features.
+                  </p>
+                  <button 
+                    onClick={() => setShowWelcome(false)}
+                    className="px-5 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all text-sm"
                   >
                     Get Started
-                    <svg 
-                      className="w-4 h-4" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      viewBox="0 0 24 24"
-                    >
-                      <path 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        strokeWidth={2} 
-                        d="M13 7l5 5m0 0l-5 5m5-5H6"
-                      />
-                    </svg>
                   </button>
-                ) : (
-                  <button
-                    onClick={onNext}
-                    className="px-3 py-1.5 bg-purple-700 hover:bg-purple-600 text-white rounded-md text-sm font-medium transition-colors flex items-center gap-1"
-                  >
-                    Next
-                    <motion.svg
-                      animate={getArrowAnimation()}
-                      className="w-4 h-4"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                    </motion.svg>
-                  </button>
-                )}
-              </div>
-            </div>
-          </motion.div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
           
-          {/* Show directional arrow if configured */}
-          {false && stepContent.showArrow !== false && targetElement && arrowStartElement && (
-            <DirectionalArrow
-              fromElement={arrowStartElement as HTMLElement}
-              toElement={targetElement as HTMLElement}
-              animate={true}
-            />
-          )}
-        </>
+          {/* Main guide interface - Improved layout */}
+          <div className="fixed inset-0 flex">
+            {/* Dark overlay */}
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
+            
+            {/* Left sidebar - Adjusted higher position */}
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="fixed top-[48px] left-4 w-48 bg-gradient-to-b from-black to-purple-900/20 h-[calc(100vh-120px)] max-h-[420px] border border-purple-500/20 rounded-xl overflow-hidden z-50"
+            >
+              <div className="p-3 border-b border-purple-500/20">
+                <h3 className="text-base font-bold text-white flex items-center gap-2">
+                  <span className="text-sm">📖</span> Site Guide
+                </h3>
+                <p className="text-purple-300 text-xs mt-1">Explore our features</p>
+              </div>
+              
+              <nav className="p-2 space-y-1 overflow-y-auto max-h-[calc(100%-120px)]">
+                {sections.map((section, index) => (
+                  <button
+                    key={index}
+                    onClick={() => setCurrentSection(index)}
+                    className={`w-full text-left px-2 py-2 rounded-lg flex items-center gap-2 transition-all ${
+                      currentSection === index 
+                        ? "bg-purple-900/40 text-white" 
+                        : "text-gray-300 hover:bg-purple-900/10 hover:text-white"
+                    }`}
+                  >
+                    <span className="text-sm">{section.icon}</span>
+                    <span className="text-xs font-medium">{section.title}</span>
+                  </button>
+                ))}
+              </nav>
+
+              {/* Progress indicator */}
+              <div className="absolute bottom-0 left-0 right-0 p-3 border-t border-purple-500/20">
+                <div className="flex items-center justify-between text-xs text-purple-300 mb-2">
+                  <span>Progress</span>
+                  <span>{Math.round((currentSection + 1) / sections.length * 100)}%</span>
+                </div>
+                <div className="h-1 bg-purple-900/20 rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-gradient-to-r from-purple-600 to-pink-600 transition-all duration-300"
+                    style={{ width: `${((currentSection + 1) / sections.length) * 100}%` }}
+                  />
+                </div>
+                
+                <div className="mt-3">
+                  {currentSection === sections.length - 1 ? (
+                    <button
+                      onClick={handleCloseGuide}
+                      className="w-full py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xs rounded-lg hover:from-purple-500 hover:to-pink-500 transition-all flex items-center justify-center gap-1"
+                    >
+                      Finish Guide
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => setCurrentSection(prev => Math.min(sections.length - 1, prev + 1))}
+                      className="w-full py-1.5 text-xs bg-purple-500/20 text-purple-200 rounded-lg hover:bg-purple-500/30 transition-all flex items-center justify-center gap-1"
+                    >
+                      Next
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Main content area - Adjusted higher position */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.2 }}
+              className="fixed top-[45px] left-[225px] right-[220px] bottom-[57px] max-w-[800px] mx-auto z-50"
+            >
+              <div className="h-full flex flex-col bg-gradient-to-br from-black/90 to-purple-900/10 backdrop-blur-sm rounded-xl border border-purple-500/20 shadow-lg overflow-hidden">
+                {/* Fixed header */}
+                <div className="flex items-center gap-2 p-4 border-b border-purple-500/20">
+                  <div className="p-1.5 bg-purple-500/20 rounded-full">
+                    <span className="text-lg">{sections[currentSection].icon}</span>
+                  </div>
+                  <h3 className="text-lg font-bold text-white">{sections[currentSection].title}</h3>
+                </div>
+
+                {/* Fixed description */}
+                <div className="p-4 border-b border-purple-500/20">
+                  <p className="text-gray-300 text-sm">
+                    {sections[currentSection].description}
+                  </p>
+                </div>
+
+                {/* Scrollable content */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                  <div className="p-4">
+                    {sections[currentSection].content}
+                  </div>
+                </div>
+
+                {/* Fixed navigation */}
+                <div className="p-4 border-t border-purple-500/20 bg-black/20">
+                  <div className="flex items-center justify-between">
+                    {currentSection > 0 ? (
+                      <button
+                        onClick={() => setCurrentSection(prev => Math.max(0, prev - 1))}
+                        className="px-6 py-2.5 text-sm rounded-lg flex items-center gap-2 text-white bg-purple-500/30 hover:bg-purple-500/40 transition-colors"
+                      >
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Previous
+                      </button>
+                    ) : (
+                      <div></div>
+                    )}
+                    
+                    {currentSection < sections.length - 1 ? (
+                      <button
+                        onClick={() => setCurrentSection(prev => Math.min(sections.length - 1, prev + 1))}
+                        className="px-6 py-2.5 text-sm rounded-lg flex items-center gap-2 text-white bg-purple-500/30 hover:bg-purple-500/40 transition-colors"
+                      >
+                        Next
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                        </svg>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleCloseGuide}
+                        className="px-6 py-2.5 text-sm rounded-lg flex items-center gap-2 text-white bg-purple-500/30 hover:bg-purple-500/40 transition-colors"
+                      >
+                        Finish Guide
+                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* Close button in the top-right corner */}
+            <button
+              onClick={handleCloseGuide}
+              className="fixed top-4 right-4 z-50 bg-black/60 text-white p-2 rounded-full hover:bg-black/80 transition-colors"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        </motion.div>
       )}
     </AnimatePresence>
   );
-});
+};
 
-GuidedTour.displayName = 'GuidedTour';
-
-// Add the AppDevelopmentModal component
+// Add AppDevelopmentModal component
 interface AppDevelopmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -1460,41 +1458,15 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
           </svg>
         </button>
 
-        {/* Enhanced Header with Animation */}
-        <motion.div 
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center gap-4 mb-8"
-        >
+        {/* Enhanced Header with CSS Animation */}
+        <div className="flex items-center gap-4 mb-8">
           <div className="relative">
-            <motion.div
-              animate={{ 
-                rotate: [0, 10, -10, 0],
-                scale: [1, 1.1, 0.9, 1]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="text-5xl"
-            >
+            <div className="text-5xl phone-icon">
               📱
-            </motion.div>
-            <motion.div
-              animate={{
-                scale: [1, 1.2, 1],
-                opacity: [0.5, 1, 0.5]
-              }}
-              transition={{
-                duration: 2,
-                repeat: Infinity,
-                ease: "easeInOut"
-              }}
-              className="absolute -top-2 -right-2 text-2xl"
-            >
+            </div>
+            <div className="absolute -top-2 -right-2 text-2xl sparkle-icon">
               ✨
-            </motion.div>
+            </div>
           </div>
           <div>
             <h2 className="text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
@@ -1502,16 +1474,12 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
             </h2>
             <p className="text-purple-300">Transform your ideas into powerful mobile experiences</p>
           </div>
-        </motion.div>
+        </div>
 
         {/* Content with Enhanced Sections */}
         <div className="space-y-6">
           {/* Store Requirements Section */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors"
-          >
+          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors fade-in-section">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -1520,14 +1488,14 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:transform hover:scale-105">
+                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all card-hover">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-purple-300">Google Play Store</span>
                     <span className="text-green-400 font-semibold">$25</span>
                   </div>
                   <p className="text-gray-400 text-sm">One-time registration fee</p>
                 </div>
-                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:transform hover:scale-105">
+                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all card-hover">
                   <div className="flex justify-between items-center mb-2">
                     <span className="text-purple-300">Apple App Store</span>
                     <span className="text-green-400 font-semibold">$99/year</span>
@@ -1559,14 +1527,10 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                 </ul>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Development Process Section */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors"
-          >
+          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors fade-in-section">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
@@ -1585,7 +1549,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                       { phase: "Testing & Refinement", duration: "Week 6" },
                       { phase: "Store Submission", duration: "Final Week" }
                     ].map((step, index) => (
-                      <div key={index} className="flex items-start gap-4">
+                      <div key={index} className="flex items-start gap-4 timeline-item">
                         <div className="w-6 h-6 rounded-full bg-purple-500 flex items-center justify-center flex-shrink-0 mt-1">
                           <span className="text-white text-sm">{index + 1}</span>
                         </div>
@@ -1630,14 +1594,10 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                 </div>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Consultation Options Section */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30"
-          >
+          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30 fade-in-section">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
               <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
@@ -1645,7 +1605,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
               Free Consultation Options
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:transform hover:scale-105">
+              <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all card-hover">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-purple-500/20 rounded-lg">
                     <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1678,7 +1638,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                   </li>
                 </ul>
               </div>
-              <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all hover:transform hover:scale-105">
+              <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all card-hover">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="p-2 bg-purple-500/20 rounded-lg">
                     <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1712,14 +1672,10 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                 </ul>
               </div>
             </div>
-          </motion.div>
+          </div>
 
           {/* Contact Information */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30"
-          >
+          <div className="bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-xl p-6 border border-purple-500/30 fade-in-section">
             <h3 className="text-xl font-semibold text-white mb-4">Get Started Today</h3>
             <p className="text-gray-300 mb-4">
               Ready to bring your app idea to life? Contact us for a free consultation and let's discuss your project in detail.
@@ -1727,7 +1683,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
             <div className="grid md:grid-cols-2 gap-4">
               <a 
                 href="mailto:nexwebs.org@gmail.com" 
-                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30 email-btn"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1736,7 +1692,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
               </a>
               <a 
                 href="mailto:nexdevs.org@gmail.com" 
-                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30 email-btn"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1744,7 +1700,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
                 nexdevs.org@gmail.com
               </a>
             </div>
-          </motion.div>
+          </div>
         </div>
 
         {/* Action Buttons */}
@@ -1757,11 +1713,11 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
           </button>
           <a
             href="mailto:nexwebs.org@gmail.com?subject=Mobile App Development Inquiry&body=I'm interested in developing a mobile app. Please schedule a consultation call."
-            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg transition-all hover:from-purple-500 hover:to-pink-500 flex items-center gap-2 justify-center group"
+            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg transition-all hover:from-purple-500 hover:to-pink-500 flex items-center gap-2 justify-center group cta-btn"
           >
             Schedule Consultation
             <svg 
-              className="w-4 h-4 transform transition-transform group-hover:translate-x-1" 
+              className="w-4 h-4 arrow-icon" 
               fill="none" 
               stroke="currentColor" 
               viewBox="0 0 24 24"
@@ -1774,6 +1730,109 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
     </motion.div>
   );
 };
+
+// Add CSS animations
+const cssAnimationsStyle = `
+  @keyframes floating {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+    100% { transform: translateY(0); }
+  }
+
+  @keyframes rotating {
+    0% { transform: rotate(-12deg); }
+    50% { transform: rotate(-8deg); }
+    100% { transform: rotate(-12deg); }
+  }
+
+  @keyframes floating-right {
+    0% { transform: translateY(0) rotate(12deg); }
+    50% { transform: translateY(10px) rotate(8deg); }
+    100% { transform: translateY(0) rotate(12deg); }
+  }
+
+  @keyframes pulse-subtle {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+  }
+
+  @keyframes shimmer {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(100%); }
+  }
+
+  @keyframes fade-in {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes arrow-move {
+    0% { transform: translateX(0); }
+    50% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+  }
+  
+  @keyframes attention-pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(147, 51, 234, 0.7); }
+    70% { transform: scale(1.05); box-shadow: 0 0 0 15px rgba(147, 51, 234, 0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(147, 51, 234, 0); }
+  }
+  
+  .guide-button-pulse {
+    animation: attention-pulse 2s infinite cubic-bezier(0.66, 0, 0, 1);
+  }
+  
+  .floating-mockup-left {
+    animation: floating 4s ease-in-out infinite, rotating 6s ease-in-out infinite;
+  }
+  
+  .floating-mockup-right {
+    animation: floating-right 4.5s ease-in-out infinite;
+  }
+  
+  .title-sparkle {
+    animation: pulse-subtle 3s ease-in-out infinite;
+  }
+
+  .fade-in-section {
+    animation: fade-in 0.5s ease-out forwards;
+  }
+
+  .card-hover:hover {
+    transform: scale(1.03);
+    transition: transform 0.3s ease;
+  }
+
+  .timeline-item {
+    opacity: 0;
+    animation: fade-in 0.5s ease-out forwards;
+    animation-delay: calc(var(--index, 0) * 0.1s);
+  }
+
+  .phone-icon {
+    animation: pulse-subtle 2s infinite ease-in-out;
+  }
+
+  .sparkle-icon {
+    animation: pulse-subtle 2s infinite ease-in-out;
+  }
+
+  .email-btn:hover {
+    transform: translateY(-3px);
+    transition: transform 0.3s ease;
+  }
+
+  .arrow-icon {
+    animation: arrow-move 1.5s infinite;
+  }
+
+  .cta-btn:hover .arrow-icon {
+    animation: arrow-move 1s infinite;
+  }
+`;
+
+// Use the existing PricingPlan interface
 
 export default function PricingPage() {
   const router = useRouter();
@@ -1791,9 +1850,119 @@ export default function PricingPage() {
   // Add isMobile state to the main component
   const [isMobile, setIsMobile] = useState(false);
 
-  // Replace the showGuide state initialization
-  const [showGuide, setShowGuide] = useState(true);
-  const [currentGuideStep, setCurrentGuideStep] = useState(0);
+  // Add state for our new website guide - initialize as false, we'll set it to true in useEffect
+  const [showWebsiteGuide, setShowWebsiteGuide] = useState(false);
+  
+  // Track if the user has already seen the guide during this session
+  const [hasViewedGuide, setHasViewedGuide] = useState(false);
+
+  // Add state for app modal
+  const [showAppModal, setShowAppModal] = useState(false);
+  
+  // Handler for closing the WebsiteGuide
+  const handleGuideClose = () => {
+    setShowWebsiteGuide(false);
+    setHasViewedGuide(true);
+  };
+
+  // Add CSS styles to the document head
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.textContent = `
+      @keyframes floating {
+        0% { transform: translateY(0); }
+        50% { transform: translateY(-10px); }
+        100% { transform: translateY(0); }
+      }
+    
+      @keyframes rotating {
+        0% { transform: rotate(-12deg); }
+        50% { transform: rotate(-8deg); }
+        100% { transform: rotate(-12deg); }
+      }
+    
+      @keyframes floating-right {
+        0% { transform: translateY(0) rotate(12deg); }
+        50% { transform: translateY(10px) rotate(8deg); }
+        100% { transform: translateY(0) rotate(12deg); }
+      }
+    
+      @keyframes pulse-subtle {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+        100% { transform: scale(1); }
+      }
+    
+      @keyframes shimmer {
+        0% { transform: translateX(-100%); }
+        100% { transform: translateX(100%); }
+      }
+    
+      @keyframes fade-in {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    
+      @keyframes arrow-move {
+        0% { transform: translateX(0); }
+        50% { transform: translateX(5px); }
+        100% { transform: translateX(0); }
+      }
+      
+      .floating-mockup-left {
+        animation: floating 4s ease-in-out infinite, rotating 6s ease-in-out infinite;
+      }
+      
+      .floating-mockup-right {
+        animation: floating-right 4.5s ease-in-out infinite;
+      }
+      
+      .title-sparkle {
+        animation: pulse-subtle 3s ease-in-out infinite;
+      }
+    
+      .fade-in-section {
+        animation: fade-in 0.5s ease-out forwards;
+      }
+    
+      .card-hover:hover {
+        transform: scale(1.03);
+        transition: transform 0.3s ease;
+      }
+    
+      .timeline-item {
+        opacity: 0;
+        animation: fade-in 0.5s ease-out forwards;
+        animation-delay: calc(var(--index, 0) * 0.1s);
+      }
+    
+      .phone-icon {
+        animation: pulse-subtle 2s infinite ease-in-out;
+      }
+    
+      .sparkle-icon {
+        animation: pulse-subtle 2s infinite ease-in-out;
+      }
+    
+      .email-btn:hover {
+        transform: translateY(-3px);
+        transition: transform 0.3s ease;
+      }
+    
+      .arrow-icon {
+        animation: arrow-move 1.5s infinite;
+      }
+    
+      .cta-btn:hover .arrow-icon {
+        animation: arrow-move 1s infinite;
+      }
+    `;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
 
   // Add useEffect to detect mobile devices
   useEffect(() => {
@@ -1814,90 +1983,29 @@ export default function PricingPage() {
     };
   }, []);
 
-  // Modify the guide initialization effect
-  useEffect(() => {
-    if (mounted) {
-      // Check if user has visited before
-      const hasVisitedBefore = localStorage.getItem('pricing-guide-shown') === 'true';
-      
-      if (hasVisitedBefore) {
-        // This is a subsequent visit - either don't show guide or show with X button
-        // Uncomment the next line if you want to never show the guide on subsequent visits
-        // setShowGuide(false);
-      }
-      
-      setCurrentGuideStep(0);
-    }
-  }, [mounted]);
-
-  const handleSkipGuide = () => {
-    setShowGuide(false);
-    // Store in localStorage instead of sessionStorage to persist across browser sessions
-    localStorage.setItem('pricing-guide-shown', 'true');
-  };
-
-  // Enhanced guide steps with better descriptions and highlighting
-  const guideSteps: GuideStep[] = [
-    {
-      title: "Your Currency",
-      content: "Your currency is automatically set based on your location. You can view pricing in multiple currencies including USD, GBP, AED, and PKR with real-time conversion rates.",
-      target: "currency-selector",
-      placement: "bottom",
-      emoji: "💰",
-      targetSelector: ".currency-selector",
-      highlightTarget: true,
-      highlightStyle: "pulse",
-      actionType: "click",
-      showArrow: false
-    },
-    {
-      title: "Explore Pricing Plans",
-      content: "Browse through our pricing plans. Each plan is carefully designed to meet different needs and requirements. Hover over a plan to see its features.",
-      target: "pricing-grid",
-      placement: "top",
-      emoji: "🔍",
-      targetSelector: ".pricing-card",
-      highlightTarget: true,
-      highlightStyle: "spotlight",
-      actionType: "hover",
-      showArrow: false
-    },
-    {
-      title: "View Plan Details",
-      content: "Click 'Learn More' to view comprehensive details about any plan including features, support options, and deployment information.",
-      target: "plan-details",
-      placement: "right",
-      emoji: "📋",
-      targetSelector: ".learn-more-btn",
-      highlightTarget: true,
-      highlightStyle: "glow",
-      actionType: "click",
-      showArrow: false
-    },
-    {
-      title: "Get Started",
-      content: "Found the perfect plan for your project? Click 'Get Started' to begin your journey with NEX-WEBS and take your digital presence to the next level!",
-      target: "get-started",
-      placement: "bottom",
-      emoji: "🚀",
-      targetSelector: ".get-started-btn",
-      highlightTarget: true,
-      highlightStyle: "outline",
-      actionType: "click",
-      showArrow: false
-    }
-  ];
-
-  // Add useEffect to handle client-side mounting and loading state
+  // Add useEffect to handle client-side mounting, loading state, and show guide
   useEffect(() => {
     setMounted(true);
     window.scrollTo(0, 0); // Set scroll position to the top
+    
+    // Show website guide and end loading screen
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000); // 2 seconds loading time
+      
+      // Always show the guide when the page loads
+        window.scrollTo(0, 0);
+        setShowWebsiteGuide(true);
+    }, 1500); // 1.5 seconds loading time
 
     return () => clearTimeout(timer);
   }, []);
+
+  // Add new useEffect to handle the hasViewedGuide state
+  useEffect(() => {
+    if (showWebsiteGuide === false && hasViewedGuide === false) {
+      setHasViewedGuide(true);
+    }
+  }, [showWebsiteGuide, hasViewedGuide]);
 
   // Memoize expensive calculations
   const getFormattedPrice = useCallback((basePrice: number): string => {
@@ -1969,33 +2077,29 @@ export default function PricingPage() {
   // Memoize the pricing cards list for better performance
   const pricingCardsList = useMemo(() => (
     pricingPlans.map((plan) => (
-      <PricingCard
-        key={plan.title}
-        plan={plan}
-        onSelect={setSelectedPlan}
-        onGetStarted={handleGetStarted}
-        currency={currency}
-        exchangeRate={exchangeRate}
-        isExemptCountry={isExemptCountry}
-        isBaseCurrency={isBaseCurrency}
-        getFormattedPrice={getFormattedPrice}
-      />
+      <div key={plan.title} className="flex flex-col">
+        <PricingCard
+          key={plan.title}
+          plan={plan}
+          onSelect={setSelectedPlan}
+          onGetStarted={handleGetStarted}
+          currency={currency}
+          exchangeRate={exchangeRate}
+          isExemptCountry={isExemptCountry}
+          isBaseCurrency={isBaseCurrency}
+          getFormattedPrice={getFormattedPrice}
+        />
+        <div className="mt-2">
+          <PlanReviews 
+            planTitle={plan.title}
+            reviews={reviewsData}
+          />
+        </div>
+      </div>
     ))
-  ), [currency, exchangeRate, isExemptCountry, isBaseCurrency, handleGetStarted, getFormattedPrice]);
+  ), [currency, exchangeRate, isExemptCountry, isBaseCurrency, handleGetStarted, getFormattedPrice, reviewsData]);
 
-  // Handle advancing to next step
-  const handleNextStep = () => {
-    if (currentGuideStep < guideSteps.length - 1) {
-      setCurrentGuideStep(prev => prev + 1);
-    } else {
-      handleSkipGuide(); // Close the guide when finished all steps
-    }
-  };
 
-  // Handle going back to previous step
-  const handlePrevStep = () => {
-    setCurrentGuideStep(prev => Math.max(prev - 1, 0));
-  };
 
   // Style for currency selector
   const currencySelectorStyle: React.CSSProperties = {
@@ -2004,9 +2108,6 @@ export default function PricingPage() {
     display: 'block',
     marginBottom: '2rem',
   };
-
-  // Add state for app modal
-  const [showAppModal, setShowAppModal] = useState(false);
 
   // Return loading screen while loading or during client-side hydration
   if (!mounted || isLoading) {
@@ -2017,8 +2118,8 @@ export default function PricingPage() {
     <div className="min-h-screen bg-black relative overflow-x-hidden pt-20 md:pt-32">
       {/* Remove the glow effects div */}
 
-      {/* Optimized Back Button - Simplified */}
-      <div className="fixed top-4 md:top-20 left-4 md:left-8 z-50">
+      {/* Optimized Back Button - Adjusted position */}
+      <div className="fixed top-2 md:top-16 left-4 md:left-8 z-50">
         <button 
           onClick={() => setSelectedPlan(null)}
           className="flex items-center space-x-2 text-white/80 bg-black/20 backdrop-blur-sm px-3 py-2 rounded-lg"
@@ -2034,6 +2135,21 @@ export default function PricingPage() {
           <span className="text-xs md:text-sm font-medium">Back</span>
         </button>
       </div>
+
+      {/* Add ReviewsDrawer component here, outside the main container */}
+      <ReviewsDrawer 
+        reviews={reviewsData} 
+        satisfactionRate={98}
+        projectsDelivered={245}
+        clientsServed={180}
+        satisfactionStats={[
+          { label: '5-star', percentage: 98, count: 235 },
+          { label: '4-star', percentage: 78, count: 8 },
+          { label: '3-star', percentage: 21, count: 2 },
+          { label: '2-star', percentage: 2, count: 0 },
+          { label: '1-star', percentage: 0, count: 0 }
+        ]}
+      />
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-4 md:pt-8 pb-20 relative z-20">
         <div className="text-center mb-8 md:mb-16 relative z-10">
@@ -2198,6 +2314,42 @@ export default function PricingPage() {
             Transparent pricing with no hidden fees. Select a plan to view detailed features.
           </motion.p>
 
+          {/* AI Integration Section - Moved here */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-8 mb-12 w-full"
+          >
+            <div className="max-w-6xl mx-auto px-4 bg-black/30 backdrop-blur-sm rounded-xl border border-purple-500/20">
+              <AiIntegrationSection />
+            </div>
+          </motion.div>
+
+          {/* Add ReviewsCarousel section before pricing plans */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="mt-8 mb-12 max-w-6xl mx-auto"
+          >
+            <div className="flex flex-col items-center text-center mb-8">
+              <span className="text-2xl mb-2">💬</span>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Client Reviews</h2>
+              <p className="text-purple-200 max-w-2xl text-sm md:text-base">
+                Don't just take our word for it - see what our clients have to say about our services.
+              </p>
+            </div>
+            
+            <div className="mt-8">
+              <ReviewsCarousel 
+                reviews={carouselReviews} 
+                autoplayInterval={5000}
+                title="What Our Clients Say"
+              />
+            </div>
+          </motion.div>
+
           {/* Exclusive Discount Notification */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -2246,6 +2398,11 @@ export default function PricingPage() {
               * Prices include a 30% increase for international clients
             </motion.p>
           )}
+        </div>
+
+        {/* Simplified Pricing Cards Grid with PlanReviews integration */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4 relative z-[1]">
+          {pricingCardsList}
         </div>
 
         {/* E-Commerce Store Management Section */}
@@ -2361,11 +2518,6 @@ export default function PricingPage() {
           </div>
         </motion.div>
 
-        {/* Simplified Pricing Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 lg:gap-8 max-w-6xl mx-auto px-2 md:px-4 relative z-[1]">
-          {pricingCardsList}
-        </div>
-
         {/* Optimized Modal */}
         <AnimatePresence>
           {selectedPlan && (
@@ -2378,20 +2530,13 @@ export default function PricingPage() {
           )}
         </AnimatePresence>
 
-        {/* Guided Tour - Only show for desktop users */}
-        {!isMobile && (
-          <GuidedTour
-            isOpen={showGuide}
-            onClose={() => setShowGuide(false)}
-            currentStep={currentGuideStep}
-            totalSteps={guideSteps.length}
-            stepContent={guideSteps[currentGuideStep]}
-            onNext={handleNextStep}
-            onPrev={handlePrevStep}
-            onSkip={handleSkipGuide}
-            isMobile={isMobile}
-          />
-        )}
+        {/* Guide button removed - guide now appears automatically */}
+        
+        {/* Add Website Guide component */}
+        <WebsiteGuide
+          isOpen={showWebsiteGuide}
+          onClose={handleGuideClose}
+        />
       </div>
       
       {/* Add the AppDevelopmentModal */}

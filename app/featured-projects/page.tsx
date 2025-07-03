@@ -210,43 +210,43 @@ const FeaturedProjectsPage = () => {
     },
     {
       id: "webapp",
-      title: "Web Apps/AI Agents",
-      description: "Custom web applications with AI integration",
+      title: "MODERN AI BASED SAAS PRODUCT",
+      description: "Enterprise-grade SaaS solutions with advanced AI integration",
       details: [
-        "AI-powered features",
-        "Real-time processing",
-        "Custom algorithms",
-        "Data analytics",
-        "Machine learning integration"
+        "Enterprise AI Integration",
+        "Advanced SaaS Architecture",
+        "Predictive Analytics",
+        "Intelligent Automation",
+        "Scalable Infrastructure"
       ],
       metrics: [
-        "85% accuracy in AI predictions",
-        "3x faster data processing",
-        "50+ AI models deployed"
+        "95% accuracy in AI predictions",
+        "5x faster data processing",
+        "100+ AI models deployed"
       ],
       expandedContent: {
-        overview: "We develop sophisticated web applications enhanced with AI capabilities.",
+        overview: "We develop sophisticated SaaS solutions enhanced with enterprise-grade AI capabilities.",
         keyFeatures: [
           {
-            title: "AI-powered Features",
-            description: "Intelligent automation and data-driven decision-making"
+            title: "Enterprise AI Integration",
+            description: "Advanced AI models for intelligent business automation"
           },
           {
-            title: "Real-time Processing",
-            description: "Instant responses to user interactions"
+            title: "SaaS Architecture",
+            description: "Scalable multi-tenant cloud infrastructure"
           },
           {
-            title: "Custom Algorithms",
-            description: "Tailored solutions for specific business needs"
+            title: "Predictive Analytics",
+            description: "Data-driven insights and forecasting"
           }
         ],
-        technologies: ["Python", "JavaScript", "TensorFlow", "Keras", "Machine Learning"],
+        technologies: ["Python", "TypeScript", "TensorFlow", "Kubernetes", "Cloud Infrastructure"],
         processSteps: [
-          "Requirements Analysis",
-          "AI Model Development",
-          "Integration & Testing",
-          "Data Analytics",
-          "Deployment & Maintenance"
+          "Business Analysis",
+          "AI Strategy Development",
+          "SaaS Architecture Design",
+          "AI Model Integration",
+          "Deployment & Scaling"
         ]
       }
     },

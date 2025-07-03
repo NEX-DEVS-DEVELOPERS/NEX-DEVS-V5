@@ -1,0 +1,128 @@
+import { NextRequest, NextResponse } from 'next/server';
+import fs from 'fs';
+import path from 'path';
+import { v4 as uuidv4 } from 'uuid';
+
+// Set a password for admin operations
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
+
+export async function POST(request: NextRequest) {
+  try {
+    // Process the form data
+    const formData = await request.formData();
+    
+    // Get password and role type from form data
+    const password = formData.get('password') as string;
+    const roleType = formData.get('roleType') as string; // 'leader' or 'member'
+    const file = formData.get('file') as File;
+    
+    // Verify password
+    if (password !== ADMIN_PASSWORD) {
+      return NextResponse.json({ error: 'Unauthorized access' }, { status: 401 });
+    }
+    
+    if (!file) {
+      // If no file is provided, return a placeholder image path
+      const placeholderPath = roleType === 'leader' 
+        ? '/team/leader-placeholder.jpg' 
+        : '/team/member-placeholder.jpg';
+        
+      return NextResponse.json({ 
+        success: true, 
+        imagePath: placeholderPath,
+        isPlaceholder: true
+      });
+    }
+
+    // Check if the file is an image
+    if (!file.type.startsWith('image/')) {
+      return NextResponse.json({ error: 'File must be an image' }, { status: 400 });
+    }
+
+    // Create a unique filename to avoid conflicts
+    const fileExtension = file.name.split('.').pop();
+    const uniqueFilename = `${uuidv4()}.${fileExtension}`;
+    
+    try {
+      // Define the path where the image will be saved
+      const teamDir = path.join(process.cwd(), 'public', 'team');
+      const filePath = path.join(teamDir, uniqueFilename);
+      
+      // Make sure the directory exists
+      if (!fs.existsSync(teamDir)) {
+        fs.mkdirSync(teamDir, { recursive: true });
+      }
+      
+      // Convert the file to a buffer
+      const buffer = Buffer.from(await file.arrayBuffer());
+      
+      // Write the file to disk
+      fs.writeFileSync(filePath, buffer);
+      
+      // Return the path that can be used in the team data
+      const relativePath = `/team/${uniqueFilename}`;
+      
+      return NextResponse.json({ 
+        success: true, 
+        imagePath: relativePath,
+        filename: file.name,
+        size: file.size,
+        roleType: roleType
+      });
+    } catch (error) {
+      console.error('Error saving file locally:', error);
+      
+      // Fallback to Base64 approach for cloud environments
+      const arrayBuffer = await file.arrayBuffer();
+      const buffer = Buffer.from(arrayBuffer);
+      const base64Data = buffer.toString('base64');
+      
+      // Generate a data URL that can be used directly in the image src
+      const mimeType = file.type;
+      const dataUrl = `data:${mimeType};base64,${base64Data}`;
+      
+      // Prepare a relative path format to maintain consistency
+      const relativePath = `/team/${uniqueFilename}`;
+      
+      // Create a JSON file that contains the base64 data
+      const dataObject = {
+        dataUrl,
+        filename: file.name,
+        mimeType,
+        size: file.size,
+        roleType: roleType,
+        created: new Date().toISOString()
+      };
+      
+      try {
+        // Try to save the JSON file if possible
+        const dataDir = path.join(process.cwd(), 'app', 'db', 'team-images');
+        if (!fs.existsSync(dataDir)) {
+          fs.mkdirSync(dataDir, { recursive: true });
+        }
+        
+        fs.writeFileSync(
+          path.join(dataDir, `${uniqueFilename}.json`),
+          JSON.stringify(dataObject)
+        );
+      } catch (err) {
+        console.error('Could not save image data to JSON:', err);
+        // Continue anyway, as we'll return the dataUrl directly
+      }
+      
+      return NextResponse.json({ 
+        success: true, 
+        imagePath: dataUrl, // Return the data URL directly
+        filename: file.name,
+        size: file.size,
+        roleType: roleType,
+        isDataUrl: true
+      });
+    }
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return NextResponse.json({ 
+      error: 'Error uploading file: ' + (error instanceof Error ? error.message : String(error))
+    }, { status: 500 });
+  }
+} 

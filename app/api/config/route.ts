@@ -1,50 +1,50 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import mysqlDb from '@/lib/mysql';
+import neonDb from '@/lib/neon';
 
-// Check if MySQL environment variables are set
-const isMySQLConfigured = process.env.MYSQL_HOST || process.env.MYSQL_DATABASE;
+// Check if Neon PostgreSQL environment variables are set
+const isNeonConfigured = process.env.DATABASE_URL;
 
 // Try to detect database type
 async function detectDatabaseType() {
   try {
-    // Try MySQL connection first if configured
-    if (isMySQLConfigured) {
+    // Try Neon PostgreSQL connection first if configured
+    if (isNeonConfigured) {
       try {
-        const mysqlResult = await mysqlDb.testConnection();
-        if (mysqlResult.success) {
-          return { 
-            type: 'mysql', 
-            host: process.env.MYSQL_HOST || 'mysql', 
+        const neonResult = await neonDb.testConnection();
+        if (neonResult.success) {
+          return {
+            type: 'postgresql-neon',
+            host: 'neon.tech',
             readOnlyMode: false
           };
         }
       } catch (error) {
-        console.error('MySQL test failed:', error);
+        console.error('Neon PostgreSQL test failed:', error);
       }
     }
-    
+
     // Check for SQLite file
     const sqliteDbPaths = [
       path.join(process.cwd(), 'app/db/projects.db'),
       path.join(process.cwd(), 'db/projects.db')
     ];
-    
+
     for (const dbPath of sqliteDbPaths) {
       if (fs.existsSync(dbPath)) {
         const isVercel = process.env.VERCEL === '1';
         const isProduction = process.env.NODE_ENV === 'production';
         const readOnlyMode = isVercel && isProduction;
-        
-        return { 
-          type: 'sqlite', 
-          path: dbPath, 
-          readOnlyMode: readOnlyMode 
+
+        return {
+          type: 'sqlite',
+          path: dbPath,
+          readOnlyMode: readOnlyMode
         };
       }
     }
-    
+
     // No database found
     return { type: 'unknown', readOnlyMode: true };
   } catch (error) {

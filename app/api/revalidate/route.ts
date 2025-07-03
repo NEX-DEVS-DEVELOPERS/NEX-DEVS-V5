@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { revalidatePath } from 'next/cache';
 
 // Admin password for authentication
-const ADMIN_PASSWORD = 'nex-devs.org889123';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
 
 export async function GET(req: NextRequest) {
   try {

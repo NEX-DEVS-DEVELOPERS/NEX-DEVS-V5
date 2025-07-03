@@ -2,7 +2,6 @@
 
 import { motion, AnimatePresence, useAnimation } from 'framer-motion'
 import { useState } from 'react'
-import { useEasterEggs } from '@/context/EasterEggContext'
 import Link from 'next/link'
 import { FiCode, FiLayout, FiShoppingBag, FiDatabase, FiSmartphone, FiChevronDown, FiChevronUp } from 'react-icons/fi'
 
@@ -235,48 +234,15 @@ const workProcess = [
 export default function WorkPage() {
   const [hoveredProject, setHoveredProject] = useState<number | null>(null)
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
-  const { addEasterEgg } = useEasterEggs()
-  const [clickCount, setClickCount] = useState(0)
-  const statsControls = useAnimation()
-  const [lastClickedStat, setLastClickedStat] = useState<string | null>(null)
-
-  const handleSecretClick = () => {
-    setClickCount(prev => {
-      if (prev + 1 === 5) {
-        addEasterEgg('work-achievement')
-        return 0
-      }
-      return prev + 1
-    })
-  }
+  const [expandedStat, setExpandedStat] = useState<string | null>(null)
+  const controls = useAnimation()
 
   const toggleProject = (projectId: number) => {
     setExpandedProject(expandedProject === projectId ? null : projectId)
   }
 
-  // Simplified Easter egg handler for stats
   const handleStatClick = (label: string) => {
-    // Trigger the easter egg immediately on click
-    setLastClickedStat(label)
-    
-    // Enhanced animation sequence
-    statsControls.start({
-      scale: [1, 1.3, 0.9, 1.1, 1],
-      rotate: [0, 15, -15, 10, 0],
-      transition: { 
-        duration: 1,
-        ease: "easeInOut"
-      }
-    }).then(() => {
-      // Add Easter egg after animation
-      addEasterEgg('stats-master')
-    })
-
-    // Trigger a background flash effect
-    document.body.style.backgroundColor = '#1a0033'
-    setTimeout(() => {
-      document.body.style.backgroundColor = '#000000'
-    }, 300)
+    setExpandedStat(expandedStat === label ? null : label)
   }
 
   return (
@@ -322,7 +288,6 @@ export default function WorkPage() {
                 className="relative overflow-hidden rounded-xl bg-white/5 border border-purple-500/10 backdrop-blur-sm hover:border-purple-500/20 transition-colors"
                 onHoverStart={() => setHoveredProject(project.id)}
                 onHoverEnd={() => setHoveredProject(null)}
-                onClick={handleSecretClick}
               >
                 <div className="p-4 sm:p-6">
                   <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
@@ -552,7 +517,7 @@ export default function WorkPage() {
         >
           <motion.div 
             className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8"
-            animate={statsControls}
+            animate={controls}
           >
             {[
               { label: "Projects Completed", value: "50+" },
@@ -563,7 +528,7 @@ export default function WorkPage() {
               <motion.div
                 key={stat.label}
                 className={`text-center p-4 sm:p-6 rounded-xl backdrop-blur-sm cursor-pointer
-                  ${lastClickedStat === stat.label 
+                  ${expandedStat === stat.label 
                     ? 'bg-purple-500/30 border-purple-400/50 shadow-[0_0_30px_rgba(168,85,247,0.4)]' 
                     : 'bg-white/5 border-purple-500/10'} 
                   border hover:border-purple-500/30 transition-all duration-500`}
@@ -585,41 +550,9 @@ export default function WorkPage() {
                   {stat.value}
                 </motion.h4>
                 <p className="text-sm sm:text-base text-gray-200 font-semibold">{stat.label}</p>
-                {lastClickedStat === stat.label && (
-                  <>
-                    <motion.div
-                      initial={{ scale: 0 }}
-                      animate={{ 
-                        scale: [0, 1.5, 1],
-                        rotate: [0, 360, 720]
-                      }}
-                      transition={{ duration: 1 }}
-                      className="absolute top-2 right-2 w-4 h-4 rounded-full bg-purple-400 shadow-[0_0_20px_rgba(168,85,247,0.8)]"
-                    />
-                    <motion.div
-                      initial={{ scale: 0.8, opacity: 0 }}
-                      animate={{ 
-                        scale: [1, 1.2, 1],
-                        opacity: [0.5, 1, 0.5]
-                      }}
-                      transition={{ duration: 2, repeat: Infinity }}
-                      className="absolute inset-0 border-2 border-purple-400/30 rounded-xl"
-                    />
-                  </>
-                )}
               </motion.div>
             ))}
           </motion.div>
-          
-          {/* Easter Egg Hint */}
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 0.8 }}
-            transition={{ delay: 1 }}
-            className="text-center text-lg text-purple-300 mt-6 italic font-bold"
-          >
-            ✨ Click a stat to reveal something magical! ✨
-          </motion.p>
         </motion.section>
       </div>
     </div>

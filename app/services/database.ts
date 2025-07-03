@@ -1,6 +1,4 @@
-import Database from 'better-sqlite3';
-import path from 'path';
-import fs from 'fs';
+import { getProjects, getProjectById, createProject as createNeonProject, updateProject as updateNeonProject, deleteProject as deleteNeonProject, getFeaturedProjects as getNeonFeaturedProjects, getNewlyAddedProjects as getNeonNewlyAddedProjects, getProjectsByCategory as getNeonProjectsByCategory, getUniqueCategories as getNeonUniqueCategories } from '@/lib/neon';
 import { Project } from '../api/projects/index';
 
 // Determine environment variables
@@ -10,237 +8,28 @@ const READ_ONLY_MODE = isVercel && isProduction;
 
 console.log(`Environment: ${isProduction ? 'Production' : 'Development'}, Vercel: ${isVercel ? 'Yes' : 'No'}, Read-only: ${READ_ONLY_MODE ? 'Yes' : 'No'}`);
 
-// Initialize the database
-let db: Database.Database;
-let dbPath: string = '';
-let dbDir: string = '';
-
-// Get database path based on environment
-function getDbPaths() {
-  const isVercel = process.env.VERCEL === '1';
-  const cwd = process.cwd();
-  
-  // Add more possible paths for Vercel deployment
-  return [
-    // Vercel specific paths
-    isVercel ? path.join(cwd, '.vercel', 'output', 'functions', 'db', 'projects.db') : null,
-    isVercel ? path.join(cwd, '.vercel', 'output', 'server', 'db', 'projects.db') : null,
-    // Regular paths
-    path.join(cwd, 'app', 'db', 'projects.db'),
-    path.join(cwd, 'db', 'projects.db'),
-    path.join(cwd, '.next', 'server', 'db', 'projects.db'),
-    path.join(cwd, '.next', 'cache', 'db', 'projects.db'),
-    // Default in-memory as last resort
-    ':memory:'
-  ].filter(Boolean) as string[];
-}
-
-try {
-  // Primary path for local development
-  dbDir = path.join(process.cwd(), 'db');
-  
-  // Ensure the database directory exists
-  if (!fs.existsSync(dbDir)) {
-    console.log(`Creating database directory at ${dbDir}`);
-    fs.mkdirSync(dbDir, { recursive: true });
-  }
-  
-  // Try multiple possible database locations
-  const possiblePaths = getDbPaths();
-  
-  // Log possible locations for debugging
-  console.log('Trying database paths:', possiblePaths);
-  
-  // Try each path until we find one that works
-  let dbInstance: Database.Database | null = null;
-  let dbPathSuccess: string | null = null;
-  
-  for (const potentialPath of possiblePaths) {
-    try {
-      console.log(`Attempting to open database at: ${potentialPath}`);
-      
-      // If we're in production and this is the temp path, try to copy from the deployment
-      if (isProduction && potentialPath.includes('/tmp') && !fs.existsSync(potentialPath)) {
-        const sourceDbPath = path.join(process.cwd(), '.next', 'server', 'db', 'portfolio.db');
-        if (fs.existsSync(sourceDbPath)) {
-          console.log(`Copying database from ${sourceDbPath} to ${potentialPath}`);
-          fs.copyFileSync(sourceDbPath, potentialPath);
-        }
-      }
-      
-      dbInstance = new Database(potentialPath);
-      dbPathSuccess = potentialPath;
-      console.log(`Successfully opened database at: ${potentialPath}`);
-      break;
-    } catch (error) {
-      console.error(`Failed to open database at ${potentialPath}:`, error);
-      // Continue to the next path
-    }
-  }
-  
-  // If we couldn't open the database with any path, throw an error
-  if (!dbInstance) {
-    throw new Error('Could not open database with any of the possible paths');
-  }
-  
-  // Successfully opened the database
-  db = dbInstance;
-  dbPath = dbPathSuccess as string;
-
-  // Set up the projects table
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      detailedDescription TEXT,
-      image TEXT NOT NULL,
-      secondImage TEXT,
-      showBothImagesInPriority INTEGER DEFAULT 0,
-      category TEXT NOT NULL,
-      technologies TEXT NOT NULL,
-      techDetails TEXT,
-      link TEXT NOT NULL,
-      featured INTEGER DEFAULT 0,
-      completionDate TEXT,
-      clientName TEXT,
-      duration TEXT,
-      status TEXT,
-      updatedDays INTEGER,
-      progress INTEGER,
-      developmentProgress INTEGER,
-      estimatedCompletion TEXT,
-      features TEXT,
-      exclusiveFeatures TEXT,
-      imagePriority INTEGER DEFAULT 5,
-      visualEffects TEXT,
-      lastUpdated TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-
-  // Create indexes for better performance
-  db.exec(`
-    CREATE INDEX IF NOT EXISTS idx_projects_featured ON projects (featured);
-    CREATE INDEX IF NOT EXISTS idx_projects_status ON projects (status);
-    CREATE INDEX IF NOT EXISTS idx_projects_category ON projects (category);
-  `);
-
-} catch (error) {
-  console.error('Critical database initialization error:', error);
-  // Initialize an in-memory database as a last resort
-  console.warn('Falling back to in-memory SQLite database');
-  db = new Database(':memory:');
-  dbPath = ':memory:';
-  
-  // Set up the basic schema for in-memory database
-  db.exec(`
-    CREATE TABLE IF NOT EXISTS projects (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      title TEXT NOT NULL,
-      description TEXT NOT NULL,
-      image TEXT NOT NULL,
-      category TEXT NOT NULL,
-      technologies TEXT NOT NULL,
-      link TEXT NOT NULL,
-      featured INTEGER DEFAULT 0,
-      lastUpdated TEXT DEFAULT CURRENT_TIMESTAMP
-    );
-  `);
-}
-
-// Helper function to convert project to database row
-function projectToRow(project: Project): any {
-  // Convert visualEffects to JSON string if it's not already a string
-  let visualEffectsJson = null;
-  if (project.visualEffects) {
-    if (typeof project.visualEffects === 'string') {
-      visualEffectsJson = project.visualEffects;
-    } else {
-      try {
-        visualEffectsJson = JSON.stringify(project.visualEffects);
-      } catch (e) {
-        console.error('Error stringifying visualEffects:', e);
-        visualEffectsJson = JSON.stringify({});
-      }
-    }
-  }
-
-  return {
-    id: project.id,
-    title: project.title,
-    description: project.description,
-    detailedDescription: project.detailedDescription || null,
-    image: project.image,
-    secondImage: project.secondImage || null,
-    showBothImagesInPriority: project.showBothImagesInPriority ? 1 : 0,
-    category: project.category,
-    technologies: JSON.stringify(project.technologies || []),
-    techDetails: project.techDetails ? JSON.stringify(project.techDetails) : null,
-    link: project.link,
-    featured: project.featured ? 1 : 0,
-    completionDate: project.completionDate || null,
-    clientName: project.clientName || null,
-    duration: project.duration || null,
-    status: project.status || null,
-    updatedDays: project.updatedDays || null,
-    progress: project.progress || null,
-    developmentProgress: project.developmentProgress || null,
-    estimatedCompletion: project.estimatedCompletion || null,
-    features: project.features ? JSON.stringify(project.features) : null,
-    exclusiveFeatures: project.exclusiveFeatures ? JSON.stringify(project.exclusiveFeatures) : null,
-    imagePriority: project.imagePriority || 5,
-    visualEffects: visualEffectsJson,
-    lastUpdated: new Date().toISOString()
-  };
-}
-
-// Helper function to convert database row to project
-function rowToProject(row: any): Project {
-  return {
-    id: row.id,
-    title: row.title,
-    description: row.description,
-    detailedDescription: row.detailedDescription,
-    image: row.image,
-    secondImage: row.secondImage,
-    showBothImagesInPriority: row.showBothImagesInPriority === 1,
-    category: row.category,
-    technologies: JSON.parse(row.technologies || '[]'),
-    techDetails: row.techDetails ? JSON.parse(row.techDetails) : undefined,
-    link: row.link,
-    featured: row.featured === 1,
-    completionDate: row.completionDate,
-    clientName: row.clientName,
-    duration: row.duration,
-    status: row.status,
-    updatedDays: row.updatedDays,
-    progress: row.progress,
-    developmentProgress: row.developmentProgress,
-    estimatedCompletion: row.estimatedCompletion,
-    features: row.features ? JSON.parse(row.features) : undefined,
-    exclusiveFeatures: row.exclusiveFeatures ? JSON.parse(row.exclusiveFeatures) : undefined,
-    imagePriority: row.imagePriority,
-    visualEffects: row.visualEffects ? JSON.parse(row.visualEffects) : undefined,
-    lastUpdated: row.lastUpdated
-  };
-}
-
 // Get all projects
-export function getAllProjects(): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects ORDER BY featured DESC, imagePriority ASC, id DESC');
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+export async function getAllProjects(): Promise<Project[]> {
+  try {
+    return await getProjects();
+  } catch (error) {
+    console.error('Error fetching all projects:', error);
+    return [];
+  }
 }
 
 // Get project by ID
-export function getProjectById(id: number): Project | null {
-  const stmt = db.prepare('SELECT * FROM projects WHERE id = ?');
-  const row = stmt.get(id);
-  return row ? rowToProject(row) : null;
+export async function getProjectById(id: number): Promise<Project | null> {
+  try {
+    return await getProjectById(id);
+  } catch (error) {
+    console.error(`Error fetching project with id ${id}:`, error);
+    return null;
+  }
 }
 
 // Create a new project
-export function createProject(project: Omit<Project, 'id'>): Project {
+export async function createProject(project: Omit<Project, 'id'>): Promise<Project> {
   try {
     if (READ_ONLY_MODE) {
       console.log(`[Read-only mode] Would create new project: ${project.title}`);
@@ -248,233 +37,124 @@ export function createProject(project: Omit<Project, 'id'>): Project {
       // In read-only mode, generate a fake ID and pretend it worked
       return {
         ...project,
-        id: Math.floor(Math.random() * 10000) + 1000
-      };
+        id: Math.floor(Math.random() * 10000) + 1000, // Generate a fake ID
+        lastUpdated: new Date().toISOString()
+      } as Project;
     }
     
-    const insertStmt = db.prepare(`
-      INSERT INTO projects (
-        title, description, detailedDescription, image, secondImage, showBothImagesInPriority,
-        category, technologies, techDetails, link, featured, completionDate, clientName,
-        duration, status, updatedDays, progress, developmentProgress, estimatedCompletion,
-        features, exclusiveFeatures, imagePriority, visualEffects, lastUpdated
-      ) VALUES (
-        @title, @description, @detailedDescription, @image, @secondImage, @showBothImagesInPriority,
-        @category, @technologies, @techDetails, @link, @featured, @completionDate, @clientName,
-        @duration, @status, @updatedDays, @progress, @developmentProgress, @estimatedCompletion,
-        @features, @exclusiveFeatures, @imagePriority, @visualEffects, @lastUpdated
-      )
-    `);
-    
-    const projectData = projectToRow({ ...project, id: 0 });
-    const result = insertStmt.run(projectData);
-    
-    return {
-      ...project,
-      id: result.lastInsertRowid as number
-    };
+    return await createNeonProject(project);
   } catch (error) {
-    console.error(`Error creating project:`, error);
+    console.error('Error creating project:', error);
     throw error;
   }
 }
 
 // Update an existing project
-export function updateProject(idOrProject: number | Project, projectData?: Project): boolean {
+export async function updateProject(idOrProject: number | Project, projectData?: Project): Promise<boolean> {
   try {
-    // Handle both function signatures:
-    // 1. updateProject(project) - where project contains its own ID
-    // 2. updateProject(id, project) - where id and project are separate parameters
-    
-    let id: number;
-    let project: Project;
-    
-    if (typeof idOrProject === 'number') {
-      // Called as updateProject(id, project)
-      id = idOrProject;
-      project = projectData as Project;
-    } else {
-      // Called as updateProject(project)
-      id = idOrProject.id;
-      project = idOrProject;
-    }
-    
     if (READ_ONLY_MODE) {
-      console.log(`[Read-only mode] Would update project ID: ${id}`);
-      
-      // In read-only mode, pretend the operation succeeded
-      return true;
+      console.log(`[Read-only mode] Would update project id: ${typeof idOrProject === 'number' ? idOrProject : idOrProject.id}`);
+      return true; // Pretend it worked
     }
     
-    const updateStmt = db.prepare(`
-      UPDATE projects SET
-        title = @title,
-        description = @description,
-        detailedDescription = @detailedDescription,
-        image = @image,
-        secondImage = @secondImage,
-        showBothImagesInPriority = @showBothImagesInPriority,
-        category = @category,
-        technologies = @technologies,
-        techDetails = @techDetails,
-        link = @link,
-        featured = @featured,
-        completionDate = @completionDate,
-        clientName = @clientName,
-        duration = @duration,
-        status = @status,
-        updatedDays = @updatedDays,
-        progress = @progress,
-        developmentProgress = @developmentProgress,
-        estimatedCompletion = @estimatedCompletion,
-        features = @features,
-        exclusiveFeatures = @exclusiveFeatures,
-        imagePriority = @imagePriority,
-        visualEffects = @visualEffects,
-        lastUpdated = @lastUpdated
-      WHERE id = @id
-    `);
+    const id = typeof idOrProject === 'number' ? idOrProject : idOrProject.id;
+    const data = projectData || (typeof idOrProject !== 'number' ? idOrProject : {});
     
-    const result = updateStmt.run(projectToRow(project));
-    return result.changes > 0;
+    await updateNeonProject(id, data);
+    return true;
   } catch (error) {
-    console.error(`Error updating project ID ${typeof idOrProject === 'number' ? idOrProject : idOrProject.id}:`, error);
-    throw error;
+    console.error(`Error updating project:`, error);
+    return false;
   }
 }
 
 // Delete a project
-export function deleteProject(id: number): boolean {
+export async function deleteProject(id: number): Promise<boolean> {
   try {
     if (READ_ONLY_MODE) {
-      console.log(`[Read-only mode] Would delete project ID: ${id}`);
-      
-      // In read-only mode, pretend the operation succeeded
-      // This is only for Vercel serverless functions where SQLite can't write
-      return true;
+      console.log(`[Read-only mode] Would delete project id: ${id}`);
+      return true; // Pretend it worked
     }
     
-    const deleteStmt = db.prepare('DELETE FROM projects WHERE id = ?');
-    const result = deleteStmt.run(id);
-    return result.changes > 0;
+    await deleteNeonProject(id);
+    return true;
   } catch (error) {
-    console.error(`Error deleting project ID ${id}:`, error);
-    throw error;
+    console.error(`Error deleting project with id ${id}:`, error);
+    return false;
   }
 }
 
 // Get newly added projects
-export function getNewlyAddedProjects(): Project[] {
-  const stmt = db.prepare(`
-    SELECT * FROM projects 
-    WHERE title LIKE 'NEWLY ADDED:%' 
-    OR status IN ('In Development', 'Beta Testing', 'Recently Launched')
-    ORDER BY updatedDays ASC, featured DESC, id DESC
-  `);
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+export async function getNewlyAddedProjects(): Promise<Project[]> {
+  try {
+    return await getNeonNewlyAddedProjects();
+  } catch (error) {
+    console.error('Error fetching newly added projects:', error);
+    return [];
+  }
 }
 
-// Get regular projects (not newly added)
-export function getRegularProjects(): Project[] {
-  const stmt = db.prepare(`
-    SELECT * FROM projects 
-    WHERE title NOT LIKE 'NEWLY ADDED:%' 
-    AND (status IS NULL OR status NOT IN ('In Development', 'Beta Testing', 'Recently Launched'))
-    ORDER BY featured DESC, imagePriority ASC, id DESC
-  `);
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+// Get regular (non-featured) projects
+export async function getRegularProjects(): Promise<Project[]> {
+  try {
+    // Get all projects and filter out featured ones
+    const allProjects = await getProjects();
+    return allProjects.filter(project => !project.featured);
+  } catch (error) {
+    console.error('Error fetching regular projects:', error);
+    return [];
+  }
 }
 
 // Get featured projects
-export function getFeaturedProjects(): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects WHERE featured = 1 ORDER BY imagePriority ASC, id DESC');
-  const rows = stmt.all();
-  return rows.map(rowToProject);
+export async function getFeaturedProjects(): Promise<Project[]> {
+  try {
+    return await getNeonFeaturedProjects();
+  } catch (error) {
+    console.error('Error fetching featured projects:', error);
+    return [];
+  }
 }
 
 // Get projects by category
-export function getProjectsByCategory(category: string): Project[] {
-  const stmt = db.prepare('SELECT * FROM projects WHERE category = ? ORDER BY featured DESC, id DESC');
-  const rows = stmt.all(category);
-  return rows.map(rowToProject);
+export async function getProjectsByCategory(category: string): Promise<Project[]> {
+  try {
+    return await getNeonProjectsByCategory(category);
+  } catch (error) {
+    console.error(`Error fetching projects in category ${category}:`, error);
+    return [];
+  }
 }
 
 // Get unique categories
-export function getUniqueCategories(): string[] {
-  const stmt = db.prepare('SELECT DISTINCT category FROM projects');
-  const rows = stmt.all();
-  return rows.map((row: any) => row.category);
-}
-
-// Migrate existing JSON data to SQLite (run this once)
-export async function migrateJsonToSqlite(): Promise<void> {
+export async function getUniqueCategories(): Promise<string[]> {
   try {
-    // Check if migration is needed by counting projects
-    const countStmt = db.prepare('SELECT COUNT(*) as count FROM projects');
-    const countResult = countStmt.get() as { count: number };
-    
-    if (countResult.count > 0) {
-      console.log('Migration skipped: Database already contains projects');
-      return;
-    }
-    
-    // Read JSON file
-    const projectsFilePath = path.join(process.cwd(), 'app', 'db', 'projects.json');
-    const projectsData = fs.readFileSync(projectsFilePath, 'utf8');
-    const projects = JSON.parse(projectsData) as Project[];
-    
-    // Begin transaction for better performance
-    const transaction = db.transaction((projects: Project[]) => {
-      for (const project of projects) {
-        createProject(project);
-      }
-    });
-    
-    transaction(projects);
-    console.log(`Migration complete: ${projects.length} projects imported to SQLite`);
+    return await getNeonUniqueCategories();
   } catch (error) {
-    console.error('Error migrating data:', error);
-    throw error;
+    console.error('Error fetching unique categories:', error);
+    return [];
   }
 }
 
-// Update the initializeDatabase function to be more resilient
-export async function initializeDatabase() {
-  // Try multiple possible database paths
-  const possiblePaths = getDbPaths();
-  let dbInstance = null;
-  let dbPathSuccess = null;
-  let openAttempts = 0;
-  
-  console.log('Attempting to initialize database...');
-  
-  for (const dbPath of possiblePaths) {
-    try {
-      openAttempts++;
-      console.log(`Attempt ${openAttempts}: Opening database at ${dbPath}`);
-      
-      // Create directory if it doesn't exist (except for in-memory)
-      if (dbPath !== ':memory:') {
-        const dbDir = path.dirname(dbPath);
-        if (!fs.existsSync(dbDir)) {
-          fs.mkdirSync(dbDir, { recursive: true });
-          console.log(`Created directory ${dbDir}`);
-        }
-      }
-      
-      // Try to open the database
-      dbInstance = new Database(dbPath, { verbose: console.log });
-      dbPathSuccess = dbPath;
-      console.log(`Successfully opened database at ${dbPath}`);
-      break;
-    } catch (error) {
-      console.error(`Failed to open database at ${dbPath}:`, error);
-    }
-  }
+// Function to migrate JSON data to the database (kept for compatibility)
+export async function migrateJsonToSqlite(): Promise<void> {
+  // This function is maintained for compatibility but doesn't do anything anymore
+  // since we've migrated from SQLite to Neon PostgreSQL
+  console.log('migrateJsonToSqlite function called but skipped - using Neon PostgreSQL now');
+  return;
+}
 
-  // ... existing code ...
+// Function to initialize the database (kept for compatibility)
+export async function initializeDatabase() {
+  // This function now uses Neon PostgreSQL initialization
+  try {
+    // Import the function dynamically to avoid circular references
+    const { initDatabase } = await import('@/lib/neon');
+    await initDatabase();
+    console.log('Database initialization completed');
+  } catch (error) {
+    console.error('Error initializing database:', error);
+  }
 }
 
 export default {

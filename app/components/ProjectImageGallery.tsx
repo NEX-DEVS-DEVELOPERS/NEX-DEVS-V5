@@ -16,7 +16,8 @@ type Project = {
   secondImage?: string
   category: string
   technologies: string[]
-  link: string
+  link?: string
+  project_link?: string
   featured: boolean
   status?: string
   updatedDays?: number
@@ -162,6 +163,87 @@ export default function ProjectImageGallery() {
     }
   }, []);
 
+  // Manual refresh function
+  const handleManualRefresh = useCallback(() => {
+    setIsLoading(true);
+    setFetchError(null);
+    
+    // Clear cache to force fresh data
+    projectsCache.current = null;
+    
+    // Fetch fresh projects data
+    const fetchFreshData = async () => {
+      try {
+        const timestamp = new Date().getTime();
+        const randomValue = Math.floor(Math.random() * 10000000);
+        const cache = `nocache=${timestamp}-${randomValue}`;
+        
+        console.log(`[ProjectImageGallery] Manual refresh at timestamp: ${timestamp}`);
+        
+        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
+          cache: 'no-store',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+            'X-Force-Refresh': 'true',
+            'X-Random-Value': randomValue.toString()
+          }
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to fetch projects: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Filter and sort projects
+        const projectsWithImages = data.filter((project: Project) => 
+          project.image && 
+          !project.image.includes('placeholder')
+        );
+        
+        const sortedProjects = [...projectsWithImages].sort((a: Project, b: Project) => {
+          // Handle numeric priority
+          if (typeof a.imagePriority === 'number' && typeof b.imagePriority === 'number') {
+            return a.imagePriority - b.imagePriority;
+          }
+          
+          // If only one has numeric priority, it takes precedence
+          if (typeof a.imagePriority === 'number') return -1;
+          if (typeof b.imagePriority === 'number') return 1;
+          
+          // Handle boolean priority as fallback
+          if (a.imagePriority === true && b.imagePriority !== true) return -1;
+          if (a.imagePriority !== true && b.imagePriority === true) return 1;
+          
+          // Finally sort by featured and ID
+          if (a.featured && !b.featured) return -1;
+          if (!a.featured && b.featured) return 1;
+          
+          return a.id - b.id;
+        });
+        
+        // Update cache
+        projectsCache.current = {
+          data: sortedProjects,
+          timestamp
+        };
+        
+        setProjects(sortedProjects);
+        setLastFetchTime(timestamp);
+        setCurrentIndex(0); // Reset to first project
+      } catch (error) {
+        console.error('Error fetching projects during manual refresh:', error);
+        setFetchError(error instanceof Error ? error.message : 'Failed to load projects');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchFreshData();
+  }, []);
+
   // Setup autoplay carousel
   useEffect(() => {
     if (projects.length <= 1 || !isAutoplayEnabled) return;
@@ -230,13 +312,26 @@ export default function ProjectImageGallery() {
     });
   }, [projects.length]);
 
-  // Handle image click to navigate to project
-  const handleImageClick = useCallback((projectId: number) => {
-    const project = projects.find(p => p.id === projectId)
-    if (project) {
-      router.push(`/projects/${projectId}`)
+  // Handle image click to show enlarged view
+  const handleImageClick = useCallback((projectId: number, imageSource?: string) => {
+    const project = projects.find(p => p.id === projectId);
+    if (!project) return;
+    
+    // If imageSource is provided, use it directly
+    if (imageSource) {
+      setEnlargedImage({
+        projectId,
+        image: imageSource
+      });
+      return;
     }
-  }, [projects, router]);
+    
+    // Otherwise use the primary image
+    setEnlargedImage({
+      projectId,
+      image: project.image
+    });
+  }, [projects]);
 
   // Handle image enlargement
   const handleImageEnlarge = useCallback((e: React.MouseEvent, projectId: number, image: string) => {
@@ -287,11 +382,17 @@ export default function ProjectImageGallery() {
 
   // Previous/Next navigation
   const goToPrevious = useCallback(() => {
-    setCurrentIndex(prevIndex => prevIndex === 0 ? projects.length - 1 : prevIndex - 1);
+    if (projects.length <= 1) return;
+    setCurrentIndex(prevIndex => 
+      prevIndex === 0 ? projects.length - 1 : prevIndex - 1
+    );
   }, [projects.length]);
   
   const goToNext = useCallback(() => {
-    setCurrentIndex(prevIndex => prevIndex === projects.length - 1 ? 0 : prevIndex + 1);
+    if (projects.length <= 1) return;
+    setCurrentIndex(prevIndex => 
+      prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+    );
   }, [projects.length]);
 
   // Add swipe functionality for mobile
@@ -340,442 +441,350 @@ export default function ProjectImageGallery() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
-      <div className="relative overflow-hidden rounded-xl bg-black/20 border border-purple-500/20 p-4 md:p-6">
-        <div className="mb-6 flex justify-between items-center">
+    <section className="max-w-7xl mx-auto mb-16 px-4 md:px-6">
+      {/* Gallery Header */}
+      <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div>
-          <h2 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-white to-purple-300 bg-clip-text text-transparent mb-2">
-            Project Gallery
+          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-300 to-blue-400 bg-clip-text text-transparent mb-2">
+            Project Showcase
           </h2>
-          <p className="text-gray-400 text-sm md:text-base">
-            Visual showcase of my projects. Swipe or use arrows to browse. Click any image to learn more.
-          </p>
-          </div>
-          
-          {/* Autoplay toggle button */}
-          {projects.length > 1 && (
-            <button
-              onClick={toggleAutoplay}
-              className="flex items-center gap-2 px-3 py-2 bg-black/50 rounded-lg border border-purple-500/30 hover:bg-black/70 transition-colors"
-              aria-label={isAutoplayEnabled ? "Switch to manual slideshow" : "Switch to automatic slideshow"}
-            >
-              {isAutoplayEnabled ? (
-                <>
-                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm text-purple-300 hidden sm:inline">Auto</span>
-                </>
-              ) : (
-                <>
-                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  <span className="text-sm text-purple-300 hidden sm:inline">Manual</span>
-                </>
-              )}
-            </button>
-          )}
+          <p className="text-gray-400 text-lg">Explore my latest work and innovations</p>
         </div>
-        
-        {/* Enlarged Image Overlay */}
-        {enlargedImage && (
-          <div 
-            className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4 md:p-10"
-            onClick={() => setEnlargedImage(null)}
-          >
-            <div className="relative max-w-7xl w-full h-[80vh] rounded-xl overflow-hidden">
-              <div 
-                className="absolute top-4 right-4 z-10 bg-black/50 backdrop-blur-sm rounded-full p-2 cursor-pointer hover:bg-black/80 transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEnlargedImage(null);
-                }}
-              >
-                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
               </div>
               
-              <div className="h-full w-full relative" onClick={(e) => e.stopPropagation()}>
-                  <div className="absolute inset-0 rounded-xl overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
-                    <Image 
-                      src={enlargedImage.image} 
-                      alt={projects.find(p => p.id === enlargedImage.projectId)?.title || ''}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 1200px"
-                      className="object-contain transition-transform duration-500"
-                      priority={true}
-                      quality={100}
-                      style={{ 
-                        WebkitBackfaceVisibility: 'hidden', 
-                        WebkitPerspective: 1000, 
-                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
-                        transform: 'translateZ(0)'
-                      }}
-                      unoptimized={enlargedImage.image.startsWith('data:')}
-                    />
-                  
-                  {/* Gradient overlay for text readability */}
-                  <div className="absolute bottom-0 left-0 right-0 h-1/4 bg-gradient-to-t from-black/80 to-transparent pointer-events-none"></div>
+      {/* Main Gallery */}
+      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-black/40 to-black/20 border border-purple-500/20 p-4 md:p-6">
+        {/* Decorative elements */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[120px]" />
+          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] bg-indigo-900/10 rounded-full blur-[120px]" />
                 </div>
                 
-                {/* Toggle between images - ALWAYS VISIBLE */}
-                {projects.find(p => p.id === enlargedImage.projectId)?.secondImage && (
-                  <div className="absolute top-4 left-4 z-10">
-                    <button 
-                      className="bg-purple-600/90 hover:bg-purple-600 text-white p-2.5 rounded-lg shadow-lg transition-colors flex items-center gap-2 border border-purple-400/30"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        console.log('Enlarged image switch view button clicked');
-                        const project = projects.find(p => p.id === enlargedImage.projectId);
-                        if (project && project.secondImage) {
-                          // Check if current enlarged image is primary or secondary
-                          if (enlargedImage.image === project.image) {
-                            // Switch to secondary
-                            setEnlargedImage({
-                              projectId: enlargedImage.projectId,
-                              image: project.secondImage
-                            });
-                          } else {
-                            // Switch to primary
-                            setEnlargedImage({
-                              projectId: enlargedImage.projectId, 
-                              image: project.image
-                            });
-                          }
-                        }
-                      }}
-                    >
-                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                      </svg>
-                      <span className="text-xs font-medium">Switch View</span>
-                    </button>
-                  </div>
-                )}
-                
-                {/* Project details overlay on enlarged image */}
-                  <div className="absolute bottom-0 left-0 right-0 bg-black/60 backdrop-blur-sm p-4 text-white">
-                  <h3 className="text-xl font-bold mb-1">
-                      {projects.find(p => p.id === enlargedImage.projectId)?.title || ''}
-                    </h3>
-                  <p className="text-sm text-gray-300 mb-1 line-clamp-2">
-                    {projects.find(p => p.id === enlargedImage.projectId)?.description}
-                  </p>
-                  <p className="text-xs text-purple-300">
-                    {enlargedImage.image === projects.find(p => p.id === enlargedImage.projectId)?.image ? 
-                      'Primary View' : 'Secondary View'}
-                  </p>
-                </div>
-              </div>
+        {isLoading ? (
+          <div className="h-[500px] flex items-center justify-center">
+            <div className="flex space-x-3">
+              <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
+              <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+              <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
             </div>
           </div>
-        )}
-        
-        {/* Main Carousel */}
+        ) : (
+          <div className="relative">
+            {/* Main carousel */}
         <div 
           ref={carouselRef} 
-          className="relative rounded-xl overflow-hidden will-change-transform"
+              className="flex transition-transform duration-500 ease-in-out"
+              style={{ transform: `translateX(-${currentIndex * 100}%)` }}
           onTouchStart={handleTouchStart}
           onTouchEnd={handleTouchEnd}
         >
-          {/* Carousel container */}
-          <div className="relative aspect-[16/9] sm:aspect-[16/8] rounded-lg overflow-hidden border-2 border-purple-500/50 shadow-[0_0_20px_rgba(147,51,234,0.3)] transform-gpu">
-            <AnimatePresence initial={false} mode="wait">
-              <motion.div
-                key={currentIndex}
-                initial={{ opacity: 0, x: 100 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -100 }}
-                transition={{ duration: 0.3, ease: 'easeInOut' }}
-                className="absolute inset-0 cursor-pointer overflow-hidden transform-gpu"
-                onClick={() => handleImageClick(projects[currentIndex].id)}
-                onMouseEnter={() => setHoveredProject(projects[currentIndex].id)}
-                onMouseLeave={() => setHoveredProject(null)}
-              >
-                {projects[currentIndex].secondImage && projects[currentIndex].showBothImagesInPriority ? (
-                  <div className="flex h-full w-full">
-                    <div className="w-1/2 relative h-full border-r border-purple-500/20 group">
-                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
+              {projects.map((project, index) => (
+                <div 
+                  key={`project-${project.id}-${index}`}
+                  className="w-full flex-shrink-0"
+                >
+                  <div className="flex flex-col space-y-6">
+                    {/* Project Image Section */}
+                    <div className="relative aspect-[16/9] w-full max-w-4xl mx-auto rounded-2xl overflow-hidden group">
+                      {/* Main Image */}
+                      <div className="relative w-full h-full transform transition-all duration-700 group-hover:scale-105">
                       <Image 
-                        src={projects[currentIndex].image} 
-                        alt={projects[currentIndex].title}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
-                        className="object-contain transition-transform duration-500 group-hover:scale-[1.02] transform-gpu"
-                        priority={true}
-                        quality={85}
-                        onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].image)}
-                        style={{ 
-                          WebkitBackfaceVisibility: 'hidden', 
-                          WebkitPerspective: 1000, 
-                          WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
-                          objectFit: 'contain',
-                          transform: 'translateZ(0)',
-                          willChange: 'transform'
-                        }}
-                        unoptimized={projects[currentIndex].image.startsWith('data:')}
-                      />
-                      
-                      {/* Image info overlay on hover - with improved performance */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
-                        <h4 className="text-white font-semibold text-lg">{projects[currentIndex].title} - Primary</h4>
-                        <p className="text-gray-300 text-sm line-clamp-1">{projects[currentIndex].description}</p>
+                          src={project.image}
+                          alt={project.title}
+                          fill
+                          className="object-cover"
+                          priority={typeof project.imagePriority === 'boolean' ? project.imagePriority : false}
+                          sizes="(max-width: 1280px) 100vw, 1280px"
+                          quality={95}
+                        />
                       </div>
                       
-                      {/* Primary label */}
-                      <div className="absolute bottom-2 left-2 bg-black/60 backdrop-blur-sm text-white text-xs py-1 px-2 rounded-md z-20">
-                        Primary
+                      {/* Hover Overlay */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                        <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-2 group-hover:translate-y-0 transition-transform duration-300">
+                          <div className="flex items-start justify-between">
+                            <div>
+                              {project.category && (
+                                <span className="bg-purple-600/90 text-white text-sm px-3 py-1 rounded-full mb-3 inline-block">
+                                  {project.category}
+                                </span>
+                              )}
+                              <h3 className="text-2xl font-bold text-white mt-2">{project.title}</h3>
+                            </div>
+                            <div className="flex space-x-2">
+                              {project.secondImage && (
+                                <button
+                                  onClick={(e) => handleSwitchImage(e, project.id)}
+                                  className="bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white p-2 rounded-lg transition-colors border border-white/10"
+                                  title="Switch Image"
+                                >
+                                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                  </svg>
+                                </button>
+                              )}
+                              <button
+                                onClick={(e) => handleImageEnlarge(e, project.id, project.image)}
+                                className="bg-black/50 hover:bg-black/70 backdrop-blur-sm text-white p-2 rounded-lg transition-colors border border-white/10"
+                                title="View Fullsize"
+                              >
+                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                                </svg>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                    <div className="w-1/2 relative h-full group">
-                      {/* Similar optimizations for second image */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
-                      <Image 
-                        src={projects[currentIndex].secondImage || ''} 
-                        alt={`${projects[currentIndex].title} - alternate view`}
-                        fill
-                        sizes="(max-width: 640px) 50vw, (max-width: 768px) 40vw, (max-width: 1024px) 35vw, 600px"
-                        className="object-contain transition-transform duration-500 group-hover:scale-[1.02] transform-gpu"
-                        priority={true}
-                        quality={85}
-                        onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].secondImage || '')}
-                        style={{ 
-                          WebkitBackfaceVisibility: 'hidden', 
-                          WebkitPerspective: 1000, 
-                          WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
-                          objectFit: 'contain',
-                          transform: 'translateZ(0)',
-                          willChange: 'transform'
-                        }}
-                        unoptimized={projects[currentIndex].secondImage?.startsWith('data:')}
-                      />
-                      
-                      {/* Image info overlay with improved performance */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
-                        <h4 className="text-white font-semibold text-lg">{projects[currentIndex].title} - Secondary</h4>
-                        <p className="text-gray-300 text-sm line-clamp-1">{projects[currentIndex].description}</p>
+
+                    {/* Project Details Section */}
+                    <div className="max-w-4xl mx-auto w-full">
+                      <div className="bg-black/30 rounded-xl border border-purple-500/10 p-6 backdrop-blur-sm">
+                        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                          {/* Left Column - Status & Progress */}
+                          <div className="lg:col-span-4 space-y-4">
+                            {project.status && (
+                              <div>
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
+                                  project.status === 'In Development' 
+                                    ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
+                                    : project.status === 'Completed'
+                                      ? 'bg-green-500/20 text-green-300 border border-green-500/30'
+                                      : 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
+                                }`}>
+                                  {project.status}
+                                  {project.updatedDays && project.updatedDays < 7 && (
+                                    <span className="ml-2 flex h-2 w-2">
+                                      <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-green-400 opacity-75"></span>
+                                      <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+                                    </span>
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                            {project.progress !== undefined && (
+                              <div>
+                                <div className="flex justify-between items-center mb-2">
+                                  <span className="text-sm text-gray-400">Project Progress</span>
+                                  <span className="text-sm text-purple-300">{typeof project.progress === 'number' ? project.progress.toFixed(1) : '0'}%</span>
+                                </div>
+                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                  <div 
+                                    className="bg-gradient-to-r from-purple-600 to-indigo-600 h-2 rounded-full transition-all duration-500" 
+                                    style={{ width: `${typeof project.progress === 'number' ? project.progress : 0}%` }}
+                                  />
+                                </div>
+                                <div className="mt-2 text-xs text-gray-400">
+                                  Last updated: {project.updatedDays ? `${project.updatedDays} days ago` : 'Recently'}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+
+                          {/* Middle Column - Technologies & Description */}
+                          <div className="lg:col-span-5 space-y-4">
+                            <div>
+                              <h4 className="text-sm text-purple-300 mb-2 font-medium">Project Overview</h4>
+                              <p className="text-gray-300 text-sm leading-relaxed">{project.description}</p>
+                            </div>
+                            <div>
+                              <h4 className="text-sm text-purple-300 mb-2 font-medium">Technologies Used:</h4>
+                              <div className="flex flex-wrap gap-2">
+                                {Array.isArray(project.technologies) ? (
+                                  project.technologies.map((tech, techIndex) => (
+                                    <span 
+                                      key={`tech-${project.id}-${techIndex}`}
+                                      className="bg-gray-800/80 border border-purple-500/10 text-gray-300 px-3 py-1.5 rounded-lg text-sm"
+                                    >
+                                      {tech}
+                                    </span>
+                                  ))
+                                ) : (
+                                  <span className="bg-gray-800/80 border border-purple-500/10 text-gray-300 px-3 py-1.5 rounded-lg text-sm">
+                                    {project.technologies}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right Column - Actions */}
+                          <div className="lg:col-span-3 flex flex-col justify-center space-y-3">
+                            <a
+                              href={project.link || project.project_link || '#'}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center justify-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                              </svg>
+                              <span>View Project</span>
+                            </a>
+                            <button
+                              onClick={() => setCurrentIndex(index)}
+                              className="inline-flex items-center justify-center space-x-2 bg-gray-800 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              <span>View Details</span>
+                            </button>
                       </div>
                     </div>
                   </div>
-                ) : (
-                  <div className="relative h-full w-full group">
-                    <div className="absolute inset-0 bg-gradient-to-br from-gray-900/5 to-black/5 z-10"></div>
-                    <Image 
-                      src={projects[currentIndex].image} 
-                      alt={projects[currentIndex].title}
-                      fill
-                      sizes="(max-width: 640px) 100vw, (max-width: 768px) 80vw, (max-width: 1024px) 70vw, 1200px"
-                      className="object-contain transition-transform duration-500 group-hover:scale-[1.01] transform-gpu"
-                      priority={true}
-                      quality={85}
-                      onClick={(e) => handleImageEnlarge(e, projects[currentIndex].id, projects[currentIndex].image)}
-                      style={{ 
-                        WebkitBackfaceVisibility: 'hidden', 
-                        WebkitPerspective: 1000, 
-                        WebkitFilter: 'contrast(1.05) saturate(1.05) brightness(1.02)',
-                        objectFit: 'contain',
-                        transform: 'translateZ(0)',
-                        willChange: 'transform'
-                      }}
-                      unoptimized={projects[currentIndex].image.startsWith('data:')}
-                    />
-                    
-                    {/* Optimized gradient overlay */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20 transform-gpu">
-                      <h3 className="text-white font-bold text-xl sm:text-2xl">{projects[currentIndex].title}</h3>
-                      <p className="text-gray-300 text-sm sm:text-base line-clamp-2 mt-1 max-w-3xl">{projects[currentIndex].description}</p>
-                      
-                      <div className="flex flex-wrap gap-2 mt-2">
-                        {projects[currentIndex].technologies.slice(0, 3).map((tech, idx) => (
-                          <span key={idx} className="px-2 py-1 bg-purple-500/30 text-white text-xs rounded-full">
-                            {tech}
-                          </span>
-                        ))}
-                        {projects[currentIndex].technologies.length > 3 && (
-                          <span className="px-2 py-1 bg-purple-500/20 text-white text-xs rounded-full">
-                            +{projects[currentIndex].technologies.length - 3} more
-                          </span>
-                        )}
+
+                      {/* Related Projects Section */}
+                      <div className="mt-6 bg-black/30 rounded-xl border border-purple-500/10 p-6 backdrop-blur-sm">
+                        <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
+                          <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                          </svg>
+                          Related Projects
+                        </h4>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                          {projects
+                            .filter(p => p.id !== project.id && p.category === project.category)
+                            .slice(0, 3)
+                            .map((relatedProject) => (
+                              <div 
+                                key={`related-${relatedProject.id}`}
+                                className="group relative aspect-video rounded-lg overflow-hidden cursor-pointer transform transition-transform duration-300 hover:scale-[1.02]"
+                                onClick={() => setCurrentIndex(projects.findIndex(p => p.id === relatedProject.id))}
+                              >
+                                <Image
+                                  src={relatedProject.image}
+                                  alt={relatedProject.title}
+                                  fill
+                                  className="object-cover transition-transform duration-300 group-hover:scale-110"
+                                  sizes="(max-width: 768px) 100vw, 33vw"
+                                />
+                                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                                    <h5 className="text-white font-medium text-sm mb-2">{relatedProject.title}</h5>
+                                    {relatedProject.progress !== undefined && (
+                                      <div className="flex items-center space-x-2">
+                                        <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden backdrop-blur-sm">
+                                          <div 
+                                            className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
+                                            style={{ width: `${typeof relatedProject.progress === 'number' ? relatedProject.progress : 0}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs font-medium text-purple-300 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+                                          {typeof relatedProject.progress === 'number' ? `${Math.round(relatedProject.progress)}%` : '0%'}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                        </div>
                       </div>
                     </div>
                   </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
           </div>
-          
-          {/* Optimized navigation dots */}
-          {projects.length > 1 && (
-            <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 flex flex-wrap justify-center gap-1.5 max-w-full py-2 will-change-transform">
-              {projects.map((_, index) => (
-                <button
-                  key={index}
-                  onClick={() => goToSlide(index)}
-                  className={`w-2 h-2 md:w-3 md:h-3 rounded-full transition-all duration-300 transform-gpu ${
-                    index === currentIndex 
-                      ? 'bg-white scale-110' 
-                      : 'bg-white/30 hover:bg-white/70'
-                  }`}
-                  aria-label={`Go to slide ${index + 1}`}
-                />
               ))}
             </div>
-          )}
           
-          {/* Optimized navigation arrows */}
+            {/* Navigation Controls */}
           {projects.length > 1 && (
             <>
+              <div className="absolute left-4 top-1/3 -translate-y-1/2 flex flex-col gap-2 z-10">
+                <button 
+                  onClick={goToPrevious}
+                  className="bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
+                  aria-label="Previous project"
+                >
+                  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                <button
+                  onClick={toggleAutoplay}
+                  className={`bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 border ${
+                    isAutoplayEnabled ? 'border-purple-500/40' : 'border-white/10'
+                  } hover:border-purple-500/40 hover:scale-105`}
+                  aria-label={isAutoplayEnabled ? 'Pause slideshow' : 'Play slideshow'}
+                >
+                  {isAutoplayEnabled ? (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  ) : (
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+
               <button 
-                className="absolute left-2 md:left-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-30 transform-gpu"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToPrevious();
-                }}
-                aria-label="Previous slide"
+                onClick={goToNext}
+                className="absolute right-4 top-1/3 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full z-10 transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
+                aria-label="Next project"
               >
-                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                </svg>
-              </button>
-              <button 
-                className="absolute right-2 md:right-4 top-1/2 transform -translate-y-1/2 w-8 h-8 md:w-10 md:h-10 bg-black/50 backdrop-blur-sm rounded-full flex items-center justify-center text-white hover:bg-black/70 transition-colors z-30 transform-gpu"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  goToNext();
-                }}
-                aria-label="Next slide"
-              >
-                <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </button>
             </>
           )}
-        </div>
-        
-        {/* Project Info Card */}
-        <div className="mt-12 p-4 md:p-6 bg-gradient-to-br from-gray-900/80 to-black/80 border border-purple-500/20 rounded-xl">
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 gap-3">
-            <div>
-            <h3 className="text-lg md:text-xl font-semibold text-white">Current Project: {projects[currentIndex].title}</h3>
-              {projects[currentIndex].secondImage && (
-                <p className="text-xs text-purple-300 mt-1">This project has multiple views available</p>
-              )}
-            </div>
-            <div className="flex gap-3">
-              <button
-                onClick={() => handleImageClick(projects[currentIndex].id)}
-                className="px-3 py-1.5 bg-purple-600 text-white text-sm rounded-md hover:bg-purple-700 transition-colors"
-              >
-                View Details
-              </button>
-              <a
-                href={projects[currentIndex].link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-3 py-1.5 bg-transparent border border-purple-500/50 text-purple-300 text-sm rounded-md hover:bg-purple-500/10 transition-colors"
-              >
-                Live Preview
-              </a>
-            </div>
-          </div>
-          
-          <p className="text-sm text-gray-300 mb-4 line-clamp-2 md:line-clamp-none">
-            {projects[currentIndex].description}
-          </p>
-          
-          <div className="flex flex-wrap gap-2 mt-2 mb-4">
-            {projects[currentIndex].technologies.map((tech, index) => (
-              <span 
-                key={index} 
-                className="px-2.5 py-1 bg-purple-500/20 text-purple-300 text-xs rounded-full border border-purple-500/30"
-              >
-                {tech}
-              </span>
-            ))}
-          </div>
-          
-          {/* Agency info & upcoming projects section */}
-          <div className="mt-6 pt-6 border-t border-purple-500/20 grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-md text-purple-300 font-medium mb-2 flex items-center">
-                <svg className="w-4 h-4 mr-1.5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-                Why Choose NEX-DEVS
-              </h4>
-              <p className="text-xs text-gray-400 mb-2">
-                At NEX-DEVS, we combine technical expertise with creative innovation to deliver cutting-edge solutions that transform businesses and user experiences.
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
-                  Expert Development
-                </span>
-                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
-                  Modern Tech Stack
-                </span>
-                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
-                  Creative Solutions
-                </span>
-                <span className="px-2 py-0.5 bg-purple-900/20 text-purple-300 text-[10px] rounded border border-purple-500/20">
-                  Client-Focused
-                </span>
+
+            {/* Pagination Dots */}
+            {projects.length > 1 && (
+              <div className="flex justify-center mt-6 space-x-2">
+                {projects.map((_, index) => (
+                  <button
+                    key={`dot-${index}`}
+                    onClick={() => setCurrentIndex(index)}
+                    className={`h-1.5 rounded-full transition-all duration-300 ${
+                      currentIndex === index 
+                        ? 'w-8 bg-purple-500' 
+                        : 'w-1.5 bg-white/30 hover:bg-white/50'
+                    }`}
+                    aria-label={`Go to project ${index + 1}`}
+                  />
+                ))}
               </div>
-            </div>
+            )}
+          </div>
+        )}
+          </div>
+          
+      {/* Enlarged Image Modal */}
+      {enlargedImage && (
+        <div 
+          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div className="relative max-w-7xl max-h-[90vh] w-full">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setEnlargedImage(null);
+              }}
+              className="absolute -top-14 right-0 bg-gray-800 hover:bg-gray-700 text-white p-2.5 rounded-full z-10 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
             
-            <div>
-              <h4 className="text-md text-blue-300 font-medium mb-2 flex items-center">
-                <svg className="w-4 h-4 mr-1.5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 12l3-3 3 3 4-4M8 21l4-4 4 4M3 4h18M4 4h16v12a1 1 0 01-1 1H5a1 1 0 01-1-1V4z" />
-                </svg>
-                Upcoming Projects
-              </h4>
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-blue-500 rounded-full"></span>
-                  <p className="text-xs text-gray-300">AI-Enhanced Portfolio Builder <span className="text-blue-400 text-[10px]">86% Complete</span></p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                  <p className="text-xs text-gray-300">Web3 Integration Framework <span className="text-green-400 text-[10px]">Coming Soon</span></p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="w-1.5 h-1.5 bg-yellow-500 rounded-full"></span>
-                  <p className="text-xs text-gray-300">Cross-Platform Mobile Solutions <span className="text-yellow-400 text-[10px]">In Planning</span></p>
-                </div>
-              </div>
-              <div className="mt-2">
-                <Link href="/contact" className="text-[10px] text-blue-400 hover:text-blue-300 transition-colors">
-                  Discuss a custom project →
-                </Link>
-              </div>
+            <div className="relative w-full h-full flex items-center justify-center">
+              <Image
+                src={enlargedImage.image}
+                alt="Enlarged project image"
+                width={1920}
+                height={1080}
+                className="max-h-[90vh] w-auto object-contain rounded-lg shadow-2xl"
+                quality={100}
+              />
             </div>
           </div>
-        </div>
-      </div>
-      
-      {/* Show error message if database load failed */}
-      {fetchError && !isLoading && projects.length === 0 && (
-        <div className="mt-4 p-3 bg-red-500/20 text-red-200 rounded-lg text-sm border border-red-500/30">
-          <p className="flex items-center">
-            <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            {fetchError}
-          </p>
-          <p className="text-xs mt-1 text-gray-300">Please refresh the page to try again.</p>
-        </div>
-      )}
-      
-      {/* Last fetch time indicator for debugging */}
-      {lastFetchTime && (
-        <div className="hidden">
-          Last fetch: {new Date(lastFetchTime).toLocaleTimeString()}
         </div>
       )}
     </section>

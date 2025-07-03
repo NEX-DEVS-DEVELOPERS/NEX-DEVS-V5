@@ -5,20 +5,7 @@ import { useState } from 'react'
 import { FaLightbulb, FaRocket, FaClock, FaHandshake } from 'react-icons/fa'
 
 export default function AboutPage() {
-  const [easterEggFound, setEasterEggFound] = useState(false)
   const [activeStep, setActiveStep] = useState(0)
-  const [clickCount, setClickCount] = useState(0)
-
-  const triggerEasterEgg = () => {
-    setClickCount(prev => prev + 1)
-    if (clickCount >= 2) { // Activate after 3 clicks
-      setEasterEggFound(true)
-      setTimeout(() => {
-        setEasterEggFound(false)
-        setClickCount(0)
-      }, 5000)
-    }
-  }
 
   const workflowSteps = [
     { title: "Discovery", description: "Understanding your vision", icon: "🎯" },
@@ -32,14 +19,6 @@ export default function AboutPage() {
   return (
     <motion.main 
       className="min-h-screen bg-black relative overflow-hidden px-4 py-8 md:px-8 lg:px-16"
-      animate={easterEggFound ? {
-        filter: ["hue-rotate(0deg)", "hue-rotate(360deg)"],
-        transition: { 
-          duration: 5,
-          repeat: Infinity,
-          ease: "linear"
-        }
-      } : {}}
     >
       {/* Animated background effect */}
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(120,0,255,0.1),transparent_50%)] animate-pulse" />
@@ -197,42 +176,6 @@ export default function AboutPage() {
           </motion.div>
         </div>
       </section>
-
-      {/* Modern Easter Egg */}
-      <motion.div 
-        className="max-w-4xl mx-auto text-center mb-6 sm:mb-8 px-4"
-        animate={easterEggFound ? {
-          scale: [1, 1.2, 0.8, 1.1, 1],
-          rotate: [0, 10, -10, 5, 0],
-          transition: {
-            duration: 0.5,
-            ease: "easeInOut"
-          }
-        } : {}}
-      >
-        <motion.button
-          className="px-3 sm:px-4 py-2 rounded-full bg-gradient-to-r from-purple-500 to-pink-500 text-white text-sm sm:text-base font-medium
-            hover:from-purple-600 hover:to-pink-600 transition-all duration-300 shadow-lg hover:shadow-purple-500/25
-            relative overflow-hidden group"
-          onClick={triggerEasterEgg}
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
-          <span className="relative z-10">
-            🎮 {clickCount < 3 ? `Click ${3 - clickCount} more times for magic!` : 'Discover Something Magical'}
-          </span>
-          <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        </motion.button>
-        {easterEggFound && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-4 text-sm sm:text-base text-purple-400"
-          >
-            ✨ You found the easter egg! Watch the magic happen! ✨
-          </motion.div>
-        )}
-      </motion.div>
     </motion.main>
   )
 } 
