@@ -1,6 +1,17 @@
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useState, useEffect, useRef } from 'react'
+import { Audiowide, VT323 } from 'next/font/google'
+
+const audiowide = Audiowide({
+  weight: '400',
+  subsets: ['latin'],
+});
+
+const vt323 = VT323({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 export default function Logo() {
   const [showPopup, setShowPopup] = useState(false);
@@ -92,7 +103,7 @@ export default function Logo() {
                   repeat: Infinity,
                   ease: "easeInOut"
                 }}
-                className="inline-block"
+                className={`inline-block ${vt323.className} text-[9px]`}
               >
                 BETA
               </motion.span>
@@ -100,11 +111,11 @@ export default function Logo() {
             <motion.div 
               className="text-xl font-extrabold tracking-tight flex items-center gap-1"
             >
-              <span className="text-white font-extrabold">
+              <span className={`text-white font-extrabold ${audiowide.className}`}>
                 NEX-
               </span>
               <motion.span
-                className="relative cursor-pointer text-yellow-400 font-extrabold"
+                className={`relative cursor-pointer text-yellow-400 font-extrabold ${audiowide.className}`}
                 onClick={handleDevsClick}
                 whileHover={{
                   scale: 1.05,
@@ -246,7 +257,7 @@ export default function Logo() {
                     <div className="absolute -top-2 -right-2 w-4 h-4 rounded-full bg-purple-500/50 blur-sm animate-pulse"></div>
                     <div className="absolute -bottom-2 -left-2 w-4 h-4 rounded-full bg-indigo-500/50 blur-sm animate-pulse"></div>
                     
-                    <h3 className="text-base font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2">
+                    <h3 className={`text-base font-bold bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent flex items-center gap-2 ${audiowide.className}`}>
                       <span className="text-white bg-purple-700/50 p-1 rounded-md">NEX-DEVS</span> Evolution
                     </h3>
                     <motion.div 

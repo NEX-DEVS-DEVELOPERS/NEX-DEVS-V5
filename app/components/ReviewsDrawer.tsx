@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FaCheckCircle, FaBriefcase, FaUsers, FaStar, FaCheck } from 'react-icons/fa';
 
 // Types for plan reviews
 export interface PlanReview {
@@ -480,9 +481,9 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
           onClick={() => setIsOpen(!isOpen)}
           className="fixed bottom-4 right-4 z-[99999]"
           style={{ 
-            position: "fixed !important",
-            bottom: "16px !important",
-            right: "16px !important",
+            position: "fixed",
+            bottom: "16px",
+            right: "16px",
             zIndex: 99999
           }}
           aria-label={isOpen ? "Close reviews" : "Open reviews"}
@@ -666,112 +667,146 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
           <motion.div
             ref={drawerRef}
             className="floating-reviews-drawer"
-            initial={{ opacity: 0, x: 40 }}
+            initial={{ opacity: 0, x: 100 }}
             animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 40 }}
-            transition={{ type: "spring", damping: 20, stiffness: 300 }}
+            exit={{ opacity: 0, x: 100 }}
+            transition={{ type: "spring", damping: 30, stiffness: 200 }}
             style={{
               position: 'fixed',
-              top: '20px',
+              top: '105px',
               right: '20px',
               zIndex: 99999,
-              width: isMobile ? '280px' : '320px',
-              maxHeight: 'calc(100vh - 40px)',
-              background: 'rgba(17, 17, 17, 0.95)',
-              backdropFilter: 'blur(10px)',
-              WebkitBackdropFilter: 'blur(10px)',
-              borderRadius: '12px',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.2)',
+              width: isMobile ? 'calc(100vw - 40px)' : '600px',
+              height: 'calc(100vh - 130px)',
+              background: 'rgba(10, 5, 20, 0.9)',
+              backdropFilter: 'blur(16px)',
+              WebkitBackdropFilter: 'blur(16px)',
+              borderRadius: '16px',
+              boxShadow: '0 8px 40px rgba(0, 0, 0, 0.4)',
               border: '1px solid rgba(255, 255, 255, 0.1)',
               pointerEvents: 'auto'
             }}
           >
-            <div className="relative w-full h-full bg-gradient-to-b from-purple-900/95 to-purple-800/95 text-white p-4 rounded-xl">
+            <div className="relative w-full h-full bg-black/50 text-white p-6 rounded-xl overflow-y-auto custom-scrollbar">
               {/* Close button */}
               <button
                 onClick={closeWithAnimation}
-                className="absolute top-2 right-2 p-2 hover:bg-purple-700/50 rounded-lg transition-colors"
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-purple-700/50 rounded-full transition-colors z-10"
                 aria-label="Close reviews drawer"
               >
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
 
               {/* Header */}
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-2">Client Reviews</h2>
-                <div className="flex items-center gap-2 mb-3">
-                  <div className="text-green-400 font-medium">{currentStats.satisfactionRate}% Satisfied</div>
-                  <div className="text-purple-300 text-sm">({displayedReviewCount} reviews)</div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold text-white">Client Testimonials</h2>
+                <div className="flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1 rounded-full">
+                  <FaStar />
+                  <span className="font-bold">{averageRating.toFixed(1)}</span>
                 </div>
               </div>
 
-              {/* Filter by plan */}
-              <div className="mb-4">
-                <select
-                  value={filteredPlan || ''}
-                  onChange={(e) => setFilteredPlan(e.target.value || null)}
-                  className="w-full bg-purple-700/50 border border-purple-600 rounded-lg px-3 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                >
-                  <option value="">All Reviews</option>
-                  {planCategories.map((category) => (
-                    <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
+              {/* Stats Section */}
+              <div className="grid grid-cols-3 gap-4 text-center mb-8 p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
+                <div>
+                  <FaCheckCircle className="mx-auto text-purple-400 text-3xl mb-2" />
+                  <p className="text-xl font-bold">{currentStats.satisfactionRate}%</p>
+                  <p className="text-sm text-gray-400">Satisfaction</p>
+                </div>
+                <div>
+                  <FaBriefcase className="mx-auto text-purple-400 text-3xl mb-2" />
+                  <p className="text-xl font-bold">{currentStats.projectsDelivered}</p>
+                  <p className="text-sm text-gray-400">Projects</p>
+                </div>
+                <div>
+                  <FaUsers className="mx-auto text-purple-400 text-3xl mb-2" />
+                  <p className="text-xl font-bold">{currentStats.clientsServed}</p>
+                  <p className="text-sm text-gray-400">Clients</p>
+                </div>
               </div>
 
-              {/* Reviews list */}
-              <div className="space-y-4 overflow-y-auto max-h-[60vh] pr-2">
+              {/* Filter Section */}
+              <div className="mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Filter Reviews:</h3>
+                  <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">{displayedReviewCount} reviews</span>
+                </div>
+                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
+                  <button onClick={() => setFilteredPlan(null)} className={`px-4 py-2 text-sm rounded-full transition-colors ${!filteredPlan ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}>
+                    All Reviews
+                  </button>
+                  {planCategories.map(category => (
+                    <button key={category} onClick={() => setFilteredPlan(category)} className={`px-4 py-2 text-sm rounded-full transition-colors whitespace-nowrap ${filteredPlan === category ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}>
+                      {category}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Reviews List */}
+              <div className="space-y-6 mb-8">
                 {displayedReviews.map((review) => (
                   <motion.div
                     key={review.id}
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="bg-purple-700/30 rounded-lg p-3 border border-purple-500/20"
+                    className="p-5 bg-gray-900/70 rounded-2xl border border-gray-700/50"
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0">
-                        {review.avatar ? (
-                          <img
-                            src={review.avatar}
-                            alt={review.author}
-                            className="w-10 h-10 rounded-full object-cover"
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center">
-                            <span className="text-lg font-medium">
-                              {review.author[0].toUpperCase()}
-                            </span>
-                          </div>
-                        )}
+                    <div className="flex gap-4 items-center">
+                      <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
+                        {review.author[0]}
                       </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between mb-1">
-                          <h3 className="font-medium truncate">{review.author}</h3>
-                          {review.isVerified && (
-                            <span className="verified-badge inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-500/20 text-green-400">
-                              Verified
-                            </span>
-                          )}
+                      <div className="w-full">
+                        <h4 className="font-bold text-white">{review.author}</h4>
+                        <p className="text-sm text-gray-400">{review.role}</p>
+                      </div>
+                      {review.isVerified && (
+                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full whitespace-nowrap">Verified</span>
+                      )}
+                    </div>
+                    <div className="pt-4 mt-4 border-t border-gray-700/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <div className="flex items-center gap-0.5 text-yellow-400">
+                          {[...Array(5)].map((_, i) => (
+                            <FaStar key={i} className={i < review.rating ? 'text-yellow-400' : 'text-gray-600'} />
+                          ))}
                         </div>
-                        <div className="text-sm text-purple-300 mb-2">{review.role}</div>
-                        <p className="text-sm text-purple-100">{review.text}</p>
-                        {review.successMetrics && review.successMetrics.length > 0 && (
-                          <div className="mt-2 space-y-1">
-                            {review.successMetrics.map((metric, index) => (
-                              <div key={index} className="flex items-center text-xs text-purple-300">
-                                <span className="font-medium text-purple-200">{metric.label}:</span>
-                                <span className="ml-1">{metric.value}</span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
+                        <span className="font-semibold text-purple-300">{review.planTitle}</span>
                       </div>
+                      <p className="text-gray-200 uppercase font-medium tracking-wide">{review.text}</p>
                     </div>
                   </motion.div>
                 ))}
               </div>
+
+              {/* Client Satisfaction Section */}
+              <div className="p-6 bg-gray-900/50 rounded-lg border border-gray-700 mb-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-lg font-semibold">Client Satisfaction</h3>
+                  <span className="text-sm text-green-400 flex items-center gap-1"><FaCheck /> 100% recommend</span>
+                </div>
+                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
+                  {currentStats.satisfactionStats.map(stat => (
+                    <div key={stat.label}>
+                      <div className="flex justify-between text-sm mb-1 text-gray-300">
+                        <span>{stat.label}</span>
+                        <span className="font-medium text-white">{stat.percentage}%</span>
+                      </div>
+                      <div className="w-full bg-gray-700 rounded-full h-1.5">
+                        <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${stat.percentage}%` }}></div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Footer Testimonial */}
+              <div className="text-center text-gray-400 italic p-4 border-t border-gray-700/50">
+                "Working with NEX-WEBS has been a game-changer for our business. Their professional approach and technical excellence exceeded all expectations!"
+              </div>
+
             </div>
           </motion.div>
         )}

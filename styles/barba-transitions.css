@@ -1,0 +1,117 @@
+/* Barba.js transition styles */
+.barba-container {
+  position: relative;
+  opacity: 1;
+  transition: opacity 0.5s ease;
+}
+
+.barba-container.barba-leave {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 5;
+}
+
+/* Overlay for transitions */
+.transition-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  z-index: 999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.5s ease;
+}
+
+.transition-overlay.active {
+  opacity: 1;
+}
+
+/* Smooth scroll styles */
+html.is-animating {
+  scroll-behavior: smooth;
+}
+
+/* Transition animations for containers */
+[data-barba="container"] {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.6s ease;
+}
+
+[data-barba="container"].barba-leave {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+
+[data-barba="container"].barba-enter {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+/* Prevent scroll during transitions */
+.barba-prevent-scroll {
+  overflow: hidden;
+}
+
+/* Custom page transitions */
+.page-transition-enter {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+.page-transition-enter-active {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+.page-transition-exit {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.page-transition-exit-active {
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.5s, transform 0.5s;
+}
+
+/* Hero transition styles */
+.hero-transition-enter {
+  opacity: 0;
+  transform: scale(0.95);
+}
+
+.hero-transition-enter-active {
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+
+.hero-transition-exit {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.hero-transition-exit-active {
+  opacity: 0;
+  transform: scale(1.05);
+  transition: opacity 0.6s ease-in, transform 0.6s ease-in;
+}
+
+/* Progress bar for transitions */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 0%;
+  height: 3px;
+  background: linear-gradient(90deg, #a855f7, #8b5cf6);
+  z-index: 1000;
+  transition: width 0.3s ease;
+} 

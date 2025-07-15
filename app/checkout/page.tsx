@@ -7,6 +7,7 @@ import { motion } from 'framer-motion';
 import { useCurrency } from '@/app/contexts/CurrencyContext';
 import { formatPrice, convertPrice, baseExchangeRates } from '@/app/utils/pricing';
 import type { SupportedCurrency } from '@/app/utils/pricing';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // Add this keyframe animation for the modal
 const globalStyles = `
@@ -1309,7 +1310,7 @@ function CheckoutPageContent() {
                 </div>
                 
                 <div class="invoice-details">
-                    <h2>INVOICE</h2>
+                    <h2 className={audiowide.className}>INVOICE</h2>
                         <p><strong>Invoice #:</strong> <span>${invoiceData.invoiceNumber}</span></p>
                         <p><strong>Date:</strong> <span>${invoiceData.date}</span></p>
                         <p><strong>Due Date:</strong> <span>${invoiceData.dueDate}</span></p>
@@ -1865,7 +1866,7 @@ Submission Date: ${new Date().toLocaleString()}
 </head>
 <body>
   <div class="container">
-    <h2>New Project Review Submission</h2>
+    <h2 className={audiowide.className}>New Project Review Submission</h2>
     
     <div class="id-box">
       Request ID: ${requestId}
@@ -2059,7 +2060,7 @@ Submission Date: ${new Date().toLocaleString()}
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="text-lg font-semibold text-white mb-1">Selected Package</h3>
-                  <p className="text-purple-200 text-sm">{selectedPlan}</p>
+                  <p className={`${vt323.className} text-purple-200`} style={{ fontSize: '16px' }}>{selectedPlan}</p>
                   {checkoutSource === 'chatbot' && voiceBotEnabled && (
                     <div className="mt-2">
                       <span className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">
@@ -2092,7 +2093,7 @@ Submission Date: ${new Date().toLocaleString()}
                 </div>
                 <h3 className="text-lg font-semibold text-white">Pricing Update Notice</h3>
               </div>
-              <p className="text-purple-100 mt-2 text-sm">
+              <p className={`${vt323.className} text-purple-100 mt-2`} style={{ fontSize: '16px' }}>
                 We've updated our pricing for {currency} to reflect current market conditions. The new rates provide better value while maintaining our premium service quality.
               </p>
             </div>
@@ -2104,7 +2105,7 @@ Submission Date: ${new Date().toLocaleString()}
               {/* Project Timeline Section - Hidden for AI integration plans */}
               {!isFromMainPage && (
                 <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Project Timeline</h2>
+                <h2 className={`${audiowide.className} text-lg sm:text-xl font-bold mb-4 sm:mb-6`}>Project Timeline</h2>
                 
                 <div className="space-y-3 sm:space-y-4">
                   {/* Urgent Timeline Option */}
@@ -2133,7 +2134,7 @@ Submission Date: ${new Date().toLocaleString()}
                           <h3 className="font-semibold text-yellow-400">Urgent Project</h3>
                           <span className="bg-yellow-500/20 text-yellow-300 text-xs px-2 py-1 rounded font-medium">+20% Charge</span>
                         </div>
-                        <p className="text-sm text-gray-400 mt-1">Delivery in 1-2 weeks</p>
+                        <p className={`${vt323.className} text-gray-400 mt-1`} style={{ fontSize: '16px' }}>Delivery in 1-2 weeks</p>
                       </div>
                     </div>
                   </div>
@@ -2262,7 +2263,7 @@ Submission Date: ${new Date().toLocaleString()}
                   </div>
 
                   <div className="relative z-10">
-                    <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2">
+                    <h2 className={`${audiowide.className} text-lg sm:text-xl font-bold mb-4 sm:mb-6 flex items-center gap-2`}>
                       <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
                       </svg>
@@ -2427,7 +2428,7 @@ Submission Date: ${new Date().toLocaleString()}
               {shouldShowAddOns() && (
                 <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
                   <div className="flex items-center justify-between mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold">Optional Add-ons</h2>
+                    <h2 className={`${audiowide.className} text-lg sm:text-xl font-bold`}>Optional Add-ons</h2>
                     <div className="flex items-center gap-3">
                       <div className="bg-purple-500/20 text-purple-300 text-xs px-2 py-1 rounded font-medium">
                         {selectedAddOns.length} selected
@@ -2571,7 +2572,7 @@ Submission Date: ${new Date().toLocaleString()}
 
               {/* Payment Method Section */}
               <div className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5">
-                <h2 className="text-lg sm:text-xl font-bold mb-4 sm:mb-6">Payment Method</h2>
+                <h2 className={`${audiowide.className} text-lg sm:text-xl font-bold mb-4 sm:mb-6`}>Payment Method</h2>
                 
                 <div className="grid gap-3 sm:gap-4">
                   {paymentMethods.map(({ id, icon: Icon, label }) => (
@@ -2780,7 +2781,7 @@ Submission Date: ${new Date().toLocaleString()}
                   className="bg-zinc-900/50 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-white/5 hover:border-white/10 transition-all duration-300 shadow-xl hover:shadow-purple-900/5"
                 >
                   <div className="flex justify-between items-center mb-4 sm:mb-6">
-                    <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent">Invoice Details</h2>
+                    <h2 className={`${audiowide.className} text-lg sm:text-xl font-bold bg-gradient-to-r from-white to-gray-300 bg-clip-text text-transparent`}>Invoice Details</h2>
                     <div className="flex gap-2">
                       <motion.button
                         whileHover={{ scale: 1.05 }}

@@ -4,12 +4,17 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { useState, useEffect, useRef } from 'react'
+import { useIsMobile } from '@/app/utils/deviceDetection'
 import { Button } from '@/components/ui/button'
 import NexShiftFlowchart from './NexShiftFlowchart'
 import NeuralNetwork from '../animations/NeuralNetwork'
 import FastMovingLines from '../animations/FastMovingLines'
+import { Audiowide } from 'next/font/google'
 
-
+const audiowide = Audiowide({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 // Business benefits for showcase
 const businessBenefits = [
@@ -120,12 +125,85 @@ const CounterAnimation = ({ end, label, duration = 2, prefix = '', suffix = '' }
 
 export default function BusinessHero() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start start", "end start"]
   });
   
+  // Neural line animation refs and state
+  const neuralLineRef = useRef<HTMLDivElement>(null);
+  const pathRef = useRef<SVGPathElement>(null);
+  const [pathLength, setPathLength] = useState(0);
+  const [svgPath, setSvgPath] = useState('');
 
+  // Listen for toggle progress events
+  useEffect(() => {
+    const handleToggleProgress = (event: CustomEvent) => {
+      const { progress } = event.detail;
+      if (pathRef.current && neuralLineRef.current) {
+        // Invert the progress to draw from right-to-left when sliding to Primary
+        const offset = pathLength * progress;
+        pathRef.current.style.strokeDashoffset = offset.toString();
+        
+        // Invert glow intensity
+        const glowIntensity = 0.3 + ((1 - progress) * 1.2);
+        neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
+      }
+    };
+    
+    const handleToggleFinished = (event: CustomEvent) => {
+      const { hero } = event.detail;
+      const targetProgress = hero === 'business' ? 1 : 0;
+      
+      if (pathRef.current && neuralLineRef.current) {
+        // Invert the progress
+        const offset = pathLength * targetProgress;
+        pathRef.current.style.strokeDashoffset = offset.toString();
+
+        // Invert glow intensity
+        const glowIntensity = 0.3 + ((1 - targetProgress) * 1.2);
+        neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
+      }
+    };
+    
+    window.addEventListener('heroToggleProgress', handleToggleProgress as EventListener);
+    window.addEventListener('heroToggleFinished', handleToggleFinished as EventListener);
+    
+    return () => {
+      window.removeEventListener('heroToggleProgress', handleToggleProgress as EventListener);
+      window.removeEventListener('heroToggleFinished', handleToggleFinished as EventListener);
+    };
+  }, [pathLength]);
+
+  useEffect(() => {
+    const updatePath = () => {
+      if (neuralLineRef.current) {
+        const { offsetWidth: width, offsetHeight: height } = neuralLineRef.current;
+        // Reversed path to draw from right-to-left
+        const d = `M ${width - 2},${height - 2} L ${width - 2},22 C ${width - 2},10 ${width - 12},2 ${width - 22},2 L 22,2 C 12,2 2,10 2,22 L 2,${height - 2}`;
+        setSvgPath(d);
+      }
+    };
+
+    updatePath();
+
+    const resizeObserver = new ResizeObserver(updatePath);
+    if (neuralLineRef.current) {
+      resizeObserver.observe(neuralLineRef.current);
+    }
+
+    return () => resizeObserver.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (pathRef.current) {
+      const length = pathRef.current.getTotalLength();
+      setPathLength(length);
+      pathRef.current.style.strokeDasharray = `${length} ${length}`;
+      pathRef.current.style.strokeDashoffset = length.toString();
+    }
+  }, [svgPath]);
 
   return (
     <motion.section
@@ -152,6 +230,44 @@ export default function BusinessHero() {
           transform: 'translate3d(0, 0, 0)'
         }}>
       </div>
+
+      {/* Animated Blue Neon Line Border */}
+      {!isMobile && (
+        <div
+          ref={neuralLineRef}
+          className="absolute inset-x-4 inset-y-4 sm:inset-x-8 sm:inset-y-8 pointer-events-none z-10"
+          style={{ '--glow-intensity': '0.3' } as React.CSSProperties}
+        >
+          <svg width="100%" height="100%" className="overflow-visible">
+            <defs>
+              <linearGradient id="blue-line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="rgba(96, 165, 250, 1)" />
+                <stop offset="20%" stopColor="rgba(59, 130, 246, 1)" />
+                <stop offset="100%" stopColor="rgba(59, 130, 246, 0.2)" />
+              </linearGradient>
+              <filter id="blue-glow">
+                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+                <feMerge>
+                  <feMergeNode in="coloredBlur" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+            </defs>
+            <path
+              ref={pathRef}
+              d={svgPath}
+              stroke="url(#blue-line-gradient)"
+              strokeWidth="2"
+              fill="none"
+              style={{
+                transition: 'stroke-dashoffset 0.5s linear',
+                filter: 'url(#blue-glow)',
+                opacity: 'var(--glow-intensity)',
+              }}
+            />
+          </svg>
+        </div>
+      )}
 
       {/* Neural Network Animation Background - More Visible */}
       <div className="fixed inset-0 z-[-2] pointer-events-none">
@@ -202,7 +318,7 @@ export default function BusinessHero() {
               </div>
               
               <h1 className="text-3xl sm:text-5xl md:text-6xl font-bold text-white leading-tight">
-                Grow Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500">Business</span> With AI Automated Driven Results
+                <span className={audiowide.className}>Grow Your <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-indigo-500">Business</span> With AI Automated Driven Results</span>
               </h1>
               
               <p className="text-lg sm:text-xl text-gray-300 max-w-3xl">

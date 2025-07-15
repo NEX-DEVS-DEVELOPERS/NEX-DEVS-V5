@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
 import BlogCard from '../components/BlogCard';
 import BlogTestimonial from '../components/BlogTestimonial';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 export const metadata: Metadata = {
   title: 'Blog | Your Name',
@@ -167,22 +168,22 @@ export default function BlogPage() {
       <div className="relative px-4 sm:px-6 pt-24 sm:pt-24 pb-12 sm:pb-24 mx-auto max-w-7xl">
         <div className="text-center mb-8 sm:mb-12">
           <div className="flex flex-col items-center justify-center gap-3 sm:gap-4 mb-6">
-            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white">
+            <span className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-white ${audiowide.className}`}>
               Digital
             </span>
-            <span className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black bg-white px-4 py-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform">
+            <span className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black bg-white px-4 py-2 rounded-lg shadow-lg transform hover:scale-105 transition-transform ${audiowide.className}`}>
               Excellence
             </span>
           </div>
           <div className="max-w-2xl mx-auto px-4">
-            <p className="text-gray-300 text-sm sm:text-base lg:text-lg mb-4">
+            <p className={`text-gray-300 text-sm sm:text-base lg:text-lg mb-4 ${vt323.className}`}>
               Discover in-depth articles, practical tutorials, and expert insights about web development, 
               design patterns, and emerging technologies. Join thousands of developers leveling up their skills.
             </p>
-            <p className="text-purple-400 text-xs sm:text-sm mb-2">
+            <p className={`text-purple-400 text-xs sm:text-sm mb-2 ${vt323.className}`}>
               New articles every week. Stay curious, keep coding.
             </p>
-            <p className="text-yellow-400 text-xs sm:text-sm">
+            <p className={`text-yellow-400 text-xs sm:text-sm ${vt323.className}`}>
               🔍 Hint: Try typing "unlock-the-matrix" in your console for a surprise!
             </p>
           </div>
@@ -196,7 +197,7 @@ export default function BlogPage() {
         </div>
 
         {/* Testimonials with adjusted layout */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 px-4">What Readers Say</h2>
+        <h2 className={`text-2xl sm:text-3xl font-bold text-white mb-6 sm:mb-8 px-4 ${audiowide.className}`}>What Readers Say</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           {Array.isArray(testimonials) && testimonials.map((testimonial, index) => (
             <BlogTestimonial key={index} {...testimonial} />

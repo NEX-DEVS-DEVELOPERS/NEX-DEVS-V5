@@ -3,6 +3,7 @@
 import { motion, Variants, cubicBezier } from 'framer-motion'
 import { IconCloud } from "@/components/ui/interactive-icon-cloud"
 import { useIsMobile } from '@/app/utils/deviceDetection'
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 const techSlugs = [
   "typescript",
@@ -114,7 +115,7 @@ export default function TechStackSection() {
 
               <motion.h2
                 variants={itemVariants}
-                className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight"
+                className={`text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold text-white leading-tight ${audiowide.className}`}
               >
                 Cutting-Edge
                 <span className="block bg-gradient-to-r from-purple-400 via-purple-300 to-purple-500 bg-clip-text text-transparent">
@@ -124,7 +125,7 @@ export default function TechStackSection() {
 
               <motion.p
                 variants={itemVariants}
-                className="text-base sm:text-lg text-gray-300 leading-relaxed max-w-xl"
+                className={`text-base sm:text-lg text-gray-300 leading-relaxed max-w-xl ${vt323.className}`}
               >
                 I leverage the latest technologies and frameworks to build scalable,
                 performant, and future-ready applications that drive business growth.
@@ -140,7 +141,7 @@ export default function TechStackSection() {
                 variants={itemVariants}
                 className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
               >
-                <h3 className="text-white font-semibold text-sm sm:text-base">Frontend</h3>
+                <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Frontend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">React & Next.js</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">TypeScript</div>
@@ -153,7 +154,7 @@ export default function TechStackSection() {
                 variants={itemVariants}
                 className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
               >
-                <h3 className="text-white font-semibold text-sm sm:text-base">Backend</h3>
+                <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Backend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">Node.js & Express</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Python & Django</div>
@@ -166,7 +167,7 @@ export default function TechStackSection() {
                 variants={itemVariants}
                 className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
               >
-                <h3 className="text-white font-semibold text-sm sm:text-base">Cloud & DevOps</h3>
+                <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Cloud & DevOps</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">AWS & Vercel</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Docker & Kubernetes</div>
@@ -179,7 +180,7 @@ export default function TechStackSection() {
                 variants={itemVariants}
                 className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
               >
-                <h3 className="text-white font-semibold text-sm sm:text-base">AI & Tools</h3>
+                <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>AI & Tools</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">OpenAI Integration</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Machine Learning</div>

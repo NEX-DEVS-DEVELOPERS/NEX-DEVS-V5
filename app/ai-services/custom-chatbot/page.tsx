@@ -8,6 +8,7 @@ import RequirementsModal from '@/app/components/RequirementsModal';
 import { useRequirementsModal } from '@/app/hooks/useRequirementsModal';
 import Image from 'next/image';
 import NeuralNetwork from '@/components/animations/NeuralNetwork';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // AI Models and terms for background effect
 const AI_TERMS = [
@@ -539,7 +540,7 @@ const NexiousChatbotShowcase = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-blue-500 to-purple-600 bg-clip-text text-transparent"
+            className={`${audiowide.className} text-4xl md:text-5xl font-bold bg-gradient-to-r from-violet-400 via-blue-500 to-purple-600 bg-clip-text text-transparent`}
           >
             Experience Next-Gen AI Conversation
           </motion.h2>
@@ -547,7 +548,8 @@ const NexiousChatbotShowcase = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-4 text-gray-300 text-lg max-w-3xl mx-auto"
+            className={`${vt323.className} mt-4 text-gray-300 text-lg max-w-3xl mx-auto`}
+            style={{ fontSize: '16px' }}
           >
             Intelligent, context-aware interactions powered by our advanced multi-model architecture
           </motion.p>
@@ -691,7 +693,7 @@ const VectorDatabaseSection = () => {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent"
+            className={`${audiowide.className} text-4xl md:text-5xl font-bold bg-gradient-to-r from-cyan-400 via-blue-500 to-purple-600 bg-clip-text text-transparent`}
           >
             NEXIOUS WITH VECTOR DATABASE FLOWCHART
           </motion.h2>
@@ -699,7 +701,8 @@ const VectorDatabaseSection = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.2 }}
-            className="mt-4 text-gray-300 text-lg max-w-3xl mx-auto"
+            className={`${vt323.className} mt-4 text-gray-300 text-lg max-w-3xl mx-auto`}
+            style={{ fontSize: '16px' }}
           >
             How our advanced vector embeddings transform AI responses for unparalleled accuracy
           </motion.p>
@@ -2146,7 +2149,7 @@ export default function CustomChatbotPage() {
             className="relative z-10 performance-optimized hw-accelerated"
           >
             <motion.h1
-              className={`text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 ${gradientTextClass}
+              className={`${audiowide.className} text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold mb-6 ${gradientTextClass}
                          performance-optimized hw-accelerated smooth-animation`}
               style={{
                 textShadow: '0 0 40px rgba(139, 92, 246, 0.3)',
@@ -2170,7 +2173,7 @@ export default function CustomChatbotPage() {
               transition={{ duration: 1, delay: 0.2 }}
               className="relative"
             >
-              <p className="text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light">
+              <p className={`${vt323.className} text-xl md:text-2xl text-gray-300 max-w-3xl mx-auto font-light`} style={{ fontSize: '16px' }}>
                 {typedText}
                 <motion.span
                   animate={{ opacity: [1, 0] }}
@@ -2192,7 +2195,7 @@ export default function CustomChatbotPage() {
                 className="flex items-center space-x-2 text-sm bg-gradient-to-r from-purple-500/20 to-cyan-500/20 px-6 py-3 rounded-full backdrop-blur-sm border border-purple-500/20 hover:border-purple-500/40 transition-all duration-300"
               >
                 <Bot size={18} className="text-purple-400" />
-                <span className="text-purple-100">Advanced NLP</span>
+                <span className={`${vt323.className} text-purple-100`} style={{ fontSize: '16px' }}>Advanced NLP</span>
               </motion.div>
 
               <motion.div
@@ -2201,7 +2204,7 @@ export default function CustomChatbotPage() {
                 className="flex items-center space-x-2 text-sm bg-gradient-to-r from-cyan-500/20 to-blue-500/20 px-6 py-3 rounded-full backdrop-blur-sm border border-cyan-500/20 hover:border-cyan-500/40 transition-all duration-300"
               >
                 <Brain size={18} className="text-cyan-400" />
-                <span className="text-cyan-100">Multi-Model AI</span>
+                <span className={`${vt323.className} text-cyan-100`} style={{ fontSize: '16px' }}>Multi-Model AI</span>
               </motion.div>
 
               <motion.div
@@ -2210,7 +2213,7 @@ export default function CustomChatbotPage() {
                 className="flex items-center space-x-2 text-sm bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-6 py-3 rounded-full backdrop-blur-sm border border-blue-500/20 hover:border-blue-500/40 transition-all duration-300"
               >
                 <Globe size={18} className="text-blue-400" />
-                <span className="text-blue-100">20+ Languages</span>
+                <span className={`${vt323.className} text-blue-100`} style={{ fontSize: '16px' }}>20+ Languages</span>
               </motion.div>
             </motion.div>
 
@@ -2278,7 +2281,7 @@ export default function CustomChatbotPage() {
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className={`${audiowide.className} text-3xl md:text-4xl font-bold text-white mb-4`}
             >
               AI Chatbot Integration Plans (USD)
             </motion.h2>
@@ -2286,7 +2289,8 @@ export default function CustomChatbotPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto"
+              className={`${vt323.className} text-lg text-gray-300 max-w-2xl mx-auto`}
+              style={{ fontSize: '16px' }}
             >
               Scalable chatbot solutions for startups, businesses, and enterprises.
             </motion.p>

@@ -6,6 +6,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { FiCode, FiLayout, FiShoppingBag, FiChevronRight } from 'react-icons/fi'
 import { BiCodeBlock, BiPalette, BiStore, BiMobile, BiServer, BiAnalyse } from 'react-icons/bi'
+import { audiowide, vt323 } from '@/app/utils/fonts'
 
 const services = [
   {
@@ -193,7 +194,7 @@ export default function ServicesPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center space-y-4 sm:space-y-6"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white">
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl font-bold text-white ${audiowide.className}`}>
               Our Services
               <motion.span 
                 initial={{ opacity: 0, y: 20 }}
@@ -201,12 +202,12 @@ export default function ServicesPage() {
                 transition={{ delay: 0.2 }}
                 className="block mt-2 sm:mt-4"
               >
-                <span className="bg-white text-black px-4 sm:px-6 py-1 sm:py-2 rounded-lg inline-block text-lg sm:text-xl">
+                <span className={`bg-white text-black px-4 sm:px-6 py-1 sm:py-2 rounded-lg inline-block text-lg sm:text-xl ${audiowide.className}`}>
                   Crafting Digital Excellence
                 </span>
               </motion.span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8 px-4">
+            <p className={`text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8 px-4 ${vt323.className}`}>
               From concept to deployment, we deliver comprehensive digital solutions
               that help businesses thrive in the modern world.
             </p>
@@ -230,8 +231,8 @@ export default function ServicesPage() {
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
                 <div className="relative p-3 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300 text-center">
-                  <h3 className="text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2">{stat.number}</h3>
-                  <p className="text-xs sm:text-sm text-gray-400">{stat.label}</p>
+                  <h3 className={`text-xl sm:text-2xl md:text-3xl font-bold text-white mb-1 sm:mb-2 ${audiowide.className}`}>{stat.number}</h3>
+                  <p className={`text-xs sm:text-sm text-gray-400 ${vt323.className}`}>{stat.label}</p>
                 </div>
               </motion.div>
             ))}
@@ -245,7 +246,7 @@ export default function ServicesPage() {
           <motion.h2
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-12"
+            className={`text-2xl sm:text-3xl font-bold text-white text-center mb-8 sm:mb-12 ${audiowide.className}`}
           >
             Service Highlights
           </motion.h2>
@@ -266,12 +267,12 @@ export default function ServicesPage() {
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
                 <div className="relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
-                  <h3 className="text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2">
+                  <h3 className={`text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2 ${audiowide.className}`}>
                     <span>{service.title === "WordPress & Shopify" ? "🛍️" : 
                            service.title === "Web Development" ? "💻" : "🎨"}</span>
                     {service.title}
                   </h3>
-                  <ul className="space-y-2 sm:space-y-3">
+                  <ul className={`space-y-2 sm:space-y-3 ${vt323.className}`}>
                     {service.facts.map((fact, i) => (
                       <li key={i} className="flex items-start gap-2 sm:gap-3 text-gray-300 text-xs sm:text-sm">
                         <span className="w-1.5 h-1.5 bg-purple-500 rounded-full mt-1.5" />
@@ -312,10 +313,10 @@ export default function ServicesPage() {
                     >
                       {service.icon}
                     </span>
-                    <h3 className="text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3">{service.title}</h3>
-                    <p className="text-sm sm:text-base text-gray-400 mb-4 sm:mb-6">{service.description}</p>
+                    <h3 className={`text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3 ${audiowide.className}`}>{service.title}</h3>
+                    <p className={`text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 ${vt323.className}`}>{service.description}</p>
                     
-                    <ul className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                    <ul className={`space-y-2 sm:space-y-3 mb-4 sm:mb-6 ${vt323.className}`}>
                       {service.features.map((feature, i) => (
                         <li key={i} className="flex items-center gap-2 sm:gap-3 text-gray-300 text-xs sm:text-sm">
                           <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
@@ -349,8 +350,8 @@ export default function ServicesPage() {
             animate={{ opacity: 1, y: 0 }}
             className="text-center mb-8 sm:mb-16"
           >
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-4">How We Work</h2>
-            <p className="text-base sm:text-xl text-gray-400 max-w-2xl mx-auto px-4">
+            <h2 className={`text-2xl sm:text-3xl font-bold text-white mb-2 sm:mb-4 ${audiowide.className}`}>How We Work</h2>
+            <p className={`text-base sm:text-xl text-gray-400 max-w-2xl mx-auto px-4 ${vt323.className}`}>
               Our proven process ensures successful project delivery and exceeds expectations
             </p>
           </motion.div>
@@ -369,7 +370,7 @@ export default function ServicesPage() {
                   className="relative group"
                 >
                   {/* Step Number */}
-                  <div className="absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 bg-white text-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold">
+                  <div className={`absolute -top-3 sm:-top-4 left-1/2 -translate-x-1/2 bg-white text-black px-2 sm:px-3 py-0.5 sm:py-1 rounded-full text-xs sm:text-sm font-bold ${audiowide.className}`}>
                     {step.step}
                   </div>
 
@@ -380,10 +381,10 @@ export default function ServicesPage() {
                     
                     <div className="relative z-10">
                       <span className="text-3xl sm:text-4xl mb-3 sm:mb-4 block">{step.icon}</span>
-                      <h3 className="text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2">{step.title}</h3>
-                      <p className="text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4">{step.description}</p>
+                      <h3 className={`text-lg sm:text-xl font-semibold text-white mb-1 sm:mb-2 ${audiowide.className}`}>{step.title}</h3>
+                      <p className={`text-xs sm:text-sm text-gray-400 mb-3 sm:mb-4 ${vt323.className}`}>{step.description}</p>
                       
-                      <ul className="space-y-1.5 sm:space-y-2">
+                      <ul className={`space-y-1.5 sm:space-y-2 ${vt323.className}`}>
                         {step.details.map((detail, i) => (
                           <li key={i} className="flex items-center gap-2 text-gray-300 text-xs sm:text-sm">
                             <span className="w-1.5 h-1.5 bg-purple-500 rounded-full" />
@@ -416,7 +417,7 @@ export default function ServicesPage() {
             >
               <div className="flex items-center gap-2">
                 <span className="text-base sm:text-lg">💡</span>
-                <p>{currentFact}</p>
+                <p className={vt323.className}>{currentFact}</p>
               </div>
             </motion.div>
           )}

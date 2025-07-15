@@ -7,6 +7,7 @@ import FeaturedProject from '../components/FeaturedProject'
 import NewlyAddedProjects from '../components/NewlyAddedProjects'
 import ProjectsGrid from '../components/ProjectsGrid'
 import ProjectImageGallery from '../components/ProjectImageGallery'
+import { audiowide, vt323 } from '@/app/utils/fonts'
 
 // Add fun facts array
 const funFacts = [
@@ -187,16 +188,16 @@ export default function ProjectsPage() {
         >
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 mb-6">
             <div>
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold mb-2 bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] tracking-tight">
+              <h1 className={`text-3xl md:text-5xl lg:text-6xl font-bold mb-2 bg-gradient-to-r from-white via-purple-400 to-blue-500 bg-clip-text text-transparent drop-shadow-[0_0_15px_rgba(147,51,234,0.5)] tracking-tight ${audiowide.className}`}>
                 My Projects
               </h1>
-              <p className="text-base text-gray-300 max-w-xl">
+              <p className={`text-base text-gray-300 max-w-xl ${vt323.className}`}>
                 Explore my complete portfolio of projects, from web applications to design work.
               </p>
             </div>
             
             <div className="hidden md:block bg-black/30 p-3 rounded-lg border border-purple-500/20 max-w-xs">
-              <p className="text-purple-300 text-sm italic">💡 {randomFact}</p>
+              <p className={`text-purple-300 text-sm italic ${vt323.className}`}>💡 {randomFact}</p>
             </div>
           </div>
         </motion.div>
@@ -227,7 +228,7 @@ export default function ProjectsPage() {
               transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className="text-3xl font-bold text-white mb-8">Featured Projects</h2>
+                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>Featured Projects</h2>
                 <FeaturedProject />
               </div>
             </motion.div>
@@ -250,12 +251,12 @@ export default function ProjectsPage() {
               transition={{ delay: 0.4, duration: 0.5 }}
             >
               <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className="text-3xl font-bold text-white mb-8">Cutting-Edge Technologies</h2>
+                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>Cutting-Edge Technologies</h2>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Frontend Technologies */}
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-purple-400">Frontend</h3>
-                    <ul className="space-y-2 text-gray-300">
+                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Frontend</h3>
+                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
                       <li>React & Next.js</li>
                       <li>TypeScript</li>
                       <li>Tailwind CSS</li>
@@ -264,8 +265,8 @@ export default function ProjectsPage() {
                   </div>
                   {/* Backend Technologies */}
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-purple-400">Backend</h3>
-                    <ul className="space-y-2 text-gray-300">
+                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Backend</h3>
+                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
                       <li>Node.js & Express</li>
                       <li>Python & Django</li>
                       <li>PostgreSQL & MongoDB</li>
@@ -274,8 +275,8 @@ export default function ProjectsPage() {
                   </div>
                   {/* Cloud & DevOps */}
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-purple-400">Cloud & DevOps</h3>
-                    <ul className="space-y-2 text-gray-300">
+                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Cloud & DevOps</h3>
+                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
                       <li>AWS & Vercel</li>
                       <li>Docker & Kubernetes</li>
                       <li>CI/CD Pipelines</li>
@@ -284,8 +285,8 @@ export default function ProjectsPage() {
                   </div>
                   {/* AI & Tools */}
                   <div className="space-y-4">
-                    <h3 className="text-xl font-semibold text-purple-400">AI & Tools</h3>
-                    <ul className="space-y-2 text-gray-300">
+                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>AI & Tools</h3>
+                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
                       <li>OpenAI Integration</li>
                       <li>Machine Learning</li>
                       <li>Design Systems</li>
@@ -304,7 +305,7 @@ export default function ProjectsPage() {
               transition={{ delay: 0.5, duration: 0.5 }}
             >
               <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className="text-3xl font-bold text-white mb-8">AI Integration & AI Controlled Websites</h2>
+                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>AI Integration & AI Controlled Websites</h2>
                 {/* AI Integration content */}
               </section>
             </motion.div>
@@ -328,8 +329,8 @@ export default function ProjectsPage() {
           >
             <div className="max-w-7xl mx-auto py-16 text-center">
               <div className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/20">
-                <h3 className="text-xl font-semibold text-purple-300 mb-3">No projects found</h3>
-                <p className="text-gray-400">Check back later for exciting new projects!</p>
+                <h3 className={`text-xl font-semibold text-purple-300 mb-3 ${audiowide.className}`}>No projects found</h3>
+                <p className={`text-gray-400 ${vt323.className}`}>Check back later for exciting new projects!</p>
               </div>
             </div>
           </motion.section>
@@ -345,12 +346,12 @@ export default function ProjectsPage() {
           <div className="bg-black/60 rounded-xl overflow-hidden">
             <div className="flex flex-col lg:flex-row">
               <div className="p-8 lg:p-12 lg:w-1/2">
-                <h2 className="text-3xl md:text-4xl font-bold text-purple-300 mb-6">
+                <h2 className={`text-3xl md:text-4xl font-bold text-purple-300 mb-6 ${audiowide.className}`}>
                   New Projects Coming Soon
                 </h2>
                 <div className="w-24 h-1 bg-gradient-to-r from-purple-400 to-blue-500 mb-8"></div>
                 
-                <p className="text-base md:text-lg text-purple-100/90 mb-8 max-w-xl">
+                <p className={`text-base md:text-lg text-purple-100/90 mb-8 max-w-xl ${vt323.className}`}>
                   Stay tuned for exciting new projects! Follow me on social media for updates on upcoming releases and behind-the-scenes development.
                 </p>
                 

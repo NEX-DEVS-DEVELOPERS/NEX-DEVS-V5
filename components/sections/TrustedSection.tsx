@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion'
 import { useRef, useEffect } from 'react'
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 const trustedCompanies = [
   {
@@ -91,7 +92,7 @@ export default function TrustedSection() {
         transition={{ duration: 0.5 }}
         className="text-center mb-8"
       >
-        <h3 className="text-gray-400 text-sm sm:text-base uppercase tracking-wider font-medium">
+        <h3 className={`text-gray-400 text-sm sm:text-base uppercase tracking-wider font-medium ${audiowide.className}`}>
           TRUSTED BY
         </h3>
       </motion.div>
@@ -140,7 +141,7 @@ export default function TrustedSection() {
               </div>
               <div className="flex flex-col">
                 <span className="text-white text-sm sm:text-base font-medium">{company.name}</span>
-                <span className="text-gray-400 text-xs">Verified Partner</span>
+                <span className={`text-gray-400 text-xs ${vt323.className}`}>Verified Partner</span>
               </div>
             </motion.a>
           ))}

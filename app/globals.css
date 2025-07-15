@@ -1416,3 +1416,26 @@ header[role="banner"] {
   overflow: visible !important;
   contain: paint style !important;
 }
+
+.frosted-glass {
+  background: rgba(0, 0, 0, 0.5) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Loading screen body lock */
+body.loading-active {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+  height: 100% !important;
+  touch-action: none !important;
+  -webkit-overflow-scrolling: none !important;
+}
+
+/* Prevent scrolling on html element too when loading is active */
+html:has(body.loading-active) {
+  overflow: hidden !important;
+  height: 100% !important;
+}

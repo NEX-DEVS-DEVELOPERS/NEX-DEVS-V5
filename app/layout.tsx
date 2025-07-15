@@ -1,16 +1,15 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
+import "../styles/barba-transitions.css" // Import Barba.js transition styles
 import { cn } from "@/lib/utils"
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
+import { fontVariables, audiowide, vt323 } from "@/app/utils/fonts"
 
-// Import the client component wrapper that will handle the chatbot
-import ChatbotClientWrapper from './components/ChatbotClientWrapper'
+// Import ClientLayout which wraps all client components
+import ClientLayout from './components/ClientLayout'
 
-// Dynamic imports for better code splitting
-const Footer = dynamic(() => import("@/components/layout/Footer"), {
-  loading: () => <div className="h-20 bg-black" />
-})
+// Dynamic import for Navbar (can stay here because it needs to be outside ClientLayout)
 const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
   loading: () => <div className="h-16 bg-black" />
 })
@@ -70,7 +69,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning className={inter.variable}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fontVariables}`}>
       <head>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
@@ -87,6 +86,8 @@ export default function RootLayout({
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             --animation-enabled: true;
+            --font-audiowide: ${audiowide.style.fontFamily};
+            --font-vt323: ${vt323.style.fontFamily};
           }
           
           @media (prefers-reduced-motion: reduce) {
@@ -132,9 +133,26 @@ export default function RootLayout({
               animation: none !important;
             }
           }
+          
+          /* Barba.js transition overlay */
+          .transition-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 9999;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.5s ease;
+          }
         `}} />
       </head>
-      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll optimized-element")}>
+      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll optimized-element")} data-barba="wrapper">
+        <div className="transition-overlay" id="transition-overlay"></div>
+        <div className="progress-bar" id="progress-bar"></div>
+        
         <ThemeProvider
           attribute="class"
           defaultTheme="dark"
@@ -144,11 +162,10 @@ export default function RootLayout({
           <CurrencyProvider>
             <TimelineProvider>
               <Navbar />
-              <div className="flex-1 gpu-accelerated overflow-visible" style={{ contain: 'paint style' }} data-page-content="true">
+              {/* ClientLayout wraps all client-side components */}
+              <ClientLayout>
                 {children}
-              </div>
-              <Footer />
-              <ChatbotClientWrapper />
+              </ClientLayout>
             </TimelineProvider>
           </CurrencyProvider>
         </ThemeProvider>

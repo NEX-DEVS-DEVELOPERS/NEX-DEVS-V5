@@ -1,8 +1,9 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
+import TeamMemberCard from './TeamMemberCard' // Import the new component
+import { audiowide } from '@/app/utils/fonts';
 
 interface TeamMember {
   id: number
@@ -210,7 +211,7 @@ export default function TeamSection() {
             </svg>
             Our Team
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent mb-4">
+          <h2 className={`text-3xl sm:text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-blue-200 bg-clip-text text-transparent mb-4 ${audiowide.className}`}>
             Meet Our Team
           </h2>
         </div>
@@ -220,24 +221,8 @@ export default function TeamSection() {
           <div className="mb-12">
             <div className="relative">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-black/40 rounded-2xl border border-purple-500/20 p-6 backdrop-blur-sm">
-                {/* Leader Image with Enhanced Quality */}
-                <div className="relative group">
-                  <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur opacity-25 group-hover:opacity-40 transition duration-500"></div>
-                  <div className="relative aspect-[4/3] rounded-xl overflow-hidden">
-                    <Image
-                      src={teamLeader.image_url}
-                      alt={teamLeader.name}
-                      width={1920}
-                      height={1080}
-                      className="object-cover w-full h-full transition-all duration-700 ease-in-out group-hover:scale-105 blur-[8px] group-hover:blur-0"
-                      placeholder="blur"
-                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjAyMDMwIi8+PC9zdmc+"
-                      priority
-                      quality={100}
-                    />
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent"></div>
-                  </div>
-                </div>
+                {/* Use TeamMemberCard for the leader */}
+                <TeamMemberCard member={teamLeader} />
 
                 {/* Leader Info - Modernized */}
                 <div className="space-y-6">
@@ -264,38 +249,16 @@ export default function TeamSection() {
                     )}
                   </div>
 
-                  {teamLeader.skills && teamLeader.skills.length > 0 && (
-                    <div className="space-y-3">
-                      <h4 className="text-white font-medium">Core Expertise</h4>
-                      <div className="flex flex-wrap gap-2">
-                        {teamLeader.skills.map((skill, index) => (
-                          <span
-                            key={index}
-                            className="px-3 py-1 text-sm font-medium rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-200"
-                          >
-                            {skill}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Modern Social Links */}
-                  <div className="flex gap-3">
-                    {Object.entries(teamLeader.socialLinks).map(([platform, url]) => {
-                      if (!url) return null
-                      return (
-                        <Link
-                          key={platform}
-                          href={url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="p-2 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-purple-400 hover:border-purple-500/50 transition-all duration-300 hover:scale-110"
-                        >
+                  {/* Leader's Social Links */}
+                  <div className="flex items-center space-x-4">
+                    {Object.entries(teamLeader.socialLinks).map(([platform, url]) => (
+                      url && (
+                        <a key={platform} href={url as string} target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-purple-400 transition-colors duration-300">
+                          <span className="sr-only">{platform}</span>
                           <SocialIcon platform={platform} />
-                        </Link>
+                        </a>
                       )
-                    })}
+                    ))}
                   </div>
                 </div>
               </div>
@@ -303,70 +266,12 @@ export default function TeamSection() {
           </div>
         )}
 
-        {/* Regular Team Members - Compact Grid */}
-        {regularMembers.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {regularMembers.map((member) => (
-                <div
-                  key={member.id}
-                className="group relative bg-black/40 rounded-xl border border-purple-500/20 p-4 backdrop-blur-sm hover:border-purple-500/40 transition-all duration-300"
-              >
-                <div className="relative mb-4 aspect-[4/3] rounded-lg overflow-hidden">
-                          <Image
-                            src={member.image_url}
-                            alt={member.name}
-                    width={400}
-                    height={300}
-                    className="object-cover w-full h-full transition-all duration-700 ease-in-out group-hover:scale-105 blur-[8px] group-hover:blur-0"
-                    placeholder="blur"
-                    blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjAyMDMwIi8+PC9zdmc+"
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
-                    </div>
-
-                <div className="space-y-3">
-                  <div>
-                    <h3 className="text-lg font-semibold text-white mb-1">{member.name}</h3>
-                    <p className="text-sm text-purple-400">{member.title}</p>
-                      </div>
-
-                  {member.skills && (
-                    <div className="flex flex-wrap gap-1">
-                      {member.skills.slice(0, 3).map((skill, index) => (
-                            <span
-                          key={index}
-                          className="px-2 py-0.5 text-xs rounded-full bg-purple-500/20 border border-purple-500/30 text-purple-200"
-                            >
-                              {skill}
-                            </span>
-                          ))}
-                      {member.skills.length > 3 && (
-                        <span className="text-xs text-gray-400">+{member.skills.length - 3} more</span>
-                      )}
-                      </div>
-                    )}
-
-                  <div className="flex gap-2">
-                        {Object.entries(member.socialLinks).map(([platform, url]) => {
-                          if (!url) return null
-                          return (
-                            <Link
-                              key={platform}
-                              href={url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                          className="p-1.5 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-purple-400 hover:border-purple-500/50 transition-all duration-300"
-                            >
-                              <SocialIcon platform={platform} />
-                            </Link>
-                          )
-                        })}
-                      </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
+        {/* Regular Team Members Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {regularMembers.map((member) => (
+            <TeamMemberCard key={member.id} member={member} />
+          ))}
+        </div>
       </div>
     </section>
   )

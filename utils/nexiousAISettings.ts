@@ -131,7 +131,7 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
       timeout: 8000,
       maxRetries: 2,
       temperature: 0.8,
-      maxTokens: 30000,
+      maxTokens: 4096,
       isEnabled: true,
       description: 'qwen3-235b-a22b:free -fast'
     },
@@ -141,7 +141,7 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
       timeout: 7000,
       maxRetries: 2,
       temperature: 0.6,
-      maxTokens: 1800,
+      maxTokens: 4096,
       isEnabled: true,
       description: 'Llama 3.1 8B - High-quality backup model'
     },
@@ -151,7 +151,7 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
       timeout: 8000,
       maxRetries: 2,
       temperature: 0.8,
-      maxTokens: 2100,
+      maxTokens: 4096,
       isEnabled: true,
       description: 'qwen3-32b:free fast'
     },
@@ -161,7 +161,7 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
       timeout: 6000,
       maxRetries: 1,
       temperature: 0.5,
-      maxTokens: 3000,
+      maxTokens: 4096,
       isEnabled: true,
       description: 'Mistral Small - Efficient fallback option'
     }
@@ -176,7 +176,7 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
 const standardModeSettings: AIModelSettings = {
   model: 'deepseek/deepseek-r1-0528:free',
   temperature: 0.8,
-  maxTokens: 30000,
+  maxTokens: 4096,
   topP: 0.8,
   presencePenalty: 0.2,
   frequencyPenalty: 0.3,

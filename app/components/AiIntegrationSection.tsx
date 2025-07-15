@@ -3,6 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // Add PixelatedLine class
 class PixelatedLine {
@@ -524,7 +525,7 @@ const AiIntegrationSection: React.FC = () => {
         >
           <div className="relative">
             <div className="absolute inset-0 blur-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl -m-4"></div>
-            <h2 className="text-xl md:text-3xl font-bold text-white mb-3 px-6 py-4 bg-black/30 backdrop-blur-lg border border-blue-500/20 rounded-2xl shadow-xl relative z-10">
+            <h2 className={`${audiowide.className} text-xl md:text-3xl font-bold text-white mb-3 px-6 py-4 bg-black/30 backdrop-blur-lg border border-blue-500/20 rounded-2xl shadow-xl relative z-10`}>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 AI INTEGRATION
               </span>{" "}
@@ -595,9 +596,9 @@ const AiIntegrationSection: React.FC = () => {
                     <div className="text-xl p-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
                       <span role="img" aria-label="robot">🤖</span>
                     </div>
-                    <h3 className="text-xl font-bold text-white">Custom AI Chatbot</h3>
+                    <h3 className={`${audiowide.className} text-xl font-bold text-white`}>Custom AI Chatbot</h3>
                   </div>
-                  <p className="text-gray-300 mb-6">
+                  <p className={`${vt323.className} text-gray-300 mb-6`} style={{ fontSize: '16px' }}>
                     Personalized AI chatbot solutions tailored to your business needs, with natural language understanding and 24/7 customer support capabilities.
                   </p>
                   <div className="flex items-center text-cyan-400 group-hover:text-cyan-300 transition-colors">
@@ -666,9 +667,9 @@ const AiIntegrationSection: React.FC = () => {
                     <div className="text-xl p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                       <span role="img" aria-label="brain">🧠</span>
                     </div>
-                    <h3 className="text-xl font-bold text-white">AI Business Integration</h3>
+                    <h3 className={`${audiowide.className} text-xl font-bold text-white`}>AI Business Integration</h3>
                   </div>
-                  <p className="text-gray-300 mb-6">
+                  <p className={`${vt323.className} text-gray-300 mb-6`} style={{ fontSize: '16px' }}>
                     Seamlessly integrate AI into your existing business workflows to automate processes, analyze data, and gain actionable insights.
                   </p>
                   <div className="flex items-center text-purple-400 group-hover:text-purple-300 transition-colors">
@@ -702,8 +703,8 @@ const AiIntegrationSection: React.FC = () => {
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full filter blur-3xl"></div>
             <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/10 rounded-full filter blur-3xl"></div>
             
-            <h3 className="text-lg font-bold text-white mb-2 relative">Ready to harness the power of AI?</h3>
-            <p className="text-blue-200 text-xs mb-4 relative">
+            <h3 className={`${audiowide.className} text-lg font-bold text-white mb-2 relative`}>Ready to harness the power of AI?</h3>
+            <p className={`${vt323.className} text-blue-200 text-xs mb-4 relative`} style={{ fontSize: '16px' }}>
               Our AI solutions are built on state-of-the-art language models with enterprise-grade security and customization.
             </p>
             <div className="flex flex-wrap justify-center gap-3 text-xs relative">

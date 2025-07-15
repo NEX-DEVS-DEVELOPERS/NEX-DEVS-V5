@@ -6,6 +6,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PlanReview } from '../components/ReviewsDrawer';
 import { carouselReviews, planReviews, Review } from '../components/ReviewsData';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // Add glowing dots component
 const GlowingDot = ({ className = "", size = "small" }) => (
@@ -1394,7 +1395,7 @@ function ContactPageContent() {
                   </div>
                 </motion.div>
               )}
-              <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold text-center mb-4 md:mb-6 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]">
+              <h1 className={`${audiowide.className} text-3xl md:text-5xl lg:text-6xl font-bold text-center mb-4 md:mb-6 text-white drop-shadow-[0_4px_4px_rgba(0,0,0,0.8)]`}>
                 Let's Work <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Together</span>
               </h1>
               {selectedPlan && (
@@ -1452,7 +1453,7 @@ function ContactPageContent() {
                   </motion.div>
                 </motion.div>
               )}
-              <p className="text-center text-gray-300 text-xl max-w-2xl mx-auto mt-6">
+              <p className={`${vt323.className} text-center text-gray-300 text-xl max-w-2xl mx-auto mt-6`} style={{ fontSize: '16px' }}>
                 Transform your digital presence with our expert web development services. 
                 <span className="block mt-2">We're here to bring your vision to life.</span>
               </p>
@@ -1461,7 +1462,7 @@ function ContactPageContent() {
 
           {/* Expertise Section with Smaller Boxes and Colors */}
           <section className="mb-20 relative z-10">
-            <h2 className="text-3xl font-bold text-center mb-8">Our Expertise</h2>
+            <h2 className={`${audiowide.className} text-3xl font-bold text-center mb-8`}>Our Expertise</h2>
             <div className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
               {expertiseAreas.map((area, index) => (
                 <div 
@@ -1475,7 +1476,7 @@ function ContactPageContent() {
                     {area.icon}
                   </div>
                   <h3 className="text-lg font-semibold mb-2 text-white/90 group-hover:text-white">{area.title}</h3>
-                  <p className="text-gray-400 text-sm group-hover:text-gray-300 transition-colors">
+                  <p className={`${vt323.className} text-gray-400 group-hover:text-gray-300 transition-colors`} style={{ fontSize: '16px' }}>
                     {area.description}
                   </p>
                 </div>
@@ -1489,7 +1490,7 @@ function ContactPageContent() {
             hover:border-white/30 transition-all duration-500 
             transform perspective-1000 hover:scale-105 hover:rotate-1
             hover:shadow-lg hover:shadow-purple-500/20">
-              <h2 className="text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-white">Contact Information</h2>
+              <h2 className={`${audiowide.className} text-xl md:text-2xl font-semibold mb-4 md:mb-6 text-white`}>Contact Information</h2>
               <div className="space-y-4 md:space-y-6">
                 {/* Primary Contact Info */}
                 <div className="space-y-3 md:space-y-4">
@@ -1513,8 +1514,8 @@ function ContactPageContent() {
                     <FaEnvelope className="text-purple-500 w-4 h-4 md:w-5 md:h-5 mt-1" />
                     <div>
                       <p className="text-sm md:text-base font-medium">Email Us</p>
-                      <p className="text-xs md:text-sm">nexwebs.org@gmail.com</p>
-                      <p className="text-xs text-gray-400">24/7 support available</p>
+                      <p className={`${vt323.className}`} style={{ fontSize: '16px' }}>nexwebs.org@gmail.com</p>
+                      <p className={`${vt323.className} text-gray-400`} style={{ fontSize: '16px' }}>24/7 support available</p>
                     </div>
                   </div>
                 </div>

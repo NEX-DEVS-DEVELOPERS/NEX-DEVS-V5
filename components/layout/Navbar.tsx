@@ -1,4 +1,4 @@
-'use client'
+"use client";
 
 import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -7,6 +7,12 @@ import Logo from './Logo'
 import MobileMenu from './MobileMenu'
 import { useIsMobile } from '@/app/utils/deviceDetection'
 import { PhoneIcon } from '@heroicons/react/24/solid'
+import { Audiowide } from 'next/font/google'
+
+const audiowide = Audiowide({
+  weight: '400',
+  subsets: ['latin'],
+});
 
 export default function Navbar() {
   const isMobile = useIsMobile()
@@ -47,6 +53,9 @@ export default function Navbar() {
       }
     };
     
+    // Run initial scroll check immediately
+    handleScroll();
+    
     // Add scroll event listener with passive option for better performance
     window.addEventListener('scroll', handleScroll, { passive: true });
     
@@ -71,10 +80,10 @@ export default function Navbar() {
   return (
     <motion.nav 
       ref={navRef}
-      initial={{ y: -100, opacity: 0 }}
+      initial={{ y: 0, opacity: 1 }} // Start fully visible immediately
       animate={{ y: 0, opacity: 1 }}
       transition={{ 
-        duration: 0.3,
+        duration: 0.2,
         ease: "easeOut",
       }}
       className={`navbar gpu-accelerated ${scrolled ? 'scrolled' : ''}`}
@@ -85,7 +94,9 @@ export default function Navbar() {
         padding: '1rem 1.5rem',
         zIndex: 50,
         backgroundColor: 'transparent',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
+        transform: 'translate3d(0,0,0)', // Force GPU acceleration
+        willChange: 'transform'
       }}
       data-navbar="true"
     >
@@ -97,18 +108,20 @@ export default function Navbar() {
         }`}
         style={{
           height: scrolled ? '60px' : '75px',
-          transform: `scale(${scrolled ? 0.98 : 1})`,
+          transform: `scale(${scrolled ? 0.98 : 1}) translateZ(0)`, // Add translateZ for GPU acceleration
           padding: scrolled ? '0 1rem' : '0 1.5rem',
           borderWidth: '1px',
           backdropFilter: scrolled ? 'blur(16px)' : 'blur(8px)',
           WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'blur(8px)',
+          willChange: 'transform, backdrop-filter'
         }}
       >
         <Logo />
         
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-4">
-          <AnimatePresence mode="wait">
+          {/* Remove AnimatePresence for immediate rendering */}
+          <div className="flex items-center space-x-4">
             {[
               ['Home', '/'],
               ['What we offer', '/services'],
@@ -119,48 +132,46 @@ export default function Navbar() {
               ['Contact/Checkout', '/contact'],
               ['Pricing', '/pricing']
             ].map(([text, href], index) => (
-              <motion.div
+              <div
                 key={text}
-                initial={{ opacity: 0, y: -10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                transition={{ 
-                  duration: 0.2,
-                  delay: index * 0.05,
-                  ease: "easeOut"
-                }}
                 className="transform-gpu seq-item"
+                style={{ 
+                  opacity: 1,
+                  transform: 'translateZ(0)'
+                }}
               >
                 <Link 
                   href={href} 
-                  className="text-sm hover:text-gray-300 whitespace-nowrap transition-colors duration-200 ease-out"
+                  className={`text-sm text-white/90 hover:text-white whitespace-nowrap transition-colors duration-200 ease-out tracking-wide ${audiowide.className}`}
                   onClick={(e) => handleNavClick(e, href)}
                 >
                   {text}
                 </Link>
-              </motion.div>
+              </div>
             ))}
-          </AnimatePresence>
+          </div>
           
-          {/* Modern Discovery Call Button - Always visible but with animated appearance */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ 
-              opacity: 1,
-              scale: 1,
-              x: 0
-            }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+          {/* Modern Discovery Call Button - Always visible with improved hover */}
+          <div
             className="ml-2"
+            style={{ 
+              opacity: 1,
+              transform: 'translateZ(0)'
+            }}
           >
             <Link 
               href="/discovery-call"
-              className="discovery-call-button flex items-center gap-2 py-1.5 px-4 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-full text-sm font-medium shadow-md hover:shadow-lg transition-all"
+              className={`discovery-call-button flex items-center gap-1.5 py-1 px-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-full text-xs font-medium shadow-md hover:shadow-lg transition-all hover:scale-105 transform-gpu ${audiowide.className}`}
+              style={{
+                willChange: 'transform, box-shadow',
+                transform: 'translateZ(0)',
+                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
+              }}
             >
-              <PhoneIcon className="h-4 w-4" />
+              <PhoneIcon className="h-3 w-3" />
               <span>Discovery Call</span>
             </Link>
-          </motion.div>
+          </div>
         </div>
 
         {/* Mobile Menu */}

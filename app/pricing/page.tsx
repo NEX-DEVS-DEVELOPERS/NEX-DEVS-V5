@@ -19,6 +19,105 @@ import ReviewsDrawer from '@/app/components/ReviewsDrawer';
 import ReviewsCarousel from '@/app/components/ReviewsCarousel';
 import PlanReviews from '@/app/components/PlanReviews';
 import { PlanReview } from '@/app/components/ReviewsDrawer';
+import { audiowide, vt323 } from '@/app/utils/fonts';
+
+// Standalone loading screen component with fixed display time
+const StandaloneLoadingScreen = () => {
+  const [show, setShow] = useState(true);
+  
+  useEffect(() => {
+    console.log("StandaloneLoadingScreen mounted, will display for 10 seconds");
+    // Completely prevent scrolling - more aggressive approach
+    if (typeof document !== 'undefined') {
+      // Save current scroll position
+      const scrollY = window.scrollY;
+      
+      // Apply multiple techniques to prevent scrolling
+      document.body.style.overflow = 'hidden';
+      document.body.style.position = 'fixed';
+      document.body.style.top = `-${scrollY}px`;
+      document.body.style.left = '0';
+      document.body.style.right = '0';
+      document.body.style.bottom = '0';
+      document.body.style.width = '100%';
+      document.documentElement.style.overflow = 'hidden'; // Also lock html element
+      
+      // Add a class for additional CSS control
+      document.body.classList.add('loading-active');
+    }
+    
+    const timer = setTimeout(() => {
+      console.log("StandaloneLoadingScreen timer completed, hiding loading screen");
+      setShow(false);
+      
+      // Re-enable scrolling and restore position
+      if (typeof document !== 'undefined') {
+        const scrollY = parseInt(document.body.style.top || '0') * -1;
+        
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.bottom = '';
+        document.body.style.width = '';
+        document.documentElement.style.overflow = '';
+        document.body.classList.remove('loading-active');
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      }
+    }, 10000); // Display for 10 seconds for better visibility
+    
+    return () => {
+      console.log("StandaloneLoadingScreen cleanup");
+      clearTimeout(timer);
+      
+      // Ensure scrolling is re-enabled on unmount
+      if (typeof document !== 'undefined') {
+        const scrollY = parseInt(document.body.style.top || '0') * -1;
+        
+        document.body.style.overflow = '';
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.bottom = '';
+        document.body.style.width = '';
+        document.documentElement.style.overflow = '';
+        document.body.classList.remove('loading-active');
+        
+        // Restore scroll position
+        window.scrollTo(0, scrollY);
+      }
+    };
+  }, []);
+  
+  if (!show) {
+    console.log("StandaloneLoadingScreen not showing");
+    return null;
+  }
+  
+  console.log("Rendering StandaloneLoadingScreen");
+  return (
+    <div 
+      className="fixed inset-0 bg-black z-[99999]" 
+      style={{ 
+        position: 'fixed', 
+        top: 0, 
+        left: 0, 
+        right: 0, 
+        bottom: 0, 
+        zIndex: 99999,
+        touchAction: 'none' // Prevent touch scrolling
+      }}
+    >
+      <div className="pt-16 md:pt-20">
+        <LoadingScreen />
+      </div>
+    </div>
+  );
+};
 
 // Add these type definitions at the top of the file
 type PricingFeature = string;
@@ -842,7 +941,7 @@ const PlanModal = memo(({ plan, onClose, onGetStarted, getFormattedPrice }: Plan
               <div className="absolute -top-2 -right-2 text-2xl sparkle-icon">✨</div>
             </div>
             <div>
-              <h2 className="text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+              <h2 className={`${audiowide.className} text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400`}>
                 Mobile App Development
               </h2>
               <p className="text-purple-300">Transform your ideas into powerful mobile experiences</p>
@@ -1365,23 +1464,9 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
                   </div>
                 </div>
 
-                {/* Fixed navigation */}
+                {/* Fixed navigation - REMOVED PREVIOUS BUTTON */}
                 <div className="p-4 border-t border-purple-500/20 bg-black/20">
-                  <div className="flex items-center justify-between">
-                    {currentSection > 0 ? (
-                      <button
-                        onClick={() => setCurrentSection(prev => Math.max(0, prev - 1))}
-                        className="px-6 py-2.5 text-sm rounded-lg flex items-center gap-2 text-white bg-purple-500/30 hover:bg-purple-500/40 transition-colors"
-                      >
-                        <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Previous
-                      </button>
-                    ) : (
-                      <div></div>
-                    )}
-                    
+                  <div className="flex items-center justify-end">
                     {currentSection < sections.length - 1 ? (
                       <button
                         onClick={() => setCurrentSection(prev => Math.min(sections.length - 1, prev + 1))}
@@ -1469,7 +1554,7 @@ const AppDevelopmentModal = ({ isOpen, onClose }: AppDevelopmentModalProps) => {
             </div>
           </div>
           <div>
-            <h2 className="text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400">
+            <h2 className={`${audiowide.className} text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400`}>
               Mobile App Development
             </h2>
             <p className="text-purple-300">Transform your ideas into powerful mobile experiences</p>
@@ -1832,13 +1917,38 @@ const cssAnimationsStyle = `
   }
 `;
 
+// Add ForcedLoadingScreen component
+const ForcedLoadingScreen = () => {
+  const [showLoading, setShowLoading] = useState(true);
+  
+  useEffect(() => {
+    console.log("ForcedLoadingScreen mounted");
+    const timer = setTimeout(() => {
+      console.log("ForcedLoadingScreen timer completed");
+      setShowLoading(false);
+    }, 5000); // Force display for 5 seconds
+    
+    return () => {
+      console.log("ForcedLoadingScreen unmounted");
+      clearTimeout(timer);
+    };
+  }, []);
+  
+  if (showLoading) {
+    console.log("Rendering forced LoadingScreen");
+    return <LoadingScreen />;
+  }
+  
+  return null;
+};
+
 // Use the existing PricingPlan interface
 
 export default function PricingPage() {
   const router = useRouter();
   const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
   const [mounted, setMounted] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true); // Ensure this is true by default
   const { 
     currency, 
     exchangeRate, 
@@ -1865,104 +1975,57 @@ export default function PricingPage() {
     setHasViewedGuide(true);
   };
 
-  // Add CSS styles to the document head
+  // Force loading screen to appear
   useEffect(() => {
-    const styleElement = document.createElement('style');
-    styleElement.textContent = `
-      @keyframes floating {
-        0% { transform: translateY(0); }
-        50% { transform: translateY(-10px); }
-        100% { transform: translateY(0); }
-      }
+    console.log("Loading state initialized:", isLoading);
+    setMounted(true);
     
-      @keyframes rotating {
-        0% { transform: rotate(-12deg); }
-        50% { transform: rotate(-8deg); }
-        100% { transform: rotate(-12deg); }
-      }
+    // Set scroll position to the top
+    if (typeof window !== 'undefined') {
+      window.scrollTo(0, 0);
+    }
     
-      @keyframes floating-right {
-        0% { transform: translateY(0) rotate(12deg); }
-        50% { transform: translateY(10px) rotate(8deg); }
-        100% { transform: translateY(0) rotate(12deg); }
-      }
-    
-      @keyframes pulse-subtle {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.05); }
-        100% { transform: scale(1); }
-      }
-    
-      @keyframes shimmer {
-        0% { transform: translateX(-100%); }
-        100% { transform: translateX(100%); }
-      }
-    
-      @keyframes fade-in {
-        from { opacity: 0; transform: translateY(20px); }
-        to { opacity: 1; transform: translateY(0); }
-      }
-    
-      @keyframes arrow-move {
-        0% { transform: translateX(0); }
-        50% { transform: translateX(5px); }
-        100% { transform: translateX(0); }
-      }
+    // Forcefully show loading screen for 5 seconds
+    console.log("Starting loading timer...");
+    const loadingTimer = setTimeout(() => {
+      console.log("Loading timer completed, setting isLoading to false");
+      setIsLoading(false);
       
-      .floating-mockup-left {
-        animation: floating 4s ease-in-out infinite, rotating 6s ease-in-out infinite;
-      }
+      // Then show website guide, but only if it hasn't been shown twice already
+      const guideTimer = setTimeout(() => {
+        if (typeof window !== 'undefined') {
+          window.scrollTo(0, 0);
+          
+          // Check localStorage for guide view count
+          const guideViewCount = localStorage.getItem('pricing-guide-view-count');
+          const viewCount = guideViewCount ? parseInt(guideViewCount) : 0;
+          
+          // Only show guide if it has been shown less than twice
+          if (viewCount < 2) {
+            setShowWebsiteGuide(true);
+            // Increment and save the view count
+            localStorage.setItem('pricing-guide-view-count', (viewCount + 1).toString());
+            console.log(`Guide shown ${viewCount + 1} times`);
+          } else {
+            console.log('Guide already shown twice, not showing again');
+          }
+        }
+      }, 500); // Short delay after loading screen disappears
       
-      .floating-mockup-right {
-        animation: floating-right 4.5s ease-in-out infinite;
-      }
-      
-      .title-sparkle {
-        animation: pulse-subtle 3s ease-in-out infinite;
-      }
-    
-      .fade-in-section {
-        animation: fade-in 0.5s ease-out forwards;
-      }
-    
-      .card-hover:hover {
-        transform: scale(1.03);
-        transition: transform 0.3s ease;
-      }
-    
-      .timeline-item {
-        opacity: 0;
-        animation: fade-in 0.5s ease-out forwards;
-        animation-delay: calc(var(--index, 0) * 0.1s);
-      }
-    
-      .phone-icon {
-        animation: pulse-subtle 2s infinite ease-in-out;
-      }
-    
-      .sparkle-icon {
-        animation: pulse-subtle 2s infinite ease-in-out;
-      }
-    
-      .email-btn:hover {
-        transform: translateY(-3px);
-        transition: transform 0.3s ease;
-      }
-    
-      .arrow-icon {
-        animation: arrow-move 1.5s infinite;
-      }
-    
-      .cta-btn:hover .arrow-icon {
-        animation: arrow-move 1s infinite;
-      }
-    `;
-    document.head.appendChild(styleElement);
+      return () => clearTimeout(guideTimer);
+    }, 5000); // 5 seconds loading time for visibility
     
     return () => {
-      document.head.removeChild(styleElement);
+      console.log("Cleaning up loading timer");
+      clearTimeout(loadingTimer);
     };
   }, []);
+
+  // Comment out the conditional loading screen check since we're using StandaloneLoadingScreen
+  // if (isLoading || !mounted) {
+  //   console.log("Rendering LoadingScreen component");
+  //   return <LoadingScreen />;
+  // }
 
   // Add useEffect to detect mobile devices
   useEffect(() => {
@@ -1983,22 +2046,8 @@ export default function PricingPage() {
     };
   }, []);
 
-  // Add useEffect to handle client-side mounting, loading state, and show guide
-  useEffect(() => {
-    setMounted(true);
-    window.scrollTo(0, 0); // Set scroll position to the top
-    
-    // Show website guide and end loading screen
-    const timer = setTimeout(() => {
-      setIsLoading(false);
-      
-      // Always show the guide when the page loads
-        window.scrollTo(0, 0);
-        setShowWebsiteGuide(true);
-    }, 1500); // 1.5 seconds loading time
-
-    return () => clearTimeout(timer);
-  }, []);
+  // Remove the conflicting useEffect that also handles loading state
+  // This useEffect was causing the loading screen to not appear properly
 
   // Add new useEffect to handle the hasViewedGuide state
   useEffect(() => {
@@ -2109,12 +2158,9 @@ export default function PricingPage() {
     marginBottom: '2rem',
   };
 
-  // Return loading screen while loading or during client-side hydration
-  if (!mounted || isLoading) {
-    return <LoadingScreen />;
-  }
-
   return (
+    <>
+      <StandaloneLoadingScreen />
     <div className="min-h-screen bg-black relative overflow-x-hidden pt-20 md:pt-32">
       {/* Remove the glow effects div */}
 
@@ -2255,7 +2301,7 @@ export default function PricingPage() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2 }}
-            className="text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 px-4 md:px-6 py-4 md:py-6 relative z-30 bg-black/40 backdrop-blur-sm rounded-xl inline-block"
+            className={`${audiowide.className} text-3xl md:text-4xl lg:text-6xl font-bold text-white mb-4 md:mb-6 px-4 md:px-6 py-4 md:py-6 relative z-30 bg-black/40 backdrop-blur-sm rounded-xl inline-block`}
           >
             Choose Your <span className="inline-block bg-white text-black px-2 md:px-3 py-1 rounded-md">Perfect Plan</span>
             <motion.span
@@ -2335,7 +2381,7 @@ export default function PricingPage() {
           >
             <div className="flex flex-col items-center text-center mb-8">
               <span className="text-2xl mb-2">💬</span>
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">Client Reviews</h2>
+              <h2 className={`${audiowide.className} text-2xl md:text-3xl font-bold text-white mb-3`}>Client Reviews</h2>
               <p className="text-purple-200 max-w-2xl text-sm md:text-base">
                 Don't just take our word for it - see what our clients have to say about our services.
               </p>
@@ -2414,7 +2460,7 @@ export default function PricingPage() {
         >
           <div className="flex flex-col items-center text-center mb-8">
             <span className="text-2xl mb-2">🛍️</span>
-            <h2 className="text-2xl md:text-3xl font-bold text-white mb-3">E-Commerce Store Management</h2>
+            <h2 className={`${audiowide.className} text-2xl md:text-3xl font-bold text-white mb-3`}>E-Commerce Store Management</h2>
             <p className="text-purple-200 max-w-2xl text-sm md:text-base">
               Elevate your e-commerce business with our professional store management services. 
               Our AI-driven approach increases sales by 40-60% through optimized customer experience and automated operations.
@@ -2549,5 +2595,6 @@ export default function PricingPage() {
         )}
       </AnimatePresence>
     </div>
+    </>
   );
 }

@@ -2,13 +2,174 @@
 
 import React from 'react';
 import { motion, AnimatePresence, useWillChange, Variants } from 'framer-motion';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti'; // Import the confetti library
+import NeuralNetwork from '@/components/animations/NeuralNetwork'; // Import NeuralNetwork component
+import { TypeAnimation } from 'react-type-animation'; // Import the typewriter animation component
+
+// Add barba.js imports
+import { initBarba } from '@/utils/barba-init';
+
+// Add Audiowide font import
+import { Audiowide } from 'next/font/google';
+
+// Initialize the font
+const audiowide = Audiowide({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+});
 
 const services = [
   {
     id: 1,
+    title: 'AI CHATBOT INTEGRATION',
+    description: 'Professional AI chatbot solutions with advanced NLP processing and vector database integration. Enhance customer engagement, automate support, and provide 24/7 assistance with cutting-edge large language models.',
+    skills: [
+      'Advanced NLP Processing Pipeline',
+      'Vector Database Knowledge Integration',
+      'Enterprise-Grade AI Model Implementation',
+      'Custom Training & Fine-Tuning Solutions'
+    ],
+    subFeatures: [
+      {
+        title: 'AI Models & Integration',
+        items: [
+          'Claude, Gemini, DeepSeek, Grok Integration',
+          'OpenRouter, HuggingFace, Ollama Support',
+          'Custom Fine-Tuning & Optimization',
+          'Human-Like Response Generation'
+        ]
+      },
+      {
+        title: 'Business Implementation',
+        items: [
+          'Seamless Website/App Integration',
+          'Multi-Platform Deployment',
+          'Real-Time Analytics Dashboard',
+          'ROI-Focused Implementation Strategy'
+        ]
+      }
+    ],
+    imageSection: {
+      title: 'Visualization',
+      description: 'See how our AI chatbots transform business communication',
+      imagePlaceholders: [
+        {
+          title: 'Customer Service AI',
+          description: 'Intelligent support automation'
+        },
+        {
+          title: 'Business Intelligence',
+          description: 'Data-driven insights'
+        }
+      ]
+    },
+    color: 'from-blue-600/30 to-indigo-600/30',
+    accent: 'border-blue-400/50',
+    bgAccent: 'bg-blue-500/5'
+  },
+  {
+    id: 2,
+    title: 'AI AGENT WORKFLOW DEVELOPMENT',
+    description: 'Enterprise workflow automation powered by intelligent AI agents. Transform business operations with custom automation pipelines that increase productivity, reduce errors, and deliver exceptional ROI.',
+    skills: [
+      'End-to-End Workflow Design & Implementation',
+      'Custom AI Agent Development',
+      'Cross-Platform Integration Architecture',
+      'Process Optimization & Monitoring'
+    ],
+    subFeatures: [
+      {
+        title: 'Automation Platforms',
+        items: [
+          'n8n Custom Workflow Implementation',
+          'Zapier Advanced Integration',
+          'Make.com (Integromat) Solutions',
+          'Custom API Development & Connection'
+        ]
+      },
+      {
+        title: 'Business Impact',
+        items: [
+          '10x Productivity Enhancement',
+          'Error Reduction & Quality Control',
+          'Cost Optimization & Resource Allocation',
+          'Scalable Business Process Transformation'
+        ]
+      }
+    ],
+    imageSection: {
+      title: 'Workflow Visualization',
+      description: 'See how our AI agents transform your workflows',
+      imagePlaceholders: [
+        {
+          title: 'Process Automation',
+          description: 'Intelligent workflow orchestration'
+        },
+        {
+          title: 'Integration Hub',
+          description: 'Seamless system connectivity'
+        }
+      ]
+    },
+    color: 'from-emerald-500/30 to-teal-600/30',
+    accent: 'border-emerald-400/50',
+    bgAccent: 'bg-emerald-500/5'
+  },
+  {
+    id: 3,
+    title: 'AI BUSINESS INTEGRATION',
+    description: 'Seamlessly integrate AI capabilities into your business processes, applications, and websites. Enhance decision-making, automate complex tasks, and deliver personalized experiences with enterprise-grade AI solutions.',
+    skills: [
+      'AI-Powered Business Transformation',
+      'Custom Integration Solutions',
+      'Intelligent Process Automation',
+      'Advanced Analytics & Insights'
+    ],
+    subFeatures: [
+      {
+        title: 'Business Applications',
+        items: [
+          'Enterprise AI Implementation',
+          'Workflow Intelligence Integration',
+          'Decision Support Systems',
+          'Predictive Analytics Solutions'
+        ]
+      },
+      {
+        title: 'Technology Integration',
+        items: [
+          'Legacy System AI Enhancement',
+          'Cross-Platform Compatibility',
+          'Scalable AI Architecture',
+          'Secure Implementation Framework'
+        ]
+      }
+    ],
+    imageSection: {
+      title: 'Business Intelligence',
+      description: 'Transform business operations with AI integration',
+      imagePlaceholders: [
+        {
+          title: 'Enterprise Systems',
+          description: 'Intelligent business solutions',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/774_1x_shots_so.png?updatedAt=1751975898520'
+        },
+        {
+          title: 'Analytics Dashboard',
+          description: 'Data-driven decision making',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/343_1x_shots_so.png?updatedAt=1751976256018'
+        }
+      ]
+    },
+    color: 'from-purple-500/30 via-blue-400/30 to-pink-500/30',
+    accent: 'border-purple-400/50',
+    bgAccent: 'bg-gradient-to-r from-purple-500/5 via-blue-400/5 to-pink-500/5'
+  },
+  {
+    id: 4,
     title: 'Ai-MOBILE APPS',
     description: 'Premium iOS and Android applications with advanced AI integration, delivering intelligent experiences that generate passive income through automation.',
     skills: [
@@ -37,12 +198,28 @@ const services = [
         ]
       }
     ],
+    imageSection: {
+      title: 'Mobile App Showcase',
+      description: 'Explore our AI-powered mobile application solutions',
+      imagePlaceholders: [
+        {
+          title: 'iOS Development',
+          description: 'Native performance with AI',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/682shots_so.png'
+        },
+        {
+          title: 'Cross-Platform Apps',
+          description: 'One codebase, multiple platforms',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/319shots_so.png'
+        }
+      ]
+    },
     color: 'from-orange-500/30 to-red-600/30',
     accent: 'border-orange-400/50',
     bgAccent: 'bg-orange-500/5'
   },
   {
-    id: 2,
+    id: 5,
     title: 'New 3D Website',
     description: 'Elevate your brand with cutting-edge 3D web experiences featuring stunning animations, immersive interactions, and next-generation performance. Powered by Three.js, Spline, and custom 3D animations for a truly unique digital presence.',
     skills: [
@@ -71,12 +248,28 @@ const services = [
         ]
       }
     ],
+    imageSection: {
+      title: '3D Web Experiences',
+      description: 'Immersive 3D websites that captivate your audience',
+      imagePlaceholders: [
+        {
+          title: '3D Product Showcase',
+          description: 'Interactive product visualization',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/452_1x_shots_so.png'
+        },
+        {
+          title: 'Immersive Experiences',
+          description: 'Engaging 3D web elements',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/647_1x_shots_so.png'
+        }
+      ]
+    },
     color: 'from-cyan-500/30 to-cyan-600/30',
     accent: 'border-cyan-400/50',
     bgAccent: 'bg-cyan-500/5'
   },
   {
-    id: 3,
+    id: 6,
     title: 'Full-Stack Development',
     description: 'Comprehensive AI-integrated development combining advanced Machine Learning with robust cloud-native architecture.',
     skills: [
@@ -95,12 +288,28 @@ const services = [
         items: ['Smart Orchestration', 'Intelligent Scaling', 'Automated DevOps']
       }
     ],
+    imageSection: {
+      title: 'Full-Stack Solutions',
+      description: 'Complete end-to-end development with AI integration',
+      imagePlaceholders: [
+        {
+          title: 'Modern Architecture',
+          description: 'Cloud-native solutions',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/NEX-WEBS%20NEXJS%20WEBSITE%20.png?updatedAt=1751992412485'
+        },
+        {
+          title: 'AI Integration',
+          description: 'Machine learning capabilities',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/694_1x_shots_so.png?updatedAt=1751992278768'
+        }
+      ]
+    },
     color: 'from-indigo-500/30 to-indigo-600/30',
     accent: 'border-indigo-400/50',
     bgAccent: 'bg-indigo-500/5'
   },
   {
-    id: 4,
+    id: 7,
     title: 'Shopify',
     description: 'AI-Driven e-commerce solutions with advanced analytics and intelligent automation for maximized sales performance.',
     skills: [
@@ -119,12 +328,28 @@ const services = [
         items: ['Automated Campaigns', 'Smart Retargeting', 'Conversion Optimization']
       }
     ],
+    imageSection: {
+      title: 'E-commerce Excellence',
+      description: 'AI-powered Shopify solutions for modern businesses',
+      imagePlaceholders: [
+        {
+          title: 'Smart Store',
+          description: 'AI-powered shopping experience',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/182shots_so.png'
+        },
+        {
+          title: 'Sales Analytics',
+          description: 'Data-driven business decisions',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/936shots_so.png'
+        }
+      ]
+    },
     color: 'from-green-500/30 to-green-600/30',
     accent: 'border-green-400/50',
     bgAccent: 'bg-green-500/5'
   },
   {
-    id: 5,
+    id: 8,
     title: 'AI Agents',
     description: 'Advanced AI automation solutions featuring intelligent agents and smart systems for enhanced business operations.',
     skills: [
@@ -143,12 +368,28 @@ const services = [
         items: ['Custom AI Models', 'Automated Learning', 'Performance Analytics']
       }
     ],
+    imageSection: {
+      title: 'AI Agent Solutions',
+      description: 'Intelligent automation for business processes',
+      imagePlaceholders: [
+        {
+          title: 'Workflow Automation',
+          description: 'Smart business processes',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/NEX-DEVS%20(PET%20GPT%20COMBINED%20IMAGE)%20.png'
+        },
+        {
+          title: 'Intelligent Agents',
+          description: 'AI-powered decision making',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/946_1x_shots_so.png?updatedAt=1750962486012'
+        }
+      ]
+    },
     color: 'from-violet-600/40 to-fuchsia-600/40',
     accent: 'border-fuchsia-400/50',
     bgAccent: 'bg-violet-500/10'
   },
   {
-    id: 6,
+    id: 9,
     title: 'MODERN AI BASED SAAS PRODUCT',
     description: 'Enterprise-grade SaaS solutions powered by advanced AI, delivering intelligent and scalable business applications with modern cloud architecture.',
     skills: [
@@ -167,12 +408,28 @@ const services = [
         items: ['Multi-tenant Design', 'Scalable Infrastructure', 'Enterprise Security']
       }
     ],
+    imageSection: {
+      title: 'SaaS Product Showcase',
+      description: 'Enterprise-grade AI SaaS solutions',
+      imagePlaceholders: [
+        {
+          title: 'Business Applications',
+          description: 'AI-powered enterprise tools',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/YT-ANALZER%20FINAL%20IMAGE%20.png'
+        },
+        {
+          title: 'Cloud Architecture',
+          description: 'Scalable SaaS infrastructure',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/YT-ANALYZER%202ND%20IMAGE%20NEX-DEVS.png'
+        }
+      ]
+    },
     color: 'from-yellow-500/30 to-yellow-600/30',
     accent: 'border-yellow-400/50',
     bgAccent: 'bg-yellow-500/5'
   },
   {
-    id: 7,
+    id: 10,
     title: 'WordPress Development',
     description: 'AI-Enhanced WordPress solutions featuring advanced automation and intelligent content management systems.',
     skills: [
@@ -191,12 +448,28 @@ const services = [
         items: ['Smart Publishing', 'Dynamic Templates', 'Intelligent Backups']
       }
     ],
+    imageSection: {
+      title: 'WordPress Solutions',
+      description: 'AI-enhanced WordPress development',
+      imagePlaceholders: [
+        {
+          title: 'Content Management',
+          description: 'Smart CMS solutions',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/821shots_so.png'
+        },
+        {
+          title: 'Website Performance',
+          description: 'Optimized WordPress sites',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/127shots_so.png'
+        }
+      ]
+    },
     color: 'from-purple-500/30 to-purple-600/30',
     accent: 'border-purple-400/50',
     bgAccent: 'bg-purple-500/5'
   },
   {
-    id: 8,
+    id: 11,
     title: 'Advanced SEO',
     description: 'AI-Powered SEO strategies utilizing advanced algorithms and Machine Learning for optimal online visibility.',
     skills: [
@@ -215,6 +488,22 @@ const services = [
         items: ['Smart Meta Generation', 'Content Suggestions', 'Trend Analysis']
       }
     ],
+    imageSection: {
+      title: 'SEO Visualization',
+      description: 'AI-powered search engine optimization',
+      imagePlaceholders: [
+        {
+          title: 'Ranking Analytics',
+          description: 'Data-driven SEO insights',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/884shots_so.png'
+        },
+        {
+          title: 'Content Strategy',
+          description: 'AI-optimized content planning',
+          image: 'https://ik.imagekit.io/u7ipvwnqb/524shots_so.png'
+        }
+      ]
+    },
     color: 'from-emerald-500/30 to-teal-600/30',
     accent: 'border-emerald-400/50',
     bgAccent: 'bg-emerald-500/5'
@@ -249,23 +538,35 @@ const slideVariants: Variants = {
     x: direction > 0 ? '100%' : '-100%',
     opacity: 0,
     scale: 0.95,
-    filter: 'blur(4px)',
-    rotateY: direction > 0 ? '3deg' : '-3deg'
+    rotateY: direction > 0 ? '3deg' : '-3deg',
+    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
-    filter: 'blur(0px)',
-    rotateY: '0deg'
+    rotateY: '0deg',
+    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
   },
   exit: (direction: number) => ({
     x: direction < 0 ? '100%' : '-100%',
     opacity: 0,
     scale: 0.95,
-    filter: 'blur(4px)',
-    rotateY: direction < 0 ? '3deg' : '-3deg'
+    rotateY: direction < 0 ? '3deg' : '-3deg',
+    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
   })
+};
+
+// Add animation sequencing control for welcome screen
+const ANIMATION_SEQUENCE = {
+  SCREEN_FADE_IN: 0,
+  BACKGROUND_ELEMENTS: 0.2, 
+  TITLE_TEXT: 0.4,
+  SUBTITLE_TEXT: 0.9, 
+  DESCRIPTION_TEXT: 1.4,
+  NEURAL_NETWORK: 1.8,
+  TECH_STACK: 2.4,
+  BUTTON: 2.8
 };
 
 // Add a modified version of the services data that contains shortened content for mobile
@@ -286,19 +587,34 @@ function getServiceContent(isMobile: boolean) {
 }
 
 function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () => void, initialDirection?: number }) {
-  const [currentSlide, setCurrentSlide] = useState(-1);
-  const [mounted, setMounted] = useState(false);
-  const [animationComplete, setAnimationComplete] = useState(false);
-  const router = useRouter();
+  const [currentSlide, setCurrentSlide] = useState(initialDirection);
   const [direction, setDirection] = useState(initialDirection);
+  const [mounted, setMounted] = useState(false);
+  const [previewImage, setPreviewImage] = useState<{ src: string; alt: string } | null>(null);
   const [isMobile, setIsMobile] = useState(false);
-  const [scrollPosition, setScrollPosition] = useState(0); // Add this state to store scroll position
-  const [hideMobilePreview, setHideMobilePreview] = useState(true); // State to control mobile preview popup
+  const [scrollPosition, setScrollPosition] = useState(0);
+  const [hideMobilePreview, setHideMobilePreview] = useState(true);
+  const barbaInitialized = useRef(false);
+  
+  // Add state for animation sequence control
+  const [animationComplete, setAnimationComplete] = useState({
+    background: false,
+    title: false,
+    subtitle: false,
+    neural: false,
+    techStack: false
+  });
 
-  // Add will-change optimization for better performance
-  const willChange = useWillChange();
+  // Image preview functions
+  const openImagePreview = (src: string, alt: string) => {
+    setPreviewImage({ src, alt });
+  };
 
-  // Detect mobile devices with better detection
+  const closeImagePreview = () => {
+    setPreviewImage(null);
+  };
+
+  // Initialize mobile check
   useEffect(() => {
     const checkMobile = () => {
       const userAgent = navigator.userAgent;
@@ -377,6 +693,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         
         // Restore scroll position
         window.scrollTo(0, scrollPos);
+        
+        // Clean up custom properties
+        document.documentElement.style.removeProperty('--initial-background-opacity');
+        document.documentElement.style.removeProperty('--initial-blur');
       };
     }
   }, [mounted]);
@@ -384,92 +704,122 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   // Get the appropriate service content based on device type
   const serviceContent = getServiceContent(isMobile);
 
-  // Update the mounting effect
+  // Update the mounting effect with improved animation sequencing
   useEffect(() => {
-    if (!localStorage.getItem('welcomeScreenShown')) {
-      // Set mounted and initial slide immediately
-      setMounted(true);
-      setCurrentSlide(-1);
-      
-      // Set initial state for animations
-      const setInitialState = () => {
-        // Set any initial state needed for animations
-        document.documentElement.style.setProperty('--initial-background-opacity', '0');
-        document.documentElement.style.setProperty('--initial-blur', '0px');
-      };
+    // Always mount and show first slide immediately
+    setMounted(true);
+    setCurrentSlide(-1);
+    
+    // Store current scroll position
+    const scrollPos = window.scrollY;
+    setScrollPosition(scrollPos);
 
-      // Run initial state setup
-      setInitialState();
-
-      // Clean up
-      return () => {
-        document.documentElement.style.removeProperty('--initial-background-opacity');
-        document.documentElement.style.removeProperty('--initial-blur');
-      };
-    }
-  }, []);
-
-  // Add enhanced entrance animation effect
-  useEffect(() => {
-    if (mounted) {
-      // Register animation completion after a consistent delay
-      const timer = setTimeout(() => {
-        setAnimationComplete(true);
-        // Update CSS variables for smooth transitions
+    // Set initial state for animations and apply scroll lock immediately
+    document.documentElement.style.setProperty('--initial-background-opacity', '0');
+    document.documentElement.style.setProperty('--initial-blur', '0px');
+    
+    // Sequence the animations
+    const animationTimers = [
+      setTimeout(() => {
         document.documentElement.style.setProperty('--initial-background-opacity', '1');
         document.documentElement.style.setProperty('--initial-blur', '2px');
-      }, 100);
+      }, 300),
       
-      return () => clearTimeout(timer);
-    }
-  }, [mounted]);
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, background: true }));
+      }, ANIMATION_SEQUENCE.BACKGROUND_ELEMENTS * 1000),
+      
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, title: true }));
+      }, ANIMATION_SEQUENCE.TITLE_TEXT * 1000),
+      
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, subtitle: true }));
+      }, ANIMATION_SEQUENCE.SUBTITLE_TEXT * 1000),
+      
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, neural: true }));
+      }, ANIMATION_SEQUENCE.NEURAL_NETWORK * 1000),
+      
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, techStack: true }));
+      }, ANIMATION_SEQUENCE.TECH_STACK * 1000)
+    ];
+    
+    // Create and append a style tag for global styles - apply instantly
+    const styleTag = document.createElement('style');
+    styleTag.setAttribute('data-welcome-screen', 'true');
+    styleTag.innerHTML = `
+      html, body {
+        overflow: hidden !important;
+        height: 100vh !important;
+        touch-action: none !important;
+        position: fixed !important;
+        width: 100% !important;
+        top: 0 !important;
+        left: 0 !important;
+      }
+      
+      #welcome-screen-overlay {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        bottom: 0 !important;
+        overflow: hidden !important;
+        touch-action: none !important;
+        -webkit-overflow-scrolling: none !important;
+        overscroll-behavior: none !important;
+        pointer-events: all !important;
+        z-index: 9999 !important;
+      }
+    `;
+    document.head.appendChild(styleTag);
 
-  // Add smooth scroll optimization with passive events
-  useEffect(() => {
-    // Optimize scroll performance
-    const optimizeScroll = () => {
-      let ticking = false;
-      const handleScroll = () => {
-        if (!ticking) {
-          window.requestAnimationFrame(() => {
-            // Perform any scroll-based animations here
-            ticking = false;
-          });
-          ticking = true;
-        }
-      };
+    // Apply inline styles immediately
+    document.body.style.top = `-${scrollPos}px`;
+
+    return () => {
+      // Clear all animation timers
+      animationTimers.forEach(timer => clearTimeout(timer));
       
-      window.addEventListener('scroll', handleScroll, { passive: true });
-      return () => window.removeEventListener('scroll', handleScroll);
+      // Remove the style tag
+      if (styleTag.parentNode) {
+        document.head.removeChild(styleTag);
+      }
+      
+      // Reset inline styles
+      document.body.style.top = '';
+      
+      // Restore scroll position
+      window.scrollTo(0, scrollPos);
+      
+      // Clean up custom properties
+      document.documentElement.style.removeProperty('--initial-background-opacity');
+      document.documentElement.style.removeProperty('--initial-blur');
     };
-
-    optimizeScroll();
   }, []);
 
-  // Add performance optimization for preloading
+  // Optimize the preloading effect for better performance
   useEffect(() => {
     // Preload critical assets and optimize rendering
-    const preloadAssets = async () => {
+    const preloadAssets = () => {
       // Preload critical images
       const criticalImages = document.querySelectorAll('img[data-priority="true"]');
-      const imagePromises = Array.from(criticalImages).map((img: any) => {
-        return new Promise((resolve) => {
-          if (img.complete) resolve(null);
-          img.onload = () => resolve(null);
-          img.onerror = () => resolve(null);
-        });
+      criticalImages.forEach((img: any) => {
+        if (img.loading !== 'eager') img.loading = 'eager';
+        if (img.decoding !== 'async') img.decoding = 'async';
       });
       
-      // Hint to browser about animations
+      // Hint to browser about animations with proper transform properties
       const animationElements = document.querySelectorAll('.will-change-transform, .hardware-accelerated');
       animationElements.forEach((el: any) => {
         if (el.style) {
-          el.style.willChange = 'transform, opacity';
+          el.style.willChange = 'transform';
           el.style.backfaceVisibility = 'hidden';
+          el.style.transform = 'translateZ(0)'; // Force GPU acceleration
         }
       });
-      
-      await Promise.all(imagePromises);
     };
 
     preloadAssets();
@@ -496,22 +846,64 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     // Restore scroll position
     window.scrollTo(0, scrollPosition);
     
-    // Set localStorage to indicate welcome screen was shown
-    localStorage.setItem('welcomeScreenShown', 'true');
+    // Just call onComplete without any localStorage operations
     onComplete();
   };
 
-  // Handle completion with localStorage
+  // Handle completion without localStorage
   const handleCompletion = () => {
-    localStorage.setItem('welcomeScreenShown', 'true');
     onComplete();
   };
+
+  // Add keyboard support for preview modal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape' && previewImage) {
+        closeImagePreview();
+      }
+    };
+    
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [previewImage]);
+  
+  // Close image preview when slide changes
+  useEffect(() => {
+    closeImagePreview();
+  }, [currentSlide]);
+
+  // Initialize Barba.js when component mounts
+  useEffect(() => {
+    if (typeof window !== 'undefined' && !barbaInitialized.current) {
+      // Custom Barba.js transition specific for the welcome screen
+      try {
+        initBarba();
+        
+        // Add special welcome screen transition event listener
+        window.addEventListener('welcomeTransitionComplete', () => {
+          // Trigger additional animations or cleanup after barba transition
+          if (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) {
+            // Enhance animations after Barba transition
+            document.querySelectorAll('.tech-stack-item').forEach((el) => {
+              (el as HTMLElement).style.opacity = '1';
+            });
+          }
+        });
+        
+        barbaInitialized.current = true;
+      } catch (error) {
+        console.error('Error initializing Barba.js:', error);
+      }
+    }
+  }, [animationComplete.subtitle, animationComplete.neural, animationComplete.techStack]);
 
   if (!mounted) return null;
 
-  // Update handlers to track direction
+  // Update handlers to track direction and close preview if open
   const handleNext = () => {
     setDirection(1);
+    if (previewImage) closeImagePreview();
+    
     if (currentSlide === services.length - 1) {
       // Trigger confetti effect on the last slide
       confetti({
@@ -529,13 +921,15 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     if (currentSlide === -1) {
       return;
     }
+    if (previewImage) closeImagePreview();
+    
     setDirection(-1);
     setCurrentSlide(prev => prev - 1);
   };
 
   const handleHomeRedirect = () => {
-    localStorage.removeItem('welcomeScreenShown'); // Reset the flag to show welcome screen on reload
-    window.location.href = '/';  // Redirect to home
+    // Simply redirect without affecting localStorage
+    window.location.href = '/';
   };
 
   // Add a new function to get optimized transition settings
@@ -547,22 +941,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           stiffness: 350,
           damping: 30,
           mass: 0.8,
-          restDelta: 0.001,
-          restSpeed: 0.001,
         };
       case "smooth":
         return {
-          duration: 0.6,
-          ease: [0.22, 1, 0.36, 1], // Custom cubic-bezier for smooth transitions
+          duration: 0.4,
+          ease: [0.22, 1, 0.36, 1],
         };
       case "stagger":
         return {
-          staggerChildren: 0.08,
-          delayChildren: 0.1,
+          staggerChildren: 0.04,
+          delayChildren: 0.05,
         };
       default:
         return {
-          duration: 0.5,
+          duration: 0.3,
           ease: "easeOut",
         };
     }
@@ -591,8 +983,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 boxShadow: isEven ? '0 0 4px rgba(59, 130, 246, 0.2)' : '0 0 4px rgba(168, 85, 247, 0.2)',
                 zIndex: 1,
                 width: "120%",
-                willChange: "transform, opacity",
-                transition: 'all 0.6s ease-out'
+                willChange: "transform",
+                transition: 'all 0.6s ease-out',
+                transform: 'translate3d(0,0,0)'
               }}
               initial={{ 
                 left: isEven ? "100%" : "-120%",
@@ -608,7 +1001,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 repeat: Infinity,
                 ease: "linear",
                 repeatType: "loop",
-                delay: i * 0.2
+                delay: i * 0.1
               }}
             />
           );
@@ -617,98 +1010,122 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     );
   };
 
-  // Add function to render tech stack floating texts
+  // Update function to render tech stack floating texts with staggered animations
   const renderTechStack = () => {
-    if (isMobile || currentSlide !== -1) return null; // Only show on welcome screen
+    if (isMobile || currentSlide !== -1 || !animationComplete.techStack) return null;
     
-    // Filter for critical tech stack items
     const criticalTech = techStack.filter(tech => tech.importance === 'critical');
     
-    // Define specific positions for each technology to avoid overlap and focus on empty areas
+    // Enhanced positions with better spacing
     const techPositions = [
       { name: 'Next.js', x: '8%', y: '15%', delay: 0, speed: 5 },
-      { name: 'TypeScript', x: '92%', y: '22%', delay: 0.2, speed: 6 },
-      { name: 'Python', x: '15%', y: '85%', delay: 0.7, speed: 7 },
-      { name: 'React', x: '88%', y: '75%', delay: 0.4, speed: 8 },
-      { name: 'Flutter', x: '12%', y: '32%', delay: 0.9, speed: 6 },
-      { name: 'Node.js', x: '90%', y: '35%', delay: 0.6, speed: 7 },
-      { name: 'JavaScript', x: '6%', y: '65%', delay: 0.3, speed: 5 },
-      { name: 'AWS', x: '85%', y: '55%', delay: 0.8, speed: 8 },
-      { name: 'React Native', x: '7%', y: '48%', delay: 0.5, speed: 7 },
-      { name: 'Java', x: '94%', y: '88%', delay: 0.1, speed: 6 },
-      { name: 'PostgreSQL', x: '10%', y: '75%', delay: 0.4, speed: 5 }
+      { name: 'TypeScript', x: '92%', y: '22%', delay: 0.6, speed: 6 },
+      { name: 'Python', x: '15%', y: '85%', delay: 1.2, speed: 7 },
+      { name: 'React', x: '88%', y: '75%', delay: 0.8, speed: 8 },
+      { name: 'Flutter', x: '12%', y: '32%', delay: 1.5, speed: 6 },
+      { name: 'Node.js', x: '90%', y: '35%', delay: 1.0, speed: 7 },
+      { name: 'JavaScript', x: '6%', y: '65%', delay: 0.4, speed: 5 },
+      { name: 'AWS', x: '85%', y: '55%', delay: 1.3, speed: 8 },
+      { name: 'React Native', x: '7%', y: '48%', delay: 0.9, speed: 7 },
+      { name: 'Java', x: '94%', y: '88%', delay: 0.3, speed: 6 },
+      { name: 'PostgreSQL', x: '10%', y: '75%', delay: 0.7, speed: 5 }
     ];
     
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {criticalTech.map((tech, i) => {
-          // Find the position for this tech or use a fallback
           const position = techPositions.find(pos => pos.name === tech.name) || 
-                           { x: `${10 + (i * 8)}%`, y: `${20 + (i * 7)}%`, delay: i * 0.2, speed: 6 };
+                         { x: `${10 + (i * 8)}%`, y: `${20 + (i * 7)}%`, delay: i * 0.3, speed: 6 };
           
-          // Calculate path radius - different for each tech badge
-          const radius = 5 + Math.random() * 5; // Random radius between 5-10px
+          const radius = 5 + Math.random() * 5;
           
+          // Calculate custom delay - ensures icons pop in sequence with proper timing
+          const baseDelay = position.delay + 0.2;
+          const appearanceDelay = baseDelay + (i * 0.15); // Increased spacing between icons
+          const movementDelay = appearanceDelay + 0.6; // Delay movement until after appearance animation completes
+
           return (
             <motion.div
               key={`tech-${tech.name}`}
-              className={`absolute ${tech.color} text-opacity-75 font-mono text-sm font-medium flex items-center gap-2 px-3 py-0.5 rounded-full bg-gray-900/50 backdrop-blur-sm border border-current border-opacity-30`}
+              className={`tech-stack-item absolute ${tech.color} text-opacity-75 font-mono text-sm font-medium flex items-center gap-2 px-3 py-0.5 rounded-full bg-gray-900/50 backdrop-blur-sm border border-current border-opacity-30`}
               initial={{ 
-                opacity: 0.6,
+                opacity: 0,
                 left: position.x,
                 top: position.y,
-                scale: 0.9
+                scale: 0.01
               }}
               animate={{ 
                 x: [radius, -radius, radius], 
                 y: [radius, -radius, radius],
-                opacity: [0.6, 0.8, 0.6],
-                scale: [0.95, 1.05, 0.95]
+                opacity: [0, 0.7, 0.9, 0.8],
+                scale: [0.01, 0.7, 1.15, 0.9, 1] // Smoother pop bubble animation effect
               }}
               transition={{
+                opacity: {
+                  duration: 0.7, // Longer duration for smoother fade-in
+                  delay: appearanceDelay,
+                  ease: "easeOut"
+                },
+                scale: {
+                  duration: 1.2, // Longer duration for smoother pop effect
+                  delay: appearanceDelay,
+                  ease: [0.34, 1.56, 0.64, 1], // Custom spring-like effect for natural bubble pop
+                  times: [0, 0.3, 0.6, 0.85, 1] // Control timing of scale keyframes for smoother effect
+                },
                 x: {
-                  duration: position.speed + Math.random(),
+                  duration: position.speed + Math.random() * 0.5,
+                  delay: movementDelay, // Start floating motion only after appearance animation completes
                   repeat: Infinity,
                   ease: "easeInOut",
                   repeatType: "reverse"
                 },
                 y: {
-                  duration: position.speed + Math.random() * 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  repeatType: "reverse",
-                  delay: position.delay
-                },
-                opacity: {
-                  duration: 4 + Math.random() * 2,
-                  repeat: Infinity,
-                  ease: "easeInOut",
-                  repeatType: "reverse"
-                },
-                scale: {
-                  duration: 6 + Math.random() * 3,
+                  duration: position.speed + Math.random() * 1.5,
+                  delay: movementDelay, // Start floating motion only after appearance animation completes
                   repeat: Infinity,
                   ease: "easeInOut",
                   repeatType: "reverse"
                 }
               }}
               style={{
-                boxShadow: '0 3px 10px rgba(0, 0, 0, 0.25)',
+                boxShadow: '0 3px 15px rgba(0, 0, 0, 0.3)',
+                filter: `drop-shadow(0 0 5px ${tech.color.includes('blue') ? 'rgba(59, 130, 246, 0.5)' : 
+                  tech.color.includes('green') ? 'rgba(16, 185, 129, 0.5)' : 
+                  tech.color.includes('yellow') ? 'rgba(234, 179, 8, 0.5)' : 
+                  'rgba(139, 92, 246, 0.5)'})`,
                 textShadow: '0 1px 3px rgba(0, 0, 0, 0.5)',
                 transform: `translate(-50%, -50%)`,
-                zIndex: 5
+                zIndex: 5,
+                transformOrigin: 'center center', // Ensure scaling happens from center
+                willChange: 'transform, opacity', // Performance optimization hint
               }}
             >
               <motion.span 
                 className="w-2 h-2 bg-current rounded-full opacity-80"
+                initial={{ opacity: 0, scale: 0 }}
                 animate={{ 
-                  opacity: [0.5, 0.9, 0.5],
-                  scale: [0.8, 1.2, 0.8]
+                  opacity: [0, 0.7, 1, 0.7],
+                  scale: [0, 0.7, 1.3, 0.8]
                 }}
                 transition={{
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse"
+                  duration: 1.0, // Longer duration for smoother animation
+                  delay: appearanceDelay + 0.15, // Slightly delayed after parent appears
+                  ease: [0.34, 1.56, 0.64, 1], // Custom spring-like effect
+                  opacity: {
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    duration: 3, // Slower pulsing for more subtle effect
+                    delay: movementDelay
+                  },
+                  scale: {
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                    duration: 3, // Slower pulsing for more subtle effect
+                    delay: movementDelay
+                  }
+                }}
+                style={{
+                  willChange: 'transform, opacity', // Performance optimization hint
                 }}
               />
               {tech.name}
@@ -719,39 +1136,39 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     );
   };
 
-  // Add neural network animation to welcome screen
+  // Add neural network animation to welcome screen with progressive animation
   const renderNeuralNetworkAnimation = () => {
-    if (isMobile || currentSlide !== -1) return null; // Only show on welcome screen
+    if (isMobile || currentSlide !== -1 || !animationComplete.neural) return null; // Only show on welcome screen and after animation trigger
     
-      // Define neural network nodes with more spread out positioning
-  const nodes = [
-    { id: 1, x: '15%', y: '25%' },
-    { id: 2, x: '38%', y: '18%' },
-    { id: 3, x: '50%', y: '32%' },
-    { id: 4, x: '70%', y: '22%' },
-    { id: 5, x: '85%', y: '38%' },
-    { id: 6, x: '20%', y: '65%' },
-    { id: 7, x: '42%', y: '75%' },
-    { id: 8, x: '65%', y: '68%' },
-    { id: 9, x: '82%', y: '52%' }
-  ];
+    // Define neural network nodes with more spread out positioning
+    const nodes = [
+      { id: 1, x: '15%', y: '25%' },
+      { id: 2, x: '38%', y: '18%' },
+      { id: 3, x: '50%', y: '32%' },
+      { id: 4, x: '70%', y: '22%' },
+      { id: 5, x: '85%', y: '38%' },
+      { id: 6, x: '20%', y: '65%' },
+      { id: 7, x: '42%', y: '75%' },
+      { id: 8, x: '65%', y: '68%' },
+      { id: 9, x: '82%', y: '52%' }
+    ];
     
-      // Define connections between nodes - removed a few for better performance
-  const connections = [
-    { from: 1, to: 2 },
-    { from: 1, to: 3 },
-    { from: 2, to: 4 },
-    { from: 3, to: 4 },
-    { from: 3, to: 7 },
-    { from: 4, to: 5 },
-    { from: 6, to: 7 },
-    { from: 7, to: 8 },
-    { from: 8, to: 9 }
-  ];
+    // Define connections between nodes - removed a few for better performance
+    const connections = [
+      { from: 1, to: 2 },
+      { from: 1, to: 3 },
+      { from: 2, to: 4 },
+      { from: 3, to: 4 },
+      { from: 3, to: 7 },
+      { from: 4, to: 5 },
+      { from: 6, to: 7 },
+      { from: 7, to: 8 },
+      { from: 8, to: 9 }
+    ];
     
     return (
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-[5]">
-        {/* Render neural network connections (lines) */}
+        {/* Render neural network connections (lines) with progressive animation */}
         {connections.map((connection, i) => {
           const fromNode = nodes.find(n => n.id === connection.from);
           const toNode = nodes.find(n => n.id === connection.to);
@@ -781,18 +1198,25 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   boxShadow: i % 3 === 0 ? '0 0 4px #60A5FA' : i % 3 === 1 ? '0 0 4px #A855F7' : '0 0 4px #34D399',
                   transformOrigin: 'left center',
                   transform: `rotate(${Math.atan2(dy, dx) * (180 / Math.PI)}deg)`,
-                  willChange: 'opacity'
+                  willChange: 'opacity, width'
                 }}
-                animate={{
-                  opacity: [0.6, 1, 0.6]
-                }}
+                initial={{ width: 0, opacity: 0 }}
+                animate={{ width: `${distance}%`, opacity: [0.2, 0.6, 1, 0.6] }}
                 transition={{
-                  duration: 3 + i % 3,
-                  repeat: Infinity,
-                  ease: "easeInOut"
+                  width: { 
+                    duration: 0.6,
+                    delay: 0.05 + i * 0.08,
+                    ease: "easeOut" 
+                  },
+                  opacity: {
+                    duration: 3 + i % 3,
+                    delay: 0.05 + i * 0.08,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }
                 }}
               >
-                {/* Add static dot at the end of the line */}
+                {/* Add static dot at the end of the line with delayed appearance */}
                 <motion.div
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
@@ -802,17 +1226,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     top: '-2px',
                     transform: 'translate(50%, -50%)'
                   }}
-                  animate={{
-                    scale: [0.8, 1.1, 0.8],
-                    opacity: [0.7, 1, 0.7]
-                  }}
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: [0.8, 1.1, 0.8], opacity: [0.7, 1, 0.7] }}
                   transition={{
                     duration: 2 + i % 2,
+                    delay: 0.3 + i * 0.12,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 />
-                {/* Moving dots along the lines */}
+                {/* Moving dots along the lines with delayed appearance */}
                 <motion.div
                   className="absolute w-1.5 h-1.5 rounded-full"
                   style={{
@@ -821,27 +1244,26 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     top: '-2px',
                     willChange: 'transform, left, opacity'
                   }}
-                  animate={{
-                    left: ['0%', '100%'],
-                    scale: [0.8, 1.2, 0.8],
-                    opacity: [0.7, 1, 0.7]
-                  }}
+                  initial={{ opacity: 0, left: '0%' }}
+                  animate={{ left: ['0%', '100%'], scale: [0.8, 1.2, 0.8], opacity: [0.7, 1, 0.7] }}
                   transition={{
                     left: {
                       duration: animationDuration,
+                      delay: 0.6 + i * 0.15,
                       ease: "linear",
                       repeat: Infinity,
-                      delay: i * 0.2 % 2,
                       repeatDelay: 0
                     },
                     scale: {
                       duration: 1.5,
+                      delay: 0.6 + i * 0.15,
                       repeat: Infinity,
                       ease: "easeInOut",
                       repeatDelay: 0
                     },
                     opacity: {
                       duration: 1.5,
+                      delay: 0.6 + i * 0.15,
                       repeat: Infinity,
                       ease: "easeInOut",
                       repeatDelay: 0
@@ -853,34 +1275,36 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           );
         })}
         
-        {/* Render neural network nodes */}
+        {/* Render neural network nodes with staggered appearance */}
         {nodes.map((node, i) => (
-                  <motion.div
-          key={`node-${i}`}
-          className="absolute w-2.5 h-2.5 rounded-full"
-          style={{
-            left: node.x,
-            top: node.y,
-            backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
-            boxShadow: i % 3 === 0 ? '0 0 8px #60A5FA' : i % 3 === 1 ? '0 0 8px #A855F7' : '0 0 8px #34D399',
-            transform: 'translate(-50%, -50%)',
-            zIndex: 3
-          }}
-          animate={{
-            scale: [1, 1.3, 1],
-            opacity: [0.7, 1, 0.7],
-            boxShadow: [
-              i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
-              i % 3 === 0 ? '0 0 10px #60A5FA' : i % 3 === 1 ? '0 0 10px #A855F7' : '0 0 10px #34D399',
-              i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399'
-            ]
-          }}
-          transition={{
-            duration: 2 + i * 0.2,
-            repeat: Infinity,
-            ease: "easeInOut",
-            repeatDelay: 0
-          }}
+          <motion.div
+            key={`node-${i}`}
+            className="absolute w-2.5 h-2.5 rounded-full"
+            style={{
+              left: node.x,
+              top: node.y,
+              backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+              boxShadow: i % 3 === 0 ? '0 0 8px #60A5FA' : i % 3 === 1 ? '0 0 8px #A855F7' : '0 0 8px #34D399',
+              transform: 'translate(-50%, -50%)',
+              zIndex: 3
+            }}
+            initial={{ scale: 0, opacity: 0 }}
+            animate={{ 
+              scale: [0, 1, 1.3, 1], 
+              opacity: [0, 1, 1, 0.7]
+            }}
+            transition={{
+              scale: {
+                duration: 0.5, 
+                delay: 0.1 + i * 0.07,
+                ease: "easeOut"
+              },
+              opacity: {
+                duration: 0.5,
+                delay: 0.1 + i * 0.07,
+                ease: "easeOut"
+              }
+            }}
           />
         ))}
       </div>
@@ -891,6 +1315,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     <div 
       id="welcome-screen-overlay"
       className="fixed inset-0 flex items-center justify-center overflow-hidden transform-gpu" 
+      data-barba="container"
+      data-barba-namespace="welcome-screen"
+      data-barba-prevent="all"
       style={{ 
         position: 'fixed', 
         top: 0, 
@@ -908,7 +1335,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
         backfaceVisibility: 'hidden',
-        display: 'flex' // Always show welcome screen, mobile popup is handled separately
+        display: 'flex'
       }}
       onTouchMove={(e) => e.preventDefault()}
       onWheel={(e) => e.preventDefault()}
@@ -919,12 +1346,65 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         }
       }}
     >
+      {/* Neural Network effect for first three slides */}
+      {(currentSlide === -1 || currentSlide <= 2) && (
+        <>
+          {/* Left side neural network */}
+          <div className="absolute top-0 bottom-0 left-0 w-[35%] z-[2] pointer-events-none opacity-75" style={{ overflow: 'hidden' }}>
+            <NeuralNetwork
+              color={
+                currentSlide === -1 ? '#a855f7' : 
+                currentSlide === 0 ? '#3b82f6' :
+                currentSlide === 1 ? '#10b981' :
+                currentSlide === 2 ? '#8b5cf6' : 
+                '#a855f7'
+              }
+              lineColor={
+                currentSlide === -1 ? '#8b5cf6' : 
+                currentSlide === 0 ? '#60a5fa' :
+                currentSlide === 1 ? '#34d399' :
+                currentSlide === 2 ? '#93c5fd' : 
+                '#8b5cf6'
+              }
+              pointCount={12} 
+              connectionRadius={150}
+              speed={0.18}
+              containerBounds={true}
+            />
+          </div>
+
+          {/* Right side neural network */}
+          <div className="absolute top-0 bottom-0 right-0 w-[35%] z-[2] pointer-events-none opacity-75" style={{ overflow: 'hidden' }}>
+            <NeuralNetwork
+              color={
+                currentSlide === -1 ? '#a855f7' : 
+                currentSlide === 0 ? '#3b82f6' :
+                currentSlide === 1 ? '#10b981' :
+                currentSlide === 2 ? '#a855f7' : 
+                '#a855f7'
+              }
+              lineColor={
+                currentSlide === -1 ? '#8b5cf6' : 
+                currentSlide === 0 ? '#60a5fa' :
+                currentSlide === 1 ? '#34d399' :
+                currentSlide === 2 ? '#60a5fa' : 
+                '#8b5cf6'
+              }
+              pointCount={12}
+              connectionRadius={150}
+              speed={0.18}
+              containerBounds={true}
+            />
+          </div>
+        </>
+      )}
+
       {/* Dark overlay with better visibility */}
       <motion.div 
-        initial={{ opacity: 0 }}
+        initial={{ opacity: 0.8 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 1 }}
-        transition={{ duration: 0.5 }}
+        transition={{ duration: 0.3 }}
         className="absolute inset-0 bg-black/80"
         style={{ 
           position: 'absolute', 
@@ -934,7 +1414,8 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           bottom: 0,
           backdropFilter: 'blur(2px)',
           WebkitBackdropFilter: 'blur(2px)',
-          transition: 'all 0.5s ease-out'
+          transform: 'translate3d(0,0,0)',
+          willChange: 'opacity',
         }}
       />
 
@@ -974,36 +1455,36 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           {/* Gradient orbs with improved visibility and more professional staggered animation */}
           <div className="absolute inset-0 z-[1]"> {/* Added z-index */}
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 0.12, scale: 1 }}
-              transition={{ duration: 0.6 }}
-              className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-blue-600/30 rounded-full"
+              initial={{ opacity: 0.1 }}
+              animate={{ opacity: 0.12 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-0 left-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-blue-600/30 rounded-full transform-gpu"
               style={{ 
                 filter: 'blur(40px)',
-                willChange: "transform, opacity",
-                transition: 'all 0.6s ease-out'
+                willChange: "opacity",
+                transform: 'translate3d(0,0,0)'
               }}
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 0.12, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/30 rounded-full"
+              initial={{ opacity: 0.1 }}
+              animate={{ opacity: 0.12 }}
+              transition={{ duration: 0.3 }}
+              className="absolute bottom-0 right-1/4 w-64 h-64 sm:w-96 sm:h-96 bg-purple-600/30 rounded-full transform-gpu"
               style={{ 
                 filter: 'blur(40px)',
-                willChange: "transform, opacity",
-                transition: 'all 0.6s ease-out'
+                willChange: "opacity",
+                transform: 'translate3d(0,0,0)'
               }}
             />
             <motion.div 
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 0.15, scale: 1 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-[30rem] sm:h-[30rem] bg-black/40 rounded-full"
+              initial={{ opacity: 0.12 }}
+              animate={{ opacity: 0.15 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-72 h-72 sm:w-[30rem] sm:h-[30rem] bg-black/40 rounded-full transform-gpu"
               style={{ 
                 filter: 'blur(60px)',
-                willChange: "transform, opacity",
-                transition: 'all 0.6s ease-out'
+                willChange: "opacity",
+                transform: 'translate3d(0,0,0)'
               }}
             />
           </div>
@@ -1077,13 +1558,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         </div>
 
         <AnimatePresence 
-          mode="wait" 
+          mode="sync" 
           initial={false} 
           custom={direction}
           onExitComplete={() => {
-            setTimeout(() => {
-              // Minimal cleanup
-            }, 5); // Further reduced timeout for better performance
+            // No timeout needed for better performance
           }}
         >
           <div className="flex items-center justify-center w-full h-full" 
@@ -1102,30 +1581,22 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 initial="enter"
                 animate="center"
                 exit="exit"
-                transition={{
-                  duration: 0.35,
-                  ease: [0.32, 0.72, 0, 1],
-                  opacity: { duration: 0.35 },
-                  scale: { duration: 0.35 },
-                  filter: { duration: 0.35 },
-                  rotateY: { duration: 0.35 }
-                }}
                 className="relative max-w-3xl w-full mx-auto will-change-transform perspective-1000 z-10 transform-gpu"
                 style={{ 
                   transformStyle: 'preserve-3d',
                   perspective: '1000px',
                   transformOrigin: direction < 0 ? 'left center' : 'right center',
-                  willChange: "transform, opacity, filter",
+                  willChange: "transform, opacity",
                   position: 'relative',
                   margin: '0 auto',
                   backfaceVisibility: 'hidden'
                 }}
               >
-                {/* Close button with improved animation */}
+                {/* Close button with immediate animation */}
                 <motion.button
-                  initial={{ opacity: 0, scale: 0.9 }}
+                  initial={{ opacity: 0.8, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4, duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                  transition={{ duration: 0.2 }}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleClose}
@@ -1137,22 +1608,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 </motion.button>
 
                 <motion.div
-                  initial={{ opacity: 0, y: 30, scale: 0.95, rotateX: 5 }}
-                  animate={{ opacity: 1, y: 0, scale: 1, rotateX: 0 }}
-                  exit={{ opacity: 0, y: -20, scale: 0.98, rotateX: -3 }}
+                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{
-                    duration: 0.8,
+                    duration: 0.4,
                     ease: [0.22, 1, 0.36, 1],
-                    opacity: { duration: 0.6 },
-                    y: { duration: 0.8 },
-                    scale: { duration: 0.8 },
-                    rotateX: { duration: 0.8 }
                   }}
                   className="bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl transform-gpu"
                   style={{
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
                     transformStyle: 'preserve-3d',
-                    perspective: '1000px'
+                    perspective: '1000px',
+                    transform: 'translate3d(0, 0, 0)'
                   }}
                 >
                   {/* Background elements */}
@@ -1169,12 +1636,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     {!isMobile && (
                       <>
                         <motion.div 
-                          className="absolute h-[3px] w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent" 
+                          className="absolute h-[3px] w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent transform-gpu will-change-transform hardware-accelerated" 
                           style={{ 
                             top: '40%',
                             filter: 'drop-shadow(0 0 3px rgba(59, 130, 246, 0.25))',
                             boxShadow: '0 0 8px rgba(59, 130, 246, 0.25)',
-                            zIndex: 2
+                            zIndex: 2,
+                            transform: 'translate3d(0, 0, 0)'
                           }}
                           initial={{ left: '-100%' }}
                           animate={{ 
@@ -1249,18 +1717,15 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         />
                         <motion.h1
                           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold py-3 flex flex-col items-center gap-1 sm:gap-2 z-50"
-                          initial={{ opacity: 0, y: 20, scale: 0.9 }}
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
                           animate={{ opacity: 1, y: 0, scale: 1 }}
                           transition={{
-                            duration: 0.8,
-                            delay: 0.4,
+                            duration: 0.4,
                             ease: [0.22, 1, 0.36, 1],
-                            opacity: { duration: 0.6, delay: 0.4 },
-                            y: { duration: 0.8, delay: 0.4 },
-                            scale: { duration: 0.8, delay: 0.4 }
+                            delay: ANIMATION_SEQUENCE.TITLE_TEXT
                           }}
                           style={{
-                            opacity: 1,
+                            opacity: animationComplete.title ? 1 : 0,
                             visibility: 'visible',
                             display: 'flex',
                             position: 'relative',
@@ -1270,21 +1735,75 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             transform: 'translate3d(0, 0, 0)'
                           }}
                         >
-                          <span style={{ 
-                            color: '#b4a7f5', 
-                            opacity: 1, 
-                            visibility: 'visible', 
-                            letterSpacing: '1px',
-                            fontWeight: '600'
-                          }}>Welcome to</span>
-                          <span style={{ 
-                            color: '#b4a7f5', 
-                            opacity: 1, 
-                            visibility: 'visible', 
-                            letterSpacing: '1.5px',
-                            fontWeight: '800',
-                            WebkitTextStroke: '0.5px rgba(255, 255, 255, 0.2)'
-                          }}>NEX-DEVS</span>
+                          {animationComplete.title ? (
+                            <>
+                              <TypeAnimation
+                                sequence={[
+                                  'Welcome to',
+                                  100
+                                ]}
+                                wrapper="span"
+                                speed={60}
+                                style={{
+                                  color: '#b4a7f5',
+                                  opacity: 1,
+                                  visibility: 'visible',
+                                  letterSpacing: '2px',
+                                  fontWeight: '600',
+                                  display: 'block',
+                                  width: '100%',
+                                  fontFamily: audiowide.style.fontFamily,
+                                  textShadow: '0 0 10px rgba(147, 51, 234, 0.5)',
+                                }}
+                                cursor={false}
+                              />
+                              <TypeAnimation
+                                sequence={[
+                                  '',
+                                  200,
+                                  'NEX-DEVS',
+                                  100
+                                ]}
+                                wrapper="span"
+                                speed={70}
+                                style={{
+                                  color: '#b4a7f5',
+                                  opacity: 1,
+                                  visibility: 'visible',
+                                  letterSpacing: '3px',
+                                  fontWeight: '800',
+                                  WebkitTextStroke: '1px rgba(147, 51, 234, 0.3)',
+                                  display: 'block',
+                                  width: '100%',
+                                  fontFamily: audiowide.style.fontFamily,
+                                  textShadow: '0 0 15px rgba(147, 51, 234, 0.6)',
+                                }}
+                                cursor={false}
+                              />
+                            </>
+                          ) : (
+                            <>
+                              <span className={audiowide.className} style={{ 
+                                color: '#b4a7f5', 
+                                opacity: 0, 
+                                letterSpacing: '2px', 
+                                fontWeight: '600', 
+                                textShadow: '0 0 10px rgba(147, 51, 234, 0.5)',
+                              }}>
+                                Welcome to
+                              </span>
+                              <span className={audiowide.className} style={{ 
+                                color: '#b4a7f5', 
+                                opacity: 0, 
+                                letterSpacing: '3px', 
+                                fontWeight: '800',
+                                WebkitTextStroke: '1px rgba(147, 51, 234, 0.3)',
+                                textShadow: '0 0 15px rgba(147, 51, 234, 0.6)',
+                              }}>
+                                NEX-DEVS
+                              </span>
+                            </>
+                          )}
                         </motion.h1>
                         <motion.div
                           initial={{ width: 0 }}
@@ -1297,60 +1816,111 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <motion.div
                         initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.3 }}
+                        animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 5 }}
+                        transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT }}
                         className="text-blue-300/90 text-sm uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center"
                         style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' }}
                       >
-                        FullStack/Frameworks
+                        {animationComplete.subtitle && (
+                          <TypeAnimation
+                            sequence={[
+                              'FullStack/Frameworks',
+                              100
+                            ]}
+                            wrapper="span"
+                            speed={50}
+                            style={{ display: 'inline-block' }}
+                            cursor={false}
+                          />
+                        )}
                       </motion.div>
 
                       <div className="relative">
                         <motion.div
                           initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.5, delay: 0.35 }}
+                          animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 10 }}
+                          transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.4 }}
                           className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-3 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
                         >
-                          <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300">
-                            AI is the Future
-                          </span>
-                          <span className="text-sm xs:text-base sm:text-xl md:text-2xl text-gray-300 font-normal">
-                            and We're Here to Build It Together
-                          </span>
+                          {animationComplete.subtitle && (
+                            <>
+                              <TypeAnimation
+                                sequence={[
+                                  'AI is the Future',
+                                  100
+                                ]}
+                                wrapper="span"
+                                speed={60}
+                                className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300"
+                                cursor={false}
+                              />
+                              <TypeAnimation
+                                sequence={[
+                                  '',
+                                  150,
+                                  'and We\'re Here to Build It Together',
+                                  100
+                                ]}
+                                wrapper="span"
+                                speed={60}
+                                className="text-sm xs:text-base sm:text-xl md:text-2xl text-gray-300 font-normal"
+                                cursor={false}
+                              />
+                            </>
+                          )}
                         </motion.div>
                       </div>
 
                       <motion.div
                         initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.4 }}
+                        animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 10 }}
+                        transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT }}
                       >
                         <p className="text-sm xs:text-base sm:text-lg text-gray-300 mb-4 sm:mb-6 max-w-3xl mx-auto">
-                          Transform your digital presence with our 
-                          <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 font-semibold px-2">
-                            cutting-edge AI solutions
-                          </span>
+                          {animationComplete.subtitle && (
+                            <>
+                              Transform your digital presence with our 
+                              <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 font-semibold px-2">
+                                cutting-edge AI solutions
+                              </span>
+                            </>
+                          )}
                         </p>
 
                         <div className="text-sm xs:text-base sm:text-lg font-medium text-white/90 mb-4 sm:mb-6">
-                          <span className="inline-block bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg px-3 py-1.5 border border-purple-500/30">
-                            Discover How AI Elevates Your Business Success
-                          </span>
+                          {animationComplete.subtitle && (
+                            <motion.span 
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT + 0.3 }}
+                              className="inline-block bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg px-3 py-1.5 border border-purple-500/30"
+                            >
+                              <TypeAnimation
+                                sequence={[
+                                  'Discover How AI Elevates Your Business Success',
+                                  100
+                                ]}
+                                wrapper="span"
+                                speed={70}
+                                cursor={false}
+                              />
+                            </motion.span>
+                          )}
                         </div>
                       </motion.div>
 
                       <motion.button
                         onClick={handleNext}
-                        initial={{ opacity: 0, y: 20, scale: 0.9 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
+                        animate={{ 
+                          opacity: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0, 
+                          y: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 10, 
+                          scale: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0.9 
+                        }}
                         transition={{
-                          duration: 0.8,
-                          delay: 0.7,
+                          duration: 0.4,
                           ease: [0.22, 1, 0.36, 1],
-                          opacity: { duration: 0.6, delay: 0.7 },
-                          y: { duration: 0.8, delay: 0.7 },
-                          scale: { duration: 0.8, delay: 0.7 }
+                          delay: 0.2
                         }}
                         whileHover={{
                           scale: 1.05,
@@ -1371,7 +1941,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         }}
                       >
                         <span className="relative z-10 flex items-center gap-2">
-                          See What We Offer
+                          {animationComplete.subtitle ? 'See What We Offer' : ''}
                           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                           </svg>
@@ -1412,10 +1982,14 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   backfaceVisibility: 'hidden',
                   willChange: "transform, opacity, filter",
                   position: 'relative',
-                  margin: '0 auto'
+                  margin: '0 auto',
+                  transform: 'translate3d(0,0,0)'
                 }}
                 layoutId={`service-container-${currentSlide}`}
               >
+                {/* Image Placeholders for AI Chatbot and AI Agent Workflow slides - positioned outside the main container */}
+                
+
                 <div className={`bg-gradient-to-br from-black/50 to-black/70 backdrop-blur-xl rounded-xl sm:rounded-2xl 
                                border ${serviceContent[currentSlide].accent} p-3 sm:p-6 md:p-8 relative overflow-hidden
                                transform-gpu transition-all duration-300 hover:scale-[1.02] shadow-2xl`}
@@ -1630,19 +2204,23 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                     {/* Enhanced AI Features Section for New 3D Website */}
                     <div className={`bg-black/30 backdrop-blur-sm rounded-lg sm:rounded-xl ${isMobile ? 'p-2' : 'p-2 sm:p-4 md:p-6'} mb-2 sm:mb-4 border border-purple-500/30
-                                 relative overflow-hidden group ${serviceContent[currentSlide].title === 'New 3D Website' ? 'border-cyan-400/30' : ''}`}>
+                                 relative overflow-hidden group ${currentSlide <= 1 ? (currentSlide === 0 ? 'border-blue-400/30' : 'border-emerald-400/30') : (serviceContent[currentSlide].title === 'New 3D Website' ? 'border-cyan-400/30' : '')}`}>
                       <div className={`absolute inset-0 bg-gradient-to-r 
-                        ${serviceContent[currentSlide].title === 'New 3D Website' 
-                          ? 'from-cyan-500/20 via-blue-500/20 to-cyan-500/20'
-                          : 'from-purple-500/20 via-blue-500/20 to-purple-500/20'}
+                        ${currentSlide <= 1 
+                          ? (currentSlide === 0 
+                              ? 'from-blue-500/20 via-indigo-500/20 to-blue-500/20' 
+                              : 'from-emerald-500/20 via-teal-500/20 to-emerald-500/20')
+                          : (serviceContent[currentSlide].title === 'New 3D Website' 
+                              ? 'from-cyan-500/20 via-blue-500/20 to-cyan-500/20'
+                              : 'from-purple-500/20 via-blue-500/20 to-purple-500/20')}
                         opacity-0 group-hover:opacity-100 transition-all duration-500`} />
                       <motion.h4 
                         className={`${isMobile ? 'text-xs' : 'text-sm sm:text-lg'} font-semibold mb-1.5 sm:mb-3 text-white/90 drop-shadow flex flex-wrap items-center gap-1 sm:gap-2`}
                         animate={!isMobile ? {
                           textShadow: [
-                            "0 0 15px rgba(147, 51, 234, 0.5)",
-                            "0 0 25px rgba(147, 51, 234, 0.3)",
-                            "0 0 15px rgba(147, 51, 234, 0.5)"
+                            `0 0 15px ${currentSlide <= 1 ? (currentSlide === 0 ? 'rgba(59, 130, 246, 0.5)' : 'rgba(16, 185, 129, 0.5)') : 'rgba(147, 51, 234, 0.5)'}`,
+                            `0 0 25px ${currentSlide <= 1 ? (currentSlide === 0 ? 'rgba(59, 130, 246, 0.3)' : 'rgba(16, 185, 129, 0.3)') : 'rgba(147, 51, 234, 0.3)'}`,
+                            `0 0 15px ${currentSlide <= 1 ? (currentSlide === 0 ? 'rgba(59, 130, 246, 0.5)' : 'rgba(16, 185, 129, 0.5)') : 'rgba(147, 51, 234, 0.5)'}`
                           ]
                         } : {}}
                         transition={{
@@ -1652,10 +2230,26 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         }}
                       >
                         <motion.span 
-                          className={`text-purple-400 bg-purple-500/50 ${isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm sm:text-lg'} rounded-lg border border-purple-500/50 font-bold`}
+                          className={`${currentSlide <= 1 ? (currentSlide === 0 ? 'text-blue-400 bg-blue-500/50 border-blue-500/50' : 'text-emerald-400 bg-emerald-500/50 border-emerald-500/50') : 'text-purple-400 bg-purple-500/50 border-purple-500/50'} ${isMobile ? 'px-1.5 py-0.5 text-xs' : 'px-2 py-1 text-sm sm:text-lg'} rounded-lg border font-bold`}
                           animate={!isMobile ? {
                             scale: [1, 1.1, 1],
-                            borderColor: ["rgba(147, 51, 234, 0.3)", "rgba(147, 51, 234, 0.5)", "rgba(147, 51, 234, 0.3)"]
+                            borderColor: [
+                              currentSlide <= 1 
+                                ? (currentSlide === 0 
+                                   ? "rgba(59, 130, 246, 0.3)" 
+                                   : "rgba(16, 185, 129, 0.3)")
+                                : "rgba(147, 51, 234, 0.3)",
+                              currentSlide <= 1 
+                                ? (currentSlide === 0 
+                                   ? "rgba(59, 130, 246, 0.5)" 
+                                   : "rgba(16, 185, 129, 0.5)")
+                                : "rgba(147, 51, 234, 0.5)",
+                              currentSlide <= 1 
+                                ? (currentSlide === 0 
+                                   ? "rgba(59, 130, 246, 0.3)" 
+                                   : "rgba(16, 185, 129, 0.3)")
+                                : "rgba(147, 51, 234, 0.3)"
+                            ]
                           } : {}}
                           transition={{
                             duration: 2,
@@ -1666,7 +2260,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           AI
                         </motion.span> 
                         {isMobile ? 'Features:' : 'Key Features:'} 
-                        {!isMobile && <span className='text-[10px] sm:text-sm text-purple-400 font-normal bg-purple-500/10 px-2 py-1 rounded-lg whitespace-nowrap'>Powered by Machine Learning</span>}
+                        {!isMobile && <span className={`text-[10px] sm:text-sm ${currentSlide <= 1 ? (currentSlide === 0 ? 'text-blue-400 bg-blue-500/10' : 'text-emerald-400 bg-emerald-500/10') : 'text-purple-400 bg-purple-500/10'} font-normal px-2 py-1 rounded-lg whitespace-nowrap`}>
+                          {currentSlide <= 1 
+                            ? (currentSlide === 0 
+                              ? 'Powered by Machine Learning' 
+                              : 'Automated Workflow Systems')
+                            : 'Powered by Machine Learning'}
+                        </span>}
                       </motion.h4>
 
                       <ul className={`grid ${isMobile ? 'grid-cols-1 gap-1' : 'grid-cols-1 sm:grid-cols-2 gap-1 sm:gap-2'}`}>
@@ -1678,11 +2278,42 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             transition={{ delay: index * 0.1 }}
                             className={`flex items-start gap-1.5 sm:gap-2 ${isMobile ? 'text-[10px]' : 'text-[10px] sm:text-sm'} text-white/80`}
                           >
-                            <span className={`${isMobile ? 'w-1 h-1' : 'w-1.5 h-1.5'} bg-purple-400/50 rounded-full mt-1 flex-shrink-0`} />
+                            <span className={`${isMobile ? 'w-1 h-1' : 'w-1.5 h-1.5'} ${currentSlide <= 1 ? (currentSlide === 0 ? 'bg-blue-400/50' : 'bg-emerald-400/50') : 'bg-purple-400/50'} rounded-full mt-1 flex-shrink-0`} />
                             {skill}
                           </motion.li>
                         ))}
                       </ul>
+                      
+                      {/* Add floating particles only for the first two slides */}
+                      {(currentSlide === 0 || currentSlide === 1) && !isMobile && (
+                        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                          {[...Array(6)].map((_, i) => (
+                            <motion.div
+                              key={`particle-${i}`}
+                              className={`absolute w-1 h-1 rounded-full ${currentSlide === 0 ? 'bg-blue-400' : 'bg-emerald-400'}`}
+                              style={{
+                                top: `${20 + Math.random() * 60}%`,
+                                left: `${10 + Math.random() * 80}%`,
+                                opacity: 0.4,
+                                boxShadow: currentSlide === 0 
+                                  ? '0 0 4px rgba(59, 130, 246, 0.5)' 
+                                  : '0 0 4px rgba(16, 185, 129, 0.5)'
+                              }}
+                              animate={{
+                                y: [0, -15, 0],
+                                opacity: [0.2, 0.5, 0.2],
+                                scale: [0.8, 1.2, 0.8]
+                              }}
+                              transition={{
+                                duration: 2 + i,
+                                repeat: Infinity,
+                                ease: "easeInOut",
+                                delay: i * 0.2
+                              }}
+                            />
+                          ))}
+                        </div>
+                      )}
                     </div>
 
                     {/* AI SubFeatures - Enhanced Layout */}
@@ -1700,22 +2331,54 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               delay: 0.2 + index * 0.05,
                               restDelta: 0.01
                             }}
-                            className={`bg-purple-500/10 backdrop-blur-sm rounded-lg sm:rounded-xl ${isMobile ? 'p-1.5' : 'p-2 sm:p-4'} 
-                                     border border-purple-500/20 hover:border-purple-500/30
-                                     hover:bg-purple-500/20 transition-all duration-250 hardware-accelerated`}
+                            className={`${currentSlide <= 1 
+                              ? (currentSlide === 0 
+                                  ? 'bg-blue-500/10 backdrop-blur-sm border-blue-500/20 hover:border-blue-500/30 hover:bg-blue-500/20' 
+                                  : 'bg-emerald-500/10 backdrop-blur-sm border-emerald-500/20 hover:border-emerald-500/30 hover:bg-emerald-500/20')
+                              : 'bg-purple-500/10 backdrop-blur-sm border-purple-500/20 hover:border-purple-500/30 hover:bg-purple-500/20'
+                            } rounded-lg sm:rounded-xl ${isMobile ? 'p-1.5' : 'p-2 sm:p-4'} 
+                                     border transition-all duration-250 hardware-accelerated`}
                           >
-                            <h5 className={`${isMobile ? 'text-[10px] mb-1' : 'text-xs sm:text-base mb-1.5 sm:mb-2'} font-semibold text-purple-200 drop-shadow flex items-center gap-1.5 sm:gap-2`}>
-                              <span className={`${isMobile ? 'text-[8px] px-1 py-0.5' : 'text-[10px] sm:text-xs px-1.5 py-0.5'} rounded-full bg-purple-500/20 text-purple-300`}>AI</span>
+                            <h5 className={`${isMobile ? 'text-[10px] mb-1' : 'text-xs sm:text-base mb-1.5 sm:mb-2'} font-semibold ${
+                              currentSlide <= 1 
+                                ? (currentSlide === 0 
+                                    ? 'text-blue-200' 
+                                    : 'text-emerald-200')
+                                : 'text-purple-200'
+                            } drop-shadow flex items-center gap-1.5 sm:gap-2`}>
+                              <span className={`${isMobile ? 'text-[8px] px-1 py-0.5' : 'text-[10px] sm:text-xs px-1.5 py-0.5'} rounded-full ${
+                                currentSlide <= 1 
+                                  ? (currentSlide === 0 
+                                      ? 'bg-blue-500/20 text-blue-300' 
+                                      : 'bg-emerald-500/20 text-emerald-300')
+                                  : 'bg-purple-500/20 text-purple-300'
+                              }`}>AI</span>
                               {feature.title}
                             </h5>
                             <ul className={`${isMobile ? 'space-y-0.5' : 'space-y-1 sm:space-y-1.5'}`}>
                               {feature.items.map((item, idx) => (
                                 <li key={idx} className={`${isMobile ? 'text-[8px]' : 'text-[10px] sm:text-sm'} text-white/80 flex items-center`}>
-                                  <span className={`${isMobile ? 'w-0.5 h-0.5 mr-1' : 'w-1 h-1 sm:w-1.5 sm:h-1.5 mr-1.5'} rounded-full bg-purple-400/50 flex-shrink-0`} />
+                                  <span className={`${isMobile ? 'w-0.5 h-0.5 mr-1' : 'w-1 h-1 sm:w-1.5 sm:h-1.5 mr-1.5'} rounded-full ${
+                                    currentSlide <= 1 
+                                      ? (currentSlide === 0 
+                                          ? 'bg-blue-400/50' 
+                                          : 'bg-emerald-400/50')
+                                      : 'bg-purple-400/50'
+                                  } flex-shrink-0`} />
                                   {item}
                                 </li>
                               ))}
                             </ul>
+                            
+                            {/* Add special accent line only for first two slides */}
+                            {(currentSlide === 0 || currentSlide === 1) && !isMobile && (
+                              <motion.div 
+                                className={`h-[1px] w-full mt-2 ${currentSlide === 0 ? 'bg-blue-500/30' : 'bg-emerald-500/30'}`}
+                                initial={{ scaleX: 0, opacity: 0 }}
+                                animate={{ scaleX: 1, opacity: 1 }}
+                                transition={{ duration: 0.8, delay: 0.5 + index * 0.2 }}
+                              />
+                            )}
                           </motion.div>
                         ))}
                       </div>
@@ -1847,6 +2510,504 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
             )}
           </div>
         </AnimatePresence>
+        {currentSlide >= 0 && serviceContent[currentSlide].imageSection && (
+          <>
+            {/* Guide Lines SVG */}
+            <motion.svg
+              className="absolute inset-0 w-full h-full pointer-events-none z-[4]"
+              initial="hidden"
+              animate="visible"
+              style={{ overflow: 'visible' }}
+            >
+              {/* Right side guide line */}
+              <motion.path
+                d={`M 65% 70% Q 75% 70%, 85% 30%`}
+                stroke={
+                  currentSlide === 0 ? '#3B82F6' : 
+                  currentSlide === 1 ? '#10B981' : 
+                  currentSlide === 2 ? '#F97316' : 
+                  currentSlide === 3 ? '#06B6D4' : 
+                  currentSlide === 4 ? '#6366F1' : 
+                  currentSlide === 5 ? '#22C55E' : 
+                  currentSlide === 6 ? '#A855F7' : 
+                  currentSlide === 7 ? '#EAB308' : 
+                  currentSlide === 8 ? '#A855F7' : 
+                  '#10B981'
+                }
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.5 }}
+                transition={{
+                  duration: 1,
+                  ease: "easeInOut",
+                  delay: 0.5
+                }}
+                style={{
+                  filter: `drop-shadow(0 0 3px ${
+                    currentSlide === 0 ? '#3B82F6' : 
+                    currentSlide === 1 ? '#10B981' : 
+                    currentSlide === 2 ? '#F97316' : 
+                    currentSlide === 3 ? '#06B6D4' : 
+                    currentSlide === 4 ? '#6366F1' : 
+                    currentSlide === 5 ? '#22C55E' : 
+                    currentSlide === 6 ? '#A855F7' : 
+                    currentSlide === 7 ? '#EAB308' : 
+                    currentSlide === 8 ? '#A855F7' : 
+                    '#10B981'
+                  })`,
+                  strokeDasharray: "5,5"
+                }}
+              />
+              
+              {/* Left side guide line */}
+              <motion.path
+                d={`M 35% 30% Q 25% 30%, 15% 60%`}
+                stroke={
+                  currentSlide === 0 ? '#3B82F6' : 
+                  currentSlide === 1 ? '#10B981' : 
+                  currentSlide === 2 ? '#F97316' : 
+                  currentSlide === 3 ? '#06B6D4' : 
+                  currentSlide === 4 ? '#6366F1' : 
+                  currentSlide === 5 ? '#22C55E' : 
+                  currentSlide === 6 ? '#A855F7' : 
+                  currentSlide === 7 ? '#EAB308' : 
+                  currentSlide === 8 ? '#A855F7' : 
+                  '#10B981'
+                }
+                strokeWidth="2"
+                fill="none"
+                initial={{ pathLength: 0, opacity: 0 }}
+                animate={{ pathLength: 1, opacity: 0.5 }}
+                transition={{
+                  duration: 1,
+                  ease: "easeInOut",
+                  delay: 0.7
+                }}
+                style={{
+                  filter: `drop-shadow(0 0 3px ${
+                    currentSlide === 0 ? '#3B82F6' : 
+                    currentSlide === 1 ? '#10B981' : 
+                    currentSlide === 2 ? '#F97316' : 
+                    currentSlide === 3 ? '#06B6D4' : 
+                    currentSlide === 4 ? '#6366F1' : 
+                    currentSlide === 5 ? '#22C55E' : 
+                    currentSlide === 6 ? '#A855F7' : 
+                    currentSlide === 7 ? '#EAB308' : 
+                    currentSlide === 8 ? '#A855F7' : 
+                    '#10B981'
+                  })`,
+                  strokeDasharray: "5,5"
+                }}
+              />
+
+              {/* Animated dots along the paths */}
+              <motion.circle
+                r="4"
+                fill={
+                  currentSlide === 0 ? '#3B82F6' : 
+                  currentSlide === 1 ? '#10B981' : 
+                  currentSlide === 2 ? '#F97316' : 
+                  currentSlide === 3 ? '#06B6D4' : 
+                  currentSlide === 4 ? '#6366F1' : 
+                  currentSlide === 5 ? '#22C55E' : 
+                  currentSlide === 6 ? '#A855F7' : 
+                  currentSlide === 7 ? '#EAB308' : 
+                  currentSlide === 8 ? '#A855F7' : 
+                  '#10B981'
+                }
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  offsetDistance: ["0%", "100%"]
+                }}
+                transition={{
+                  duration: 2,
+                  ease: "linear",
+                  repeat: Infinity,
+                  delay: 1
+                }}
+                style={{
+                  offsetPath: "path('M 65% 70% Q 75% 70%, 85% 30%')",
+                  filter: `drop-shadow(0 0 2px ${
+                    currentSlide === 0 ? '#3B82F6' : 
+                    currentSlide === 1 ? '#10B981' : 
+                    currentSlide === 2 ? '#F97316' : 
+                    currentSlide === 3 ? '#06B6D4' : 
+                    currentSlide === 4 ? '#6366F1' : 
+                    currentSlide === 5 ? '#22C55E' : 
+                    currentSlide === 6 ? '#A855F7' : 
+                    currentSlide === 7 ? '#EAB308' : 
+                    currentSlide === 8 ? '#A855F7' : 
+                    '#10B981'
+                  })`
+                }}
+              />
+
+              <motion.circle
+                r="4"
+                fill={
+                  currentSlide === 0 ? '#3B82F6' : 
+                  currentSlide === 1 ? '#10B981' : 
+                  currentSlide === 2 ? '#F97316' : 
+                  currentSlide === 3 ? '#06B6D4' : 
+                  currentSlide === 4 ? '#6366F1' : 
+                  currentSlide === 5 ? '#22C55E' : 
+                  currentSlide === 6 ? '#A855F7' : 
+                  currentSlide === 7 ? '#EAB308' : 
+                  currentSlide === 8 ? '#A855F7' : 
+                  '#10B981'
+                }
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  offsetDistance: ["0%", "100%"]
+                }}
+                transition={{
+                  duration: 2,
+                  ease: "linear",
+                  repeat: Infinity,
+                  delay: 1.2
+                }}
+                style={{
+                  offsetPath: "path('M 35% 30% Q 25% 30%, 15% 60%')",
+                  filter: `drop-shadow(0 0 2px ${
+                    currentSlide === 0 ? '#3B82F6' : 
+                    currentSlide === 1 ? '#10B981' : 
+                    currentSlide === 2 ? '#F97316' : 
+                    currentSlide === 3 ? '#06B6D4' : 
+                    currentSlide === 4 ? '#6366F1' : 
+                    currentSlide === 5 ? '#22C55E' : 
+                    currentSlide === 6 ? '#A855F7' : 
+                    currentSlide === 7 ? '#EAB308' : 
+                    currentSlide === 8 ? '#A855F7' : 
+                    '#10B981'
+                  })`
+                }}
+              />
+            </motion.svg>
+
+            {/* Left Image Placeholder - Enhanced version with improved slide-in animation */}
+            <motion.div
+              key={`left-image-${currentSlide}`}
+              initial={{ opacity: 0, scale: 0.9, x: -50 }}
+              animate={{ opacity: 1, scale: 1, x: 0 }}
+              exit={{ opacity: 0, scale: 0.9, x: -50 }}
+              transition={{ 
+                duration: 0.6, 
+                delay: 0.4, 
+                ease: [0.22, 1, 0.36, 1],
+                opacity: { duration: 0.5 },
+                scale: { duration: 0.7 },
+                x: { type: "spring", stiffness: 200, damping: 25 }
+              }}
+              className={`absolute left-16 bottom-23 z-[5]
+                       ${isMobile ? 'hidden' : 'hidden sm:block'} w-[140px] lg:w-[180px]`}
+            >
+              {/* Text moved above the image */}
+              <div className={`text-center mb-2 p-2 rounded-lg ${
+                currentSlide === 0 ? 'bg-blue-500/20' : 
+                currentSlide === 1 ? 'bg-emerald-500/20' : 
+                currentSlide === 2 ? 'bg-blue-400/20' : 
+                currentSlide === 3 ? 'bg-orange-500/20' : 
+                currentSlide === 4 ? 'bg-cyan-500/20' : 
+                currentSlide === 5 ? 'bg-indigo-500/20' : 
+                currentSlide === 6 ? 'bg-green-500/20' : 
+                currentSlide === 7 ? 'bg-violet-500/20' : 
+                currentSlide === 8 ? 'bg-yellow-500/20' : 
+                currentSlide === 9 ? 'bg-purple-500/20' : 
+                currentSlide === 10 ? 'bg-purple-500/20' : 
+                currentSlide === 11 ? 'bg-emerald-500/20' : 
+                'bg-blue-400/20'
+              }`}>
+                <span className="text-xs font-semibold text-white drop-shadow-md block">
+                  {serviceContent[currentSlide].imageSection.imagePlaceholders[0].title}
+                </span>
+                <span className="text-[10px] text-white/90 drop-shadow-md">
+                  {serviceContent[currentSlide].imageSection.imagePlaceholders[0].description}
+                </span>
+              </div>
+              
+              <div 
+                className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 ${
+                  currentSlide === 0 ? 'border-blue-500' : 
+                  currentSlide === 1 ? 'border-emerald-500' : 
+                  currentSlide === 2 ? 'border-blue-400' : 
+                  currentSlide === 3 ? 'border-orange-500' : 
+                  currentSlide === 4 ? 'border-cyan-500' : 
+                  currentSlide === 5 ? 'border-indigo-500' : 
+                  currentSlide === 6 ? 'border-green-500' : 
+                  currentSlide === 7 ? 'border-violet-500' : 
+                  currentSlide === 8 ? 'border-yellow-500' : 
+                  currentSlide === 9 ? 'border-purple-500' : 
+                  currentSlide === 10 ? 'border-purple-500' : 
+                  currentSlide === 11 ? 'border-emerald-500' : 
+                  'border-blue-400'
+                } transition-transform duration-300 shadow-lg cursor-pointer`}
+                onClick={() => openImagePreview(
+                  currentSlide <= 1 ? (
+                    currentSlide === 0 
+                      ? "https://ik.imagekit.io/u7ipvwnqb/40_1x_shots_so.png?updatedAt=1751547665623" 
+                      : "https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Home_Dev_O_Ps_43aa01a07b.webp"
+                  ) : (currentSlide >= 2 && currentSlide <= 10) && 'image' in serviceContent[currentSlide].imageSection.imagePlaceholders[0] 
+                      ? (serviceContent[currentSlide].imageSection.imagePlaceholders[0] as {title: string, description: string, image: string}).image
+                      : "#", // Placeholder - will be updated later
+                  serviceContent[currentSlide].imageSection.imagePlaceholders[0].title
+                )}
+              >
+                {/* Image without overlay or blur effects */}
+                <div className="w-full h-full overflow-hidden bg-black/30">
+                  {currentSlide <= 1 ? (
+                    currentSlide === 0 ? (
+                    <img 
+                      src="https://ik.imagekit.io/u7ipvwnqb/40_1x_shots_so.png?updatedAt=1751547665623" 
+                      alt="AI Chatbot Integration"
+                        className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                        loading="eager"
+                    />
+                  ) : (
+                    <img 
+                      src="https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Home_Dev_O_Ps_43aa01a07b.webp" 
+                      alt="AI Agent Workflow"
+                        className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                        loading="eager"
+                    />
+                    )
+                  ) : (currentSlide >= 2 && currentSlide <= 10) && 'image' in serviceContent[currentSlide].imageSection.imagePlaceholders[0] ? (
+                                          <img 
+                      src={(serviceContent[currentSlide].imageSection.imagePlaceholders[0] as {title: string, description: string, image: string}).image} 
+                      alt={serviceContent[currentSlide].imageSection.imagePlaceholders[0].title}
+                      className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                      loading="eager"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-xs text-white/70">Image Coming Soon</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Hover preview indicator with animation */}
+                <motion.div 
+                  className="absolute bottom-2 right-2 w-6 h-6 bg-white/80 rounded-full 
+                            flex items-center justify-center hover:bg-white"
+                  whileHover={{ scale: 1.2 }}
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    boxShadow: [
+                      '0 0 0 rgba(255, 255, 255, 0.4)',
+                      '0 0 8px rgba(255, 255, 255, 0.6)',
+                      '0 0 0 rgba(255, 255, 255, 0.4)'
+                    ]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                >
+                  <motion.svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-4 w-4 text-gray-800" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  </motion.svg>
+                </motion.div>
+              </div>
+            </motion.div>
+            
+            {/* Right Image Placeholder - Enhanced version with smooth scale-up animation */}
+            <motion.div
+              key={`right-image-${currentSlide}`}
+              initial={{ opacity: 0, scale: 0.7, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.7, y: 10 }}
+              transition={{ 
+                duration: 0.7, 
+                delay: 0.5, 
+                ease: [0.22, 1, 0.36, 1],
+                opacity: { duration: 0.6 },
+                scale: { type: "spring", stiffness: 150, damping: 22 },
+                y: { duration: 0.5 }
+              }}
+              className={`absolute right-16 top-8 z-[5]
+                       ${isMobile ? 'hidden' : 'hidden sm:block'} w-[140px] lg:w-[180px]`}
+            >
+              {/* Text moved above the image */}
+              <div className={`text-center mb-2 p-2 rounded-lg ${
+                currentSlide === 0 ? 'bg-blue-500/20' : 
+                currentSlide === 1 ? 'bg-emerald-500/20' : 
+                currentSlide === 2 ? 'bg-blue-400/20' : 
+                currentSlide === 3 ? 'bg-orange-500/20' : 
+                currentSlide === 4 ? 'bg-cyan-500/20' : 
+                currentSlide === 5 ? 'bg-indigo-500/20' : 
+                currentSlide === 6 ? 'bg-green-500/20' : 
+                currentSlide === 7 ? 'bg-violet-500/20' : 
+                currentSlide === 8 ? 'bg-yellow-500/20' : 
+                currentSlide === 9 ? 'bg-purple-500/20' : 
+                currentSlide === 10 ? 'bg-purple-500/20' : 
+                currentSlide === 11 ? 'bg-emerald-500/20' : 
+                'bg-blue-400/20'
+              }`}>
+                <span className="text-xs font-semibold text-white drop-shadow-md block">
+                  {serviceContent[currentSlide].imageSection.imagePlaceholders[1].title}
+                </span>
+                <span className="text-[10px] text-white/90 drop-shadow-md">
+                  {serviceContent[currentSlide].imageSection.imagePlaceholders[1].description}
+                </span>
+              </div>
+              
+              <div 
+                className={`relative w-full aspect-square rounded-lg overflow-hidden border-2 ${
+                  currentSlide === 0 ? 'border-blue-500' : 
+                  currentSlide === 1 ? 'border-emerald-500' : 
+                  currentSlide === 2 ? 'border-blue-400' : 
+                  currentSlide === 3 ? 'border-orange-500' : 
+                  currentSlide === 4 ? 'border-cyan-500' : 
+                  currentSlide === 5 ? 'border-indigo-500' : 
+                  currentSlide === 6 ? 'border-green-500' : 
+                  currentSlide === 7 ? 'border-violet-500' : 
+                  currentSlide === 8 ? 'border-yellow-500' : 
+                  currentSlide === 9 ? 'border-purple-500' : 
+                  currentSlide === 10 ? 'border-purple-500' : 
+                  currentSlide === 11 ? 'border-emerald-500' : 
+                  'border-blue-400'
+                } transition-transform duration-300 shadow-lg cursor-pointer`}
+                onClick={() => openImagePreview(
+                  currentSlide <= 1 ? (
+                    currentSlide === 0 
+                      ? "https://ik.imagekit.io/u7ipvwnqb/359shots_so.png?updatedAt=1751547783050" 
+                      : "https://appsumo2-cdn.appsumo.com/media/selfsubmissions/images/5690197f-8b9a-4f78-9d03-db22e799133c.png?width=1280&height=720&aspect_ratio=16:9&optimizer=gif"
+                  ) : (currentSlide >= 2 && currentSlide <= 10) && 'image' in serviceContent[currentSlide].imageSection.imagePlaceholders[1] 
+                      ? (serviceContent[currentSlide].imageSection.imagePlaceholders[1] as {title: string, description: string, image: string}).image
+                      : "#", // Placeholder - will be updated later
+                  serviceContent[currentSlide].imageSection.imagePlaceholders[1].title
+                )}
+              >
+                {/* Image without overlay or blur effects */}
+                <div className="w-full h-full overflow-hidden bg-black/30">
+                  {currentSlide <= 1 ? (
+                    currentSlide === 0 ? (
+                    <img 
+                      src="https://ik.imagekit.io/u7ipvwnqb/359shots_so.png?updatedAt=1751547783050" 
+                      alt="AI Chatbot Business Intelligence"
+                        className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                        loading="eager"
+                    />
+                  ) : (
+                    <img 
+                      src="https://appsumo2-cdn.appsumo.com/media/selfsubmissions/images/5690197f-8b9a-4f78-9d03-db22e799133c.png?width=1280&height=720&aspect_ratio=16:9&optimizer=gif" 
+                      alt="AI Agent Workflow Integration"
+                        className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                        loading="eager"
+                    />
+                    )
+                  ) : (currentSlide >= 2 && currentSlide <= 10) && 'image' in serviceContent[currentSlide].imageSection.imagePlaceholders[1] ? (
+                                          <img 
+                      src={(serviceContent[currentSlide].imageSection.imagePlaceholders[1] as {title: string, description: string, image: string}).image} 
+                      alt={serviceContent[currentSlide].imageSection.imagePlaceholders[1].title}
+                      className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
+                      loading="eager"
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center">
+                      <span className="text-xs text-white/70">Image Coming Soon</span>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Hover preview indicator with animation */}
+                <motion.div 
+                  className="absolute bottom-2 right-2 w-6 h-6 bg-white/80 rounded-full 
+                            flex items-center justify-center hover:bg-white"
+                  whileHover={{ scale: 1.2 }}
+                  animate={{ 
+                    scale: [1, 1.1, 1],
+                    boxShadow: [
+                      '0 0 0 rgba(255, 255, 255, 0.4)',
+                      '0 0 8px rgba(255, 255, 255, 0.6)',
+                      '0 0 0 rgba(255, 255, 255, 0.4)'
+                    ]
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Infinity,
+                    repeatType: "reverse"
+                  }}
+                >
+                  <motion.svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    className="h-4 w-4 text-gray-800" 
+                    viewBox="0 0 20 20" 
+                    fill="currentColor"
+                    animate={{
+                      opacity: [0.7, 1, 0.7]
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Infinity,
+                      repeatType: "reverse"
+                    }}
+                  >
+                    <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                    <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                  </motion.svg>
+                </motion.div>
+                </div>
+            </motion.div>
+            
+            {/* Image Preview Modal */}
+            {previewImage && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm"
+                onClick={closeImagePreview}
+              >
+                <div className="relative max-w-4xl max-h-[90vh] w-auto" onClick={e => e.stopPropagation()}>
+                  <motion.button 
+                    className="absolute -top-10 right-0 w-8 h-8 flex items-center justify-center bg-white/90 
+                              rounded-full text-black hover:bg-white text-xl font-bold"
+                    onClick={closeImagePreview}
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    ×
+                  </motion.button>
+                  <motion.img 
+                    src={previewImage.src} 
+                    alt={previewImage.alt}
+                    className="max-w-full max-h-[80vh] object-contain rounded shadow-2xl"
+                    initial={{ scale: 0.9, opacity: 0.5 }}
+                    animate={{ scale: 1, opacity: 1 }}
+                    transition={{ type: 'spring', stiffness: 300, damping: 25 }}
+                    loading="eager"
+                  />
+                  <motion.div 
+                    className="text-center mt-2 text-white/90 text-sm"
+                    initial={{ opacity: 0, y: 5 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                  >
+                    {previewImage.alt}
+                  </motion.div>
+              </div>
+            </motion.div>
+            )}
+          </>
+        )}
       </div>
     </div>
   );

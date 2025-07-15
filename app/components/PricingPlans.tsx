@@ -5,6 +5,7 @@ import { useTimeline } from '../contexts/TimelineContext';
 import { formatPrice } from '../utils/pricing';
 import TimelineSelector from './TimelineSelector';
 import InvoiceCalculator from './InvoiceCalculator';
+import WelcomeModal from './WelcomeModal';
 
 interface PricingPlan {
   id: string;
@@ -116,6 +117,20 @@ const pricingPlans: PricingPlan[] = [
 const PricingPlans: React.FC = () => {
   const { currency, isExemptCountry } = useCurrency();
   const { getTimelineMultiplier } = useTimeline();
+  const [selectedPlan, setSelectedPlan] = useState<PricingPlan | null>(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Handle Get Started button click
+  const handleGetStarted = (plan: PricingPlan) => {
+    // Set the selected plan which will be passed to the modal
+    setSelectedPlan(plan);
+    // Show the modal
+    setShowModal(true);
+  };
+  
+  const handleCloseModal = () => {
+    setShowModal(false);
+  };
 
   // Separate new plan from others
   const newPlan = pricingPlans.find(plan => plan.isNew);
@@ -140,6 +155,14 @@ const PricingPlans: React.FC = () => {
 
   return (
     <div className="space-y-12 pt-4 md:pt-0">
+      {/* Welcome Modal */}
+      <WelcomeModal 
+        isOpen={showModal}
+        onClose={handleCloseModal}
+        icon={selectedPlan?.icon}
+        planTitle={selectedPlan?.title}
+      />
+      
       {/* New Plan - Full Width */}
       {newPlan && (
         <motion.div
@@ -207,7 +230,10 @@ const PricingPlans: React.FC = () => {
               <div className="bg-black/30 rounded-xl p-6 border border-purple-500/20">
                 <h4 className="text-lg font-semibold text-white mb-4">Pricing Details</h4>
                 <InvoiceCalculator basePrice={newPlan.basePrice} />
-                <button className="mt-6 w-full py-3.5 px-6 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 transition-all duration-300 text-white font-semibold shadow-lg shadow-purple-700/20 flex items-center justify-center gap-2">
+                <button 
+                  onClick={() => handleGetStarted(newPlan)}
+                  className="mt-6 w-full py-3.5 px-6 rounded-lg bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 transition-all duration-300 text-white font-semibold shadow-lg shadow-purple-700/20 flex items-center justify-center gap-2"
+                >
                   <span>Get Started</span>
                   <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
@@ -343,6 +369,7 @@ const PricingPlans: React.FC = () => {
               </div>
               
               <button
+                onClick={() => handleGetStarted(plan)}
                 className={`
                   w-full py-3 px-6 rounded-xl font-semibold transition-all duration-300 flex items-center justify-center gap-2
                   ${plan.popular
@@ -360,6 +387,22 @@ const PricingPlans: React.FC = () => {
           </motion.div>
         ))}
       </div>
+      
+      {/* Debug button - hidden in production */}
+      {process.env.NODE_ENV !== 'production' && (
+        <div className="mt-8 text-center">
+          <button
+            onClick={() => {
+              const randomPlan = pricingPlans[Math.floor(Math.random() * pricingPlans.length)];
+              handleGetStarted(randomPlan);
+            }}
+            className="py-2 px-4 bg-gray-800 text-gray-300 text-xs rounded-md"
+          >
+            Test Welcome Modal
+          </button>
+        </div>
+      )}
+      
       {/* Custom mini scrollbar style */}
       <style jsx global>{`
         .custom-mini-scrollbar::-webkit-scrollbar {

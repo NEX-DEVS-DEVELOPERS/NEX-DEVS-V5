@@ -47,7 +47,7 @@ export default function Footer() {
                   <span className="text-white">NEX-</span>
                 </div>
                 <div className="bg-white rounded-xl px-4 py-2 inline-block">
-                  <span className="text-[3rem] font-bold text-black">WEBS.</span>
+                  <span className="text-[3rem] font-bold text-black">DEVS.</span>
                 </div>
                 <span className="block text-gray-400 text-xl mt-4">
                   Transforming ideas into seamless digital experiences.
@@ -100,8 +100,8 @@ export default function Footer() {
           <div className="space-y-6">
             <h3 className="text-white text-xl font-semibold">Get in Touch</h3>
             <div className="space-y-4">
-              <h2 className="text-gray-400">(nexwebs.org@gmail.com)</h2>
-              <h2 className="text-gray-400"> (0309-2425950)</h2>
+              <h2 className="text-gray-400">(nexwebs.org@gmail.com-nexdevs.org@gmail.com)</h2>
+              <h2 className="text-gray-400"> (0329-2425950)</h2>
               <div className="flex space-x-4">
                 {socialLinks.map((link) => (
                   <a
@@ -120,7 +120,7 @@ export default function Footer() {
         {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-8 mt-8 flex flex-col md:flex-row justify-between items-center">
           <p className="text-gray-400 text-sm mb-4 md:mb-0">
-            © 2024-2025 NEX-WEBS. All rights reserved.
+            © 2024-2025 NEX-DEVS. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm">
             <Link href="/privacy" className="text-gray-400 transition-colors duration-200">

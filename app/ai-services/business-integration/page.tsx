@@ -6,6 +6,7 @@ import { Check, Star, ArrowRight, Zap, Bot, Mic, Building2, Info, X, Brain, Cpu,
 import Link from 'next/link';
 import Image from 'next/image';
 import NeuralNetwork from '@/components/animations/NeuralNetwork';
+import { audiowide, vt323, getVT323Style, getAudiowideStyle } from '@/app/utils/fonts';
 
 // Types for Neural Network
 interface NetworkNode {
@@ -2193,11 +2194,11 @@ export default function BusinessIntegrationPage() {
                 </div>
               </div>
               
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 drop-shadow-[0_0_10px_rgba(120,180,255,0.3)]">
+              <span className={`${audiowide.className} bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 drop-shadow-[0_0_10px_rgba(120,180,255,0.3)]`}>
                 Ai-INTEGRATION
             </span>
             <br />
-              <span className="text-white relative">
+              <span className={`${audiowide.className} text-white relative`}>
                 IN BUSINESS
                 <motion.span 
                   className="absolute -right-6 top-1 text-3xl text-blue-400"
@@ -2211,7 +2212,8 @@ export default function BusinessIntegrationPage() {
 
             <motion.p
             variants={fadeInUpVariant}
-              className="text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed"
+              className={`${vt323.className} text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed`}
+              style={{ fontSize: '16px' }}
             >
               Enterprise-grade AI solutions with NLP & Vector DB technology
             </motion.p>
@@ -2224,19 +2226,19 @@ export default function BusinessIntegrationPage() {
               <div className="grid grid-cols-4 gap-5 text-center max-w-3xl">
                 <div className="flex flex-col items-center">
                   <Brain className="w-6 h-6 text-blue-400 mb-2" />
-                  <span className="text-sm text-gray-400 font-medium">NEX-SHFT™ Method</span>
+                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>NEX-SHFT™ Method</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <Cpu className="w-6 h-6 text-purple-400 mb-2" />
-                  <span className="text-sm text-gray-400 font-medium">NLP Engine</span>
+                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>NLP Engine</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <Database className="w-6 h-6 text-blue-400 mb-2" />
-                  <span className="text-sm text-gray-400 font-medium">Vector Database</span>
+                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>Vector Database</span>
                 </div>
                 <div className="flex flex-col items-center">
                   <Bot className="w-6 h-6 text-purple-400 mb-2" />
-                  <span className="text-sm text-gray-400 font-medium">LLM Fine-tuning</span>
+                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>LLM Fine-tuning</span>
                 </div>
               </div>
             </motion.div>
@@ -2258,7 +2260,7 @@ export default function BusinessIntegrationPage() {
                 }}
               >
                 <Cpu className="w-4 h-4 text-blue-400" />
-                <span className="text-sm font-medium text-blue-300">OpenRouter</span>
+                <span className={`${vt323.className} text-sm font-medium text-blue-300`} style={{ fontSize: '16px' }}>OpenRouter</span>
               </motion.button>
               
               <motion.button
@@ -2273,7 +2275,7 @@ export default function BusinessIntegrationPage() {
                 }}
               >
                 <Brain className="w-4 h-4 text-purple-400" />
-                <span className="text-sm font-medium text-purple-300">Hugging Face</span>
+                <span className={`${vt323.className} text-sm font-medium text-purple-300`} style={{ fontSize: '16px' }}>Hugging Face</span>
               </motion.button>
             </motion.div>
           </div>
@@ -2292,7 +2294,7 @@ export default function BusinessIntegrationPage() {
             >
               {/* OpenRouter Images */}
               <div id="openrouter-images" className="mb-8">
-                <h3 className="text-blue-300 font-medium text-center mb-4 flex items-center justify-center gap-2">
+                <h3 className={`${audiowide.className} text-blue-300 font-medium text-center mb-4 flex items-center justify-center gap-2`}>
                   <Cpu className="w-5 h-5 text-blue-400" />
                   <span>OpenRouter Configuration</span>
                 </h3>
@@ -2317,7 +2319,7 @@ export default function BusinessIntegrationPage() {
                     />
                     </div>
                   </MacOSWindow>
-                    <p className="text-sm text-gray-400 mt-2 text-center">Primary model selection with routing preferences</p>
+                    <p className={`${vt323.className} text-sm text-gray-400 mt-2 text-center`} style={{ fontSize: '16px' }}>Primary model selection with routing preferences</p>
                   </motion.div>
                   
                 {/* Image 2 - Advanced Settings */}
@@ -2346,7 +2348,7 @@ export default function BusinessIntegrationPage() {
               
             {/* Hugging Face Images - With macOS-style windows */}
               <div id="huggingface-images" className="mt-16">
-                <h3 className="text-purple-300 font-medium text-center mb-4 flex items-center justify-center gap-2">
+                <h3 className={`${audiowide.className} text-purple-300 font-medium text-center mb-4 flex items-center justify-center gap-2`}>
                   <Brain className="w-5 h-5 text-purple-400" />
                   <span>Hugging Face Integration</span>
                 </h3>
@@ -2371,7 +2373,7 @@ export default function BusinessIntegrationPage() {
                     />
                     </div>
                   </MacOSWindow>
-                    <p className="text-sm text-gray-400 mt-2 text-center">Model hub with extensive pre-trained models collection</p>
+                    <p className={`${vt323.className} text-sm text-gray-400 mt-2 text-center`} style={{ fontSize: '16px' }}>Model hub with extensive pre-trained models collection</p>
                   </motion.div>
                   
                 {/* Image 2 - API Integration */}
@@ -2393,7 +2395,7 @@ export default function BusinessIntegrationPage() {
                     />
                     </div>
                   </MacOSWindow>
-                    <p className="text-sm text-gray-400 mt-2 text-center">API integration with streamlined code implementation</p>
+                    <p className={`${vt323.className} text-sm text-gray-400 mt-2 text-center`} style={{ fontSize: '16px' }}>API integration with streamlined code implementation</p>
                   </motion.div>
                 </div>
               </div>
@@ -2453,7 +2455,7 @@ export default function BusinessIntegrationPage() {
           <motion.h2
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className={`${audiowide.className} text-3xl md:text-4xl font-bold text-white mb-4`}
           >
               AI Integration Plans (USD)
           </motion.h2>
@@ -2461,7 +2463,8 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto"
+              className={`${vt323.className} text-lg text-gray-300 max-w-2xl mx-auto`}
+              style={{ fontSize: '16px' }}
             >
               Scalable AI solutions for startups, businesses, and enterprises.
             </motion.p>
@@ -3230,7 +3233,7 @@ export default function BusinessIntegrationPage() {
                 <div className="flex-1">
                   <MacOSWindow title="Anthropic API Documentation" variant="purple">
                             <Image 
-                      src="https://i.ytimg.com/vi/QdG13VnV0B0/maxresdefault.jpg"
+                      src="https://ik.imagekit.io/u7ipvwnqb/image.png"
                       alt="Anthropic API Documentation"
                       width={800}
                       height={450}

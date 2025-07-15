@@ -4,6 +4,7 @@ import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { ChevronDown } from 'lucide-react';
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // Interface for user-submitted questions
 interface UserQuestion {
@@ -225,11 +226,11 @@ export default function FAQPage() {
             transition={{ duration: 0.6 }}
             className="text-center"
           >
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 flex flex-wrap justify-center items-center gap-2 sm:gap-3">
+            <h1 className={`text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 flex flex-wrap justify-center items-center gap-2 sm:gap-3 ${audiowide.className}`}>
               <span className="bg-white text-black px-4 sm:px-6 py-2 sm:py-3 rounded-lg shadow-lg shadow-purple-500/20 transform -rotate-1">FREQUENTLY</span>
               <span className="text-white">ASKED QUESTIONS</span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mt-4 sm:mt-6 px-2">
+            <p className={`text-base sm:text-lg md:text-xl text-gray-400 max-w-3xl mx-auto mt-4 sm:mt-6 px-2 ${vt323.className}`}>
               Find answers to common questions about my services, process, and payment methods.
             </p>
           </motion.div>
@@ -247,7 +248,7 @@ export default function FAQPage() {
           <div className="rounded-xl bg-gradient-to-r from-purple-900/30 to-pink-900/30 p-1">
             <div className="bg-black rounded-lg p-4 sm:p-6">
               <div className="mb-5 sm:mb-6 text-center">
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-bold text-white inline-flex items-center">
+                <h2 className={`text-xl sm:text-2xl md:text-3xl font-bold text-white inline-flex items-center ${audiowide.className}`}>
                   <span className="bg-gradient-to-r from-purple-400 to-pink-400 text-transparent bg-clip-text">Recently Answered Questions</span>
                 </h2>
               </div>
@@ -261,8 +262,8 @@ export default function FAQPage() {
                     transition={{ delay: index * 0.2 + 0.5 }}
                     className="bg-black/70 border border-white/10 rounded-xl p-4 sm:p-6 hover:border-purple-500/30 transition-all duration-300"
                   >
-                    <h3 className="text-base sm:text-lg font-medium text-white mb-2 sm:mb-3">{q.question}</h3>
-                    <p className="text-gray-300 mb-3 sm:mb-4 text-sm line-clamp-3 sm:line-clamp-4">{q.answer}</p>
+                    <h3 className={`text-base sm:text-lg font-medium text-white mb-2 sm:mb-3 ${audiowide.className}`}>{q.question}</h3>
+                    <p className={`text-gray-300 mb-3 sm:mb-4 text-sm line-clamp-3 sm:line-clamp-4 ${vt323.className}`}>{q.answer}</p>
                     <div className="flex justify-between items-center text-xs text-gray-400">
                       <span className="truncate mr-2">Asked by {q.name}</span>
                       <div className="flex items-center gap-1 whitespace-nowrap">
@@ -325,7 +326,7 @@ export default function FAQPage() {
             className="hidden lg:block lg:col-span-1"
           >
             <div className="sticky top-24 bg-black rounded-2xl p-6 border border-white/10">
-              <h3 className="text-xl font-semibold mb-4 text-white">Categories</h3>
+              <h3 className={`text-xl font-semibold mb-4 text-white ${audiowide.className}`}>Categories</h3>
               <div className="space-y-2">
                 {categories.map((category) => (
                   <button
@@ -367,7 +368,7 @@ export default function FAQPage() {
           >
             {activeCategory === 'community' && (
               <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-purple-900/20 border border-purple-500/30 rounded-lg">
-                <p className="text-purple-300 text-xs sm:text-sm">
+                <p className={`text-purple-300 text-xs sm:text-sm ${vt323.className}`}>
                   These questions were submitted by our community and personally answered by the NEXDEVS team.
                 </p>
               </div>
@@ -391,7 +392,7 @@ export default function FAQPage() {
                     <AccordionTrigger className="text-left px-4 sm:px-6 py-3 sm:py-4 hover:no-underline group">
                       <div className="flex items-start justify-between w-full pr-6">
                         <div>
-                          <h3 className="text-base sm:text-lg font-medium group-hover:text-purple-400 transition-colors duration-300 text-white">
+                          <h3 className={`text-base sm:text-lg font-medium group-hover:text-purple-400 transition-colors duration-300 text-white ${audiowide.className}`}>
                             {faq.question}
                           </h3>
                           {'askedBy' in faq && (
@@ -409,7 +410,7 @@ export default function FAQPage() {
                       </div>
                     </AccordionTrigger>
                     <AccordionContent className="px-4 sm:px-6 pb-4 pt-0 text-gray-300">
-                      <p className="leading-relaxed text-sm sm:text-base">{faq.answer}</p>
+                      <p className={`leading-relaxed text-sm sm:text-base ${vt323.className}`}>{faq.answer}</p>
                       {'isUserSubmitted' in faq && (
                         <div className="mt-4 pt-3 border-t border-white/10">
                           <span className="text-xs text-purple-300 flex items-center">
@@ -442,11 +443,11 @@ export default function FAQPage() {
           
           <div className="relative z-10">
             <div className="text-center mb-6 sm:mb-10">
-              <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 flex items-center justify-center flex-wrap gap-2">
+              <h2 className={`text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 flex items-center justify-center flex-wrap gap-2 ${audiowide.className}`}>
                 <span className="text-white">ASK</span>
                 <span className="bg-white text-black px-3 sm:px-4 py-1 sm:py-2 rounded-lg transform -rotate-1">YOUR QUESTION</span>
               </h2>
-              <p className="text-sm sm:text-base text-gray-400 max-w-2xl mx-auto px-2">
+              <p className={`text-sm sm:text-base text-gray-400 max-w-2xl mx-auto px-2 ${vt323.className}`}>
                 Can't find what you're looking for? Submit your question and we'll get back to you as soon as possible.
               </p>
             </div>
@@ -454,7 +455,7 @@ export default function FAQPage() {
             <form onSubmit={handleSubmit} className="max-w-3xl mx-auto">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
                 <div>
-                  <label htmlFor="name" className="block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base">
+                  <label htmlFor="name" className={`block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base ${audiowide.className}`}>
                     Your Name
                   </label>
                   <input
@@ -462,13 +463,13 @@ export default function FAQPage() {
                     id="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm sm:text-base"
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm sm:text-base ${vt323.className}`}
                     placeholder="John Doe"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="email" className="block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base">
+                  <label htmlFor="email" className={`block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base ${audiowide.className}`}>
                     Your Email
                   </label>
                   <input
@@ -476,21 +477,21 @@ export default function FAQPage() {
                     id="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm sm:text-base"
+                    className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all text-sm sm:text-base ${vt323.className}`}
                     placeholder="john@example.com"
                     required
                   />
                 </div>
               </div>
               <div className="mb-5 sm:mb-6">
-                <label htmlFor="question" className="block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base">
+                <label htmlFor="question" className={`block text-white mb-1 sm:mb-2 font-medium text-sm sm:text-base ${audiowide.className}`}>
                   Your Question
                 </label>
                 <textarea
                   id="question"
                   value={question}
                   onChange={(e) => setQuestion(e.target.value)}
-                  className="w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all min-h-[100px] sm:min-h-[120px] text-sm sm:text-base"
+                  className={`w-full px-3 sm:px-4 py-2 sm:py-3 rounded-lg bg-black border border-white/20 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all min-h-[100px] sm:min-h-[120px] text-sm sm:text-base ${vt323.className}`}
                   placeholder="What would you like to know?"
                   required
                 ></textarea>
@@ -499,7 +500,7 @@ export default function FAQPage() {
                 <button
                   type="submit"
                   disabled={isSubmitting}
-                  className="w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg transform transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-70 text-sm sm:text-base"
+                  className={`w-full sm:w-auto px-6 sm:px-8 py-2.5 sm:py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-semibold rounded-lg transform transition-all hover:scale-105 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-offset-2 disabled:opacity-70 text-sm sm:text-base ${audiowide.className}`}
                 >
                   {isSubmitting ? 'Submitting...' : 'Submit Question'}
                 </button>
@@ -509,7 +510,7 @@ export default function FAQPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-3 bg-green-500/20 border border-green-500/30 text-green-400 text-center rounded-lg text-sm"
+                  className={`mt-4 p-3 bg-green-500/20 border border-green-500/30 text-green-400 text-center rounded-lg text-sm ${vt323.className}`}
                 >
                   Your question has been submitted successfully! We'll get back to you soon.
                 </motion.div>
@@ -519,7 +520,7 @@ export default function FAQPage() {
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="mt-4 p-3 bg-red-500/20 border border-red-500/30 text-red-400 text-center rounded-lg text-sm"
+                  className={`mt-4 p-3 bg-red-500/20 border border-red-500/30 text-red-400 text-center rounded-lg text-sm ${vt323.className}`}
                 >
                   Something went wrong. Please try again or contact us directly.
                 </motion.div>

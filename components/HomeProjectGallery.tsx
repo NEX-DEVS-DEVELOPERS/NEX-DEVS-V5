@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
+import { audiowide, vt323 } from '@/app/utils/fonts';
 
 // Project type definition with essential fields
 interface Project {
@@ -242,7 +243,7 @@ export default function HomeProjectGallery() {
         ) : (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-white">Featured Projects</h2>
+              <h2 className={`text-xl sm:text-2xl font-bold text-white ${audiowide.className}`}>Featured Projects</h2>
               <div className="flex gap-2">
                 <button 
               onClick={toggleAutoplay}
@@ -340,8 +341,8 @@ export default function HomeProjectGallery() {
                               className={`absolute inset-0 bg-black/60 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300`}
                             >
                               <div className="text-white text-center p-4">
-                                <h3 className="font-bold text-lg mb-1">{project.title}</h3>
-                                <p className="text-sm text-gray-300 mb-3 line-clamp-2">{project.description}</p>
+                                <h3 className={`font-bold text-lg mb-1 ${audiowide.className}`}>{project.title}</h3>
+                                <p className={`text-sm text-gray-300 mb-3 line-clamp-2 ${vt323.className}`}>{project.description}</p>
                                 <a
                                   href={project.link}
                                   target="_blank"
@@ -361,8 +362,8 @@ export default function HomeProjectGallery() {
                       
                       {/* Project Info */}
                       <div className="w-full md:w-1/2 p-2">
-                        <h3 className="text-xl font-bold text-white mb-2">{project.title}</h3>
-                        <p className="text-gray-300 mb-4 text-sm">{project.description}</p>
+                        <h3 className={`text-xl font-bold text-white mb-2 ${audiowide.className}`}>{project.title}</h3>
+                        <p className={`text-gray-300 mb-4 text-sm ${vt323.className}`}>{project.description}</p>
                         
                         {/* Technologies */}
                         <div className="mb-4">
