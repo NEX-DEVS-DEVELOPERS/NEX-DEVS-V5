@@ -3,7 +3,6 @@ import "./globals.css"
 import "../styles/barba-transitions.css" // Import Barba.js transition styles
 import "../styles/color-consistency.css" // Import color consistency styles
 import "../styles/hero-and-scroll-fixes.css" // Import hero section and scrolling fixes
-import "../styles/chatbot-styles.css" // Import custom chatbot styles
 import { cn } from "@/lib/utils"
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
@@ -173,97 +172,9 @@ export default function RootLayout({
           [class*="techstack"],
           .rounded-2xl,
           .rounded-xl,
-          .rounded-lg,
-          .space-y-2.sm\\:space-y-3.p-3.sm\\:p-4.rounded-lg,
-          .relative.bg-black.rounded-2xl {
+          .rounded-lg {
             border-radius: var(--border-radius-lg) !important;
             overflow: hidden !important;
-          }
-          
-          /* Welcome screen adjustments */
-          [class*="Welcome"],
-          [class*="welcome"] {
-            margin-top: 5rem !important;
-            padding-top: 3rem !important;
-            padding-bottom: 3rem !important;
-            border-radius: var(--border-radius-lg) !important;
-            overflow: hidden !important;
-            position: relative;
-            background: rgba(5, 5, 9, 0.5) !important;
-            backdrop-filter: blur(16px) !important;
-            -webkit-backdrop-filter: blur(16px) !important;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          }
-          
-          /* Chatbot button fixes */
-          #nexious-chat-container {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            z-index: 9999;
-          }
-          
-          /* Make chatbot button fully rounded */
-          .nexious-chat-button,
-          [class*="nexious-button"] {
-            border-radius: 50% !important;
-            overflow: hidden !important;
-            background: rgba(5, 5, 9, 0.7) !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-          }
-          
-          /* Remove any background buttons on chat */
-          .nexious-chat-button::before,
-          .nexious-chat-button::after,
-          [class*="nexious"]::before,
-          [class*="nexious"]::after {
-            background: transparent !important;
-          }
-          
-          /* Welcome screen background glow */
-          [class*="Welcome"]::before,
-          [class*="welcome"]::before {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 60%);
-            z-index: -1;
-            pointer-events: none;
-          }
-          
-          /* Welcome screen inner glass effect */
-          [class*="Welcome"]::after,
-          [class*="welcome"]::after {
-            content: '';
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-            z-index: -1;
-            pointer-events: none;
-          }
-          
-          /* Welcome screen buttons */
-          [class*="welcome"] button,
-          [class*="welcome"] a,
-          [id*="discover"],
-          [id*="see-what"] {
-            border-radius: var(--border-radius-btn) !important;
-            overflow: hidden !important;
-            backdrop-filter: blur(8px) !important;
-            -webkit-backdrop-filter: blur(8px) !important;
-          }
-          
-          /* Welcome screen buttons hover effect */
-          [class*="welcome"] button:hover,
-          [class*="welcome"] a:hover,
-          [id*="discover"]:hover,
-          [id*="see-what"]:hover {
-            transform: translateY(-2px) !important;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
           }
           
           /* Ensure proper sticky elements with consistent colors */
@@ -300,7 +211,15 @@ export default function RootLayout({
             contain: layout style;
             border-radius: var(--border-radius-lg) !important;
             overflow: hidden !important;
-            margin-top: 1rem;
+          }
+          
+          /* Welcome screen adjustments */
+          [class*="Welcome"],
+          [class*="welcome"] {
+            margin-top: 3rem !important;
+            padding-top: 2rem !important;
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
           }
           
           /* Improved smooth scrolling without uplift effect */
@@ -344,6 +263,15 @@ export default function RootLayout({
           .space-y-2.sm\\:space-y-3.p-3.sm\\:p-4.rounded-lg,
           .relative.bg-black.rounded-2xl {
             border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Welcome screen buttons */
+          .welcome-screen button,
+          .welcome-screen a,
+          [id*="discover"],
+          [id*="see-what"] {
+            border-radius: var(--border-radius-btn) !important;
             overflow: hidden !important;
           }
         `}} />
@@ -416,28 +344,9 @@ export default function RootLayout({
               const welcomeScreens = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
               welcomeScreens.forEach(el => {
                 if(el instanceof HTMLElement) {
-                  el.style.marginTop = '5rem';
-                  el.style.paddingTop = '3rem';
+                  el.style.marginTop = '3rem';
+                  el.style.paddingTop = '2rem';
                   el.style.borderRadius = '16px';
-                }
-              });
-              
-              // Fix chatbot button
-              const chatBotButtons = document.querySelectorAll('.nexious-chat-button, [class*="nexious-button"]');
-              chatBotButtons.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.borderRadius = '50%';
-                  el.style.background = 'rgba(5, 5, 9, 0.7)';
-                  el.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
-                  el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-                  
-                  // Remove background elements
-                  const backgroundEls = el.querySelectorAll('div[class*="bg-"], div[style*="background"]');
-                  backgroundEls.forEach(bgEl => {
-                    if(bgEl instanceof HTMLElement) {
-                      bgEl.style.background = 'transparent';
-                    }
-                  });
                 }
               });
             };
@@ -448,19 +357,6 @@ export default function RootLayout({
             
             // Run again after a short delay to catch any dynamically loaded content
             setTimeout(fixRoundedEdges, 1000);
-            
-            // Add mutation observer to detect chatbot button appearance
-            const observer = new MutationObserver(() => {
-              const chatBotButtons = document.querySelectorAll('.nexious-chat-button, [class*="nexious-button"]');
-              if (chatBotButtons.length > 0) {
-                fixRoundedEdges();
-              }
-            });
-            
-            observer.observe(document.body, { 
-              childList: true,
-              subtree: true
-            });
           });
         `}} />
       </body>

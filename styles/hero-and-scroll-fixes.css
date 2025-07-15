@@ -5,44 +5,11 @@
 [class*="welcome"],
 [id*="welcome"],
 .welcome-container {
-  margin-top: 5rem !important;
-  padding-top: 3rem !important;
-  padding-bottom: 3rem !important;
+  margin-top: 3rem !important;
+  padding-top: 2rem !important;
   border-radius: 16px !important;
   overflow: hidden !important;
   position: relative;
-  /* Improved frosted glass effect - more transparent */
-  background: rgba(5, 5, 9, 0.5) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
-}
-
-/* Welcome screen background glow */
-[class*="Welcome"]::before,
-[class*="welcome"]::before,
-[id*="welcome"]::before,
-.welcome-container::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 60%);
-  z-index: -1;
-  pointer-events: none;
-}
-
-/* Welcome screen inner glass effect */
-[class*="Welcome"]::after,
-[class*="welcome"]::after,
-[id*="welcome"]::after,
-.welcome-container::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
-  z-index: -1;
-  pointer-events: none;
 }
 
 /* Welcome screen buttons */
@@ -54,10 +21,6 @@ a[href*="offer"] {
   border-radius: 10px !important;
   overflow: hidden !important;
   transition: transform 0.3s ease, box-shadow 0.3s ease;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.1)) !important;
-  border: 1px solid rgba(255, 255, 255, 0.1) !important;
 }
 
 /* Welcome screen buttons hover effect */
@@ -68,7 +31,6 @@ a[href*="offer"] {
 a[href*="offer"]:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.25), rgba(139, 92, 246, 0.15)) !important;
 }
 
 /* Welcome screen title */
@@ -76,16 +38,8 @@ a[href*="offer"]:hover {
 [class*="welcome"] h2,
 [class*="welcome"] .title,
 [class*="NEX-DEVS"] {
-  margin-top: 2rem !important;
+  margin-top: 1.5rem !important;
   line-height: 1.2 !important;
-  text-shadow: 0 2px 10px rgba(139, 92, 246, 0.5) !important;
-}
-
-/* Welcome screen text enhancements */
-[class*="welcome"] p,
-[class*="welcome"] span,
-[class*="welcome"] div {
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.3) !important;
 }
 
 /* Hero section fixes */
