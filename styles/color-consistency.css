@@ -1,0 +1,91 @@
+/* 
+  Color Consistency CSS
+  This file contains color overrides to ensure consistent color across page transitions
+  and prevent color shifting in the website layout.
+*/
+
+:root {
+  /* Core background colors */
+  --nex-dark-bg: #050509;
+  --nex-darker-bg: #010102;
+  
+  /* Navbar colors */
+  --nex-navbar-bg: rgba(0, 0, 0, 0.9);
+  --nex-navbar-scrolled-bg: rgba(0, 0, 0, 0.95);
+  --nex-navbar-border: rgba(255, 255, 255, 0.1);
+  --nex-navbar-scrolled-border: rgba(255, 255, 255, 0.2);
+  
+  /* Text colors */
+  --nex-text-primary: #f8fafc;
+  --nex-text-secondary: rgba(248, 250, 252, 0.8);
+  
+  /* Brand colors */
+  --nex-purple: rgba(126, 34, 206, 1);
+  --nex-purple-light: rgba(147, 51, 234, 1);
+  --nex-violet: rgba(124, 58, 237, 1);
+  --nex-indigo: rgba(79, 70, 229, 1);
+}
+
+/* Ensure consistent background colors */
+html, 
+body {
+  background-color: var(--nex-dark-bg);
+  color: var(--nex-text-primary);
+}
+
+/* Navbar styling */
+.navbar {
+  background-color: var(--nex-navbar-bg) !important;
+  transition: background-color 0.3s ease;
+}
+
+.navbar.scrolled {
+  background-color: var(--nex-navbar-scrolled-bg) !important;
+}
+
+.navbar-inner {
+  background-color: transparent !important;
+  border-color: var(--nex-navbar-border) !important;
+  transition: border-color 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.navbar.scrolled .navbar-inner {
+  border-color: var(--nex-navbar-scrolled-border) !important;
+}
+
+/* Container backgrounds */
+main,
+[data-page-content="true"],
+[data-barba="container"],
+.barba-container {
+  background-color: var(--nex-dark-bg);
+}
+
+/* Barba transition fix */
+.transition-overlay {
+  background-color: rgba(0, 0, 0, 0.9);
+}
+
+html.is-animating body {
+  background-color: var(--nex-dark-bg);
+}
+
+/* Fix for potential hero section bg shifts */
+[class*="hero-section"],
+[class*="Hero"] {
+  background-color: var(--nex-dark-bg);
+}
+
+/* Discovery Call Button Consistency */
+.discovery-call-button {
+  background: linear-gradient(to right, var(--nex-purple), var(--nex-violet)) !important;
+}
+
+/* Make sure text colors are consistent */
+h1, h2, h3, h4, h5, h6 {
+  color: var(--nex-text-primary);
+}
+
+p, span, div {
+  color: var(--nex-text-secondary);
+} 

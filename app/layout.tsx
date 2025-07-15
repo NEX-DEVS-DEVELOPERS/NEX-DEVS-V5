@@ -1,6 +1,9 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
 import "../styles/barba-transitions.css" // Import Barba.js transition styles
+import "../styles/color-consistency.css" // Import color consistency styles
+import "../styles/hero-and-scroll-fixes.css" // Import hero section and scrolling fixes
+import "../styles/chatbot-styles.css" // Import custom chatbot styles
 import { cn } from "@/lib/utils"
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
@@ -82,12 +85,22 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* Add CSS animation optimization flags */}
+        {/* CSS fixes for floating elements, scroll behavior, and color consistency */}
         <style dangerouslySetInnerHTML={{ __html: `
           :root {
             --animation-enabled: true;
             --font-audiowide: ${audiowide.style.fontFamily};
             --font-vt323: ${vt323.style.fontFamily};
+            --nex-dark-bg: #050509;
+            --nex-darker-bg: #010102;
+            --nex-navbar-bg: rgba(0, 0, 0, 0.9);
+            --nex-navbar-scrolled-bg: rgba(0, 0, 0, 0.95);
+            --nex-navbar-border: rgba(255, 255, 255, 0.1);
+            --nex-navbar-scrolled-border: rgba(255, 255, 255, 0.2);
+            --border-radius-lg: 16px;
+            --border-radius-md: 12px;
+            --border-radius-sm: 8px;
+            --border-radius-btn: 10px;
           }
           
           @media (prefers-reduced-motion: reduce) {
@@ -96,9 +109,7 @@ export default function RootLayout({
             }
           }
           
-          /* Chatbot positioning handled by GSAP */
-          
-          /* Optimize float animation */
+          /* Basic float animation */
           @keyframes float {
             0% { transform: translateY(0px); }
             50% { transform: translateY(-5px); }
@@ -109,22 +120,203 @@ export default function RootLayout({
             animation: float 3s ease-in-out infinite !important;
           }
           
-          /* Performance optimizations */
-          body {
-            overscroll-behavior-y: none;
+          /* Essential fixes for sticky and floating UI */
+          html {
+            scroll-behavior: smooth;
+            background-color: var(--nex-darker-bg);
           }
           
-          /* Ensure proper sticky elements */
+          body {
+            overflow-x: hidden;
+            width: 100%;
+            min-height: 100vh;
+            overscroll-behavior-y: none;
+            background-color: var(--nex-dark-bg);
+            color: #f8fafc;
+          }
+          
+          /* Fix for Hero name elements - Apply rounded corners */
+          [id*="ali"], 
+          [id*="hasnaat"],
+          h1.hero-title,
+          .fullstack-title,
+          span[class*=${audiowide.className}],
+          .border-2.border-white,
+          .group-hover\\:bg-purple-500,
+          .bg-white.text-black {
+            border-radius: var(--border-radius-md) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Fix button elements with rounded edges */
+          a[href="/contact"], 
+          a[href="/projects"],
+          button,
+          .button,
+          a.bg-white,
+          a.border-2 {
+            border-radius: var(--border-radius-btn) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Fix for expertise and skill cards */
+          .expertise-card, 
+          .skill-card,
+          .skill-item,
+          .p-4.rounded-lg,
+          [class*="skill"] {
+            border-radius: var(--border-radius-md) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Fix for tech stack section */
+          [class*="techstack"],
+          .rounded-2xl,
+          .rounded-xl,
+          .rounded-lg,
+          .space-y-2.sm\\:space-y-3.p-3.sm\\:p-4.rounded-lg,
+          .relative.bg-black.rounded-2xl {
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
+          }
+          
+          /* Welcome screen adjustments */
+          [class*="Welcome"],
+          [class*="welcome"] {
+            margin-top: 5rem !important;
+            padding-top: 3rem !important;
+            padding-bottom: 3rem !important;
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
+            position: relative;
+            background: rgba(5, 5, 9, 0.5) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          }
+          
+          /* Chatbot button fixes */
+          #nexious-chat-container {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 9999;
+          }
+          
+          /* Make chatbot button fully rounded */
+          .nexious-chat-button,
+          [class*="nexious-button"] {
+            border-radius: 50% !important;
+            overflow: hidden !important;
+            background: rgba(5, 5, 9, 0.7) !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.3) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+          }
+          
+          /* Remove any background buttons on chat */
+          .nexious-chat-button::before,
+          .nexious-chat-button::after,
+          [class*="nexious"]::before,
+          [class*="nexious"]::after {
+            background: transparent !important;
+          }
+          
+          /* Welcome screen background glow */
+          [class*="Welcome"]::before,
+          [class*="welcome"]::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(139, 92, 246, 0.1), transparent 60%);
+            z-index: -1;
+            pointer-events: none;
+          }
+          
+          /* Welcome screen inner glass effect */
+          [class*="Welcome"]::after,
+          [class*="welcome"]::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0) 100%);
+            z-index: -1;
+            pointer-events: none;
+          }
+          
+          /* Welcome screen buttons */
+          [class*="welcome"] button,
+          [class*="welcome"] a,
+          [id*="discover"],
+          [id*="see-what"] {
+            border-radius: var(--border-radius-btn) !important;
+            overflow: hidden !important;
+            backdrop-filter: blur(8px) !important;
+            -webkit-backdrop-filter: blur(8px) !important;
+          }
+          
+          /* Welcome screen buttons hover effect */
+          [class*="welcome"] button:hover,
+          [class*="welcome"] a:hover,
+          [id*="discover"]:hover,
+          [id*="see-what"]:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3) !important;
+          }
+          
+          /* Ensure proper sticky elements with consistent colors */
           .navbar, nav, header {
-            position: sticky;
-            top: 0;
-            z-index: 1000;
+            position: sticky !important;
+            top: 0 !important;
+            z-index: 1000 !important;
+            width: 100% !important;
+            background-color: var(--nex-navbar-bg) !important;
+            transition: background-color 0.3s ease !important;
+            will-change: transform;
+          }
+          
+          /* Fix navbar color transitions */
+          .navbar-inner {
+            background-color: transparent !important;
+            backdrop-filter: blur(10px) !important;
+            -webkit-backdrop-filter: blur(10px) !important;
+            border-color: var(--nex-navbar-border) !important;
+            transition: border-color 0.3s ease, backdrop-filter 0.3s ease !important;
+            border-radius: var(--border-radius-lg) !important;
+          }
+          
+          .navbar.scrolled .navbar-inner {
+            border-color: var(--nex-navbar-scrolled-border) !important;
+            backdrop-filter: blur(16px) !important;
+            -webkit-backdrop-filter: blur(16px) !important;
           }
           
           /* Optimize Hero section */
           [class*="hero-section"],
-          [class*="Hero"] {
+          [class*="Hero"],
+          section[data-barba="container"] {
             contain: layout style;
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
+            margin-top: 1rem;
+          }
+          
+          /* Improved smooth scrolling without uplift effect */
+          .smooth-scroll {
+            scroll-behavior: smooth;
+            -webkit-overflow-scrolling: touch;
+            scroll-snap-type: none !important;
+          }
+          
+          /* Fixed positioning fixes for floating elements */
+          .fixed-element,
+          [class*="chatbot"],
+          .floating-button {
+            position: fixed !important;
+            z-index: 9999;
+            transform: translateZ(0);
           }
           
           /* Disable animations on mobile */
@@ -147,9 +339,16 @@ export default function RootLayout({
             opacity: 0;
             transition: opacity 0.5s ease;
           }
+          
+          /* TechStackSection fixes */
+          .space-y-2.sm\\:space-y-3.p-3.sm\\:p-4.rounded-lg,
+          .relative.bg-black.rounded-2xl {
+            border-radius: var(--border-radius-lg) !important;
+            overflow: hidden !important;
+          }
         `}} />
       </head>
-      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col smooth-scroll optimized-element")} data-barba="wrapper">
+      <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col optimized-scroll")} data-barba="wrapper">
         <div className="transition-overlay" id="transition-overlay"></div>
         <div className="progress-bar" id="progress-bar"></div>
         
@@ -169,6 +368,101 @@ export default function RootLayout({
             </TimelineProvider>
           </CurrencyProvider>
         </ThemeProvider>
+
+        {/* Add script to detect scroll and optimize performance */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          // Detect scroll to optimize performance
+          let scrollTimer;
+          document.addEventListener('scroll', function() {
+            document.body.classList.add('is-scrolling');
+            clearTimeout(scrollTimer);
+            scrollTimer = setTimeout(function() {
+              document.body.classList.remove('is-scrolling');
+            }, 150);
+          }, { passive: true });
+          
+          // Fix rounded edges after DOM loads
+          document.addEventListener('DOMContentLoaded', function() {
+            // Fix rounded edges for specific elements
+            const fixRoundedEdges = () => {
+              // Fix hero name elements
+              const nameElements = document.querySelectorAll('[id*="ali"], [id*="hasnaat"], .bg-white.text-black');
+              nameElements.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.borderRadius = '12px';
+                  el.style.overflow = 'hidden';
+                }
+              });
+              
+              // Fix buttons
+              const buttons = document.querySelectorAll('a[href="/contact"], a[href="/projects"], .button');
+              buttons.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.borderRadius = '10px';
+                  el.style.overflow = 'hidden';
+                }
+              });
+              
+              // Fix tech stack sections
+              const techSections = document.querySelectorAll('.space-y-2, .rounded-lg, .rounded-xl, .rounded-2xl');
+              techSections.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.borderRadius = '16px';
+                  el.style.overflow = 'hidden';
+                }
+              });
+              
+              // Adjust welcome screen position
+              const welcomeScreens = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
+              welcomeScreens.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.marginTop = '5rem';
+                  el.style.paddingTop = '3rem';
+                  el.style.borderRadius = '16px';
+                }
+              });
+              
+              // Fix chatbot button
+              const chatBotButtons = document.querySelectorAll('.nexious-chat-button, [class*="nexious-button"]');
+              chatBotButtons.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.borderRadius = '50%';
+                  el.style.background = 'rgba(5, 5, 9, 0.7)';
+                  el.style.boxShadow = '0 4px 16px rgba(0, 0, 0, 0.3)';
+                  el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                  
+                  // Remove background elements
+                  const backgroundEls = el.querySelectorAll('div[class*="bg-"], div[style*="background"]');
+                  backgroundEls.forEach(bgEl => {
+                    if(bgEl instanceof HTMLElement) {
+                      bgEl.style.background = 'transparent';
+                    }
+                  });
+                }
+              });
+            };
+            
+            // Run on load and after any page transitions
+            fixRoundedEdges();
+            document.addEventListener('barba:after', fixRoundedEdges);
+            
+            // Run again after a short delay to catch any dynamically loaded content
+            setTimeout(fixRoundedEdges, 1000);
+            
+            // Add mutation observer to detect chatbot button appearance
+            const observer = new MutationObserver(() => {
+              const chatBotButtons = document.querySelectorAll('.nexious-chat-button, [class*="nexious-button"]');
+              if (chatBotButtons.length > 0) {
+                fixRoundedEdges();
+              }
+            });
+            
+            observer.observe(document.body, { 
+              childList: true,
+              subtree: true
+            });
+          });
+        `}} />
       </body>
     </html>
   )

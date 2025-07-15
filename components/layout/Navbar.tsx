@@ -80,13 +80,10 @@ export default function Navbar() {
   return (
     <motion.nav 
       ref={navRef}
-      initial={{ y: 0, opacity: 1 }} // Start fully visible immediately
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ 
-        duration: 0.2,
-        ease: "easeOut",
-      }}
-      className={`navbar gpu-accelerated ${scrolled ? 'scrolled' : ''}`}
+      initial={{ opacity: 1 }} 
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2 }}
+      className={`navbar ${scrolled ? 'scrolled' : ''}`}
       style={{
         position: 'sticky',
         top: 0,
@@ -94,33 +91,33 @@ export default function Navbar() {
         padding: '1rem 1.5rem',
         zIndex: 50,
         backgroundColor: 'transparent',
-        transition: 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)',
-        transform: 'translate3d(0,0,0)', // Force GPU acceleration
-        willChange: 'transform'
+        backdropFilter: 'blur(10px)',
+        WebkitBackdropFilter: 'blur(10px)',
+        transition: 'background-color 0.3s ease'
       }}
       data-navbar="true"
     >
       <div 
-        className={`navbar-inner max-w-7xl mx-auto flex items-center justify-between rounded-2xl px-4 py-2 border transform-gpu transition-all duration-300 ease-out ${
-          scrolled 
-            ? 'bg-black/80 border-white/20 shadow-lg shadow-white/10' 
-            : 'bg-white/5 border-white/10'
-        }`}
+        className="navbar-inner max-w-7xl mx-auto flex items-center justify-between rounded-2xl px-4 py-2 border"
         style={{
-          height: scrolled ? '60px' : '75px',
-          transform: `scale(${scrolled ? 0.98 : 1}) translateZ(0)`, // Add translateZ for GPU acceleration
-          padding: scrolled ? '0 1rem' : '0 1.5rem',
+          // Fixed height to prevent size shifting
+          height: '72px',
           borderWidth: '1px',
-          backdropFilter: scrolled ? 'blur(16px)' : 'blur(8px)',
-          WebkitBackdropFilter: scrolled ? 'blur(16px)' : 'blur(8px)',
-          willChange: 'transform, backdrop-filter'
+          borderColor: scrolled 
+            ? 'rgba(255, 255, 255, 0.2)' 
+            : 'rgba(255, 255, 255, 0.1)',
+          background: scrolled 
+            ? 'rgba(0, 0, 0, 0.75)' 
+            : 'rgba(5, 5, 9, 0.5)',
+          backdropFilter: 'blur(12px)',
+          WebkitBackdropFilter: 'blur(12px)',
+          transition: 'background-color 0.3s ease, border-color 0.3s ease'
         }}
       >
         <Logo />
         
         {/* Desktop Menu */}
         <div className="hidden md:flex items-center space-x-4">
-          {/* Remove AnimatePresence for immediate rendering */}
           <div className="flex items-center space-x-4">
             {[
               ['Home', '/'],
@@ -132,14 +129,7 @@ export default function Navbar() {
               ['Contact/Checkout', '/contact'],
               ['Pricing', '/pricing']
             ].map(([text, href], index) => (
-              <div
-                key={text}
-                className="transform-gpu seq-item"
-                style={{ 
-                  opacity: 1,
-                  transform: 'translateZ(0)'
-                }}
-              >
+              <div key={text} className="transform-gpu">
                 <Link 
                   href={href} 
                   className={`text-sm text-white/90 hover:text-white whitespace-nowrap transition-colors duration-200 ease-out tracking-wide ${audiowide.className}`}
@@ -152,21 +142,10 @@ export default function Navbar() {
           </div>
           
           {/* Modern Discovery Call Button - Always visible with improved hover */}
-          <div
-            className="ml-2"
-            style={{ 
-              opacity: 1,
-              transform: 'translateZ(0)'
-            }}
-          >
+          <div className="ml-2">
             <Link 
               href="/discovery-call"
-              className={`discovery-call-button flex items-center gap-1.5 py-1 px-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-full text-xs font-medium shadow-md hover:shadow-lg transition-all hover:scale-105 transform-gpu ${audiowide.className}`}
-              style={{
-                willChange: 'transform, box-shadow',
-                transform: 'translateZ(0)',
-                transition: 'transform 0.2s ease, box-shadow 0.2s ease'
-              }}
+              className={`discovery-call-button flex items-center gap-1.5 py-1 px-3 bg-gradient-to-r from-purple-600 to-violet-600 text-white rounded-full text-xs font-medium shadow-md hover:shadow-lg transition-all hover:scale-105 ${audiowide.className}`}
             >
               <PhoneIcon className="h-3 w-3" />
               <span>Discovery Call</span>

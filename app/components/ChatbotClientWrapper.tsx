@@ -10,7 +10,7 @@ const NexiousChatbot = dynamic(() => import('@/components/NexiousChatbot'), {
 
 export default function ChatbotClientWrapper() {
   return (
-    <div className="fixed z-[999999]">
+    <div className="fixed bottom-5 right-5 z-[9999] shadow-xl rounded-full" id="nexious-chat-container">
       <NexiousChatbot />
     </div>
   );

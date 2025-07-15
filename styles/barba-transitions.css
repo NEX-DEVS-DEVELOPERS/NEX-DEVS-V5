@@ -3,6 +3,9 @@
   position: relative;
   opacity: 1;
   transition: opacity 0.5s ease;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--nex-dark-bg);
 }
 
 .barba-container.barba-leave {
@@ -20,7 +23,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.8);
+  background-color: rgba(0, 0, 0, 0.9);
   z-index: 999;
   pointer-events: none;
   opacity: 0;
@@ -34,6 +37,7 @@
 /* Smooth scroll styles */
 html.is-animating {
   scroll-behavior: smooth;
+  background-color: var(--nex-darker-bg);
 }
 
 /* Transition animations for containers */
@@ -41,6 +45,9 @@ html.is-animating {
   opacity: 1;
   transform: translateY(0);
   transition: opacity 0.5s ease, transform 0.6s ease;
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--nex-dark-bg);
 }
 
 [data-barba="container"].barba-leave {
@@ -53,9 +60,10 @@ html.is-animating {
   transform: translateY(10px);
 }
 
-/* Prevent scroll during transitions */
+/* Prevent full scroll lock during transitions - only reduce scroll visibility */
 .barba-prevent-scroll {
-  overflow: hidden;
+  /* Use pointer-events to prevent interaction but allow scrolling */
+  pointer-events: none;
 }
 
 /* Custom page transitions */
@@ -114,4 +122,41 @@ html.is-animating {
   background: linear-gradient(90deg, #a855f7, #8b5cf6);
   z-index: 1000;
   transition: width 0.3s ease;
+}
+
+/* Fixed position helper classes for floating UI */
+.fixed-element {
+  position: fixed !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Fixed chatbot positioning */
+#chatbot-container,
+.nexious-chatbot,
+.nexious-chatbot-wrapper,
+[data-chatbot] {
+  position: fixed !important;
+  bottom: 20px !important;
+  right: 20px !important;
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Fix sticky navbar during transitions */
+nav, .navbar, header {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 1000 !important;
+  width: 100% !important;
+  background-color: var(--nex-navbar-bg) !important;
+  transition: background-color 0.3s ease;
+}
+
+/* Fix for consistent page background during transitions */
+body, 
+html, 
+main, 
+[data-page-content="true"] {
+  background-color: var(--nex-dark-bg);
 } 
