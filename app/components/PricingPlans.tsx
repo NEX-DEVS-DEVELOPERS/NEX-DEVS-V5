@@ -169,7 +169,7 @@ const PricingPlans: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3 }}
-          className="relative p-8 rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-900/20 border border-purple-500/30 backdrop-blur-sm shadow-lg shadow-purple-900/10"
+          className="relative p-8 rounded-2xl bg-gradient-to-br from-purple-900/40 to-purple-900/20 neon-border-red-base backdrop-blur-sm shadow-lg shadow-purple-900/10"
         >
           <TimelineSelector />
           <div className="grid md:grid-cols-2 gap-8">
@@ -264,12 +264,21 @@ const PricingPlans: React.FC = () => {
             className="relative transition-transform duration-150 will-change-transform"
           >
             <div className={`
-              rounded-2xl p-6
-              ${plan.popular 
-                ? 'bg-gradient-to-br from-purple-900/40 to-purple-900/20 border-purple-500/30' 
-                : 'bg-gradient-to-br from-black/80 to-purple-900/20 border-purple-500/20'
+              rounded-2xl p-6 backdrop-blur-lg
+              ${plan.popular
+                ? 'bg-gradient-to-br from-purple-900/40 to-purple-900/20 neon-border-purple-base'
+                : 'bg-gradient-to-br from-black/80 to-purple-900/20'
               }
-              border backdrop-blur-lg
+              ${!plan.popular ? (
+                plan.id === 'ui-ux-design' ? 'neon-border-pink-base' :
+                plan.id === 'web-development' ? 'neon-border-blue-base' :
+                plan.id === 'mobile-app-development' ? 'neon-border-green-base' :
+                plan.id === 'ai-integration' ? 'neon-border-cyan-base' :
+                plan.id === 'e-commerce-solutions' ? 'neon-border-orange-base' :
+                plan.id === 'seo-content-creation' ? 'neon-border-yellow-base' :
+                plan.id === 'ai-automation' ? 'neon-border-violet-base' :
+                'neon-border-lime-base'
+              ) : ''}
               hover:shadow-xl hover:shadow-purple-500/10 
               transition-shadow duration-150 
             `}>

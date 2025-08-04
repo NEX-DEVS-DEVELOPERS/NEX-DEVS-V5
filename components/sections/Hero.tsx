@@ -119,7 +119,7 @@ const aiSkills = [
       skills: [
         { name: "LANGCHAIN", level: 94, icon: "https://images.seeklogo.com/logo-png/61/1/langchain-icon-logo-png_seeklogo-611655.png", description: "Advanced agent frameworks" },
         { name: "LLAMAINDEX", level: 91, icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcStMP8S3VbNCqOQd7QQQcbvC_FLa1HlftCiJw&s", description: "RAG & knowledge retrieval" },
-        { name: "VECTOR DATABASES", level: 93, icon: "https://icons.veryicon.com/png/o/miscellaneous/streamline/database-39.png", description: "Pinecone, Chroma, Weaviate" },
+        { name: "VECTOR DATABASES", level: 93, icon: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS1NBqWpaa16OzPpnT_I8SGoHcqWB0LPIBvWbu6uqUbSooO6XPh8FQHErDm9y2ZV2eUtyM&usqp=CAU", description: "Pinecone, Chroma, Weaviate" },
         { name: "LANGFLOW-Ai", level: 89, icon: "https://pbs.twimg.com/profile_images/1906737039724400640/aUuTetdY_400x400.jpg", description: " Multimodal embedding for AI." },
         { name: "LANGSMITH", level: 88, icon: "https://registry.npmmirror.com/@lobehub/icons-static-png/latest/files/dark/langsmith-color.png", description: "LLM app observability platform" },
         { name: "FLOWISE", level: 86, icon: "https://docs.flowiseai.com/~gitbook/image?url=https%3A%2F%2F4068692976-files.gitbook.io%2F%7E%2Ffiles%2Fv0%2Fb%2Fgitbook-x-prod.appspot.com%2Fo%2Fspaces%252FUiD7nOmFRK805sNuiieJ%252Fuploads%252FXxve37yNH63uTNoBYJ1Y%252FFlowise%2520Cropped%2520White%2520High%2520Res.png%3Falt%3Dmedia%26token%3De022b6af-b237-4724-9e4c-7b895cc3cdbe&width=768&dpr=4&quality=100&sign=8f7e6694&sv=2", description: "Visual LLM workflow builder" },

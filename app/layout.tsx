@@ -3,6 +3,9 @@ import "./globals.css"
 import "../styles/barba-transitions.css" // Import Barba.js transition styles
 import "../styles/color-consistency.css" // Import color consistency styles
 import "../styles/hero-and-scroll-fixes.css" // Import hero section and scrolling fixes
+import "../styles/neon-borders.css" // Import neon border styles
+import "../styles/smooth-scrolling.css" // Import smooth scrolling optimizations
+import "../styles/mobile-touch-fixes.css" // Import mobile touch interaction fixes
 import { cn } from "@/lib/utils"
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
@@ -11,15 +14,16 @@ import { fontVariables, audiowide, vt323 } from "@/app/utils/fonts"
 // Import ClientLayout which wraps all client components
 import ClientLayout from './components/ClientLayout'
 
-// Dynamic import for Navbar (can stay here because it needs to be outside ClientLayout)
-const Navbar = dynamic(() => import("@/components/layout/Navbar"), {
-  loading: () => <div className="h-16 bg-black" />
-})
+// Import Navbar directly to ensure mobile menu works properly
+import Navbar from "@/components/layout/Navbar"
 
 // Import directly since dynamic import was causing type issues
 import { ThemeProvider } from "@/components/ThemeProvider"
 import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
 import { TimelineProvider } from '@/app/contexts/TimelineContext'
+
+// Import SmoothScrollInitializer directly
+import SmoothScrollInitializer from '@/app/components/SmoothScrollInitializer'
 
 // Initialize database only on server side
 import { initializeDatabase } from './lib/database-init'
@@ -41,18 +45,18 @@ const inter = Inter({
 })
 
 export const metadata: Metadata = {
-  title: 'NEX-DEVS | Professional Web Development Solutions',
-  description: 'NEX-DEVS provides professional web development services including custom websites, applications, and digital solutions for businesses of all sizes.',
+  title: 'NEX-DEVS | AI-Powered Development Solutions',
+  description: 'NEX-DEVS specializes in AI-powered development solutions including intelligent web applications, AI automation, chatbots, and custom AI integrations for businesses seeking cutting-edge technology.',
   metadataBase: new URL('https://your-domain.com'), // Replace with your actual domain
   openGraph: {
-    title: "NEX-WEBS - Professional Web Solutions",
-    description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+    title: "NEX-DEVS - AI-Powered Development Solutions",
+    description: "Leading AI development company specializing in intelligent applications, automation, and AI integrations with 950+ successful projects.",
     type: 'website',
   },
   twitter: {
     card: 'summary_large_image',
-    title: "NEX-DEVS - Professional Web Solutions",
-    description: "Professional website developer specializing in WordPress, Shopify, and custom solutions.",
+    title: "NEX-DEVS - AI-Powered Development Solutions",
+    description: "Leading AI development company specializing in intelligent applications, automation, and AI integrations with 950+ successful projects.",
   },
   icons: {
     icon: [
@@ -84,201 +88,18 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
-        {/* CSS fixes for floating elements, scroll behavior, and color consistency */}
-        <style dangerouslySetInnerHTML={{ __html: `
-          :root {
-            --animation-enabled: true;
-            --font-audiowide: ${audiowide.style.fontFamily};
-            --font-vt323: ${vt323.style.fontFamily};
-            --nex-dark-bg: #050509;
-            --nex-darker-bg: #010102;
-            --nex-navbar-bg: rgba(0, 0, 0, 0.9);
-            --nex-navbar-scrolled-bg: rgba(0, 0, 0, 0.95);
-            --nex-navbar-border: rgba(255, 255, 255, 0.1);
-            --nex-navbar-scrolled-border: rgba(255, 255, 255, 0.2);
-            --border-radius-lg: 16px;
-            --border-radius-md: 12px;
-            --border-radius-sm: 8px;
-            --border-radius-btn: 10px;
-          }
-          
-          @media (prefers-reduced-motion: reduce) {
-            :root {
-              --animation-enabled: false;
-            }
-          }
-          
-          /* Basic float animation */
-          @keyframes float {
-            0% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-            100% { transform: translateY(0px); }
-          }
-          
-          .float {
-            animation: float 3s ease-in-out infinite !important;
-          }
-          
-          /* Essential fixes for sticky and floating UI */
-          html {
-            scroll-behavior: smooth;
-            background-color: var(--nex-darker-bg);
-          }
-          
-          body {
-            overflow-x: hidden;
-            width: 100%;
-            min-height: 100vh;
-            overscroll-behavior-y: none;
-            background-color: var(--nex-dark-bg);
-            color: #f8fafc;
-          }
-          
-          /* Fix for Hero name elements - Apply rounded corners */
-          [id*="ali"], 
-          [id*="hasnaat"],
-          h1.hero-title,
-          .fullstack-title,
-          span[class*=${audiowide.className}],
-          .border-2.border-white,
-          .group-hover\\:bg-purple-500,
-          .bg-white.text-black {
-            border-radius: var(--border-radius-md) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Fix button elements with rounded edges */
-          a[href="/contact"], 
-          a[href="/projects"],
-          button,
-          .button,
-          a.bg-white,
-          a.border-2 {
-            border-radius: var(--border-radius-btn) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Fix for expertise and skill cards */
-          .expertise-card, 
-          .skill-card,
-          .skill-item,
-          .p-4.rounded-lg,
-          [class*="skill"] {
-            border-radius: var(--border-radius-md) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Fix for tech stack section */
-          [class*="techstack"],
-          .rounded-2xl,
-          .rounded-xl,
-          .rounded-lg {
-            border-radius: var(--border-radius-lg) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Ensure proper sticky elements with consistent colors */
-          .navbar, nav, header {
-            position: sticky !important;
-            top: 0 !important;
-            z-index: 1000 !important;
-            width: 100% !important;
-            background-color: var(--nex-navbar-bg) !important;
-            transition: background-color 0.3s ease !important;
-            will-change: transform;
-          }
-          
-          /* Fix navbar color transitions */
-          .navbar-inner {
-            background-color: transparent !important;
-            backdrop-filter: blur(10px) !important;
-            -webkit-backdrop-filter: blur(10px) !important;
-            border-color: var(--nex-navbar-border) !important;
-            transition: border-color 0.3s ease, backdrop-filter 0.3s ease !important;
-            border-radius: var(--border-radius-lg) !important;
-          }
-          
-          .navbar.scrolled .navbar-inner {
-            border-color: var(--nex-navbar-scrolled-border) !important;
-            backdrop-filter: blur(16px) !important;
-            -webkit-backdrop-filter: blur(16px) !important;
-          }
-          
-          /* Optimize Hero section */
-          [class*="hero-section"],
-          [class*="Hero"],
-          section[data-barba="container"] {
-            contain: layout style;
-            border-radius: var(--border-radius-lg) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Welcome screen adjustments */
-          [class*="Welcome"],
-          [class*="welcome"] {
-            margin-top: 3rem !important;
-            padding-top: 2rem !important;
-            border-radius: var(--border-radius-lg) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Improved smooth scrolling without uplift effect */
-          .smooth-scroll {
-            scroll-behavior: smooth;
-            -webkit-overflow-scrolling: touch;
-            scroll-snap-type: none !important;
-          }
-          
-          /* Fixed positioning fixes for floating elements */
-          .fixed-element,
-          [class*="chatbot"],
-          .floating-button {
-            position: fixed !important;
-            z-index: 9999;
-            transform: translateZ(0);
-          }
-          
-          /* Disable animations on mobile */
-          @media (max-width: 768px) {
-            .float {
-              animation: none !important;
-            }
-          }
-          
-          /* Barba.js transition overlay */
-          .transition-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background-color: rgba(0, 0, 0, 0.8);
-            z-index: 9999;
-            pointer-events: none;
-            opacity: 0;
-            transition: opacity 0.5s ease;
-          }
-          
-          /* TechStackSection fixes */
-          .space-y-2.sm\\:space-y-3.p-3.sm\\:p-4.rounded-lg,
-          .relative.bg-black.rounded-2xl {
-            border-radius: var(--border-radius-lg) !important;
-            overflow: hidden !important;
-          }
-          
-          /* Welcome screen buttons */
-          .welcome-screen button,
-          .welcome-screen a,
-          [id*="discover"],
-          [id*="see-what"] {
-            border-radius: var(--border-radius-btn) !important;
-            overflow: hidden !important;
-          }
-        `}} />
       </head>
       <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col optimized-scroll")} data-barba="wrapper">
         <div className="transition-overlay" id="transition-overlay"></div>
         <div className="progress-bar" id="progress-bar"></div>
+
+        {/* Transition overlay for smooth page transitions */}
+        <div id="transition-overlay">
+          <div className="transition-spinner"></div>
+        </div>
+
+        {/* Add chatbot blur overlay - Fixed z-index to prevent mobile interaction blocking */}
+        <div id="chatbot-overlay" className="fixed inset-0 bg-black/30 backdrop-blur-md z-[9998] pointer-events-none opacity-0 transition-opacity duration-300 invisible"></div>
         
         <ThemeProvider
           attribute="class"
@@ -288,11 +109,14 @@ export default function RootLayout({
         >
           <CurrencyProvider>
             <TimelineProvider>
+              <SmoothScrollInitializer />
               <Navbar />
-              {/* ClientLayout wraps all client-side components */}
-              <ClientLayout>
-                {children}
-              </ClientLayout>
+              {/* ClientLayout wraps all client-side components with proper spacing for fixed navbar */}
+              <div className="navbar-spacer">
+                <ClientLayout>
+                  {children}
+                </ClientLayout>
+              </div>
             </TimelineProvider>
           </CurrencyProvider>
         </ThemeProvider>
@@ -303,13 +127,15 @@ export default function RootLayout({
           let scrollTimer;
           document.addEventListener('scroll', function() {
             document.body.classList.add('is-scrolling');
+            
+            // Remove class after scrolling stops
             clearTimeout(scrollTimer);
             scrollTimer = setTimeout(function() {
               document.body.classList.remove('is-scrolling');
             }, 150);
           }, { passive: true });
           
-          // Fix rounded edges after DOM loads
+          // Fix rounded edges and enhance welcome screen animations after DOM loads
           document.addEventListener('DOMContentLoaded', function() {
             // Fix rounded edges for specific elements
             const fixRoundedEdges = () => {
@@ -340,13 +166,51 @@ export default function RootLayout({
                 }
               });
               
-              // Adjust welcome screen position
+              // Optimize welcome screen animations
               const welcomeScreens = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
               welcomeScreens.forEach(el => {
                 if(el instanceof HTMLElement) {
-                  el.style.marginTop = '3rem';
-                  el.style.paddingTop = '2rem';
+                  el.style.marginTop = '7rem';
+                  el.style.paddingTop = '4rem';
                   el.style.borderRadius = '16px';
+                  el.style.position = 'relative';
+                  
+                  // Add a more elegant glass effect
+                  const existingBefore = el.querySelector('.welcome-bg-effect');
+                  if (!existingBefore) {
+                    const bgEffect = document.createElement('div');
+                    bgEffect.className = 'welcome-bg-effect';
+                    bgEffect.style.position = 'absolute';
+                    bgEffect.style.inset = '0';
+                    bgEffect.style.background = 'rgba(10, 10, 30, 0.3)';
+                    bgEffect.style.backdropFilter = 'blur(24px)';
+                    bgEffect.style.webkitBackdropFilter = 'blur(24px)';
+                    bgEffect.style.border = '1px solid rgba(139, 92, 246, 0.2)';
+                    bgEffect.style.borderRadius = '16px';
+                    bgEffect.style.zIndex = '-1';
+                    bgEffect.style.transition = 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+                    el.style.backgroundColor = 'transparent';
+                    el.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
+                    el.insertBefore(bgEffect, el.firstChild);
+                    
+                    // Add entrance animation with slight delay
+                    setTimeout(() => {
+                      el.style.opacity = '1';
+                      el.style.transform = 'translateY(0) scale(1)';
+                    }, 100);
+                  }
+                }
+              });
+              
+              // Enhanced welcome screen buttons
+              const welcomeButtons = document.querySelectorAll('[class*="welcome"] button, [class*="welcome"] a, [id*="discover"], [id*="see-what"]');
+              welcomeButtons.forEach(el => {
+                if(el instanceof HTMLElement) {
+                  el.style.backdropFilter = 'blur(10px)';
+                  el.style.webkitBackdropFilter = 'blur(10px)';
+                  el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
+                  el.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
+                  el.style.transition = 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
                 }
               });
             };
@@ -357,6 +221,81 @@ export default function RootLayout({
             
             // Run again after a short delay to catch any dynamically loaded content
             setTimeout(fixRoundedEdges, 1000);
+            // Additional check after all content is fully loaded
+            window.addEventListener('load', fixRoundedEdges);
+            
+            // Try to load our enhancement script if it hasn't loaded already
+            if (typeof enhanceWelcomeScreen === 'undefined') {
+              try {
+                const script = document.createElement('script');
+                script.src = '/utils/welcome-screen-enhancements.js';
+                script.async = true;
+                document.head.appendChild(script);
+              } catch (err) {
+                console.log('Welcome screen enhancement script already loaded or failed to load.');
+              }
+            }
+
+            // Setup chatbot overlay toggling - Fixed for mobile minimized state
+            const setupChatbotBlurEffect = () => {
+              // Monitor for the chat-open class on body
+              const observer = new MutationObserver(mutations => {
+                mutations.forEach(mutation => {
+                  if (mutation.attributeName === 'class') {
+                    const body = document.body;
+                    const overlay = document.getElementById('chatbot-overlay');
+                    if (!overlay) return;
+
+                    // Check if we're on mobile
+                    const isMobile = window.innerWidth <= 768;
+
+                    // Only show blur when chat is open AND not minimized
+                    // For mobile: completely hide overlay when minimized to prevent interaction blocking
+                    if (body.classList.contains('chat-open') && !body.classList.contains('chat-minimized')) {
+                      overlay.classList.remove('invisible');
+                      overlay.style.pointerEvents = 'none'; // Always ensure no interaction blocking
+                      overlay.style.display = '';
+                      overlay.style.zIndex = '9998'; // Lower z-index to prevent blocking
+
+                      // Restore blur effects when maximizing
+                      overlay.style.backdropFilter = '';
+                      overlay.style.webkitBackdropFilter = '';
+                      overlay.style.backgroundColor = '';
+
+                      setTimeout(() => {
+                        overlay.classList.remove('opacity-0');
+                        overlay.classList.add('opacity-100');
+                      }, 10);
+                    } else {
+                      // When minimized or closed, completely remove overlay effects
+                      overlay.classList.remove('opacity-100');
+                      overlay.classList.add('opacity-0');
+                      overlay.style.pointerEvents = 'none';
+                      overlay.style.zIndex = '-1'; // Move completely behind content
+
+                      // Forcefully remove all blur effects when minimized
+                      overlay.style.backdropFilter = 'none';
+                      overlay.style.webkitBackdropFilter = 'none';
+                      overlay.style.backgroundColor = 'transparent';
+
+                      setTimeout(() => {
+                        overlay.classList.add('invisible');
+                        // Always hide overlay when minimized to ensure no background effects
+                        if (body.classList.contains('chat-minimized')) {
+                          overlay.style.display = 'none';
+                        } else {
+                          overlay.style.display = '';
+                        }
+                      }, 300); // Match transition duration
+                    }
+                  }
+                });
+              });
+
+              observer.observe(document.body, { attributes: true });
+            };
+
+            setupChatbotBlurEffect();
           });
         `}} />
       </body>

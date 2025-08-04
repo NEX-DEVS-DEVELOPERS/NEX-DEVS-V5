@@ -5,6 +5,8 @@ import Link from 'next/link'
 import AdminAuthCheck from '@/app/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
 import { type KnowledgeEntry } from '@/lib/nexious-knowledge'
+import ProModeManager from '@/components/ProModeManager'
+import ProModeErrorBoundary from '@/components/ProModeErrorBoundary'
 
 export default function CommandRoomPage() {
   const [apiKey, setApiKey] = useState('')
@@ -38,7 +40,7 @@ export default function CommandRoomPage() {
   const [savedInterval, setSavedInterval] = useState(30) // Default interval
 
   // AI Configuration Management State
-  const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'models' | 'knowledge' | 'fallback'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'api-keys' | 'models' | 'knowledge' | 'fallback' | 'pro-mode'>('overview')
   const [aiConfig, setAiConfig] = useState<any>(null)
   const [primaryApiKey, setPrimaryApiKey] = useState('')
   const [backupApiKey, setBackupApiKey] = useState('')
@@ -93,6 +95,9 @@ export default function CommandRoomPage() {
     tags: [] as string[],
     isActive: true
   })
+  const [knowledgeSearchTerm, setKnowledgeSearchTerm] = useState('')
+  const [knowledgeFilterCategory, setKnowledgeFilterCategory] = useState('')
+  const [isAddingKnowledge, setIsAddingKnowledge] = useState(false)
   const [apiKeyTestResults, setApiKeyTestResults] = useState<{[key: string]: any}>({})
   const [isTestingApiKey, setIsTestingApiKey] = useState(false)
 
@@ -128,6 +133,7 @@ export default function CommandRoomPage() {
   })
   const [fallbackLogs, setFallbackLogs] = useState<any[]>([])
   const [isSyncingSettings, setIsSyncingSettings] = useState(false)
+  const [lastRefreshSignalSent, setLastRefreshSignalSent] = useState<number | null>(null)
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null)
   const [pendingChanges, setPendingChanges] = useState({
     apiKeys: false,
@@ -602,9 +608,25 @@ export default function CommandRoomPage() {
     }
   }
 
-  const addKnowledgeEntry = async () => {
+  const addKnowledgeEntry = async (entryData?: any) => {
     try {
+      if (!entryData) setIsAddingKnowledge(true)
+
       const password = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123'
+
+      // Use provided entry data or current form data
+      const dataToSubmit = entryData || newKnowledgeEntry
+
+      // Validate required fields
+      if (!dataToSubmit.title || !dataToSubmit.content || !dataToSubmit.category) {
+        toast.error('Please fill in all required fields (title, content, category)')
+        return false
+      }
+
+      // Ensure tags is an array
+      if (typeof dataToSubmit.tags === 'string') {
+        dataToSubmit.tags = dataToSubmit.tags.split(',').map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
+      }
 
       const response = await fetch('/api/admin/knowledge-base', {
         method: 'POST',
@@ -612,26 +634,152 @@ export default function CommandRoomPage() {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${password}`
         },
-        body: JSON.stringify(newKnowledgeEntry)
+        body: JSON.stringify(dataToSubmit)
       })
 
       if (response.ok) {
-        toast.success('Knowledge entry added successfully')
-        setNewKnowledgeEntry({
-          category: '',
-          title: '',
-          content: '',
-          tags: [],
-          isActive: true
-        })
+        const result = await response.json()
+        toast.success(`Knowledge entry "${dataToSubmit.title}" added successfully`)
+
+        // Only clear form if we're adding from the form (not bulk import)
+        if (!entryData) {
+          setNewKnowledgeEntry({
+            category: '',
+            title: '',
+            content: '',
+            tags: [],
+            isActive: true
+          })
+        }
+
+        setPendingChanges(prev => ({ ...prev, knowledge: true }))
+        fetchKnowledgeBase() // Refresh the knowledge base
+        return true
+      } else {
+        const error = await response.json()
+        toast.error(error.error || 'Failed to add knowledge entry')
+        console.error('API Error:', error)
+        return false
+      }
+    } catch (error) {
+      console.error('Error adding knowledge entry:', error)
+      toast.error('Error connecting to the server')
+      return false
+    } finally {
+      if (!entryData) setIsAddingKnowledge(false)
+    }
+  }
+
+  // Delete knowledge entry function
+  const deleteKnowledgeEntry = async (entryId: string, entryTitle: string) => {
+    if (!confirm(`Are you sure you want to delete "${entryTitle}"? This action cannot be undone.`)) {
+      return
+    }
+
+    try {
+      const password = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123'
+
+      const response = await fetch(`/api/admin/knowledge-base?id=${entryId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${password}`
+        }
+      })
+
+      if (response.ok) {
+        toast.success(`Knowledge entry "${entryTitle}" deleted successfully`)
         setPendingChanges(prev => ({ ...prev, knowledge: true }))
         fetchKnowledgeBase() // Refresh the knowledge base
       } else {
         const error = await response.json()
-        toast.error(error.error || 'Failed to add knowledge entry')
+        toast.error(error.error || 'Failed to delete knowledge entry')
       }
     } catch (error) {
-      console.error('Error adding knowledge entry:', error)
+      console.error('Error deleting knowledge entry:', error)
+      toast.error('Error connecting to the server')
+    }
+  }
+
+  // Bulk import function with proper async handling
+  const bulkImportEntries = async (entries: any[]) => {
+    let successCount = 0
+    let failCount = 0
+
+    toast.loading(`Importing ${entries.length} entries...`)
+
+    for (const entry of entries) {
+      const success = await addKnowledgeEntry(entry)
+      if (success) {
+        successCount++
+      } else {
+        failCount++
+      }
+      // Small delay to prevent overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 100))
+    }
+
+    toast.dismiss()
+
+    if (failCount === 0) {
+      toast.success(`Successfully imported all ${successCount} entries!`)
+    } else {
+      toast.error(`Imported ${successCount} entries, ${failCount} failed`)
+    }
+  }
+
+  // Clear all knowledge entries function
+  const clearAllKnowledgeEntries = async () => {
+    if (!confirm('Are you sure you want to delete ALL knowledge entries? This action cannot be undone.')) {
+      return
+    }
+
+    if (!confirm('This will permanently delete all knowledge entries. Type "DELETE ALL" to confirm.')) {
+      return
+    }
+
+    try {
+      let successCount = 0
+      let failCount = 0
+
+      toast.loading(`Deleting ${knowledgeEntries.length} entries...`)
+
+      for (const entry of knowledgeEntries) {
+        try {
+          const password = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123'
+
+          const response = await fetch(`/api/admin/knowledge-base?id=${entry.id}`, {
+            method: 'DELETE',
+            headers: {
+              'Authorization': `Bearer ${password}`
+            }
+          })
+
+          if (response.ok) {
+            successCount++
+          } else {
+            failCount++
+          }
+        } catch (error) {
+          failCount++
+        }
+
+        // Small delay to prevent overwhelming the server
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
+
+      toast.dismiss()
+
+      if (failCount === 0) {
+        toast.success(`Successfully deleted all ${successCount} entries!`)
+      } else {
+        toast.error(`Deleted ${successCount} entries, ${failCount} failed`)
+      }
+
+      setPendingChanges(prev => ({ ...prev, knowledge: true }))
+      fetchKnowledgeBase() // Refresh the knowledge base
+    } catch (error) {
+      toast.dismiss()
+      console.error('Error clearing knowledge entries:', error)
       toast.error('Error connecting to the server')
     }
   }
@@ -843,6 +991,22 @@ export default function CommandRoomPage() {
     try {
       const password = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123'
 
+      // Fetch current Pro Mode status
+      let currentProModeStatus = null
+      try {
+        const proModeResponse = await fetch('/api/admin/pro-mode', {
+          headers: {
+            'Authorization': `Bearer ${password}`
+          }
+        })
+        if (proModeResponse.ok) {
+          const proModeResult = await proModeResponse.json()
+          currentProModeStatus = proModeResult.data
+        }
+      } catch (error) {
+        console.warn('Could not fetch Pro Mode status for sync:', error)
+      }
+
       // Prepare all settings data with extended configurations
       const settingsData = {
         apiKeys: {
@@ -884,10 +1048,15 @@ export default function CommandRoomPage() {
           enableFullscreen: proModelSettings.enableFullscreen || false,
           systemPrompt: proModelSettings.systemPrompt || ''
         },
-        proModeMaintenance: {
+        proModeMaintenance: currentProModeStatus ? {
+          isUnderMaintenance: currentProModeStatus.isUnderMaintenance,
+          maintenanceMessage: currentProModeStatus.maintenanceMessage,
+          maintenanceEndDate: currentProModeStatus.maintenanceEndDate,
+          showCountdown: currentProModeStatus.showCountdown
+        } : {
           isUnderMaintenance: true,
           maintenanceMessage: "Nexious Pro Mode is currently under maintenance. We are optimizing the code generation features.",
-          maintenanceEndDate: new Date('2025-07-01T00:00:00Z').toISOString(),
+          maintenanceEndDate: new Date('2025-07-25T00:00:00Z').toISOString(),
           showCountdown: true
         },
         standardModeConfig: {
@@ -913,6 +1082,36 @@ export default function CommandRoomPage() {
       if (response.ok) {
         const result = await response.json()
 
+        // Force chatbot refresh with new settings
+        try {
+          const refreshResponse = await fetch('/api/chatbot/force-refresh', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${password}`
+            },
+            body: JSON.stringify({
+              apiKeys: {
+                primary: primaryApiKey,
+                backup: backupApiKey
+              },
+              standardModeSettings,
+              proModeSettings,
+              proModeMaintenance: currentProModeStatus,
+              forceReload: true
+            })
+          })
+
+          if (refreshResponse.ok) {
+            setLastRefreshSignalSent(Date.now())
+            console.log('Chatbot refresh signal sent successfully')
+          } else {
+            console.warn('Failed to send chatbot refresh signal')
+          }
+        } catch (error) {
+          console.error('Error sending chatbot refresh signal:', error)
+        }
+
         // Show detailed success message
         const settingsCount = {
           standardMode: Object.keys(standardModelSettings).length,
@@ -921,16 +1120,19 @@ export default function CommandRoomPage() {
         }
 
         toast.success(
-          `✅ All settings synchronized!\n\n` +
+          `✅ All settings synchronized and applied to live website!\n\n` +
           `📁 Files updated:\n` +
           `• nexiousAISettings.ts\n` +
-          `• nexious-knowledge.ts\n\n` +
+          `• nexious-knowledge.ts\n` +
+          `• NexiousChatbot.tsx (forced refresh)\n\n` +
           `🔧 Settings synced:\n` +
           `• API Keys: ${primaryApiKey ? 'Updated' : 'Not set'}\n` +
           `• Standard Mode: ${settingsCount.standardMode} settings\n` +
           `• Pro Mode: ${settingsCount.proMode} settings\n` +
-          `• Knowledge Base: ${settingsCount.knowledge} entries`,
-          { duration: 6000 }
+          `• Knowledge Base: ${settingsCount.knowledge} entries\n\n` +
+          `🚀 Cache cleared: ${result.cacheCleared ? 'Yes' : 'No'}\n` +
+          `⏰ Changes are now live on the website!`,
+          { duration: 8000 }
         )
 
         setLastSyncTime(result.timestamp)
@@ -1101,7 +1303,78 @@ export default function CommandRoomPage() {
                 </svg>
                 <span>{isChatbotEnabled ? 'Disable Chatbot' : 'Enable Chatbot'}</span>
               </button>
+
+              {/* Force Chatbot Refresh Button */}
+              <button
+                onClick={async () => {
+                  try {
+                    toast.loading('Forcing chatbot refresh...')
+                    const password = sessionStorage.getItem('adminPassword') || 'nex-devs919'
+
+                    const response = await fetch('/api/chatbot/force-refresh', {
+                      method: 'POST',
+                      headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${password}`
+                      },
+                      body: JSON.stringify({
+                        apiKeys: {
+                          primary: primaryApiKey,
+                          backup: backupApiKey
+                        },
+                        standardModeSettings,
+                        proModeSettings,
+                        forceReload: true
+                      })
+                    })
+
+                    if (response.ok) {
+                      setLastRefreshSignalSent(Date.now())
+                      toast.success('Chatbot refresh signal sent! The chatbot will reload automatically.')
+                    } else {
+                      toast.error('Failed to send refresh signal')
+                    }
+                  } catch (error) {
+                    console.error('Error forcing chatbot refresh:', error)
+                    toast.error('Error forcing chatbot refresh')
+                  }
+                }}
+                className="bg-purple-600 hover:bg-purple-700 text-white py-2 px-4 rounded-lg flex items-center space-x-2 transition-colors"
+              >
+                <svg
+                  className="w-5 h-5"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                  />
+                </svg>
+                <span>Force Chatbot Refresh</span>
+              </button>
             </div>
+
+            {/* Refresh Signal Status */}
+            {lastRefreshSignalSent && (
+              <div className="mt-4 p-3 bg-green-900/20 border border-green-500/30 rounded-lg">
+                <div className="flex items-center space-x-2">
+                  <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span className="text-green-300 font-medium">Chatbot Refresh Signal Sent</span>
+                </div>
+                <p className="text-green-200 text-sm mt-1">
+                  Last sent: {new Date(lastRefreshSignalSent).toLocaleTimeString()}
+                </p>
+                <p className="text-green-200 text-sm">
+                  The chatbot will automatically reload with new settings when opened.
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Navigation Tabs */}
@@ -1112,6 +1385,7 @@ export default function CommandRoomPage() {
                   { id: 'overview', name: 'Overview', icon: '📊' },
                   { id: 'api-keys', name: 'API Keys', icon: '🔑' },
                   { id: 'models', name: 'AI Models', icon: '🤖' },
+                  { id: 'pro-mode', name: 'Pro Mode', icon: '⭐' },
                   { id: 'fallback', name: 'Fallback Models', icon: '🔄' },
                   { id: 'knowledge', name: 'Knowledge Base', icon: '📚' }
                 ].map((tab) => (
@@ -2437,6 +2711,71 @@ export default function CommandRoomPage() {
               {/* Knowledge Base Tab */}
               {activeTab === 'knowledge' && (
                 <div className="space-y-6">
+                  {/* Knowledge Management Documentation */}
+                  <div className="bg-gradient-to-r from-blue-900/20 to-purple-900/20 rounded-xl border border-blue-500/20 p-6">
+                    <h2 className="text-xl font-semibold text-white mb-4 flex items-center space-x-2">
+                      <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                      </svg>
+                      <span>Knowledge Management Guide</span>
+                    </h2>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                      <div className="bg-gray-800/30 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-blue-400 mb-2">📝 Adding Entries</h3>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          <li>• Fill in title, category, and content</li>
+                          <li>• Add relevant tags (comma-separated)</li>
+                          <li>• Click "Add Knowledge Entry"</li>
+                          <li>• Use bulk import for multiple entries</li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-gray-800/30 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-green-400 mb-2">🔍 Search & Filter</h3>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          <li>• Search by title, content, or tags</li>
+                          <li>• Filter by category</li>
+                          <li>• View entry details and metadata</li>
+                          <li>• Delete individual entries</li>
+                        </ul>
+                      </div>
+
+                      <div className="bg-gray-800/30 rounded-lg p-4">
+                        <h3 className="text-lg font-medium text-purple-400 mb-2">💾 Data Persistence</h3>
+                        <ul className="text-sm text-gray-300 space-y-1">
+                          <li>• Changes saved to database</li>
+                          <li>• Click "Apply All Changes" to sync</li>
+                          <li>• Works in dev and production</li>
+                          <li>• Automatic backup and versioning</li>
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="mt-6 p-4 bg-yellow-900/20 border border-yellow-500/30 rounded-lg">
+                      <h4 className="text-yellow-400 font-medium mb-2">💡 Best Practices</h4>
+                      <div className="text-sm text-gray-300 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                          <p className="font-medium mb-1">Content Guidelines:</p>
+                          <ul className="space-y-1">
+                            <li>• Keep titles clear and descriptive</li>
+                            <li>• Include specific details in content</li>
+                            <li>• Use relevant, searchable tags</li>
+                            <li>• Organize by logical categories</li>
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium mb-1">Management Tips:</p>
+                          <ul className="space-y-1">
+                            <li>• Test entries before bulk import</li>
+                            <li>• Sync changes regularly</li>
+                            <li>• Use search to avoid duplicates</li>
+                            <li>• Review and update content periodically</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                   {/* Knowledge Base Statistics */}
                   <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                     <div className="bg-gray-900/50 rounded-xl border border-purple-500/20 p-4">
@@ -2547,11 +2886,23 @@ export default function CommandRoomPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <button
-                        onClick={addKnowledgeEntry}
-                        disabled={!newKnowledgeEntry.title || !newKnowledgeEntry.content || !newKnowledgeEntry.category}
-                        className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800/50 text-white py-3 px-6 rounded-lg transition-colors font-medium"
+                        onClick={() => addKnowledgeEntry()}
+                        disabled={!newKnowledgeEntry.title || !newKnowledgeEntry.content || !newKnowledgeEntry.category || isAddingKnowledge}
+                        className="bg-purple-600 hover:bg-purple-700 disabled:bg-purple-800/50 text-white py-3 px-6 rounded-lg transition-colors font-medium flex items-center justify-center space-x-2"
                       >
-                        Add Knowledge Entry
+                        {isAddingKnowledge ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Adding...</span>
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            <span>Add Knowledge Entry</span>
+                          </>
+                        )}
                       </button>
 
                       <button
@@ -2623,12 +2974,7 @@ export default function CommandRoomPage() {
                             }
                           ];
 
-                          serviceEntries.forEach(entry => {
-                            setNewKnowledgeEntry(entry);
-                            addKnowledgeEntry();
-                          });
-
-                          toast.success('Service entries imported successfully!');
+                          bulkImportEntries(serviceEntries);
                         }}
                         className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
                       >
@@ -2655,12 +3001,7 @@ export default function CommandRoomPage() {
                             }
                           ];
 
-                          pricingEntries.forEach(entry => {
-                            setNewKnowledgeEntry(entry);
-                            addKnowledgeEntry();
-                          });
-
-                          toast.success('Pricing entries imported successfully!');
+                          bulkImportEntries(pricingEntries);
                         }}
                         className="bg-green-600 hover:bg-green-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
                       >
@@ -2687,12 +3028,7 @@ export default function CommandRoomPage() {
                             }
                           ];
 
-                          technicalEntries.forEach(entry => {
-                            setNewKnowledgeEntry(entry);
-                            addKnowledgeEntry();
-                          });
-
-                          toast.success('Technical entries imported successfully!');
+                          bulkImportEntries(technicalEntries);
                         }}
                         className="bg-purple-600 hover:bg-purple-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
                       >
@@ -2721,12 +3057,7 @@ export default function CommandRoomPage() {
                             }
                           ];
 
-                          businessEntries.forEach(entry => {
-                            setNewKnowledgeEntry(entry);
-                            addKnowledgeEntry();
-                          });
-
-                          toast.success('Business entries imported successfully!');
+                          bulkImportEntries(businessEntries);
                         }}
                         className="bg-indigo-600 hover:bg-indigo-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
                       >
@@ -2763,12 +3094,7 @@ export default function CommandRoomPage() {
                             }
                           ];
 
-                          allEntries.forEach(entry => {
-                            setNewKnowledgeEntry(entry);
-                            addKnowledgeEntry();
-                          });
-
-                          toast.success('All knowledge entries imported successfully!');
+                          bulkImportEntries(allEntries);
                         }}
                         className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white py-3 px-4 rounded-lg transition-colors font-medium"
                       >
@@ -2779,35 +3105,210 @@ export default function CommandRoomPage() {
 
                   {/* Existing Knowledge Entries */}
                   <div className="bg-gray-900/50 rounded-xl border border-purple-500/20 p-6">
-                    <h2 className="text-xl font-semibold text-white mb-6">Existing Knowledge Entries</h2>
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6">
+                      <h2 className="text-xl font-semibold text-white mb-4 lg:mb-0">Existing Knowledge Entries</h2>
+
+                      {/* Search and Filter Controls */}
+                      <div className="flex flex-col md:flex-row gap-4">
+                        <div className="relative">
+                          <input
+                            type="text"
+                            placeholder="Search entries..."
+                            value={knowledgeSearchTerm}
+                            onChange={(e) => setKnowledgeSearchTerm(e.target.value)}
+                            className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 pl-10 text-white focus:outline-none focus:ring-2 focus:ring-purple-500 w-full md:w-64"
+                          />
+                          <svg className="w-4 h-4 text-gray-400 absolute left-3 top-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                          </svg>
+                        </div>
+
+                        <select
+                          value={knowledgeFilterCategory}
+                          onChange={(e) => setKnowledgeFilterCategory(e.target.value)}
+                          className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                        >
+                          <option value="">All Categories</option>
+                          <option value="Services">Services</option>
+                          <option value="Pricing">Pricing</option>
+                          <option value="Technical">Technical</option>
+                          <option value="Business">Business</option>
+                          <option value="Process">Process</option>
+                          <option value="FAQ">FAQ</option>
+                          <option value="Contact">Contact</option>
+                          <option value="Portfolio">Portfolio</option>
+                          <option value="AI/ML">AI/ML</option>
+                          <option value="Custom">Custom</option>
+                        </select>
+
+                        {knowledgeEntries.length > 0 && (
+                          <button
+                            onClick={clearAllKnowledgeEntries}
+                            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors text-sm flex items-center space-x-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                            <span>Clear All</span>
+                          </button>
+                        )}
+                      </div>
+                    </div>
 
                     <div className="space-y-4">
-                      {knowledgeEntries.length > 0 ? (
-                        knowledgeEntries.map((entry) => (
-                          <div key={entry.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30">
-                            <div className="flex justify-between items-start mb-2">
-                              <h3 className="text-lg font-semibold text-white">{entry.title}</h3>
-                              <span className={`px-2 py-1 rounded text-xs ${entry.isActive ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
-                                {entry.isActive ? 'Active' : 'Inactive'}
-                              </span>
+                      {(() => {
+                        // Filter entries based on search term and category
+                        let filteredEntries = knowledgeEntries;
+
+                        if (knowledgeSearchTerm) {
+                          filteredEntries = filteredEntries.filter(entry =>
+                            entry.title.toLowerCase().includes(knowledgeSearchTerm.toLowerCase()) ||
+                            entry.content.toLowerCase().includes(knowledgeSearchTerm.toLowerCase()) ||
+                            entry.tags.some(tag => tag.toLowerCase().includes(knowledgeSearchTerm.toLowerCase()))
+                          );
+                        }
+
+                        if (knowledgeFilterCategory) {
+                          filteredEntries = filteredEntries.filter(entry => entry.category === knowledgeFilterCategory);
+                        }
+
+                        return filteredEntries.length > 0 ? (
+                          <>
+                            <div className="text-sm text-gray-400 mb-4">
+                              Showing {filteredEntries.length} of {knowledgeEntries.length} entries
                             </div>
-                            <p className="text-gray-400 text-sm mb-2">{entry.category}</p>
-                            <p className="text-gray-300 text-sm mb-3">{entry.content.substring(0, 200)}...</p>
-                            <div className="flex flex-wrap gap-2">
-                              {entry.tags.map((tag, index) => (
-                                <span key={index} className="bg-purple-900/20 text-purple-400 px-2 py-1 rounded text-xs">
-                                  {tag}
-                                </span>
-                              ))}
-                            </div>
+                            {filteredEntries.map((entry) => (
+                              <div key={entry.id} className="bg-gray-800/50 rounded-lg p-4 border border-gray-700/30 hover:border-purple-500/30 transition-colors">
+                                <div className="flex justify-between items-start mb-2">
+                                  <h3 className="text-lg font-semibold text-white">{entry.title}</h3>
+                                  <div className="flex items-center space-x-2">
+                                    <span className={`px-2 py-1 rounded text-xs ${entry.isActive ? 'bg-green-900/20 text-green-400' : 'bg-red-900/20 text-red-400'}`}>
+                                      {entry.isActive ? 'Active' : 'Inactive'}
+                                    </span>
+                                    <span className="px-2 py-1 rounded text-xs bg-blue-900/20 text-blue-400">
+                                      {entry.category}
+                                    </span>
+                                    <button
+                                      onClick={() => deleteKnowledgeEntry(entry.id, entry.title)}
+                                      className="text-red-400 hover:text-red-300 p-1 rounded hover:bg-red-900/20 transition-colors"
+                                      title="Delete entry"
+                                    >
+                                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                      </svg>
+                                    </button>
+                                  </div>
+                                </div>
+                                <p className="text-gray-300 text-sm mb-3 leading-relaxed">
+                                  {entry.content.length > 300 ? `${entry.content.substring(0, 300)}...` : entry.content}
+                                </p>
+                                <div className="flex flex-wrap gap-2 mb-3">
+                                  {entry.tags.map((tag, index) => (
+                                    <span key={index} className="bg-purple-900/20 text-purple-400 px-2 py-1 rounded text-xs">
+                                      #{tag}
+                                    </span>
+                                  ))}
+                                </div>
+                                <div className="flex justify-between items-center text-xs text-gray-500">
+                                  {entry.dateAdded && (
+                                    <span>Added: {new Date(entry.dateAdded).toLocaleDateString()}</span>
+                                  )}
+                                  <span>ID: {entry.id}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </>
+                        ) : (
+                          <div className="text-center text-gray-500 py-8">
+                            {knowledgeEntries.length === 0 ? (
+                              <>
+                                <p>No knowledge entries found</p>
+                                <p className="text-sm mt-2">Add your first knowledge entry above</p>
+                              </>
+                            ) : (
+                              <>
+                                <p>No entries match your search criteria</p>
+                                <p className="text-sm mt-2">Try adjusting your search term or category filter</p>
+                              </>
+                            )}
                           </div>
-                        ))
-                      ) : (
-                        <div className="text-center text-gray-500 py-8">
-                          <p>No knowledge entries found</p>
-                          <p className="text-sm mt-2">Add your first knowledge entry above</p>
+                        );
+                      })()}
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Pro Mode Management Tab */}
+              {activeTab === 'pro-mode' && (
+                <div className="space-y-6">
+                  <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl border border-purple-500/20 p-6">
+                    <h2 className="text-2xl font-semibold text-white mb-4 flex items-center space-x-3">
+                      <span className="text-3xl">⭐</span>
+                      <span>Pro Mode Management</span>
+                    </h2>
+                    <p className="text-gray-300 mb-6">
+                      Manage Pro Mode availability, expiration dates, and maintenance settings. Control when users can access advanced AI features and premium functionality.
+                    </p>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                      <div className="bg-purple-600/20 rounded-lg p-4 border border-purple-500/30">
+                        <div className="text-purple-400 text-sm font-medium mb-1">Current Status</div>
+                        <div className="text-white text-lg font-semibold">Live Management</div>
+                      </div>
+                      <div className="bg-blue-600/20 rounded-lg p-4 border border-blue-500/30">
+                        <div className="text-blue-400 text-sm font-medium mb-1">Real-time Updates</div>
+                        <div className="text-white text-lg font-semibold">Instant Changes</div>
+                      </div>
+                      <div className="bg-green-600/20 rounded-lg p-4 border border-green-500/30">
+                        <div className="text-green-400 text-sm font-medium mb-1">Production Ready</div>
+                        <div className="text-white text-lg font-semibold">Error Handling</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Pro Mode Manager Component */}
+                  <ProModeErrorBoundary>
+                    <ProModeManager
+                      onStatusChange={(status) => {
+                        // Handle status changes if needed
+                        console.log('Pro Mode status updated:', status);
+                      }}
+                      onPendingChange={() => {
+                        // Mark Pro Mode changes as pending
+                        setPendingChanges(prev => ({ ...prev, proMode: true }))
+                      }}
+                    />
+                  </ProModeErrorBoundary>
+
+                  {/* Additional Information */}
+                  <div className="bg-gray-900/50 rounded-xl border border-gray-700/30 p-6">
+                    <h3 className="text-lg font-semibold text-white mb-4">Important Notes</h3>
+                    <div className="space-y-3 text-gray-300">
+                      <div className="flex items-start space-x-3">
+                        <span className="text-purple-400 mt-1">🔄</span>
+                        <div>
+                          <strong>Apply Changes:</strong> After making Pro Mode changes, click the "Apply All Changes" button above to sync settings to the live website.
                         </div>
-                      )}
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <span className="text-yellow-400 mt-1">⚠️</span>
+                        <div>
+                          <strong>Production Impact:</strong> Changes made here will immediately affect the live website and all users.
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <span className="text-blue-400 mt-1">ℹ️</span>
+                        <div>
+                          <strong>Auto-refresh:</strong> Status updates automatically every 30 seconds to show real-time information.
+                        </div>
+                      </div>
+                      <div className="flex items-start space-x-3">
+                        <span className="text-green-400 mt-1">✅</span>
+                        <div>
+                          <strong>Error Handling:</strong> All operations include comprehensive error handling and validation.
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

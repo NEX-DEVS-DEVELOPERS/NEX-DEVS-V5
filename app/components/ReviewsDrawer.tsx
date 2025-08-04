@@ -500,7 +500,7 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
         </button>
       )}
 
-      {/* Desktop Button */}
+     {/* Desktop Sidebar Toggle */}
       {!isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}

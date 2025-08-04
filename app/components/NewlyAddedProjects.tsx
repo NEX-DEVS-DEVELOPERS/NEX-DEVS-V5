@@ -226,7 +226,7 @@ export default function NewlyAddedProjects() {
   if (isLoading) {
     return (
       <section className="max-w-7xl mx-auto mb-16 px-4">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-800/40 to-blue-800/40 border border-purple-600/30 p-6">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-purple-800/40 to-blue-800/40 neon-border-purple-base p-6">
           <div className="flex justify-center items-center h-32">
             <div className="flex space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -243,7 +243,7 @@ export default function NewlyAddedProjects() {
   if (error) {
     return (
       <section className="max-w-7xl mx-auto mb-16 px-4">
-        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-800/40 to-purple-800/40 border border-red-600/30 p-6">
+        <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-red-800/40 to-purple-800/40 neon-border-red-base p-6">
           <div className="flex flex-col justify-center items-center">
             <div className="text-red-400 text-xl font-bold mb-3">Error Loading New Projects</div>
             <div className="text-white mb-4">{error}</div>
@@ -659,7 +659,7 @@ export default function NewlyAddedProjects() {
       `}</style>
       <section className="max-w-7xl mx-auto mb-12 md:mb-16 px-4 md:px-4">
       {/* Header */}
-        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-4 md:p-5 mb-4 md:mb-6 border border-purple-500/30 will-change-transform">
+        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-4 md:p-5 mb-4 md:mb-6 neon-border-cyan-base will-change-transform">
           <div className="flex items-center gap-2 md:gap-3">
           <div className="relative flex items-center">
               <div className="absolute -left-1 md:-left-1.5 -top-1 md:-top-1.5 w-6 md:w-8 h-6 md:h-8 bg-purple-500/20 rounded-full animate-ping"></div>
@@ -733,16 +733,26 @@ export default function NewlyAddedProjects() {
             'border border-purple-600/20';
             
           // Combined classes - only apply effect classes when not expanded
-            const cardClasses = `relative overflow-hidden rounded-xl 
+            const cardClasses = `relative overflow-hidden rounded-xl
             ${expandedProject === project.id ? '' : project.visualEffects?.morphTransition ? 'morph-transition' : ''}
             ${expandedProject === project.id ? '' : project.visualEffects?.rippleEffect ? 'ripple-effect' : ''}
             ${expandedProject === project.id ? '' : project.visualEffects?.floatingElements ? 'floating-elements' : ''}
             ${expandedProject === project.id ? '' : project.visualEffects?.shimmering ? 'shimmering' : ''}
-              ${shadowClasses} ${borderClasses} 
-              transition-all duration-300 
+              ${shadowClasses}
+              transition-all duration-300
               ${expandedProject === project.id ? 'md:col-span-2 ring-2 ring-purple-500/50' : ''}
               ${animationClasses}
-              backdrop-blur-md bg-gray-900/40`;
+              backdrop-blur-md bg-gray-900/40
+              ${index % 10 === 0 ? 'neon-border-purple-base' :
+                index % 10 === 1 ? 'neon-border-blue-base' :
+                index % 10 === 2 ? 'neon-border-green-base' :
+                index % 10 === 3 ? 'neon-border-pink-base' :
+                index % 10 === 4 ? 'neon-border-cyan-base' :
+                index % 10 === 5 ? 'neon-border-orange-base' :
+                index % 10 === 6 ? 'neon-border-yellow-base' :
+                index % 10 === 7 ? 'neon-border-red-base' :
+                index % 10 === 8 ? 'neon-border-violet-base' :
+                'neon-border-lime-base'}`;
           
           // Animation timing classes based on intensity if provided, but only when not expanded
           const animationTimingClass = expandedProject === project.id ? '' : 

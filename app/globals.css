@@ -44,9 +44,162 @@ img {
   will-change: transform;
 }
 
+/* Mobile touch optimizations */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* High DPI text rendering */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  * {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
 /* Smooth scroll helper */
 .smooth-scroll {
   scroll-behavior: smooth;
+}
+
+/* Mobile chatbot optimizations */
+@media (max-width: 768px) {
+  /* Ensure mobile chatbot covers entire screen */
+  .nexious-chat-container,
+  .nexious-chat-container #chat-window,
+  .nexious-chat-container > div {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    max-width: 100vw !important;
+    max-height: 100vh !important;
+    z-index: 999999 !important;
+    border-radius: 16px !important;
+  }
+
+  /* Handle keyboard appearance */
+  .nexious-chat-container #chat-window.keyboard-open {
+    height: calc(100vh - env(keyboard-inset-height, 0px)) !important;
+    height: calc(100vh - var(--keyboard-height, 0px)) !important;
+  }
+
+  /* Prevent body scroll when chat is open - but allow touch on interactive elements */
+  body.chat-open {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    overflow: hidden !important;
+    /* Remove touch-action: none to allow button interactions */
+  }
+
+  /* Allow touch interactions on buttons and interactive elements even when chat is open */
+  body.chat-open button,
+  body.chat-open a,
+  body.chat-open [role="button"],
+  body.chat-open input,
+  body.chat-open textarea {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+  }
+
+  /* Ensure scrolling is enabled when chat is minimized */
+  body.chat-minimized {
+    position: static !important;
+    top: auto !important;
+    left: auto !important;
+    width: auto !important;
+    height: auto !important;
+    overflow: auto !important;
+    touch-action: auto !important;
+    filter: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Force remove all blur effects when minimized */
+  body.chat-minimized *,
+  body.chat-minimized::before,
+  body.chat-minimized::after {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Ensure chatbot overlay is completely hidden when minimized */
+  body.chat-minimized #chatbot-overlay {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: transparent !important;
+    pointer-events: none !important;
+  }
+
+  /* Optimize mobile touch targets */
+  .nexious-chat-container button {
+    min-height: 44px;
+    min-width: 44px;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+    pointer-events: auto;
+  }
+
+  /* Ensure mobile hamburger menu button is always interactive */
+  .md\\:hidden button[aria-label*="Menu"] {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    z-index: 1002 !important;
+    position: relative !important;
+  }
+
+  /* Ensure close buttons are always interactive on mobile */
+  button[title="Close"],
+  button[aria-label*="Close"],
+  .close-button,
+  [class*="close"] button {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    z-index: 9999 !important;
+    position: relative !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+  }
+
+  /* Ensure "See What We Offer" button is interactive */
+  button:contains("See What We Offer"),
+  [class*="welcome"] button,
+  [class*="Welcome"] button {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    z-index: 100 !important;
+    position: relative !important;
+  }
+
+  /* Smooth mobile animations */
+  .animate-mobile-chat-slide {
+    animation: mobileSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  }
+
+  @keyframes mobileSlideIn {
+    from {
+      transform: translateY(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
 }
 
 /* Reduce paint operations */
@@ -111,17 +264,15 @@ img {
   animation: float 8s ease-in-out infinite;
 }
 
-/* Additional float animations with horizontal movement */
-@keyframes float-complex {
-  0% { transform: translate(0, 0); }
-  25% { transform: translate(5px, -10px); }
-  50% { transform: translate(10px, -5px); }
-  75% { transform: translate(5px, 5px); }
-  100% { transform: translate(0, 0); }
+/* Additional float animations - horizontal movement removed */
+@keyframes float-simple {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+  100% { transform: translateY(0); }
 }
 
-.float-complex {
-  animation: float-complex 8s ease-in-out infinite;
+.float-simple {
+  animation: float-simple 3s ease-in-out infinite;
 }
 
 /* Nexious Chatbot specific animations */
@@ -244,13 +395,44 @@ img {
   width: 100% !important;
 }
 
-/* Navbar styling with strong sticky behavior */
+/* Navbar styling with fixed positioning for mobile compatibility */
 .navbar {
-  position: sticky !important;
+  position: fixed !important;
   top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
   z-index: 1000 !important;
   width: 100% !important;
-  background-color: var(--nex-dark-bg, #050509);
+  /* Background handled by color-consistency.css for frosted glass effect */
+}
+
+/* Body padding to account for fixed navbar */
+body {
+  padding-top: 0;
+}
+
+/* Responsive navbar spacer */
+.navbar-spacer {
+  padding-top: 100px;
+}
+
+@media (max-width: 768px) {
+  .navbar-spacer {
+    padding-top: 90px;
+  }
+}
+
+@media (max-width: 480px) {
+  .navbar-spacer {
+    padding-top: 85px;
+  }
+}
+
+/* Ensure mobile menu dropdown is properly positioned */
+@media (max-width: 768px) {
+  .navbar {
+    position: fixed !important;
+  }
 }
 
 /* Fix for floating buttons and elements */
@@ -262,11 +444,11 @@ img {
 
 /* Disable specific animations on mobile for performance */
 @media (max-width: 768px) {
-  .float, 
+  .float,
   .float-delayed,
   .float-slow,
   .float-slower,
-  .float-complex {
+  .float-simple {
     animation: none !important;
   }
 }

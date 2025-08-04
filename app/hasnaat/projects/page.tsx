@@ -438,11 +438,16 @@ export default function AdminProjectsPage() {
                     detail: { key: 'debugMode', value: newDebugMode.toString() }
                   }));
                   
-                  // Force refresh the page to ensure debug panel loads properly
+                  // Use smooth transition instead of reload for debug mode
                   if (newDebugMode) {
-                    // Add a small delay to ensure the toast is visible before refresh
+                    // Add a small delay to ensure the toast is visible before transition
                     setTimeout(() => {
-                      window.location.reload();
+                      if (typeof window !== 'undefined' && window.barba) {
+                        window.barba.go(window.location.href);
+                      } else {
+                        // Fallback: trigger a custom event for debug mode change
+                        window.dispatchEvent(new CustomEvent('debugModeChanged', { detail: { enabled: newDebugMode } }));
+                      }
                     }, 500);
                   }
                 }}

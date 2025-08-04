@@ -105,7 +105,7 @@ export default function Logo() {
                 }}
                 className={`inline-block ${vt323.className} text-[9px]`}
               >
-                BETA
+{`{BETA}`}
               </motion.span>
             </div>
             <motion.div 

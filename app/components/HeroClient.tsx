@@ -1,7 +1,6 @@
 "use client"
 
-import { Button } from "@/components/ui/button"
-import { motion, AnimatePresence, useReducedMotion, Variants, useScroll, useSpring, useTransform } from "framer-motion"
+import { motion, AnimatePresence, Variants, useScroll, useSpring, useTransform } from "framer-motion"
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useMemo, useCallback, useEffect, useRef } from "react"
@@ -9,7 +8,6 @@ import { useIsMobile } from '@/app/utils/deviceDetection'
 import TechStackSection from "@/components/sections/TechStackSection"
 import NeuralNetwork from '@/components/animations/NeuralNetwork'
 import { audiowide, vt323 } from '@/app/utils/fonts';
-import { useBarba } from '@/utils/barba-init'
 
 // Type definitions
 interface Skill {
@@ -52,54 +50,54 @@ interface HeroClientProps {
     workProcess: WorkProcess[];
 }
 
-// Enhanced Animation Variants
+// Optimized Animation Variants - Reduced complexity for better performance
 const fadeInUpVariant: Variants = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.9, 
-      ease: [0.25, 0.1, 0.25, 1],
-      staggerChildren: 0.12
-    } 
+  hidden: { opacity: 0, y: 10 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+      staggerChildren: 0.08
+    }
   }
 }
 
 const staggeredFadeInVariant: Variants = {
-  hidden: { opacity: 0, y: 15 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { 
-      duration: 0.5,
+  hidden: { opacity: 0, y: 8 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.4,
       ease: "easeOut"
-    } 
+    }
   }
 }
 
 const scaleInVariant: Variants = {
-  hidden: { opacity: 0, scale: 0.97 },
-  visible: { 
-    opacity: 1, 
-    scale: 1, 
-    transition: { 
-      duration: 0.7, 
-      ease: [0.22, 1, 0.36, 1],
-      staggerChildren: 0.1
-    } 
+  hidden: { opacity: 0, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.5,
+      ease: "easeOut",
+      staggerChildren: 0.06
+    }
   }
 }
 
-const leakyCodeVariants = {
-    hidden: { opacity: 0, y: -5 },
-    visible: { 
-      opacity: [0, 0.6, 0.4, 0.6],
+// Simplified code animation - removed complex opacity array for better performance
+const leakyCodeVariants: Variants = {
+    hidden: { opacity: 0, y: -3 },
+    visible: {
+      opacity: 0.6,
       y: 0,
       transition: {
-        duration: 2,
-        repeat: Infinity,
-        repeatType: "reverse" as const
+        duration: 1.5,
+        ease: [0.22, 1, 0.36, 1]
       }
     }
 }
@@ -110,12 +108,6 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
   const [funFactIndex, setFunFactIndex] = useState(0)
   const [activeSkillSet, setActiveSkillSet] = useState(0)
   const [isAutoAnimating, setIsAutoAnimating] = useState(true)
-  const shouldReduceMotion = useReducedMotion()
-  
-  const [heroTransition, setHeroTransition] = useState({
-    glitching: false,
-    switching: false
-  })
   
   const heroSectionRef = useRef<HTMLDivElement>(null)
   const neuralLineRef = useRef<HTMLDivElement>(null)
@@ -123,70 +115,102 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
   const [pathLength, setPathLength] = useState(0);
   const [svgPath, setSvgPath] = useState('');
 
-  // Initialize Barba.js
+  // Initialize Barba.js with optimized settings for hero section
   useEffect(() => {
     // Only run on client
     if (typeof window !== 'undefined') {
-      // Import and initialize Barba
+      // Import and initialize Barba with performance optimizations
       import('@/utils/barba-init').then(({ useBarba }) => {
-        useBarba();
+        useBarba({
+          optimizeWelcomeScreen: true,
+          transitionSpeed: 0.3, // Even faster transitions for hero
+          easing: [0.22, 1, 0.36, 1] // Custom cubic-bezier for smooth feel
+        });
       });
+
+      // Add hero-specific optimizations
+      const heroContainer = heroSectionRef.current;
+      if (heroContainer) {
+        heroContainer.classList.add('hero-optimized');
+
+        // Optimize animations with will-change
+        heroContainer.style.willChange = 'transform, opacity';
+        heroContainer.style.transform = 'translateZ(0)';
+        heroContainer.style.backfaceVisibility = 'hidden';
+      }
     }
   }, []);
 
-  // Add scroll animation references
+  // Optimized scroll animation references with better performance
   const { scrollYProgress } = useScroll({
     target: heroSectionRef,
-    offset: ["start start", "end start"]
+    offset: ["start start", "end start"],
+    layoutEffect: false // Disable layout effect for better performance
   });
 
-  // Create smoother spring-based animations for scroll
-  const smoothY = useSpring(scrollYProgress, { stiffness: 50, damping: 20, restDelta: 0.001 });
-  const opacity = useTransform(smoothY, [0, 0.5], [1, 0.9]);
-  const scale = useTransform(smoothY, [0, 0.5], [1, 0.99]);
+  // Create optimized spring-based animations for scroll with reduced calculations
+  const smoothY = useSpring(scrollYProgress, {
+    stiffness: 100,
+    damping: 30,
+    restDelta: 0.001,
+    restSpeed: 0.001
+  });
+  const opacity = useTransform(smoothY, [0, 0.3], [1, 0.95]);
+  const scale = useTransform(smoothY, [0, 0.3], [1, 0.995]);
   
+  // Optimized event handlers with debouncing for better performance
   useEffect(() => {
+    let animationFrame: number;
+
     const handleToggleProgress = (event: CustomEvent) => {
       const { progress } = event.detail;
       if (pathRef.current && neuralLineRef.current) {
-        const offset = pathLength - (pathLength * progress);
-        pathRef.current.style.strokeDashoffset = offset.toString();
-        const glowIntensity = 0.3 + (progress * 1.2);
-        neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
+        // Use requestAnimationFrame for smooth animations
+        cancelAnimationFrame(animationFrame);
+        animationFrame = requestAnimationFrame(() => {
+          const offset = pathLength - (pathLength * progress);
+          pathRef.current!.style.strokeDashoffset = offset.toString();
+          const glowIntensity = 0.3 + (progress * 1.2);
+          neuralLineRef.current!.style.setProperty('--glow-intensity', glowIntensity.toString());
+        });
       }
     };
-    
+
     const handleToggleFinished = (event: CustomEvent) => {
       const { hero } = event.detail;
       const targetProgress = hero === 'business' ? 1 : 0;
       if (pathRef.current && neuralLineRef.current) {
-        const offset = pathLength - (pathLength * targetProgress);
-        pathRef.current.style.strokeDashoffset = offset.toString();
-        const glowIntensity = 0.3 + (targetProgress * 1.2);
-        neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
+        // Use requestAnimationFrame for smooth animations
+        cancelAnimationFrame(animationFrame);
+        animationFrame = requestAnimationFrame(() => {
+          const offset = pathLength - (pathLength * targetProgress);
+          pathRef.current!.style.strokeDashoffset = offset.toString();
+          const glowIntensity = 0.3 + (targetProgress * 1.2);
+          neuralLineRef.current!.style.setProperty('--glow-intensity', glowIntensity.toString());
+        });
       }
     };
-    
-    window.addEventListener('heroToggleProgress', handleToggleProgress as EventListener);
-    window.addEventListener('heroToggleFinished', handleToggleFinished as EventListener);
-    
-    // Add Barba event listeners
+
+    // Optimized Barba event listeners with reduced overhead
     const handleBarbaLeave = () => {
-      // Clean up animations or save state when leaving page
+      // Minimal cleanup to prevent memory leaks
       if (isAutoAnimating) setIsAutoAnimating(false);
     };
-    
+
     const handleBarbaEnter = () => {
-      // Reinitialize animations when entering page
+      // Faster reinitialize with reduced delay
       if (heroSectionRef.current) {
-        setTimeout(() => setIsAutoAnimating(true), 500);
+        setTimeout(() => setIsAutoAnimating(true), 200);
       }
     };
-    
+
+    window.addEventListener('heroToggleProgress', handleToggleProgress as EventListener);
+    window.addEventListener('heroToggleFinished', handleToggleFinished as EventListener);
     window.addEventListener('barbaLeave', handleBarbaLeave);
     window.addEventListener('barbaEnter', handleBarbaEnter);
-    
+
     return () => {
+      cancelAnimationFrame(animationFrame);
       window.removeEventListener('heroToggleProgress', handleToggleProgress as EventListener);
       window.removeEventListener('heroToggleFinished', handleToggleFinished as EventListener);
       window.removeEventListener('barbaLeave', handleBarbaLeave);
@@ -225,11 +249,14 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
   const prevSkillSet = useCallback(() => setActiveSkillSet((p) => (p - 1 + aiSkills.length) % aiSkills.length), [aiSkills.length])
   const toggleAutoAnimation = useCallback(() => setIsAutoAnimating(p => !p), [])
   
+  // Optimized auto-animation with better performance
   useEffect(() => {
     if (!isAutoAnimating) return;
     const intervalId = setInterval(() => {
-        if (!document.hidden) nextSkillSet();
-    }, 8000);
+        if (!document.hidden && document.visibilityState === 'visible') {
+          nextSkillSet();
+        }
+    }, 6000); // Reduced interval for smoother experience
     return () => clearInterval(intervalId);
   }, [isAutoAnimating, nextSkillSet]);
 
@@ -239,27 +266,22 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
   return (
     <motion.section
       ref={heroSectionRef}
-      data-barba="container" 
+      data-barba="container"
       data-barba-namespace="hero"
-      layoutScroll
       initial="hidden"
       animate="visible"
       variants={{
         hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 1.2, ease: [0.25, 0.1, 0.25, 1], when: "beforeChildren", staggerChildren: 0.15 } }
+        visible: { opacity: 1, transition: { duration: 0.8, ease: "easeOut", when: "beforeChildren", staggerChildren: 0.1 } }
       }}
-      className={`relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black content-stable ${heroTransition.switching ? 'animate-pulse' : ''}`}
+      className="relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black"
       style={{
         backfaceVisibility: 'hidden',
-        perspective: '1000px',
         contentVisibility: 'auto',
-        contain: 'style layout paint',
-        borderRadius: heroTransition.glitching ? '8px' : '0px',
-        willChange: 'auto',
-        transformStyle: 'preserve-3d',
-        opacity: opacity,
-        scale: scale,
-        transition: 'all 0.3s cubic-bezier(0.25, 0.1, 0.25, 1)'
+        contain: 'layout style paint',
+        willChange: 'transform',
+        transform: `scale(${scale}) translateZ(0)`,
+        opacity: opacity
       }}
     >
       {!isMobile && (
@@ -434,7 +456,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                     <div className="absolute bottom-0 right-0 w-8 h-[3px] bg-purple-500 shadow-[0_0_10px_rgba(168,85,247,0.5)] glow-effect"></div>
                   </div>
 
-                  Building cutting-edge digital solutions with <span className="text-purple-400 font-semibold">AI-POWERED</span> technologies. Specializing in <span className="text-emerald-400 font-semibold">FULL-STACK</span> development, advanced <span className="text-sky-300 font-semibold">AI INTEGRATIONS</span>, and intelligent <span className="text-orange-400 font-semibold">AUTOMATION SYSTEMS</span>. Expert in creating scalable web applications, chatbots with <span className="text-cyan-400 font-semibold">RAG</span> & vector databases, and enterprise solutions using <span className="text-blue-400 font-semibold">LANGCHAIN</span>, <span className="text-green-400 font-semibold">GPT-4</span>, and modern cloud architecture. Transforming businesses through innovative technology.
+                  Building cutting-edge digital solutions with <span className="text-purple-400 font-semibold">AI-POWERED</span> technologies. Specializing in <span className="text-emerald-400 font-semibold">FULL-STACK</span> development, advanced <span className="text-sky-300 font-semibold">AI INTEGRATIONS</span>, and intelligent <span className="text-green-400 font-semibold">AUTOMATION SYSTEMS</span>. Expert in creating scalable web applications, chatbots with <span className="text-cyan-400 font-semibold">RAG</span> & vector databases, and enterprise solutions using <span className="text-blue-400 font-semibold">LANGCHAIN</span>, <span className="text-orange-300 font-semibold">Claude 4-Opus,4 Sonnet</span>, and modern cloud architecture. Transforming businesses through innovative technology.
                 </div>
               </div>
             </motion.div>
@@ -468,7 +490,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                     whileInView="visible"
                     viewport={{ once: true }}
                     transition={{ duration: 0.2, delay: index * 0.1, ease: [0.22, 1, 0.36, 1] }}
-                    className="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-xl border border-white/10 hover:border-purple-500/50 transition-all bg-black/40 hover:bg-black/50 relative z-10 h-[88px] sm:h-[100px] group"
+                    className="flex items-start gap-2 sm:gap-3 p-2.5 sm:p-4 rounded-xl transition-all bg-black/40 hover:bg-black/50 relative z-10 h-[88px] sm:h-[100px] group border border-purple-500/20 hover:border-purple-500/30"
                   >
                     <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-purple-500/10 border border-purple-500/20 shrink-0 relative">
                       <span className="text-base sm:text-xl group-hover:scale-110 transition-transform duration-300">{process.icon}</span>
@@ -614,8 +636,8 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                       >
                         <div className="grid auto-rows-min gap-1.5 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/20 scrollbar-track-transparent pr-1 py-0.5">
                           {currentSkillSet.skills.map((skill: Skill, idx: number) => (
-                            <motion.div key={skill.name} className="skill-item flex items-center gap-2 p-1.5 rounded-lg h-[42px]">
-                              <div className={`skill-icon ${typeof skill.icon === 'string' && skill.icon.startsWith('http') ? 'w-10 h-10 bg-white' : 'w-10 h-10 bg-black/10'} flex items-center justify-center rounded-md border border-purple-500/30 group-hover:border-purple-500/50 transition-colors duration-200 p-1`}>
+                            <div key={skill.name} className="skill-item flex items-center gap-2 p-1.5 rounded-lg h-[42px]">
+                              <div className={`skill-icon ${typeof skill.icon === 'string' && skill.icon.startsWith('http') ? 'w-10 h-10 bg-white' : 'w-10 h-10 bg-black/10'} flex items-center justify-center rounded-md border border-purple-500/30 transition-colors duration-200 p-1`}>
                                 {typeof skill.icon === 'string' && skill.icon.startsWith('http') ? (
                                   <img src={skill.icon} alt={skill.name} className="w-8 h-8 object-contain" loading="lazy" />
                                 ) : (
@@ -625,29 +647,29 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                               <div className="flex-1 min-w-0">
                                 <div className="flex items-center justify-between mb-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="text-white/90 text-xs font-medium group-hover:text-white/100 transition-colors">{skill.name}</span>
+                                    <span className="text-white/90 text-xs font-medium transition-colors">{skill.name}</span>
                                     <span className="text-[10px] text-white/80 font-medium tabular-nums bg-black/20 px-1.5 py-0.5 rounded-full border border-purple-500/30">{skill.level}%</span>
                                   </div>
                                 </div>
                                 <div className="flex items-center gap-1.5">
                                   <div className="h-1 flex-1 bg-black/20 rounded-full overflow-hidden">
-                                    <motion.div 
+                                    <motion.div
                                       className="h-full rounded-full relative"
                                       style={{ background: "linear-gradient(90deg, rgba(139,92,246,0.6) 0%, rgba(168,85,247,0.7) 100%)" }}
                                       initial={{ width: 0 }}
-                                      animate={{ width: `${skill.level}%`, transition: { duration: 0.4, delay: idx * 0.02, ease: "easeOut" } }}
+                                      animate={{ width: `${skill.level}%`, transition: { duration: 0.3, delay: idx * 0.01, ease: "easeOut" } }}
                                     >
                                       <div className="absolute right-0 top-0 h-full w-[1px] bg-purple-300/80"></div>
                                     </motion.div>
                                   </div>
-                                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 + idx * 0.05 }} className="text-[8px] text-white/50 hidden sm:block">
+                                  <div className="text-[8px] text-white/50 hidden sm:block">
                                     {skill.description && (
                                       <span className="whitespace-nowrap text-[8px] sm:text-[9px] text-white/50 truncate max-w-[100px] sm:max-w-[140px] block">{skill.description}</span>
                                     )}
-                                  </motion.div>
+                                  </div>
                                 </div>
                               </div>
-                            </motion.div>
+                            </div>
                           ))}
                         </div>
                       </motion.div>
@@ -667,11 +689,11 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
           </div>
 
           <div className="grid grid-cols-2 gap-6 sm:gap-8 px-2">
-            <motion.div className="border border-white/20 p-5 sm:p-6 rounded-xl hover:border-white transition-colors bg-black/30">
-              <h4 className={`text-2xl sm:text-3xl font-bold text-white mb-2 ${audiowide.className}`}>50+</h4>
+            <motion.div className="neon-border-purple-base p-5 sm:p-6 rounded-xl bg-black/30">
+              <h4 className={`text-2xl sm:text-3xl font-bold text-white mb-2 ${audiowide.className}`}>950+</h4>
               <p className={`text-xs sm:text-sm text-gray-400 ${vt323.className}`}>Projects Completed</p>
             </motion.div>
-            <motion.div className="border border-white/20 p-5 sm:p-6 rounded-xl hover:border-white transition-colors bg-black/30">
+            <motion.div className="neon-border-blue-base p-5 sm:p-6 rounded-xl bg-black/30">
               <h4 className={`text-2xl sm:text-3xl font-bold text-white mb-2 ${audiowide.className}`}>4+</h4>
               <p className={`text-xs sm:text-sm text-gray-400 ${vt323.className}`}>Years Experience</p>
             </motion.div>
@@ -680,10 +702,17 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
           <motion.div className="space-y-3">
             <h4 className={`text-lg font-semibold text-white mb-3 text-center ${audiowide.className}`}>Skills & Expertise</h4>
             <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 auto-rows-fr">
-              {expertise.map((skill) => (
-                <motion.div
+              {expertise.map((skill, index) => (
+                <div
                   key={skill.title}
-                  className="relative p-4 rounded-lg bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20 transition-all duration-300 group min-h-[100px] flex items-center justify-center"
+                  className={`relative p-4 rounded-lg bg-white/5 hover:bg-white/10 transition-all duration-300 group min-h-[100px] flex items-center justify-center ${
+                    index % 6 === 0 ? 'neon-border-green-base' :
+                    index % 6 === 1 ? 'neon-border-pink-base' :
+                    index % 6 === 2 ? 'neon-border-cyan-base' :
+                    index % 6 === 3 ? 'neon-border-orange-base' :
+                    index % 6 === 4 ? 'neon-border-yellow-base' :
+                    'neon-border-violet-base'
+                  }`}
                 >
                   {skill.isNew && (
                     <div className="absolute -top-1 -right-1 z-10">
@@ -691,9 +720,9 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                     </div>
                   )}
                   <div className="flex flex-col items-center text-center space-y-2 w-full">
-                    <div className="w-12 h-12 bg-gradient-to-b from-white to-gray-100 rounded-lg border border-purple-500/30 flex items-center justify-center mb-2 overflow-hidden hover:shadow-purple-500/20 transition-shadow duration-300 p-0">
+                    <div className="w-12 h-12 bg-gradient-to-b from-white to-gray-100 rounded-lg border border-purple-500/30 flex items-center justify-center mb-2 overflow-hidden transition-shadow duration-300 p-0">
                       {skill.imageUrl ? (
-                        <Image src={skill.imageUrl} alt={skill.title} width={36} height={36} className="w-10 h-10 object-contain transform hover:scale-110 transition-transform duration-300" unoptimized={skill.imageUrl.startsWith('http')} />
+                        <Image src={skill.imageUrl} alt={skill.title} width={36} height={36} className="w-10 h-10 object-contain transition-transform duration-300" unoptimized={skill.imageUrl.startsWith('http')} />
                       ) : (
                         <div className="w-10 h-10 bg-white rounded-md flex items-center justify-center">
                           <div className="w-6 h-6 bg-purple-500/20 rounded-md" />
@@ -705,7 +734,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
                       <p className={`text-gray-400 text-xs leading-tight opacity-80 ${vt323.className}`}>{skill.description}</p>
                     </div>
                   </div>
-                </motion.div>
+                </div>
               ))}
             </div>
           </motion.div>

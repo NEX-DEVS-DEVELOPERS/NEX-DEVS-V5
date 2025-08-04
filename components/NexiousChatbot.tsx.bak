@@ -193,16 +193,18 @@ const PRO_MODE_KEY = 'nexious-pro-mode';
 
 // Team information
 const teamInfo = {
-  size: 5,
+  size: 7,
   members: [
-    { name: "Ali Hasnaat", role: "Fullstack Developer & Team Lead" },
-    { name: "EMAN-ALI", role: "UI/UX Designer" },
-    { name: "ANNS-BASHIR", role: "AI AGENT DEVELOPER (N8N.MAKE.COM etc)" },
-    { name: "MUDASSIR-AHMAD", role: "Ai workflows for bussiness" },
-    { name: "USMAN-AFTAB", role: "AI databse (vector database expert) & DevOps" }
+    { name: "Ali Hasnaat", role: "Founder & Lead Developer" },
+    { name: "Mudassir Ahmad", role: "AI Workflows for Business Specialist" },
+    { name: "Faizan Khan", role: "UI/UX Designer" },
+    { name: "Eman Ali", role: "Backend Developer" },
+    { name: "Anns Bashir", role: "AI Agent Developer (N8N, Make.com Specialist)" },
+    { name: "Hassam Baloch", role: "AI Agent Developer (N8N, Make.com Specialist)" },
+    { name: "Usman Aftab", role: "AI Database & DevOps Specialist" }
   ],
   founded: "2018",
-  projects: "50+"
+  projects: "950+"
 };
 
 // Competitor comparison data

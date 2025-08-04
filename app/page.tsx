@@ -8,8 +8,7 @@ import { useState, useCallback, useRef } from 'react'
 import dynamic from 'next/dynamic'
 import { audiowide, vt323 } from '@/app/utils/fonts'
 
-// Import Barba initialization
-import { useBarba } from '@/utils/barba-init'
+// Remove server-side Barba import - will be handled in client components
 
 // Dynamic imports for better code splitting and performance
 const Hero = dynamic(() => import("@/components/sections/Hero"), {
@@ -36,6 +35,9 @@ const WelcomeScreen = dynamic(() => import('@/app/components/WelcomeScreen'), {
   ssr: false
 })
 const FloatingActionButton = dynamic(() => import('@/app/components/FloatingActionButton'), {
+  ssr: false
+})
+const MobilePopup = dynamic(() => import('@/app/components/MobilePopup'), {
   ssr: false
 })
 const ClientTestimonials = dynamic(() => import('@/components/TestimonialsSection'), {
@@ -93,6 +95,8 @@ export default function Home() {
   const [showTerminal, setShowTerminal] = useState(false)
   const [showHints, setShowHints] = useState(false)
   const [currentJoke, setCurrentJoke] = useState(PROGRAMMING_JOKES[0])
+
+  // Barba.js initialization is now handled by SmoothScrollInitializer in layout
   const [showJoke, setShowJoke] = useState(false)
   const [terminalInput, setTerminalInput] = useState("")
   const [counterPosition, setCounterPosition] = useState({ x: 16, y: 16 }) // Start from top-left with padding
@@ -111,6 +115,8 @@ export default function Home() {
   const [dragConstraints, setDragConstraints] = useState({ left: 0, right: 0, top: 0, bottom: 0 })
   // New state for hero section toggle
   const [currentHero, setCurrentHero] = useState<'original' | 'business'>('original')
+  // State for mobile popup
+  const [showMobilePopup, setShowMobilePopup] = useState(false)
   
   // Refs for scroll animations
   const pageRef = useRef<HTMLDivElement>(null);
@@ -375,14 +381,28 @@ export default function Home() {
   // Check if this is the first visit and handle mounting
   useEffect(() => {
     setMounted(true);
-    
+
     const checkMobile = () => {
       setIsMobile(window.innerWidth < 768)
     }
     checkMobile()
-    
+
+    // Check URL parameters for hero selection
+    const urlParams = new URLSearchParams(window.location.search);
+    const heroParam = urlParams.get('hero');
+    if (heroParam === 'business' || heroParam === 'original') {
+      setCurrentHero(heroParam);
+    }
+
     // Always show welcome screen on mount
     setShowWelcome(true);
+
+    // Dispatch event to notify other components
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('welcomeScreenStateChange', {
+        detail: { showWelcome: true }
+      }));
+    }, 100);
 
     // Listen for storage changes (for cross-tab synchronization)
     const handleStorageChange = (e: StorageEvent) => {
@@ -400,10 +420,36 @@ export default function Home() {
     };
   }, []);
 
+  // Listen for mobile hero toggle events
+  useEffect(() => {
+    const handleMobileHeroToggle = (event: CustomEvent) => {
+      setCurrentHero(event.detail.hero);
+    };
+
+    window.addEventListener('mobileHeroToggle', handleMobileHeroToggle as EventListener);
+
+    return () => {
+      window.removeEventListener('mobileHeroToggle', handleMobileHeroToggle as EventListener);
+    };
+  }, []);
+
   // Handle welcome screen completion
   const handleWelcomeComplete = () => {
     setShowWelcome(false);
     localStorage.setItem('welcomeScreenShown', 'true');
+
+    // Dispatch event to notify other components
+    window.dispatchEvent(new CustomEvent('welcomeScreenStateChange', {
+      detail: { showWelcome: false }
+    }));
+
+    // Show mobile popup for mobile users after welcome screen completion
+    if (isMobile) {
+      // Small delay to ensure smooth transition
+      setTimeout(() => {
+        setShowMobilePopup(true);
+      }, 500);
+    }
   };
 
   // Add function to reset welcome screen (for testing)
@@ -424,6 +470,13 @@ export default function Home() {
         <Suspense fallback={<div className="h-screen bg-black" />}>
           {showWelcome && <WelcomeScreen onComplete={handleWelcomeComplete} />}
         </Suspense>
+
+        {/* Mobile Popup - Show after welcome screen completion for mobile users */}
+        {showMobilePopup && isMobile && (
+          <Suspense fallback={null}>
+            <MobilePopup onClose={() => setShowMobilePopup(false)} />
+          </Suspense>
+        )}
         
         {/* Hero Section Toggle */}
         <AnimatePresence mode="wait" initial={false}>
@@ -908,8 +961,16 @@ export default function Home() {
             {services.map((service, index) => (
               <div
                 key={service.title}
-                className="group relative p-4 sm:p-6 w-[calc(50%-8px)] sm:w-64 rounded-xl border border-white/10 bg-black/50 backdrop-blur-lg
-                           hover:border-purple-500/50 transition-all duration-300 shadow-lg"
+                className={`group relative p-4 sm:p-6 w-[calc(50%-8px)] sm:w-64 rounded-xl bg-black/50 backdrop-blur-lg transition-all duration-300 shadow-lg ${
+                  index % 8 === 0 ? 'neon-border-purple-base' :
+                  index % 8 === 1 ? 'neon-border-blue-base' :
+                  index % 8 === 2 ? 'neon-border-green-base' :
+                  index % 8 === 3 ? 'neon-border-pink-base' :
+                  index % 8 === 4 ? 'neon-border-cyan-base' :
+                  index % 8 === 5 ? 'neon-border-orange-base' :
+                  index % 8 === 6 ? 'neon-border-yellow-base' :
+                  'neon-border-violet-base'
+                }`}
               >
                 <div className="mb-3 sm:mb-4">
                   <span className="text-2xl sm:text-4xl">{service.icon}</span>
@@ -945,16 +1006,20 @@ export default function Home() {
 
           {/* Tech Icons - Minimalist Grid */}
           <div className="grid grid-cols-3 md:grid-cols-6 gap-4 sm:gap-6 mb-12 sm:mb-16">
-            {technologies.map((tech) => (
+            {technologies.map((tech, index) => (
               <div
                 key={tech.name}
                 className="flex flex-col items-center"
               >
-                <div className="w-12 h-12 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center 
-                              bg-black p-2 sm:p-3 rounded-lg border border-white/5 
-                              hover:border-purple-500/70 hover:shadow-[0_0_15px_rgba(168,85,247,0.15)] 
-                              transition-all duration-300">
-                  <Image 
+                <div className={`w-12 h-12 sm:w-14 sm:h-14 mb-2 sm:mb-3 flex items-center justify-center bg-black p-2 sm:p-3 rounded-lg transition-all duration-300 ${
+                  index % 6 === 0 ? 'neon-border-purple-base' :
+                  index % 6 === 1 ? 'neon-border-blue-base' :
+                  index % 6 === 2 ? 'neon-border-green-base' :
+                  index % 6 === 3 ? 'neon-border-pink-base' :
+                  index % 6 === 4 ? 'neon-border-cyan-base' :
+                  'neon-border-orange-base'
+                }`}>
+                  <Image
                     src={tech.icon} 
                     alt={tech.name} 
                     width={40} 
@@ -989,12 +1054,14 @@ export default function Home() {
                 tools: "Docker, GitHub Actions, Vercel",
                 icon: "🚀"
               }
-            ].map((category) => (
+            ].map((category, index) => (
               <div
                 key={category.title}
-                className="group p-5 sm:p-6 border border-white/10 rounded-lg bg-black 
-                         hover:border-purple-500/50 hover:bg-black/80
-                         transition-all duration-300"
+                className={`group p-5 sm:p-6 rounded-lg bg-black hover:bg-black/80 transition-all duration-300 ${
+                  index === 0 ? 'neon-border-yellow-base' :
+                  index === 1 ? 'neon-border-violet-base' :
+                  'neon-border-lime-base'
+                }`}
               >
                 <div className="flex items-start gap-3 mb-3">
                   <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform duration-300">
@@ -1043,10 +1110,13 @@ export default function Home() {
                 }`}
               >
                 {/* Process Card */}
-                <div 
-                  className="w-full lg:w-[45%] p-6 rounded-xl border border-white/10 
-                           hover:border-purple-500/50 transition-all 
-                           bg-black/40 backdrop-blur-xl group relative overflow-hidden"
+                <div
+                  className={`w-full lg:w-[45%] p-6 rounded-xl transition-all bg-black/40 backdrop-blur-xl group relative overflow-hidden ${
+                    index % 4 === 0 ? 'neon-border-purple-base' :
+                    index % 4 === 1 ? 'neon-border-blue-base' :
+                    index % 4 === 2 ? 'neon-border-green-base' :
+                    'neon-border-pink-base'
+                  }`}
                 >
                   <div className="relative z-10">
                     <div className="flex items-center gap-4 mb-4">

@@ -1,0 +1,227 @@
+/* Neon Border Styles for Portfolio Website */
+/* Different neon colors for various boxed content sections */
+/* NO glow effects - just solid neon colors for professional appearance */
+
+/* Base neon border class */
+.neon-border-base {
+  border-width: 2px;
+  border-style: solid;
+  transition: border-color 0.3s ease;
+}
+
+/* Neon Purple - for hero stats and primary sections */
+.neon-border-purple {
+  border-color: #a855f7 !important; /* Bright purple */
+}
+
+.neon-border-purple:hover {
+  border-color: #9333ea !important; /* Slightly darker purple on hover */
+}
+
+/* Neon Blue - for tech stack and technical sections */
+.neon-border-blue {
+  border-color: #3b82f6 !important; /* Bright blue */
+}
+
+.neon-border-blue:hover {
+  border-color: #2563eb !important; /* Slightly darker blue on hover */
+}
+
+/* Neon Green - for services and success metrics */
+.neon-border-green {
+  border-color: #10b981 !important; /* Bright green */
+}
+
+.neon-border-green:hover {
+  border-color: #059669 !important; /* Slightly darker green on hover */
+}
+
+/* Neon Pink - for creative and design sections */
+.neon-border-pink {
+  border-color: #ec4899 !important; /* Bright pink */
+}
+
+.neon-border-pink:hover {
+  border-color: #db2777 !important; /* Slightly darker pink on hover */
+}
+
+/* Neon Cyan - for AI and modern tech sections */
+.neon-border-cyan {
+  border-color: #06b6d4 !important; /* Bright cyan */
+}
+
+.neon-border-cyan:hover {
+  border-color: #0891b2 !important; /* Slightly darker cyan on hover */
+}
+
+/* Neon Orange - for business and enterprise sections */
+.neon-border-orange {
+  border-color: #f97316 !important; /* Bright orange */
+}
+
+.neon-border-orange:hover {
+  border-color: #ea580c !important; /* Slightly darker orange on hover */
+}
+
+/* Neon Yellow - for highlights and special features */
+.neon-border-yellow {
+  border-color: #eab308 !important; /* Bright yellow */
+}
+
+.neon-border-yellow:hover {
+  border-color: #ca8a04 !important; /* Slightly darker yellow on hover */
+}
+
+/* Neon Red - for important alerts or featured content */
+.neon-border-red {
+  border-color: #ef4444 !important; /* Bright red */
+}
+
+.neon-border-red:hover {
+  border-color: #dc2626 !important; /* Slightly darker red on hover */
+}
+
+/* Neon Violet - for premium and advanced features */
+.neon-border-violet {
+  border-color: #8b5cf6 !important; /* Bright violet */
+}
+
+.neon-border-violet:hover {
+  border-color: #7c3aed !important; /* Slightly darker violet on hover */
+}
+
+/* Neon Lime - for growth and development sections */
+.neon-border-lime {
+  border-color: #84cc16 !important; /* Bright lime */
+}
+
+.neon-border-lime:hover {
+  border-color: #65a30d !important; /* Slightly darker lime on hover */
+}
+
+/* Combined classes for easy application */
+.neon-border-purple-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #a855f7 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-blue-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #3b82f6 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-green-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #10b981 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-pink-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #ec4899 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-cyan-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #06b6d4 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-orange-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #f97316 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-yellow-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #eab308 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-red-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #ef4444 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-violet-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #8b5cf6 !important;
+  transition: border-color 0.3s ease;
+}
+
+.neon-border-lime-base {
+  border-width: 2px;
+  border-style: solid;
+  border-color: #84cc16 !important;
+  transition: border-color 0.3s ease;
+}
+
+/* Hover effects for combined classes */
+.neon-border-purple-base:hover {
+  border-color: #9333ea !important;
+}
+
+.neon-border-blue-base:hover {
+  border-color: #2563eb !important;
+}
+
+.neon-border-green-base:hover {
+  border-color: #059669 !important;
+}
+
+.neon-border-pink-base:hover {
+  border-color: #db2777 !important;
+}
+
+.neon-border-cyan-base:hover {
+  border-color: #0891b2 !important;
+}
+
+.neon-border-orange-base:hover {
+  border-color: #ea580c !important;
+}
+
+.neon-border-yellow-base:hover {
+  border-color: #ca8a04 !important;
+}
+
+.neon-border-red-base:hover {
+  border-color: #dc2626 !important;
+}
+
+.neon-border-violet-base:hover {
+  border-color: #7c3aed !important;
+}
+
+.neon-border-lime-base:hover {
+  border-color: #65a30d !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .neon-border-base,
+  [class*="neon-border-"][class*="-base"] {
+    border-width: 1.5px; /* Slightly thinner on mobile */
+  }
+}
+
+/* Ensure borders work with existing rounded corners */
+[class*="neon-border-"].rounded-lg,
+[class*="neon-border-"].rounded-xl,
+[class*="neon-border-"].rounded-2xl {
+  border-radius: inherit;
+}

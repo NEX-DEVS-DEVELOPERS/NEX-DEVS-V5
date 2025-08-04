@@ -11,11 +11,17 @@ import { TypeAnimation } from 'react-type-animation'; // Import the typewriter a
 // Add barba.js imports
 import { initBarba } from '@/utils/barba-init';
 
-// Add Audiowide font import
-import { Audiowide } from 'next/font/google';
+// Add Audiowide and VT323 font imports
+import { Audiowide, VT323 } from 'next/font/google';
 
-// Initialize the font
+// Initialize the fonts
 const audiowide = Audiowide({
+  weight: '400',
+  subsets: ['latin'],
+  display: 'swap',
+});
+
+const vt323 = VT323({
   weight: '400',
   subsets: ['latin'],
   display: 'swap',
@@ -350,46 +356,6 @@ const services = [
   },
   {
     id: 8,
-    title: 'AI Agents',
-    description: 'Advanced AI automation solutions featuring intelligent agents and smart systems for enhanced business operations.',
-    skills: [
-      'Custom AI Agent Development',
-      'Automated Workflow Systems',
-      'Intelligent Process Automation',
-      'Advanced NLP Integration'
-    ],
-    subFeatures: [
-      {
-        title: 'AI Applications',
-        items: ['Task Automation', 'Smart Decision Systems', 'Process Optimization']
-      },
-      {
-        title: 'Intelligent Systems',
-        items: ['Custom AI Models', 'Automated Learning', 'Performance Analytics']
-      }
-    ],
-    imageSection: {
-      title: 'AI Agent Solutions',
-      description: 'Intelligent automation for business processes',
-      imagePlaceholders: [
-        {
-          title: 'Workflow Automation',
-          description: 'Smart business processes',
-          image: 'https://ik.imagekit.io/u7ipvwnqb/NEX-DEVS%20(PET%20GPT%20COMBINED%20IMAGE)%20.png'
-        },
-        {
-          title: 'Intelligent Agents',
-          description: 'AI-powered decision making',
-          image: 'https://ik.imagekit.io/u7ipvwnqb/946_1x_shots_so.png?updatedAt=1750962486012'
-        }
-      ]
-    },
-    color: 'from-violet-600/40 to-fuchsia-600/40',
-    accent: 'border-fuchsia-400/50',
-    bgAccent: 'bg-violet-500/10'
-  },
-  {
-    id: 9,
     title: 'MODERN AI BASED SAAS PRODUCT',
     description: 'Enterprise-grade SaaS solutions powered by advanced AI, delivering intelligent and scalable business applications with modern cloud architecture.',
     skills: [
@@ -429,7 +395,7 @@ const services = [
     bgAccent: 'bg-yellow-500/5'
   },
   {
-    id: 10,
+    id: 9,
     title: 'WordPress Development',
     description: 'AI-Enhanced WordPress solutions featuring advanced automation and intelligent content management systems.',
     skills: [
@@ -469,7 +435,7 @@ const services = [
     bgAccent: 'bg-purple-500/5'
   },
   {
-    id: 11,
+    id: 10,
     title: 'Advanced SEO',
     description: 'AI-Powered SEO strategies utilizing advanced algorithms and Machine Learning for optimal online visibility.',
     skills: [
@@ -557,17 +523,21 @@ const slideVariants: Variants = {
   })
 };
 
-// Add animation sequencing control for welcome screen
+// Optimized animation sequencing for smooth 60fps performance
 const ANIMATION_SEQUENCE = {
   SCREEN_FADE_IN: 0,
-  BACKGROUND_ELEMENTS: 0.2, 
-  TITLE_TEXT: 0.4,
-  SUBTITLE_TEXT: 0.9, 
-  DESCRIPTION_TEXT: 1.4,
-  NEURAL_NETWORK: 1.8,
-  TECH_STACK: 2.4,
-  BUTTON: 2.8
+  BACKGROUND_ELEMENTS: 0.1,
+  TITLE_TEXT: 0.3,
+  SUBTITLE_TEXT: 0.6,
+  DESCRIPTION_TEXT: 0.9,
+  NEURAL_NETWORK: 1.1,
+  TECH_STACK: 1.3,
+  BUTTON: 1.5
 };
+
+// Optimized easing curves for 60fps animations
+const SMOOTH_EASING = [0.25, 0.46, 0.45, 0.94]; // Custom cubic-bezier for smooth motion
+const SPRING_EASING = [0.34, 1.56, 0.64, 1]; // Subtle spring effect
 
 // Add a modified version of the services data that contains shortened content for mobile
 function getServiceContent(isMobile: boolean) {
@@ -614,16 +584,17 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     setPreviewImage(null);
   };
 
-  // Initialize mobile check
+  // Initialize mobile check - Fixed for better mobile detection
   useEffect(() => {
     const checkMobile = () => {
       const userAgent = navigator.userAgent;
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-      const isSmallScreen = window.innerWidth < 640;
+      const isSmallScreen = window.innerWidth <= 768; // Increased threshold for better detection
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-      // Only consider it mobile if it's actually a mobile device
-      const actuallyMobile = isMobileDevice && isSmallScreen && isTouchDevice;
+      // Consider it mobile if it has small screen AND (is mobile device OR has touch)
+      // This ensures tablets and mobile devices are properly detected
+      const actuallyMobile = isSmallScreen && (isMobileDevice || isTouchDevice);
       setIsMobile(actuallyMobile);
 
       // Never show mobile preview popup for desktop users
@@ -1012,6 +983,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
   // Update function to render tech stack floating texts with staggered animations
   const renderTechStack = () => {
+    // Disable all tech stack animations on mobile for better performance
     if (isMobile || currentSlide !== -1 || !animationComplete.techStack) return null;
     
     const criticalTech = techStack.filter(tech => tech.importance === 'critical');
@@ -1054,36 +1026,36 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 top: position.y,
                 scale: 0.01
               }}
-              animate={{ 
-                x: [radius, -radius, radius], 
+              animate={{
+                x: [radius, -radius, radius],
                 y: [radius, -radius, radius],
-                opacity: [0, 0.7, 0.9, 0.8],
-                scale: [0.01, 0.7, 1.15, 0.9, 1] // Smoother pop bubble animation effect
+                opacity: [0, 0.8, 1, 0.9],
+                scale: [0.01, 0.6, 1.2, 0.95, 1] // Optimized pop animation for 60fps
               }}
               transition={{
                 opacity: {
-                  duration: 0.7, // Longer duration for smoother fade-in
+                  duration: 0.5, // Faster for better performance
                   delay: appearanceDelay,
-                  ease: "easeOut"
+                  ease: SMOOTH_EASING
                 },
                 scale: {
-                  duration: 1.2, // Longer duration for smoother pop effect
+                  duration: 0.8, // Optimized duration
                   delay: appearanceDelay,
-                  ease: [0.34, 1.56, 0.64, 1], // Custom spring-like effect for natural bubble pop
-                  times: [0, 0.3, 0.6, 0.85, 1] // Control timing of scale keyframes for smoother effect
+                  ease: SPRING_EASING,
+                  times: [0, 0.25, 0.6, 0.85, 1] // Optimized keyframe timing
                 },
                 x: {
-                  duration: position.speed + Math.random() * 0.5,
-                  delay: movementDelay, // Start floating motion only after appearance animation completes
+                  duration: position.speed + Math.random() * 0.3,
+                  delay: movementDelay,
                   repeat: Infinity,
-                  ease: "easeInOut",
+                  ease: SMOOTH_EASING,
                   repeatType: "reverse"
                 },
                 y: {
-                  duration: position.speed + Math.random() * 1.5,
-                  delay: movementDelay, // Start floating motion only after appearance animation completes
+                  duration: position.speed + Math.random() * 0.8,
+                  delay: movementDelay,
                   repeat: Infinity,
-                  ease: "easeInOut",
+                  ease: SMOOTH_EASING,
                   repeatType: "reverse"
                 }
               }}
@@ -1100,32 +1072,33 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 willChange: 'transform, opacity', // Performance optimization hint
               }}
             >
-              <motion.span 
+              <motion.span
                 className="w-2 h-2 bg-current rounded-full opacity-80"
                 initial={{ opacity: 0, scale: 0 }}
-                animate={{ 
-                  opacity: [0, 0.7, 1, 0.7],
-                  scale: [0, 0.7, 1.3, 0.8]
+                animate={{
+                  opacity: [0, 0.8, 1, 0.8],
+                  scale: [0, 0.8, 1.2, 0.9]
                 }}
                 transition={{
-                  duration: 1.0, // Longer duration for smoother animation
-                  delay: appearanceDelay + 0.15, // Slightly delayed after parent appears
-                  ease: [0.34, 1.56, 0.64, 1], // Custom spring-like effect
+                  duration: 0.6, // Optimized for 60fps
+                  delay: appearanceDelay + 0.1,
+                  ease: SPRING_EASING,
                   opacity: {
                     repeat: Infinity,
                     repeatType: "reverse",
-                    duration: 3, // Slower pulsing for more subtle effect
+                    duration: 2.5, // Optimized pulsing
                     delay: movementDelay
                   },
                   scale: {
                     repeat: Infinity,
                     repeatType: "reverse",
-                    duration: 3, // Slower pulsing for more subtle effect
+                    duration: 2.5, // Optimized pulsing
                     delay: movementDelay
                   }
                 }}
                 style={{
-                  willChange: 'transform, opacity', // Performance optimization hint
+                  willChange: 'transform, opacity',
+                  transform: 'translate3d(0, 0, 0)' // Force hardware acceleration
                 }}
               />
               {tech.name}
@@ -1138,6 +1111,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
   // Add neural network animation to welcome screen with progressive animation
   const renderNeuralNetworkAnimation = () => {
+    // Disable neural network animations on mobile for better performance
     if (isMobile || currentSlide !== -1 || !animationComplete.neural) return null; // Only show on welcome screen and after animation trigger
     
     // Define neural network nodes with more spread out positioning
@@ -1312,21 +1286,21 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   };
 
   return (
-    <div 
+    <div
       id="welcome-screen-overlay"
-      className="fixed inset-0 flex items-center justify-center overflow-hidden transform-gpu" 
+      className="fixed inset-0 flex items-center justify-center overflow-hidden transform-gpu backdrop-blur-md"
       data-barba="container"
       data-barba-namespace="welcome-screen"
       data-barba-prevent="all"
-      style={{ 
-        position: 'fixed', 
-        top: 0, 
-        left: 0, 
-        right: 0, 
-        bottom: 0, 
-        height: '100vh', 
-        width: '100vw', 
-        margin: 0, 
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        height: '100vh',
+        width: '100vw',
+        margin: 0,
         padding: 0,
         overscrollBehavior: 'none',
         touchAction: 'none',
@@ -1335,7 +1309,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         WebkitUserSelect: 'none',
         msUserSelect: 'none',
         backfaceVisibility: 'hidden',
-        display: 'flex'
+        display: 'flex',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        zIndex: 9999
       }}
       onTouchMove={(e) => e.preventDefault()}
       onWheel={(e) => e.preventDefault()}
@@ -1399,25 +1377,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         </>
       )}
 
-      {/* Dark overlay with better visibility */}
-      <motion.div 
-        initial={{ opacity: 0.8 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 1 }}
-        transition={{ duration: 0.3 }}
-        className="absolute inset-0 bg-black/80"
-        style={{ 
-          position: 'absolute', 
-          top: 0, 
-          left: 0, 
-          right: 0, 
-          bottom: 0,
-          backdropFilter: 'blur(2px)',
-          WebkitBackdropFilter: 'blur(2px)',
-          transform: 'translate3d(0,0,0)',
-          willChange: 'opacity',
-        }}
-      />
+
 
       <div className="absolute inset-0 flex items-center justify-center z-[9999]" 
            style={{ 
@@ -1428,29 +1388,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
            }}>
         {/* Dynamic background elements - optimized for visibility and performance */}
         <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
-          {/* Main background with enhanced visibility and smoother animation */}
-          <motion.div
-            initial={{ opacity: 0, backdropFilter: "blur(0px)", scale: 1.05 }}
-            animate={{ opacity: 1, backdropFilter: "blur(8px)", scale: 1 }}
-            exit={{ opacity: 0, backdropFilter: "blur(0px)", scale: 0.95 }}
-            transition={{
-              duration: 0.8,
-              ease: [0.22, 1, 0.36, 1],
-              opacity: { duration: 0.6 },
-              scale: { duration: 0.8 }
-            }}
-            className="absolute inset-0 bg-black/60"
-            style={{
-              WebkitBackdropFilter: "blur(8px)",
-              willChange: "backdrop-filter, transform, opacity",
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              transform: 'translate3d(0, 0, 0)'
-            }}
-          />
+
           
           {/* Gradient orbs with improved visibility and more professional staggered animation */}
           <div className="absolute inset-0 z-[1]"> {/* Added z-index */}
@@ -1498,36 +1436,39 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           {/* Add tech stack background only on welcome screen */}
           {renderTechStack()}
 
-          {/* Simplified starry background with improved performance */}
-          <div className="absolute inset-0 z-[1]">
-            {/* Fewer stars with staggered animation for better performance */}
-            {[...Array(typeof window !== 'undefined' && window.innerWidth < 640 ? 12 : 24)].map((_, i) => (
-              <motion.div
-                key={`star-${i}`}
-                className="absolute w-1 h-1 bg-white rounded-full transform-gpu"
-                initial={{ opacity: 0, scale: 0 }}
-                animate={{
-                  opacity: [0, 0.8, 0.1],
-                  scale: [0, 1, 0.8]
-                }}
-                transition={{
-                  duration: Math.random() * 2 + 1,
-                  delay: i * 0.04, // Slightly faster appearance
-                  repeat: Infinity,
-                  repeatType: "reverse",
-                }}
-                style={{
-                  top: `${Math.random() * 100}%`,
-                  left: `${Math.random() * 100}%`,
-                  willChange: "opacity, transform"
-                }}
-              />
-            ))}
-          </div>
+          {/* Simplified starry background with improved performance - disabled on mobile */}
+          {!isMobile && (
+            <div className="absolute inset-0 z-[1]">
+              {/* Fewer stars with staggered animation for better performance */}
+              {[...Array(24)].map((_, i) => (
+                <motion.div
+                  key={`star-${i}`}
+                  className="absolute w-1 h-1 bg-white rounded-full transform-gpu"
+                  initial={{ opacity: 0, scale: 0 }}
+                  animate={{
+                    opacity: [0, 0.8, 0.1],
+                    scale: [0, 1, 0.8]
+                  }}
+                  transition={{
+                    duration: Math.random() * 2 + 1,
+                    delay: i * 0.04, // Slightly faster appearance
+                    repeat: Infinity,
+                    repeatType: "reverse",
+                  }}
+                  style={{
+                    top: `${Math.random() * 100}%`,
+                    left: `${Math.random() * 100}%`,
+                    willChange: "opacity, transform"
+                  }}
+                />
+              ))}
+            </div>
+          )}
 
-          {/* Add new floating particles effect with performance optimizations */}
-          <motion.div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"> {/* Added z-index */}
-            {[...Array(12)].map((_, i) => ( // Reduced number of particles
+          {/* Add new floating particles effect with performance optimizations - Hidden on mobile */}
+          {!isMobile && (
+            <motion.div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"> {/* Added z-index */}
+              {[...Array(12)].map((_, i) => ( // Reduced number of particles
               <motion.div
                 key={`particle-${i}`}
                 className="absolute w-1 h-1 bg-white/10 rounded-full"
@@ -1553,8 +1494,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   willChange: "transform, opacity" // Performance optimization
                 }}
               />
-            ))}
-          </motion.div>
+              ))}
+            </motion.div>
+          )}
         </div>
 
         <AnimatePresence 
@@ -1592,7 +1534,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   backfaceVisibility: 'hidden'
                 }}
               >
-                {/* Close button with immediate animation */}
+                {/* Close button with immediate animation - Enhanced for mobile */}
                 <motion.button
                   initial={{ opacity: 0.8, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -1600,11 +1542,19 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.95 }}
                   onClick={handleClose}
-                  className="absolute top-3 right-3 z-50 w-7 h-7 flex items-center justify-center
+                  className={`absolute top-3 right-3 z-[9999] ${isMobile ? 'w-12 h-12' : 'w-8 h-8'} flex items-center justify-center
                            bg-white/15 hover:bg-white/25 rounded-full backdrop-blur-sm
-                           border border-white/20 hover:border-white/50 transition-all duration-300 transform-gpu"
+                           border border-white/20 hover:border-white/50 transition-all duration-300 transform-gpu
+                           touch-manipulation cursor-pointer`}
+                  style={{
+                    WebkitTapHighlightColor: 'transparent',
+                    touchAction: 'manipulation',
+                    pointerEvents: 'auto',
+                    position: 'absolute',
+                    zIndex: 9999
+                  }}
                 >
-                  <span className="text-white/90 text-base">×</span>
+                  <span className={`text-white/90 ${isMobile ? 'text-xl' : 'text-base'} font-bold leading-none`}>×</span>
                 </motion.button>
 
                 <motion.div
@@ -1717,22 +1667,34 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         />
                         <motion.h1
                           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold py-3 flex flex-col items-center gap-1 sm:gap-2 z-50"
-                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          initial={{ opacity: 0, y: 30, scale: 0.9, rotateX: 15 }}
+                          animate={{
+                            opacity: animationComplete.title ? 1 : 0,
+                            y: animationComplete.title ? 0 : 30,
+                            scale: animationComplete.title ? 1 : 0.9,
+                            rotateX: animationComplete.title ? 0 : 15
+                          }}
                           transition={{
-                            duration: 0.4,
-                            ease: [0.22, 1, 0.36, 1],
-                            delay: ANIMATION_SEQUENCE.TITLE_TEXT
+                            duration: 0.8,
+                            ease: SMOOTH_EASING,
+                            delay: ANIMATION_SEQUENCE.TITLE_TEXT,
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 20
                           }}
                           style={{
-                            opacity: animationComplete.title ? 1 : 0,
                             visibility: 'visible',
                             display: 'flex',
                             position: 'relative',
                             padding: '10px 20px',
                             backgroundColor: 'rgba(0,0,0,0.2)',
                             borderRadius: '16px',
-                            transform: 'translate3d(0, 0, 0)'
+                            transform: 'translate3d(0, 0, 0)',
+                            transformStyle: 'preserve-3d',
+                            willChange: 'transform, opacity',
+                            WebkitFontSmoothing: 'antialiased',
+                            MozOsxFontSmoothing: 'grayscale',
+                            textRendering: 'optimizeLegibility'
                           }}
                         >
                           {animationComplete.title ? (
@@ -1753,7 +1715,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                   display: 'block',
                                   width: '100%',
                                   fontFamily: audiowide.style.fontFamily,
-                                  textShadow: '0 0 10px rgba(147, 51, 234, 0.5)',
+                                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                                  WebkitFontSmoothing: 'antialiased',
+                                  MozOsxFontSmoothing: 'grayscale',
+                                  textRendering: 'optimizeLegibility'
                                 }}
                                 cursor={false}
                               />
@@ -1776,7 +1741,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                   display: 'block',
                                   width: '100%',
                                   fontFamily: audiowide.style.fontFamily,
-                                  textShadow: '0 0 15px rgba(147, 51, 234, 0.6)',
+                                  textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                                  WebkitFontSmoothing: 'antialiased',
+                                  MozOsxFontSmoothing: 'grayscale',
+                                  textRendering: 'optimizeLegibility'
                                 }}
                                 cursor={false}
                               />
@@ -1815,11 +1783,26 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </motion.div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 5 }}
-                        animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 5 }}
-                        transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT }}
-                        className="text-blue-300/90 text-sm uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center"
-                        style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)' }}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{
+                          opacity: animationComplete.subtitle ? 1 : 0,
+                          y: animationComplete.subtitle ? 0 : 20,
+                          scale: animationComplete.subtitle ? 1 : 0.95
+                        }}
+                        transition={{
+                          duration: 0.6,
+                          delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT,
+                          ease: SMOOTH_EASING,
+                          type: "spring",
+                          stiffness: 120,
+                          damping: 25
+                        }}
+                        className={`${vt323.className} text-blue-300/90 text-lg uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center`}
+                        style={{
+                          textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
+                          fontSize: '20px',
+                          willChange: 'transform, opacity'
+                        }}
                       >
                         {animationComplete.subtitle && (
                           <TypeAnimation
@@ -1829,7 +1812,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             ]}
                             wrapper="span"
                             speed={50}
-                            style={{ display: 'inline-block' }}
+                            style={{ display: 'inline-block', fontFamily: vt323.style.fontFamily }}
                             cursor={false}
                           />
                         )}
@@ -1837,10 +1820,22 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <div className="relative">
                         <motion.div
-                          initial={{ opacity: 0, y: 10 }}
-                          animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 10 }}
-                          transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.4 }}
+                          initial={{ opacity: 0, y: 25, scale: 0.9 }}
+                          animate={{
+                            opacity: animationComplete.subtitle ? 1 : 0,
+                            y: animationComplete.subtitle ? 0 : 25,
+                            scale: animationComplete.subtitle ? 1 : 0.9
+                          }}
+                          transition={{
+                            duration: 0.7,
+                            delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.2,
+                            ease: SMOOTH_EASING,
+                            type: "spring",
+                            stiffness: 100,
+                            damping: 22
+                          }}
                           className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-3 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           {animationComplete.subtitle && (
                             <>
@@ -1872,14 +1867,26 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: animationComplete.subtitle ? 1 : 0, y: animationComplete.subtitle ? 0 : 10 }}
-                        transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT }}
+                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        animate={{
+                          opacity: animationComplete.subtitle ? 1 : 0,
+                          y: animationComplete.subtitle ? 0 : 20,
+                          scale: animationComplete.subtitle ? 1 : 0.95
+                        }}
+                        transition={{
+                          duration: 0.6,
+                          delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT,
+                          ease: SMOOTH_EASING,
+                          type: "spring",
+                          stiffness: 110,
+                          damping: 24
+                        }}
+                        style={{ willChange: 'transform, opacity' }}
                       >
-                        <p className="text-sm xs:text-base sm:text-lg text-gray-300 mb-4 sm:mb-6 max-w-3xl mx-auto">
+                        <p className={`${vt323.className} text-base xs:text-lg sm:text-xl text-gray-300 mb-4 sm:mb-6 max-w-3xl mx-auto`} style={{ fontSize: '18px' }}>
                           {animationComplete.subtitle && (
                             <>
-                              Transform your digital presence with our 
+                              Transform your digital presence with our
                               <span className="inline-block text-transparent bg-clip-text bg-gradient-to-r from-purple-400 via-blue-400 to-emerald-400 font-semibold px-2">
                                 cutting-edge AI solutions
                               </span>
@@ -1887,9 +1894,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           )}
                         </p>
 
-                        <div className="text-sm xs:text-base sm:text-lg font-medium text-white/90 mb-4 sm:mb-6">
+                        <div className={`${vt323.className} text-base xs:text-lg sm:text-xl font-medium text-white/90 mb-4 sm:mb-6`} style={{ fontSize: '18px' }}>
                           {animationComplete.subtitle && (
-                            <motion.span 
+                            <motion.span
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
                               transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT + 0.3 }}
@@ -1902,6 +1909,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                 ]}
                                 wrapper="span"
                                 speed={70}
+                                style={{ fontFamily: vt323.style.fontFamily }}
                                 cursor={false}
                               />
                             </motion.span>
@@ -1911,16 +1919,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <motion.button
                         onClick={handleNext}
-                        initial={{ opacity: 0, y: 10, scale: 0.9 }}
-                        animate={{ 
-                          opacity: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0, 
-                          y: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 10, 
-                          scale: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0.9 
+                        initial={{ opacity: 0, y: 30, scale: 0.8, rotateX: 20 }}
+                        animate={{
+                          opacity: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0,
+                          y: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 30,
+                          scale: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0.8,
+                          rotateX: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 20
                         }}
                         transition={{
-                          duration: 0.4,
-                          ease: [0.22, 1, 0.36, 1],
-                          delay: 0.2
+                          duration: 0.8,
+                          ease: SPRING_EASING,
+                          delay: ANIMATION_SEQUENCE.BUTTON,
+                          type: "spring",
+                          stiffness: 120,
+                          damping: 20
                         }}
                         whileHover={{
                           scale: 1.05,
@@ -1931,13 +1943,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           scale: 0.98,
                           transition: { duration: 0.1 }
                         }}
-                        className="group px-5 sm:px-8 py-3 sm:py-4 bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
+                        className={`group ${isMobile ? 'px-6 py-4 text-base' : 'px-5 sm:px-8 py-3 sm:py-4'} bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
                                  hover:from-blue-600/80 hover:via-purple-600/80 hover:to-emerald-600/80 transition-all duration-300
-                                 backdrop-blur-sm border border-white/10 relative overflow-hidden shadow-lg shadow-purple-500/20 transform-gpu"
+                                 backdrop-blur-sm border border-white/10 relative overflow-hidden shadow-lg shadow-purple-500/20 transform-gpu
+                                 ${isMobile ? 'touch-manipulation' : ''}`}
                         style={{
                           filter: 'drop-shadow(0 0 10px rgba(168, 85, 247, 0.25))',
                           boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 0 10px -2px rgba(139, 92, 246, 0.3)',
-                          transform: 'translate3d(0, 0, 0)'
+                          transform: 'translate3d(0, 0, 0)',
+                          WebkitTapHighlightColor: 'transparent',
+                          touchAction: 'manipulation',
+                          pointerEvents: 'auto',
+                          position: 'relative',
+                          zIndex: 100,
+                          minHeight: isMobile ? '56px' : '48px'
                         }}
                       >
                         <span className="relative z-10 flex items-center gap-2">
@@ -2052,8 +2071,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   </div>
 
                   <div className="relative z-10">
-                    <h3 className="text-base sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-white/90 drop-shadow-lg relative flex flex-wrap gap-1 sm:gap-2 items-center"
-                        style={{ textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>
+                    <h3 className={`${audiowide.className} text-base sm:text-2xl md:text-3xl font-bold mb-1 sm:mb-2 text-white/90 drop-shadow-lg relative flex flex-wrap gap-1 sm:gap-2 items-center`}
+                        style={{
+                          textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
+                          WebkitFontSmoothing: 'antialiased',
+                          MozOsxFontSmoothing: 'grayscale',
+                          textRendering: 'optimizeLegibility'
+                        }}>
                       {serviceContent[currentSlide].id}. {serviceContent[currentSlide].title === 'New 3D Website' ? (
                         <motion.span className="relative inline-flex items-center">
                           {isMobile ? '3D Website' : 'New 3D Website'}
@@ -2198,7 +2222,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       )}
                     </h3>
 
-                    <p className={`text-xs sm:text-base text-white/85 ${isMobile ? 'mb-2' : 'mb-3 sm:mb-6'} max-w-3xl drop-shadow`}>
+                    <p className={`text-xs sm:text-base text-white/85 ${isMobile ? 'mb-2' : 'mb-3 sm:mb-6'} max-w-3xl drop-shadow`}
+                       style={{
+                         WebkitFontSmoothing: 'antialiased',
+                         MozOsxFontSmoothing: 'grayscale',
+                         textRendering: 'optimizeLegibility'
+                       }}>
                       {serviceContent[currentSlide].description}
                     </p>
 
@@ -2214,8 +2243,8 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               ? 'from-cyan-500/20 via-blue-500/20 to-cyan-500/20'
                               : 'from-purple-500/20 via-blue-500/20 to-purple-500/20')}
                         opacity-0 group-hover:opacity-100 transition-all duration-500`} />
-                      <motion.h4 
-                        className={`${isMobile ? 'text-xs' : 'text-sm sm:text-lg'} font-semibold mb-1.5 sm:mb-3 text-white/90 drop-shadow flex flex-wrap items-center gap-1 sm:gap-2`}
+                      <motion.h4
+                        className={`${audiowide.className} ${isMobile ? 'text-xs' : 'text-sm sm:text-lg'} font-semibold mb-1.5 sm:mb-3 text-white/90 drop-shadow flex flex-wrap items-center gap-1 sm:gap-2`}
                         animate={!isMobile ? {
                           textShadow: [
                             `0 0 15px ${currentSlide <= 1 ? (currentSlide === 0 ? 'rgba(59, 130, 246, 0.5)' : 'rgba(16, 185, 129, 0.5)') : 'rgba(147, 51, 234, 0.5)'}`,
@@ -2339,10 +2368,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             } rounded-lg sm:rounded-xl ${isMobile ? 'p-1.5' : 'p-2 sm:p-4'} 
                                      border transition-all duration-250 hardware-accelerated`}
                           >
-                            <h5 className={`${isMobile ? 'text-[10px] mb-1' : 'text-xs sm:text-base mb-1.5 sm:mb-2'} font-semibold ${
-                              currentSlide <= 1 
-                                ? (currentSlide === 0 
-                                    ? 'text-blue-200' 
+                            <h5 className={`${audiowide.className} ${isMobile ? 'text-[10px] mb-1' : 'text-xs sm:text-base mb-1.5 sm:mb-2'} font-semibold ${
+                              currentSlide <= 1
+                                ? (currentSlide === 0
+                                    ? 'text-blue-200'
                                     : 'text-emerald-200')
                                 : 'text-purple-200'
                             } drop-shadow flex items-center gap-1.5 sm:gap-2`}>
@@ -2452,12 +2481,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </div>
                       <button
                         onClick={handleNext}
-                        className={`group ${isMobile ? 'px-2 py-1 text-[10px]' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} backdrop-blur-sm rounded-lg text-white font-semibold
-                                 border hover:scale-105 ${isMobile ? '' : 'w-full sm:w-auto'} transition-all duration-150 
+                        className={`group ${isMobile ? 'px-3 py-2 text-sm' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} backdrop-blur-sm rounded-lg text-white font-semibold
+                                 border hover:scale-105 ${isMobile ? 'touch-manipulation' : 'w-full sm:w-auto'} transition-all duration-150
                                  relative overflow-hidden ${isMobile ? '' : 'order-1 sm:order-2'}
-                                 ${currentSlide === services.length - 1 
-                                   ? 'bg-gradient-to-r from-purple-500/80 via-blue-500/80 to-emerald-500/80 border-purple-500/30 shadow-lg shadow-purple-500/20' 
+                                 ${currentSlide === services.length - 1
+                                   ? 'bg-gradient-to-r from-purple-500/80 via-blue-500/80 to-emerald-500/80 border-purple-500/30 shadow-lg shadow-purple-500/20'
                                    : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
+                        style={{
+                          WebkitTapHighlightColor: 'transparent',
+                          touchAction: 'manipulation'
+                        }}
                       >
                         <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">
                           {currentSlide === services.length - 1 ? (isMobile ? 'Start ✨' : 'Get Started ✨') : 'Next →'}
@@ -2720,7 +2753,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 currentSlide === 11 ? 'bg-emerald-500/20' : 
                 'bg-blue-400/20'
               }`}>
-                <span className="text-xs font-semibold text-white drop-shadow-md block">
+                <span className={`${audiowide.className} text-xs font-semibold text-white drop-shadow-md block`}>
                   {serviceContent[currentSlide].imageSection.imagePlaceholders[0].title}
                 </span>
                 <span className="text-[10px] text-white/90 drop-shadow-md">
@@ -2747,7 +2780,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 onClick={() => openImagePreview(
                   currentSlide <= 1 ? (
                     currentSlide === 0 
-                      ? "https://ik.imagekit.io/u7ipvwnqb/40_1x_shots_so.png?updatedAt=1751547665623" 
+                      ? "https://ik.imagekit.io/u7ipvwnqb/908shots_so.png"
                       : "https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Home_Dev_O_Ps_43aa01a07b.webp"
                   ) : (currentSlide >= 2 && currentSlide <= 10) && 'image' in serviceContent[currentSlide].imageSection.imagePlaceholders[0] 
                       ? (serviceContent[currentSlide].imageSection.imagePlaceholders[0] as {title: string, description: string, image: string}).image
@@ -2760,7 +2793,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   {currentSlide <= 1 ? (
                     currentSlide === 0 ? (
                     <img 
-                      src="https://ik.imagekit.io/u7ipvwnqb/40_1x_shots_so.png?updatedAt=1751547665623" 
+                      src="https://ik.imagekit.io/u7ipvwnqb/908shots_so.png" 
                       alt="AI Chatbot Integration"
                         className="w-full h-full object-contain transform transition-transform duration-300 hover:scale-105"
                         loading="eager"
@@ -2860,7 +2893,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 currentSlide === 11 ? 'bg-emerald-500/20' : 
                 'bg-blue-400/20'
               }`}>
-                <span className="text-xs font-semibold text-white drop-shadow-md block">
+                <span className={`${audiowide.className} text-xs font-semibold text-white drop-shadow-md block`}>
                   {serviceContent[currentSlide].imageSection.imagePlaceholders[1].title}
                 </span>
                 <span className="text-[10px] text-white/90 drop-shadow-md">

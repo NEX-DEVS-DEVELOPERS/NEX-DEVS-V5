@@ -81,10 +81,19 @@ export default function Projects() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      {projects.map((project) => (
-        <div 
+      {projects.map((project, index) => (
+        <div
           key={project.id}
-          className="bg-gray-900/50 rounded-xl overflow-hidden border border-white/10 hover:border-purple-500/30 transition-all duration-300 group flex flex-col"
+          className={`bg-gray-900/50 rounded-xl overflow-hidden transition-all duration-300 group flex flex-col ${
+            index % 8 === 0 ? 'neon-border-purple-base' :
+            index % 8 === 1 ? 'neon-border-blue-base' :
+            index % 8 === 2 ? 'neon-border-green-base' :
+            index % 8 === 3 ? 'neon-border-pink-base' :
+            index % 8 === 4 ? 'neon-border-cyan-base' :
+            index % 8 === 5 ? 'neon-border-orange-base' :
+            index % 8 === 6 ? 'neon-border-yellow-base' :
+            'neon-border-violet-base'
+          }`}
         >
           <div className="relative h-60 w-full overflow-hidden">
             <Image 

@@ -219,7 +219,42 @@ img, video {
 }
 
 .assistant-message {
-  background: linear-gradient(to right, #1E1E2E, #2E2E3E);
+  background: #000000 !important;
+  color: #ffffff !important;
+  transition: all 0.3s ease !important;
+}
+
+.assistant-message * {
+  color: #ffffff !important;
+}
+
+/* Enhanced neon border effects for assistant messages */
+.assistant-message.border-cyan-400 {
+  border: 2px solid #22d3ee !important;
+  box-shadow: 0 0 20px rgba(34, 211, 238, 0.4),
+              inset 0 0 20px rgba(34, 211, 238, 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.assistant-message.border-purple-400 {
+  border: 2px solid #c084fc !important;
+  box-shadow: 0 0 20px rgba(192, 132, 252, 0.4),
+              inset 0 0 20px rgba(192, 132, 252, 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.assistant-message.border-yellow-400 {
+  border: 2px solid #facc15 !important;
+  box-shadow: 0 0 20px rgba(250, 204, 21, 0.4),
+              inset 0 0 20px rgba(250, 204, 21, 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.4) !important;
+}
+
+.assistant-message.border-green-400 {
+  border: 2px solid #4ade80 !important;
+  box-shadow: 0 0 20px rgba(74, 222, 128, 0.4),
+              inset 0 0 20px rgba(74, 222, 128, 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.4) !important;
 }
 
 @keyframes slideIn {

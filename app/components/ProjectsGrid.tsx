@@ -184,24 +184,25 @@ export default function ProjectsGrid() {
     }
   };
 
-  // Add manual refresh function for admins
-  const handleManualRefresh = () => {
+  // Add manual refresh function for admins - optimized without reload
+  const handleManualRefresh = async () => {
     setIsLoading(true);
-    // Force revalidation
-    fetch('/api/revalidate?path=/projects&secret=admin-access')
-      .then(() => {
-        // Wait a moment for revalidation to complete
-        setTimeout(() => {
-          // Force reload the current page
-          window.location.reload();
-        }, 500);
-      })
-      .catch(error => {
-        console.error('Error revalidating:', error);
-        setIsLoading(false);
-        setError('Failed to revalidate: ' + error.message);
-        fetchDebugInfo();
-      });
+    try {
+      // Force revalidation
+      await fetch('/api/revalidate?path=/projects&secret=admin-access');
+
+      // Refetch projects data instead of reloading
+      await fetchProjects();
+
+      // Show success message
+      console.log('Projects data refreshed successfully');
+    } catch (error) {
+      console.error('Error revalidating:', error);
+      setError('Failed to revalidate: ' + error.message);
+      fetchDebugInfo();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Memoize filtered projects
@@ -269,10 +270,10 @@ export default function ProjectsGrid() {
           <p className="text-white mb-4">{error}</p>
           <div className="flex justify-center gap-4">
             <button
-              onClick={() => window.location.reload()}
+              onClick={handleManualRefresh}
               className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
             >
-              Reload Page
+              Refresh Projects
             </button>
             <button
               onClick={fetchDebugInfo}
@@ -339,7 +340,7 @@ export default function ProjectsGrid() {
           </button>
         </div>
         
-        <div className="bg-gray-900/50 rounded-xl p-8 border border-purple-500/20 text-center">
+        <div className="bg-gray-900/50 rounded-xl p-8 neon-border-red-base text-center">
           <h3 className="text-xl font-semibold text-purple-300 mb-3">
             {selectedCategory === 'All' 
               ? "No projects found" 
@@ -478,10 +479,21 @@ export default function ProjectsGrid() {
             scrollPaddingRight: '1rem'
           }}
         >
-          {filteredProjects.map((project) => (
+          {filteredProjects.map((project, index) => (
             <div
               key={project.id}
-              className="project-card flex-none w-[300px] md:w-[350px] snap-start bg-black/40 border border-white/10 rounded-xl overflow-hidden backdrop-blur-sm transition-transform duration-300 hover:scale-[1.02]"
+              className={`project-card flex-none w-[300px] md:w-[350px] snap-start bg-black/40 rounded-xl overflow-hidden backdrop-blur-sm transition-transform duration-300 hover:scale-[1.02] ${
+                index % 10 === 0 ? 'neon-border-purple-base' :
+                index % 10 === 1 ? 'neon-border-blue-base' :
+                index % 10 === 2 ? 'neon-border-green-base' :
+                index % 10 === 3 ? 'neon-border-pink-base' :
+                index % 10 === 4 ? 'neon-border-cyan-base' :
+                index % 10 === 5 ? 'neon-border-orange-base' :
+                index % 10 === 6 ? 'neon-border-yellow-base' :
+                index % 10 === 7 ? 'neon-border-red-base' :
+                index % 10 === 8 ? 'neon-border-violet-base' :
+                'neon-border-lime-base'
+              }`}
               style={{ 
                 height: '400px',
                 contain: 'content',

@@ -499,16 +499,16 @@ const ImageSectionNeuralNetwork = () => {
 const LeakyCodeAnimation = () => {
   return (
     <div className="absolute top-12 right-12 w-80 overflow-hidden z-0 pointer-events-none">
-      <div className="bg-black/30 backdrop-blur-sm p-4 rounded-lg border border-blue-500/20">
-        <motion.div 
+      <div className="bg-black/60 backdrop-blur-md p-4 rounded-lg border border-blue-500/30 shadow-lg shadow-black/50">
+        <motion.div
           initial={{ opacity: 0 }}
-          animate={{ opacity: [0.4, 0.8, 0.4] }}
-          transition={{ 
-            duration: 10, 
+          animate={{ opacity: [0.2, 0.4, 0.2] }}
+          transition={{
+            duration: 12,
             repeat: Infinity,
             ease: "linear"
           }}
-          className="font-mono text-xs text-blue-400 whitespace-pre leading-relaxed"
+          className="font-mono text-xs text-blue-400/70 whitespace-pre leading-relaxed"
         >
           {`{ 
   model: 'anthropic/claude 4 opus', 
@@ -2790,8 +2790,8 @@ export default function CustomChatbotPage() {
                     {activeTechDetails === 'enterprise' && (
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div className="space-y-4">
-                          <div className="bg-red-500/10 backdrop-blur-sm rounded-lg p-3">
-                            <h4 className="text-base font-semibold text-red-300 mb-2">Enterprise AI Infrastructure</h4>
+                          <div className="bg-black/70 backdrop-blur-lg rounded-lg p-4 border border-red-500/20 shadow-lg shadow-black/30">
+                            <h4 className="text-lg font-bold text-red-200 mb-3 drop-shadow-lg">Enterprise-Grade AI Infrastructure</h4>
                             <ul className="space-y-2 text-sm">
                               <li className="flex items-start">
                                 <Brain className="text-red-400 mr-2 mt-0.5 flex-shrink-0" size={16} />
@@ -2811,7 +2811,7 @@ export default function CustomChatbotPage() {
                               </li>
                             </ul>
                           </div>
-                          <div className="bg-orange-500/10 backdrop-blur-sm rounded-lg p-3">
+                          <div className="bg-black/70 backdrop-blur-lg rounded-lg p-4 border border-orange-500/20 shadow-lg shadow-black/30">
                             <h4 className="text-base font-semibold text-orange-300 mb-2">Advanced Features</h4>
                             <ul className="space-y-2 text-sm">
                               <li className="flex items-start">
@@ -2830,7 +2830,7 @@ export default function CustomChatbotPage() {
                           </div>
                         </div>
                         <div className="space-y-4">
-                          <div className="bg-purple-500/10 backdrop-blur-sm rounded-lg p-3">
+                          <div className="bg-black/70 backdrop-blur-lg rounded-lg p-4 border border-purple-500/20 shadow-lg shadow-black/30">
                             <h4 className="text-base font-semibold text-purple-300 mb-2">Enterprise Support</h4>
                             <ul className="space-y-2 text-sm">
                               <li className="flex items-start">
@@ -2847,7 +2847,7 @@ export default function CustomChatbotPage() {
                               </li>
                             </ul>
                           </div>
-                          <div className="bg-blue-500/10 backdrop-blur-sm rounded-lg p-3">
+                          <div className="bg-black/70 backdrop-blur-lg rounded-lg p-4 border border-blue-500/20 shadow-lg shadow-black/30">
                             <h4 className="text-base font-semibold text-blue-300 mb-2">Security & Compliance</h4>
                             <ul className="space-y-2 text-sm">
                               <li className="flex items-start">

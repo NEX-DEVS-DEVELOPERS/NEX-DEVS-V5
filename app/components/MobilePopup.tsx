@@ -3,7 +3,11 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MobilePopup = () => {
+interface MobilePopupProps {
+  onClose?: () => void;
+}
+
+const MobilePopup = ({ onClose }: MobilePopupProps = {}) => {
   const [isVisible, setIsVisible] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
@@ -19,7 +23,7 @@ const MobilePopup = () => {
       const actuallyMobile = isMobileDevice && isSmallScreen && isTouchDevice;
       setIsMobile(actuallyMobile);
 
-      // Only show popup for actual mobile devices, never for desktop
+      // Show popup immediately when component is rendered (parent controls visibility)
       if (actuallyMobile) {
         setIsVisible(true);
       } else {
@@ -47,6 +51,10 @@ const MobilePopup = () => {
           exit={{ opacity: 0 }}
           transition={{ duration: 0.5 }}
           className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/70 backdrop-blur-lg"
+          style={{
+            willChange: 'opacity',
+            transform: 'translate3d(0, 0, 0)'
+          }}
         >
           <motion.div
             initial={{ scale: 0.9, y: 20 }}
@@ -57,25 +65,30 @@ const MobilePopup = () => {
             style={{
               boxShadow: '0 8px 32px 0 rgba(76, 29, 149, 0.25)',
               backdropFilter: 'blur(20px)',
+              willChange: 'transform, opacity',
+              transform: 'translate3d(0, 0, 0)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="space-y-4">
               <h2 className="text-white text-2xl font-semibold mb-2 text-shadow">
-                Mobile View Notice
+                Professional Experience Notice
               </h2>
               <p className="text-white/90 text-lg font-medium leading-relaxed">
-                For the best experience, please view this portfolio on a laptop or desktop.
+                VIEW THIS PORTFOLIO ON DESKTOP FOR THE COMPLETE PROFESSIONAL EXPERIENCE
               </p>
               <p className="text-white/80 text-base">
-                Mobile version has limited animations and effects to ensure smooth performance.
+                Our mobile version features optimized performance with streamlined animations and enhanced user experience tailored for mobile devices.
               </p>
             </div>
             <button
-              onClick={() => setIsVisible(false)}
+              onClick={() => {
+                setIsVisible(false);
+                onClose?.();
+              }}
               className="mt-8 px-10 py-3.5 bg-gradient-to-r from-purple-600/30 to-purple-800/30 hover:from-purple-600/40 hover:to-purple-800/40 text-white rounded-full font-medium backdrop-blur-sm transition-all duration-300 border border-purple-500/30 hover:scale-105 active:scale-95 shadow-lg hover:shadow-purple-500/20"
             >
-              Continue to Site
+              PROCEED TO PORTFOLIO
             </button>
           </motion.div>
         </motion.div>

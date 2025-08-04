@@ -139,7 +139,7 @@ export default function TechStackSection() {
               {/* Technology category boxes */}
               <motion.div
                 variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
+                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-purple-base"
               >
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Frontend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
@@ -152,7 +152,7 @@ export default function TechStackSection() {
 
               <motion.div
                 variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
+                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-blue-base"
               >
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Backend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
@@ -165,7 +165,7 @@ export default function TechStackSection() {
 
               <motion.div
                 variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
+                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-green-base"
               >
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Cloud & DevOps</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
@@ -178,7 +178,7 @@ export default function TechStackSection() {
 
               <motion.div
                 variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black border-2 border-purple-500/30"
+                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-pink-base"
               >
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>AI & Tools</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
@@ -199,7 +199,7 @@ export default function TechStackSection() {
             <div className={`relative w-full ${isMobile ? 'max-w-sm' : 'max-w-lg'}`}>
               {/* Icon Cloud Container */}
               <div
-                className={`relative bg-black rounded-2xl border-2 border-purple-500/50 ${
+                className={`relative bg-black rounded-2xl neon-border-cyan-base ${
                   isMobile ? 'p-4' : 'p-6 lg:p-8'
                 }`}
               >

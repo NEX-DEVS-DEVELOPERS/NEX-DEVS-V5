@@ -45,9 +45,14 @@ export default function RefreshButton({ projectId }: { projectId: number }) {
       
       // Show success message
       toast.success('Project data refreshed successfully!');
-      
-      // Force reload the current page to show updated data
-      window.location.reload();
+
+      // Use Barba.js for smooth transition instead of reload
+      if (typeof window !== 'undefined' && window.barba) {
+        window.barba.go(window.location.href);
+      } else {
+        // Fallback: trigger a custom event for data refresh
+        window.dispatchEvent(new CustomEvent('projectDataRefreshed', { detail: result }));
+      }
     } catch (error) {
       console.error('Error refreshing project:', error);
       toast.dismiss();

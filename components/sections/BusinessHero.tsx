@@ -383,16 +383,16 @@ export default function BusinessHero() {
               </h3>
               
               <div className="grid grid-cols-2 gap-3 sm:gap-4">
-                <div className="p-2 sm:p-3 rounded-lg bg-black/30 border border-purple-900/20">
+                <div className="p-2 sm:p-3 rounded-lg bg-black/30 neon-border-purple-base">
                   <CounterAnimation end={55} suffix="%" label="Higher Efficiency" />
                 </div>
-                <div className="p-2 sm:p-3 rounded-lg bg-black/30 border border-purple-900/20">
+                <div className="p-2 sm:p-3 rounded-lg bg-black/30 neon-border-blue-base">
                   <CounterAnimation end={200} suffix="+" label="Satisfied Clients" />
                 </div>
-                <div className="p-2 sm:p-3 rounded-lg bg-black/30 border border-purple-900/20">
+                <div className="p-2 sm:p-3 rounded-lg bg-black/30 neon-border-green-base">
                   <CounterAnimation end={40} suffix="%" label="Cost Reduction" />
                 </div>
-                <div className="p-2 sm:p-3 rounded-lg bg-black/30 border border-purple-900/20">
+                <div className="p-2 sm:p-3 rounded-lg bg-black/30 neon-border-pink-base">
                   <CounterAnimation end={83} suffix="%" label="Client Retention" />
                 </div>
               </div>
@@ -481,9 +481,15 @@ export default function BusinessHero() {
                     imageUrl: "https://i.pinimg.com/736x/96/82/6c/96826cc153b5f2b00a8bb3ef0dedbdea.jpg"
                   }
                 ].map((model, i) => (
-                  <div 
-                    key={i} 
-                    className="bg-black/30 rounded-lg border border-purple-900/20 p-3 sm:p-4 flex flex-col"
+                  <div
+                    key={i}
+                    className={`bg-black/30 rounded-lg p-3 sm:p-4 flex flex-col ${
+                      i % 5 === 0 ? 'neon-border-cyan-base' :
+                      i % 5 === 1 ? 'neon-border-orange-base' :
+                      i % 5 === 2 ? 'neon-border-yellow-base' :
+                      i % 5 === 3 ? 'neon-border-violet-base' :
+                      'neon-border-lime-base'
+                    }`}
                   >
                     <div className="aspect-video bg-black/50 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {model.imagePlaceholder ? (
@@ -554,9 +560,14 @@ export default function BusinessHero() {
                     imageUrl: "https://cdn.worldvectorlogo.com/logos/zapier-2.svg"
                   }
                 ].map((tool, i) => (
-                  <div 
-                    key={i} 
-                    className="bg-black/30 rounded-lg border border-purple-900/20 p-3 sm:p-4 flex flex-col"
+                  <div
+                    key={i}
+                    className={`bg-black/30 rounded-lg p-3 sm:p-4 flex flex-col ${
+                      i % 4 === 0 ? 'neon-border-red-base' :
+                      i % 4 === 1 ? 'neon-border-cyan-base' :
+                      i % 4 === 2 ? 'neon-border-orange-base' :
+                      'neon-border-yellow-base'
+                    }`}
                   >
                     <div className="aspect-video bg-black/50 rounded-lg mb-3 flex items-center justify-center overflow-hidden">
                       {tool.imagePlaceholder ? (
@@ -598,9 +609,14 @@ export default function BusinessHero() {
               { value: "99.9%", label: "Automation Reliability", icon: "✓" },
               { value: "60%", label: "Cost Reduction", icon: "💰" }
             ].map((stat, i) => (
-              <div 
-                key={i} 
-                className="bg-black/30 backdrop-blur-sm border border-purple-900/20 rounded-lg p-3 sm:p-4 text-center"
+              <div
+                key={i}
+                className={`bg-black/30 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center ${
+                  i % 4 === 0 ? 'neon-border-purple-base' :
+                  i % 4 === 1 ? 'neon-border-blue-base' :
+                  i % 4 === 2 ? 'neon-border-green-base' :
+                  'neon-border-pink-base'
+                }`}
               >
                 <div className="text-2xl mb-1">{stat.icon}</div>
                 <div className="text-xl sm:text-2xl font-bold text-white mb-1">{stat.value}</div>
@@ -845,9 +861,14 @@ export default function BusinessHero() {
               { title: "Flexible Architecture", icon: "🧩", desc: "Adapt to changing business requirements" },
               { title: "Future-Proof", icon: "🚀", desc: "Stay current with evolving AI capabilities" }
             ].map((benefit, i) => (
-              <div 
-                key={i} 
-                className="bg-black/30 backdrop-blur-sm border border-blue-900/20 rounded-lg p-3 sm:p-4 text-center"
+              <div
+                key={i}
+                className={`bg-black/30 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center ${
+                  i % 4 === 0 ? 'neon-border-cyan-base' :
+                  i % 4 === 1 ? 'neon-border-orange-base' :
+                  i % 4 === 2 ? 'neon-border-yellow-base' :
+                  'neon-border-violet-base'
+                }`}
               >
                 <div className="text-2xl mb-2">{benefit.icon}</div>
                 <h4 className="text-sm font-medium text-white mb-1">{benefit.title}</h4>
@@ -938,19 +959,19 @@ export default function BusinessHero() {
               
               {/* Key Metrics */}
               <div className="grid grid-cols-2 gap-3">
-                <div className="bg-black/30 backdrop-blur-sm border border-blue-900/20 rounded-lg p-3 sm:p-4 text-center">
+                <div className="bg-black/30 backdrop-blur-sm neon-border-lime-base rounded-lg p-3 sm:p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">85%</div>
                   <p className="text-xs text-gray-400">Faster Development</p>
                 </div>
-                <div className="bg-black/30 backdrop-blur-sm border border-blue-900/20 rounded-lg p-3 sm:p-4 text-center">
+                <div className="bg-black/30 backdrop-blur-sm neon-border-red-base rounded-lg p-3 sm:p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">60%</div>
                   <p className="text-xs text-gray-400">Cost Reduction</p>
                 </div>
-                <div className="bg-black/30 backdrop-blur-sm border border-blue-900/20 rounded-lg p-3 sm:p-4 text-center">
+                <div className="bg-black/30 backdrop-blur-sm neon-border-cyan-base rounded-lg p-3 sm:p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">3x</div>
                   <p className="text-xs text-gray-400">Faster Iteration</p>
                 </div>
-                <div className="bg-black/30 backdrop-blur-sm border border-blue-900/20 rounded-lg p-3 sm:p-4 text-center">
+                <div className="bg-black/30 backdrop-blur-sm neon-border-orange-base rounded-lg p-3 sm:p-4 text-center">
                   <div className="text-2xl font-bold text-white mb-1">90%</div>
                   <p className="text-xs text-gray-400">Team Adoption</p>
                 </div>
@@ -1142,9 +1163,14 @@ export default function BusinessHero() {
               { title: "Scalable Performance", icon: "📈", desc: "Handles growing workloads" },
               { title: "Instant Insights", icon: "💡", desc: "Real-time business intelligence" }
             ].map((benefit, i) => (
-              <div 
-                key={i} 
-                className="bg-black/30 backdrop-blur-sm border border-purple-900/20 rounded-lg p-3 sm:p-4 text-center"
+              <div
+                key={i}
+                className={`bg-black/30 backdrop-blur-sm rounded-lg p-3 sm:p-4 text-center ${
+                  i % 4 === 0 ? 'neon-border-yellow-base' :
+                  i % 4 === 1 ? 'neon-border-violet-base' :
+                  i % 4 === 2 ? 'neon-border-lime-base' :
+                  'neon-border-red-base'
+                }`}
               >
                 <div className="text-2xl mb-2">{benefit.icon}</div>
                 <h4 className="text-sm font-medium text-white mb-1">{benefit.title}</h4>
@@ -1173,7 +1199,14 @@ export default function BusinessHero() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.7 + index * 0.1 }}
-                className="bg-black/40 backdrop-blur-lg border border-purple-900/20 rounded-lg p-3 sm:p-4 relative overflow-hidden"
+                className={`bg-black/40 backdrop-blur-lg rounded-lg p-3 sm:p-4 relative overflow-hidden ${
+                  index % 6 === 0 ? 'neon-border-purple-base' :
+                  index % 6 === 1 ? 'neon-border-blue-base' :
+                  index % 6 === 2 ? 'neon-border-green-base' :
+                  index % 6 === 3 ? 'neon-border-pink-base' :
+                  index % 6 === 4 ? 'neon-border-cyan-base' :
+                  'neon-border-orange-base'
+                }`}
               >
                 <div className="relative">
                   <div className="w-7 h-7 sm:w-9 sm:h-9 flex items-center justify-center rounded-lg bg-purple-900/20 border border-purple-900/30 mb-2 sm:mb-3 text-base sm:text-lg">

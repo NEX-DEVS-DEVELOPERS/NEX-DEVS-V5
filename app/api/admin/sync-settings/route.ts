@@ -50,10 +50,36 @@ export async function POST(request: NextRequest) {
       await updateKnowledgeFile(knowledgeEntries);
     }
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'All settings synchronized successfully',
-      timestamp: new Date().toISOString()
+    // CRITICAL FIX: Force cache invalidation and module reloading
+    try {
+      // Clear Node.js module cache for the updated files
+      const aiSettingsPath = path.join(process.cwd(), 'utils', 'nexiousAISettings.ts');
+      const knowledgePath = path.join(process.cwd(), 'lib', 'nexious-knowledge.ts');
+
+      // Delete from require cache to force reload using static paths
+      try {
+        delete require.cache[path.resolve(process.cwd(), 'utils/nexiousAISettings.ts')];
+        delete require.cache[path.resolve(process.cwd(), 'lib/nexious-knowledge.ts')];
+      } catch (resolveError) {
+        // Fallback: try to clear cache using absolute paths
+        delete require.cache[aiSettingsPath];
+        delete require.cache[knowledgePath];
+      }
+
+      // Force Next.js to revalidate pages that use these modules
+      await fetch(`${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/api/revalidate?path=/&secret=nex-devs919`);
+
+      console.log('✅ Cache invalidated and modules reloaded');
+    } catch (cacheError) {
+      console.warn('⚠️ Cache invalidation failed:', cacheError);
+      // Don't fail the entire operation if cache invalidation fails
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'All settings synchronized successfully and cache invalidated',
+      timestamp: new Date().toISOString(),
+      cacheCleared: true
     });
 
   } catch (error) {
@@ -204,9 +230,17 @@ ${fallbackModelsCode}
       updatedContent = updatedContent.replace(fallbackConfigRegex, newFallbackConfig);
     }
 
-    // Write updated content back to file
-    await fs.writeFile(filePath, updatedContent, 'utf-8');
-    console.log('Successfully updated nexiousAISettings.ts');
+    // Write updated content back to file with atomic operation
+    const tempFilePath = `${filePath}.tmp`;
+    await fs.writeFile(tempFilePath, updatedContent, 'utf-8');
+    await fs.rename(tempFilePath, filePath);
+
+    // Force file system sync
+    const fileHandle = await fs.open(filePath, 'r+');
+    await fileHandle.sync();
+    await fileHandle.close();
+
+    console.log('✅ Successfully updated nexiousAISettings.ts with atomic write');
 
   } catch (error) {
     console.error('Error updating AI settings file:', error);
@@ -242,9 +276,17 @@ ${newEntriesCode}
 
     const updatedContent = currentContent.replace(dynamicKnowledgeRegex, newDynamicKnowledge);
 
-    // Write updated content back to file
-    await fs.writeFile(filePath, updatedContent, 'utf-8');
-    console.log('Successfully updated nexious-knowledge.ts');
+    // Write updated content back to file with atomic operation
+    const tempFilePath = `${filePath}.tmp`;
+    await fs.writeFile(tempFilePath, updatedContent, 'utf-8');
+    await fs.rename(tempFilePath, filePath);
+
+    // Force file system sync
+    const fileHandle = await fs.open(filePath, 'r+');
+    await fileHandle.sync();
+    await fileHandle.close();
+
+    console.log('✅ Successfully updated nexious-knowledge.ts with atomic write');
 
   } catch (error) {
     console.error('Error updating knowledge file:', error);

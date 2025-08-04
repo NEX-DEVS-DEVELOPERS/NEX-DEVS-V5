@@ -21,8 +21,8 @@ interface NeuralNetworkProps {
 }
 
 export default function NeuralNetwork({
-  color = '#a855f7',
-  lineColor = '#8b5cf6',
+  color = '#00ffff', // Bright cyan neon
+  lineColor = '#00ff88', // Bright green neon
   pointCount = 25, // Optimized default
   connectionRadius = 120, // Optimized default
   speed = 0.3, // Optimized default
@@ -149,7 +149,7 @@ export default function NeuralNetwork({
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < connectionRadius) {
-            const opacity = (1 - (distance / connectionRadius)) * 0.8; // Much more visible lines
+            const opacity = (1 - (distance / connectionRadius)) * 0.9; // More vibrant lines
             connections.push({
               x1: point.x,
               y1: point.y,
@@ -169,7 +169,7 @@ export default function NeuralNetwork({
         ctx.moveTo(conn.x1, conn.y1);
         ctx.lineTo(conn.x2, conn.y2);
         ctx.strokeStyle = `${lineColor}${Math.floor(conn.opacity * 255).toString(16).padStart(2, '0')}`;
-        ctx.lineWidth = Math.max(0.8, conn.opacity * 2); // Thicker, more visible lines
+        ctx.lineWidth = Math.max(1.2, conn.opacity * 2.5); // Thicker, more vibrant lines
         ctx.stroke();
       });
 
@@ -289,7 +289,7 @@ export default function NeuralNetwork({
           transform: 'translate3d(0, 0, 0)',
           backfaceVisibility: 'hidden',
           willChange: 'auto',
-          opacity: 0.9, // Much more visible
+          opacity: 0.7, // More visible neon effect
         }}
       />
       {/* Fallback CSS-based neural network for browsers that struggle with canvas */}

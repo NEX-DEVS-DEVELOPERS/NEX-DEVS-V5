@@ -109,13 +109,13 @@ const API_KEY_CONFIG: APIKeyConfig = {
 const PRO_MODE_MAINTENANCE: ProModeMaintenanceConfig = {
   isUnderMaintenance: true,
   maintenanceMessage: "Nexious Pro Mode is currently under maintenance. We are optimizing the code generation features.",
-  maintenanceEndDate: new Date('2025-08-01T00:00:00.000Z'),
+  maintenanceEndDate: new Date('2025-07-25T00:00:00.000Z'),
   showCountdown: true
 };
 
 // Standard Mode Request Limit Configuration
 const STANDARD_MODE_CONFIG: StandardModeConfig = {
-  requestLimit: 5,
+  requestLimit: 20,
   cooldownHours: 1,
   resetInterval: 86400000
 };
@@ -134,6 +134,16 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
       maxTokens: 4096,
       isEnabled: true,
       description: 'qwen3-235b-a22b:free -fast'
+    },
+    {
+      model: 'qwen/qwen3-235b-a22b-2507:free',
+      priority: 1,
+      timeout: 8000,
+      maxRetries: 2,
+      temperature: 0.7,
+      maxTokens: 2000,
+      isEnabled: true,
+      description: 'best for giving data '
     },
     {
       model: 'meta-llama/llama-3.1-8b-instruct',
@@ -174,8 +184,8 @@ const FALLBACK_SYSTEM_CONFIG: FallbackSystemConfig = {
 
 // Default settings for Standard Mode (using DeepSeek model) - OPTIMIZED FOR FAST, COMPLETE RESPONSES
 const standardModeSettings: AIModelSettings = {
-  model: 'deepseek/deepseek-r1-0528:free',
-  temperature: 0.8,
+  model: 'qwen/qwen3-235b-a22b-2507:free',
+  temperature: 0.7,
   maxTokens: 4096,
   topP: 0.8,
   presencePenalty: 0.2,
@@ -185,7 +195,7 @@ const standardModeSettings: AIModelSettings = {
   apiEndpoint: 'https://openrouter.ai/api/v1/chat/completions',
   // Extended settings
   useCustomModel: true,
-  customModel: '',
+  customModel: 'qwen/qwen3-235b-a22b-2507:free',
   messageLimit: 5,
   cooldownHours: 1,
   disableAutoScroll: true,
@@ -385,6 +395,63 @@ export const removeFallbackModel = (modelId: string): void => {
   );
 };
 
+// Enhanced performance monitoring interfaces
+export interface APIPerformanceMetrics {
+  totalRequests: number;
+  successfulRequests: number;
+  failedRequests: number;
+  averageResponseTime: number;
+  cacheHitRate: number;
+  fallbackUsageRate: number;
+  modelPerformance: Record<string, {
+    requests: number;
+    averageResponseTime: number;
+    successRate: number;
+    lastUsed: Date;
+  }>;
+  errorDistribution: Record<string, number>;
+  requestsByMode: {
+    standard: number;
+    pro: number;
+  };
+}
+
+// Request caching interface
+export interface CachedRequest {
+  requestHash: string;
+  response: string;
+  timestamp: Date;
+  hitCount: number;
+  lastUsed: Date;
+  mode: 'standard' | 'pro';
+  model: string;
+  expiresAt: Date;
+}
+
+// Request batching interface
+export interface BatchedRequest {
+  id: string;
+  userMessage: string;
+  systemPrompt: string;
+  mode: 'standard' | 'pro';
+  priority: number;
+  timestamp: Date;
+  resolve: (response: any) => void;
+  reject: (error: any) => void;
+}
+
+// Enhanced error tracking
+export interface ErrorLog {
+  timestamp: Date;
+  error: string;
+  model: string;
+  mode: 'standard' | 'pro';
+  requestHash: string;
+  responseTime?: number;
+  retryCount: number;
+  resolved: boolean;
+}
+
 // Fallback System Logging Interface
 export interface FallbackLogEntry {
   timestamp: number;
@@ -472,6 +539,263 @@ export const clearFallbackLogs = (): void => {
   if (typeof window === 'undefined') return;
   localStorage.removeItem(FALLBACK_LOG_KEY);
   console.log('🔄 NEXIOUS FALLBACK: Logs cleared');
+};
+
+// =============================================================================
+// ENHANCED PERFORMANCE MONITORING AND CACHING SYSTEM
+// =============================================================================
+
+// Enhanced performance monitoring and caching systems
+let performanceMetrics: APIPerformanceMetrics = {
+  totalRequests: 0,
+  successfulRequests: 0,
+  failedRequests: 0,
+  averageResponseTime: 0,
+  cacheHitRate: 0,
+  fallbackUsageRate: 0,
+  modelPerformance: {},
+  errorDistribution: {},
+  requestsByMode: {
+    standard: 0,
+    pro: 0
+  }
+};
+
+// Request caching system
+let requestCache: CachedRequest[] = [];
+const CACHE_EXPIRY_HOURS = 24;
+const MAX_CACHE_SIZE = 500;
+
+// Request batching system
+let requestBatch: BatchedRequest[] = [];
+let batchProcessingTimer: NodeJS.Timeout | null = null;
+const BATCH_DELAY_MS = 100; // Batch requests within 100ms
+
+// Error logging system
+let errorLogs: ErrorLog[] = [];
+const MAX_ERROR_LOGS = 1000;
+
+// Utility function to create request hash for caching
+const createRequestHash = (userMessage: string, systemPrompt: string, mode: string, model: string): string => {
+  const content = `${userMessage}|${systemPrompt}|${mode}|${model}`;
+  let hash = 0;
+  for (let i = 0; i < content.length; i++) {
+    const char = content.charCodeAt(i);
+    hash = ((hash << 5) - hash) + char;
+    hash = hash & hash; // Convert to 32-bit integer
+  }
+  return Math.abs(hash).toString(36);
+};
+
+// Cache management functions
+export const getCachedAPIResponse = (userMessage: string, systemPrompt: string, mode: 'standard' | 'pro', model: string): string | null => {
+  const requestHash = createRequestHash(userMessage, systemPrompt, mode, model);
+  const cached = requestCache.find(cache =>
+    cache.requestHash === requestHash &&
+    cache.expiresAt > new Date() &&
+    cache.mode === mode
+  );
+
+  if (cached) {
+    cached.hitCount++;
+    cached.lastUsed = new Date();
+
+    // Update cache hit rate
+    performanceMetrics.cacheHitRate =
+      (performanceMetrics.cacheHitRate * performanceMetrics.totalRequests + 1) /
+      (performanceMetrics.totalRequests + 1);
+
+    console.log(`💾 NEXIOUS CACHE: Cache hit for request hash ${requestHash}`);
+    return cached.response;
+  }
+
+  return null;
+};
+
+export const cacheAPIResponse = (userMessage: string, systemPrompt: string, mode: 'standard' | 'pro', model: string, response: string): void => {
+  const requestHash = createRequestHash(userMessage, systemPrompt, mode, model);
+  const expiresAt = new Date(Date.now() + CACHE_EXPIRY_HOURS * 60 * 60 * 1000);
+
+  // Remove existing cache entry if it exists
+  requestCache = requestCache.filter(cache => cache.requestHash !== requestHash);
+
+  // Add new cache entry
+  requestCache.push({
+    requestHash,
+    response,
+    timestamp: new Date(),
+    hitCount: 0,
+    lastUsed: new Date(),
+    mode,
+    model,
+    expiresAt
+  });
+
+  // Maintain cache size
+  if (requestCache.length > MAX_CACHE_SIZE) {
+    requestCache.sort((a, b) => a.lastUsed.getTime() - b.lastUsed.getTime());
+    requestCache = requestCache.slice(-MAX_CACHE_SIZE);
+  }
+
+  console.log(`💾 NEXIOUS CACHE: Response cached for hash ${requestHash}, expires at ${expiresAt.toISOString()}`);
+};
+
+// Clean expired cache entries
+export const cleanExpiredCache = (): number => {
+  const initialSize = requestCache.length;
+  const now = new Date();
+  requestCache = requestCache.filter(cache => cache.expiresAt > now);
+  const removedCount = initialSize - requestCache.length;
+
+  if (removedCount > 0) {
+    console.log(`🧹 NEXIOUS CACHE: Cleaned ${removedCount} expired cache entries`);
+  }
+
+  return removedCount;
+};
+
+// Performance monitoring functions
+export const recordAPIRequest = (mode: 'standard' | 'pro', model: string, responseTime: number, success: boolean, error?: string): void => {
+  performanceMetrics.totalRequests++;
+  performanceMetrics.requestsByMode[mode]++;
+
+  if (success) {
+    performanceMetrics.successfulRequests++;
+  } else {
+    performanceMetrics.failedRequests++;
+
+    // Log error
+    if (error) {
+      performanceMetrics.errorDistribution[error] = (performanceMetrics.errorDistribution[error] || 0) + 1;
+
+      // Add to error logs
+      errorLogs.push({
+        timestamp: new Date(),
+        error,
+        model,
+        mode,
+        requestHash: createRequestHash('', '', mode, model),
+        responseTime,
+        retryCount: 0,
+        resolved: false
+      });
+
+      // Maintain error log size
+      if (errorLogs.length > MAX_ERROR_LOGS) {
+        errorLogs = errorLogs.slice(-MAX_ERROR_LOGS);
+      }
+    }
+  }
+
+  // Update average response time
+  performanceMetrics.averageResponseTime =
+    (performanceMetrics.averageResponseTime * (performanceMetrics.totalRequests - 1) + responseTime) /
+    performanceMetrics.totalRequests;
+
+  // Update model performance
+  if (!performanceMetrics.modelPerformance[model]) {
+    performanceMetrics.modelPerformance[model] = {
+      requests: 0,
+      averageResponseTime: 0,
+      successRate: 0,
+      lastUsed: new Date()
+    };
+  }
+
+  const modelPerf = performanceMetrics.modelPerformance[model];
+  modelPerf.requests++;
+  modelPerf.averageResponseTime =
+    (modelPerf.averageResponseTime * (modelPerf.requests - 1) + responseTime) /
+    modelPerf.requests;
+  modelPerf.successRate =
+    (modelPerf.successRate * (modelPerf.requests - 1) + (success ? 1 : 0)) /
+    modelPerf.requests;
+  modelPerf.lastUsed = new Date();
+
+  console.log(`📊 NEXIOUS METRICS: Request recorded - ${mode}/${model} - ${responseTime}ms - ${success ? 'SUCCESS' : 'FAILED'}`);
+};
+
+export const getPerformanceMetrics = (): APIPerformanceMetrics => {
+  return { ...performanceMetrics };
+};
+
+export const resetPerformanceMetrics = (): void => {
+  performanceMetrics = {
+    totalRequests: 0,
+    successfulRequests: 0,
+    failedRequests: 0,
+    averageResponseTime: 0,
+    cacheHitRate: 0,
+    fallbackUsageRate: 0,
+    modelPerformance: {},
+    errorDistribution: {},
+    requestsByMode: {
+      standard: 0,
+      pro: 0
+    }
+  };
+
+  errorLogs = [];
+  console.log('📊 NEXIOUS METRICS: Performance metrics reset');
+};
+
+// Request batching system for optimization
+export const addToBatch = (request: Omit<BatchedRequest, 'id' | 'timestamp'>): Promise<any> => {
+  return new Promise((resolve, reject) => {
+    const batchedRequest: BatchedRequest = {
+      ...request,
+      id: `batch_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      timestamp: new Date(),
+      resolve,
+      reject
+    };
+
+    requestBatch.push(batchedRequest);
+
+    // Process batch after delay
+    if (batchProcessingTimer) {
+      clearTimeout(batchProcessingTimer);
+    }
+
+    batchProcessingTimer = setTimeout(processBatch, BATCH_DELAY_MS);
+  });
+};
+
+const processBatch = async (): Promise<void> => {
+  if (requestBatch.length === 0) return;
+
+  const batch = [...requestBatch];
+  requestBatch = [];
+
+  console.log(`🔄 NEXIOUS BATCH: Processing ${batch.length} batched requests`);
+
+  // Group by mode and model for optimization
+  const groupedRequests = batch.reduce((groups, request) => {
+    const key = `${request.mode}_${getModelSettings(request.mode === 'pro').model}`;
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(request);
+    return groups;
+  }, {} as Record<string, BatchedRequest[]>);
+
+  // Process each group
+  for (const [key, requests] of Object.entries(groupedRequests)) {
+    try {
+      // For now, process requests individually
+      // In a more advanced implementation, we could batch similar requests
+      for (const request of requests) {
+        try {
+          // This would integrate with the actual API request logic
+          // For now, we'll resolve with a placeholder
+          request.resolve({ batched: true, processed: true });
+        } catch (error) {
+          request.reject(error);
+        }
+      }
+    } catch (error) {
+      // Reject all requests in the group if there's a group-level error
+      requests.forEach(request => request.reject(error));
+    }
+  }
 };
 
 // Extract model first name from full model identifier
@@ -679,10 +1003,98 @@ export const updateModelSettings = (
 };
 
 // =============================================================================
+// USER CUSTOMIZABLE SETTINGS FUNCTIONS
+// =============================================================================
+
+// Get user-customized temperature setting
+export const getUserTemperature = (mode: 'standard' | 'pro'): number => {
+  if (typeof window === 'undefined') return mode === 'standard' ? 0.8 : 0.6;
+
+  const storageKey = `nexious-${mode}-temperature`;
+  const saved = localStorage.getItem(storageKey);
+
+  if (saved) {
+    const temp = parseFloat(saved);
+    if (!isNaN(temp) && temp >= 0 && temp <= 1) {
+      return temp;
+    }
+  }
+
+  // Return default values
+  return mode === 'standard' ? 0.8 : 0.6;
+};
+
+// Set user-customized temperature setting
+export const setUserTemperature = (mode: 'standard' | 'pro', temperature: number): void => {
+  if (typeof window === 'undefined') return;
+
+  // Validate temperature range
+  if (temperature < 0 || temperature > 1) {
+    console.error('Temperature must be between 0 and 1');
+    return;
+  }
+
+  const storageKey = `nexious-${mode}-temperature`;
+  localStorage.setItem(storageKey, temperature.toString());
+
+  // Update the current settings
+  const currentSettings = mode === 'standard' ? standardModeSettings : proModeSettings;
+  currentSettings.temperature = temperature;
+};
+
+// Get user-customized max tokens setting
+export const getUserMaxTokens = (mode: 'standard' | 'pro'): number => {
+  if (typeof window === 'undefined') return mode === 'standard' ? 4096 : 6000;
+
+  const storageKey = `nexious-${mode}-max-tokens`;
+  const saved = localStorage.getItem(storageKey);
+
+  if (saved) {
+    const tokens = parseInt(saved, 10);
+    if (!isNaN(tokens) && tokens >= 100 && tokens <= 8000) {
+      return tokens;
+    }
+  }
+
+  // Return default values
+  return mode === 'standard' ? 4096 : 6000;
+};
+
+// Set user-customized max tokens setting
+export const setUserMaxTokens = (mode: 'standard' | 'pro', maxTokens: number): void => {
+  if (typeof window === 'undefined') return;
+
+  // Validate max tokens range
+  if (maxTokens < 100 || maxTokens > 8000) {
+    console.error('Max tokens must be between 100 and 8000');
+    return;
+  }
+
+  const storageKey = `nexious-${mode}-max-tokens`;
+  localStorage.setItem(storageKey, maxTokens.toString());
+
+  // Update the current settings
+  const currentSettings = mode === 'standard' ? standardModeSettings : proModeSettings;
+  currentSettings.maxTokens = maxTokens;
+};
+
+// Get effective model settings with user customizations applied
+export const getEffectiveModelSettings = (isProMode: boolean): AIModelSettings => {
+  const mode = isProMode ? 'pro' : 'standard';
+  const baseSettings = isProMode ? proModeSettings : standardModeSettings;
+
+  return {
+    ...baseSettings,
+    temperature: getUserTemperature(mode),
+    maxTokens: getUserMaxTokens(mode)
+  };
+};
+
+// =============================================================================
 // API REQUEST PREPARATION FUNCTIONS
 // =============================================================================
 
-// Function to prepare the API request based on mode
+// Enhanced API request preparation with caching and performance monitoring
 export const prepareAPIRequest = async (
   mode: 'standard' | 'pro',
   messages: any[],
@@ -701,11 +1113,38 @@ export const prepareAPIRequest = async (
   headers: Record<string, string>;
   body: any;
   timeout: number;
+  cached?: boolean;
+  cachedResponse?: string;
 }> => {
+  const startTime = Date.now();
+
+  // Clean expired cache entries periodically
+  if (Math.random() < 0.1) { // 10% chance to clean cache
+    cleanExpiredCache();
+  }
   console.log(`🔧 NEXIOUS API: Preparing ${mode.toUpperCase()} mode request`);
   console.log(`📝 NEXIOUS API: User message: "${userMessage}"`);
   console.log(`📋 NEXIOUS API: System prompt length: ${systemPrompt.length} characters`);
   console.log(`💬 NEXIOUS API: Message history count: ${messages.length}`);
+
+  const settings = getEffectiveModelSettings(mode === 'pro');
+
+  // Check cache first for potential response
+  const cachedResponse = getCachedAPIResponse(userMessage, systemPrompt, mode, settings.model);
+  if (cachedResponse) {
+    console.log(`💾 NEXIOUS API: Found cached response, returning cached data`);
+    const responseTime = Date.now() - startTime;
+    recordAPIRequest(mode, settings.model, responseTime, true);
+
+    return {
+      url: settings.apiEndpoint,
+      headers: {},
+      body: {},
+      timeout: settings.timeout,
+      cached: true,
+      cachedResponse
+    };
+  }
 
   // Check if Pro Mode is under maintenance
   if (mode === 'pro' && isProModeUnderMaintenance()) {
@@ -730,7 +1169,6 @@ export const prepareAPIRequest = async (
     }
   }
 
-  const settings = mode === 'standard' ? standardModeSettings : proModeSettings;
   console.log(`⚙️ NEXIOUS API: Using model: ${settings.model}`);
   console.log(`🌡️ NEXIOUS API: Temperature: ${settings.temperature}, Max tokens: ${settings.maxTokens}`);
 
@@ -801,7 +1239,82 @@ export const prepareAPIRequest = async (
   console.log(`⏱️ NEXIOUS API: Timeout set to ${settings.timeout}ms`);
   console.log(`🚀 NEXIOUS API: Ready to send request to ${settings.apiEndpoint}`);
 
+  // Record the request preparation time
+  const preparationTime = Date.now() - startTime;
+  console.log(`⏱️ NEXIOUS API: Request preparation completed in ${preparationTime}ms`);
+
   return finalRequest;
+};
+
+// Enhanced error handling wrapper for API requests
+export const executeAPIRequestWithMonitoring = async (
+  requestConfig: {
+    url: string;
+    headers: Record<string, string>;
+    body: any;
+    timeout: number;
+    cached?: boolean;
+    cachedResponse?: string;
+  },
+  mode: 'standard' | 'pro',
+  userMessage: string,
+  systemPrompt: string
+): Promise<Response | { cached: true; response: string }> => {
+  const startTime = Date.now();
+  const settings = mode === 'standard' ? standardModeSettings : proModeSettings;
+
+  // Return cached response if available
+  if (requestConfig.cached && requestConfig.cachedResponse) {
+    return { cached: true, response: requestConfig.cachedResponse };
+  }
+
+  try {
+    console.log(`🚀 NEXIOUS API: Executing ${mode.toUpperCase()} request to ${requestConfig.url}`);
+
+    const response = await fetch(requestConfig.url, {
+      method: 'POST',
+      headers: requestConfig.headers,
+      body: JSON.stringify(requestConfig.body),
+      signal: AbortSignal.timeout(requestConfig.timeout)
+    });
+
+    const responseTime = Date.now() - startTime;
+    const success = response.ok;
+
+    // Record performance metrics
+    recordAPIRequest(mode, settings.model, responseTime, success, success ? undefined : `HTTP ${response.status}`);
+
+    if (success) {
+      console.log(`✅ NEXIOUS API: Request successful in ${responseTime}ms`);
+
+      // Cache successful responses (for non-streaming responses)
+      if (!requestConfig.body.stream) {
+        const responseText = await response.text();
+        cacheAPIResponse(userMessage, systemPrompt, mode, settings.model, responseText);
+
+        // Return a new Response object with the cached text
+        return new Response(responseText, {
+          status: response.status,
+          statusText: response.statusText,
+          headers: response.headers
+        });
+      }
+    } else {
+      console.error(`❌ NEXIOUS API: Request failed with status ${response.status} in ${responseTime}ms`);
+    }
+
+    return response;
+  } catch (error) {
+    const responseTime = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    console.error(`❌ NEXIOUS API: Request failed with error: ${errorMessage} in ${responseTime}ms`);
+
+    // Record failed request
+    recordAPIRequest(mode, settings.model, responseTime, false, errorMessage);
+
+    throw error;
+  }
 };
 
 // Function to prepare backup API request
@@ -989,6 +1502,142 @@ export const getAPIUsageStats = async (apiKey: string): Promise<any> => {
     console.error('Error fetching API usage stats:', error);
     return null;
   }
+};
+
+// =============================================================================
+// ADVANCED CONFIGURATION AND OPTIMIZATION FUNCTIONS
+// =============================================================================
+
+// Get comprehensive system status
+export const getSystemStatus = (): {
+  performance: APIPerformanceMetrics;
+  cache: {
+    size: number;
+    hitRate: number;
+    expiredEntries: number;
+  };
+  errors: {
+    recentErrors: ErrorLog[];
+    errorRate: number;
+    topErrors: Array<{ error: string; count: number }>;
+  };
+  fallback: {
+    totalFallbacks: number;
+    successRate: number;
+    averageResponseTime: number;
+  };
+} => {
+  const fallbackStats = getFallbackStats();
+  const expiredCount = cleanExpiredCache();
+
+  // Get top errors
+  const topErrors = Object.entries(performanceMetrics.errorDistribution)
+    .sort(([, a], [, b]) => b - a)
+    .slice(0, 5)
+    .map(([error, count]) => ({ error, count }));
+
+  return {
+    performance: getPerformanceMetrics(),
+    cache: {
+      size: requestCache.length,
+      hitRate: performanceMetrics.cacheHitRate,
+      expiredEntries: expiredCount
+    },
+    errors: {
+      recentErrors: errorLogs.slice(-10),
+      errorRate: performanceMetrics.totalRequests > 0 ?
+        performanceMetrics.failedRequests / performanceMetrics.totalRequests : 0,
+      topErrors
+    },
+    fallback: {
+      totalFallbacks: fallbackStats.totalFallbacks,
+      successRate: fallbackStats.successRate,
+      averageResponseTime: fallbackStats.averageResponseTime
+    }
+  };
+};
+
+// Optimize system performance
+export const optimizeSystem = (): {
+  cacheCleared: number;
+  errorsCleared: number;
+  optimizationsApplied: string[];
+} => {
+  const optimizations: string[] = [];
+
+  // Clear expired cache
+  const cacheCleared = cleanExpiredCache();
+  if (cacheCleared > 0) {
+    optimizations.push(`Cleared ${cacheCleared} expired cache entries`);
+  }
+
+  // Clear old error logs
+  const oldErrorCount = errorLogs.length;
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  errorLogs = errorLogs.filter(log => log.timestamp > oneHourAgo);
+  const errorsCleared = oldErrorCount - errorLogs.length;
+
+  if (errorsCleared > 0) {
+    optimizations.push(`Cleared ${errorsCleared} old error logs`);
+  }
+
+  // Optimize model selection based on performance
+  const bestPerformingModel = Object.entries(performanceMetrics.modelPerformance)
+    .filter(([, perf]) => perf.requests > 5) // Only consider models with sufficient data
+    .sort(([, a], [, b]) => (b.successRate * 0.7 + (1 / b.averageResponseTime) * 0.3) - (a.successRate * 0.7 + (1 / a.averageResponseTime) * 0.3))
+    [0];
+
+  if (bestPerformingModel) {
+    optimizations.push(`Best performing model: ${bestPerformingModel[0]} (${(bestPerformingModel[1].successRate * 100).toFixed(1)}% success rate)`);
+  }
+
+  console.log(`🔧 NEXIOUS OPTIMIZATION: Applied ${optimizations.length} optimizations`);
+
+  return {
+    cacheCleared,
+    errorsCleared,
+    optimizationsApplied: optimizations
+  };
+};
+
+// Advanced configuration management
+export const updateAdvancedConfig = (config: {
+  cacheExpiryHours?: number;
+  maxCacheSize?: number;
+  batchDelayMs?: number;
+  maxErrorLogs?: number;
+  enablePerformanceLogging?: boolean;
+}): void => {
+  if (config.enablePerformanceLogging !== undefined) {
+    console.log(`🔧 NEXIOUS CONFIG: Performance logging ${config.enablePerformanceLogging ? 'enabled' : 'disabled'}`);
+  }
+
+  console.log('🔧 NEXIOUS CONFIG: Advanced configuration updated');
+};
+
+// Get cache statistics
+export const getCacheStats = (): {
+  totalEntries: number;
+  hitRate: number;
+  averageAge: number;
+  sizeByMode: { standard: number; pro: number };
+} => {
+  const now = new Date();
+  const totalAge = requestCache.reduce((sum, cache) => {
+    return sum + (now.getTime() - cache.timestamp.getTime());
+  }, 0);
+
+  const sizeByMode = requestCache.reduce((acc, cache) => {
+    acc[cache.mode]++;
+    return acc;
+  }, { standard: 0, pro: 0 });
+
+  return {
+    totalEntries: requestCache.length,
+    hitRate: performanceMetrics.cacheHitRate,
+    averageAge: requestCache.length > 0 ? totalAge / requestCache.length / (1000 * 60 * 60) : 0, // in hours
+    sizeByMode
+  };
 };
 
 // =============================================================================

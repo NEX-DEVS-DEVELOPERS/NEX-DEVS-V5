@@ -1086,6 +1086,7 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
         -webkit-overflow-scrolling: touch;
         scrollbar-width: thin;
         scrollbar-color: rgba(139, 92, 246, 0.3) rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
       }
       .smooth-scroll::-webkit-scrollbar {
         width: 6px;
@@ -1151,8 +1152,8 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
       description: "Our website automatically detects your region and sets the appropriate currency. View pricing in USD, GBP, AED, and PKR with real-time conversion rates.",
       content: (
         <div className="flex flex-col">
-          {/* Details section - scrollable */}
-          <div className="overflow-y-auto custom-scrollbar mb-6 max-h-[300px]">
+          {/* Details section - scrollable with enhanced smoothness */}
+          <div className="overflow-y-auto smooth-scroll custom-scrollbar mb-6 max-h-[300px]">
             <div className="bg-gradient-to-r from-purple-900/20 to-black/20 rounded-lg p-4 border border-purple-500/30">
               <h4 className="text-purple-300 font-semibold text-sm mb-3">How It Works:</h4>
               <ul className="list-disc list-inside space-y-2 text-gray-300 text-sm">
@@ -1164,8 +1165,8 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             </div>
           </div>
           
-          {/* Image section - fixed below */}
-          <div className="mt-4">
+          {/* Image section - fixed below with increased spacing */}
+          <div className="mt-8">
             <div className="aspect-[16/9] w-full max-w-[600px] mx-auto relative">
               <div className="absolute inset-0 bg-gradient-to-r from-purple-900/30 to-black/30 rounded-xl" />
               <img 
@@ -1364,12 +1365,12 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
             {/* Dark overlay */}
             <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" />
             
-            {/* Left sidebar - Adjusted higher position */}
+            {/* Left sidebar - Position adjusted further down */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: -20 }}
-              className="fixed top-[48px] left-4 w-48 bg-gradient-to-b from-black to-purple-900/20 h-[calc(100vh-120px)] max-h-[420px] border border-purple-500/20 rounded-xl overflow-hidden z-50"
+              className="fixed top-[120px] left-4 w-48 bg-gradient-to-b from-black to-purple-900/20 h-[calc(100vh-180px)] max-h-[420px] border border-purple-500/20 rounded-xl overflow-hidden z-50"
             >
               <div className="p-3 border-b border-purple-500/20">
                 <h3 className="text-base font-bold text-white flex items-center gap-2">
@@ -1434,12 +1435,12 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
               </div>
             </motion.div>
             
-            {/* Main content area - Adjusted higher position */}
+            {/* Main content area - Positioned further down to match sidebar */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="fixed top-[45px] left-[225px] right-[220px] bottom-[57px] max-w-[800px] mx-auto z-50"
+              className="fixed top-[120px] left-[225px] right-[220px] bottom-[57px] max-w-[800px] mx-auto z-50"
             >
               <div className="h-full flex flex-col bg-gradient-to-br from-black/90 to-purple-900/10 backdrop-blur-sm rounded-xl border border-purple-500/20 shadow-lg overflow-hidden">
                 {/* Fixed header */}
@@ -1457,8 +1458,8 @@ const WebsiteGuide = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
                   </p>
                 </div>
 
-                {/* Scrollable content */}
-                <div className="flex-1 overflow-y-auto custom-scrollbar">
+                {/* Scrollable content with enhanced smooth scrolling */}
+                <div className="flex-1 overflow-y-auto smooth-scroll custom-scrollbar">
                   <div className="p-4">
                     {sections[currentSection].content}
                   </div>

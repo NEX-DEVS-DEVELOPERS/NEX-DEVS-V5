@@ -15,7 +15,7 @@ interface BlogCardProps {
 
 export default function BlogCard({ title, excerpt, slug, category, date, readTime, details }: BlogCardProps) {
   return (
-    <div className="bg-zinc-900/50 backdrop-blur-sm rounded-xl p-6 border border-purple-500/20 hover:border-purple-500/40 transition-all group">
+    <div className="bg-zinc-900/50 backdrop-blur-sm rounded-xl p-6 neon-border-cyan-base transition-all group">
       <div className="flex flex-col h-full">
         <div className="mb-4">
           <span className="text-purple-400 text-sm">{category}</span>

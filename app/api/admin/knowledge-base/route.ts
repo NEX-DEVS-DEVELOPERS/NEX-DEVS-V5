@@ -8,7 +8,8 @@ import {
   searchKnowledgeEntries,
   getKnowledgeBaseStats,
   validateKnowledgeEntry,
-  type KnowledgeEntry
+  type KnowledgeEntry,
+  type SimpleKnowledgeEntry
 } from '@/lib/nexious-knowledge';
 
 // Admin authentication check
@@ -130,6 +131,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       message: 'Knowledge entry added successfully',
+      entryId: entryId,
       data: { id: entryId }
     });
   } catch (error) {

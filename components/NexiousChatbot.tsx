@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { Send, X, Minimize2, Bot, Code, Phone, ShoppingCart, Zap, Pause } from 'lucide-react';
 import { usePathname } from 'next/navigation';
+import { audiowide, getAudiowideStyle } from '@/app/utils/fonts';
 
 // Add CSS animations at the beginning of the component
 const cssAnimations = `
@@ -27,11 +28,25 @@ const cssAnimations = `
       transform: scale(0.8);
     }
   }
-  
+
   @keyframes pulseGlow {
     0% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0.7); }
     70% { box-shadow: 0 0 0 10px rgba(124, 58, 237, 0); }
     100% { box-shadow: 0 0 0 0 rgba(124, 58, 237, 0); }
+  }
+
+  /* Remove any leftover boxes that might appear with chatbot */
+  .nexious-ai-box-legacy,
+  .ai-model-info,
+  .ai-info-box,
+  [class*="ai-model"]:not(.nexious-chat-container *),
+  [id*="ai-module"]:not(.nexious-chat-container *) {
+    display: none !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    position: absolute !important;
+    z-index: -9999 !important;
   }
 
   .nexious-chat-button {
@@ -39,92 +54,144 @@ const cssAnimations = `
     opacity: 1 !important;
     visibility: visible !important;
     display: flex !important;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  .nexious-chat-button:hover {
+    transform: translateY(-2px) scale(1.02) !important;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15) !important;
   }
 
   .chat-animate-in {
-    animation: chatSlideIn 0.3s ease forwards;
+    animation: chatSlideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   .chat-animate-out {
-    animation: chatSlideOut 0.2s ease forwards;
+    animation: chatSlideOut 0.2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
 
   .chat-fixed {
     position: fixed !important;
     bottom: 20px !important;
-    left: 20px !important;
+    right: 24px !important;
     z-index: 999999 !important;
   }
 `;
 
-// Pure CSS animation functions
+// Optimized animation functions with better performance
 const animateOpenChat = (chatElement: HTMLElement | null) => {
   if (!chatElement) return;
-  
-  // Set fixed position
+
+  // Hide any potential leftover model info boxes
+  const legacyElements = document.querySelectorAll('.ai-model-info, .ai-info-box, [class*="ai-model"], [id*="ai-module"]');
+  legacyElements.forEach(el => {
+    if (el instanceof HTMLElement) {
+      el.style.display = 'none';
+      el.style.opacity = '0';
+      el.style.visibility = 'hidden';
+      el.classList.add('nexious-ai-box-legacy');
+    }
+  });
+
+  // Set fixed position with optimized positioning
   chatElement.classList.add('chat-fixed');
-  
+  chatElement.style.willChange = 'transform, opacity';
+
   // Remove any existing animation classes
   chatElement.classList.remove('chat-animate-out');
-  
-  // Add slide in animation
-  chatElement.classList.add('chat-animate-in');
+
+  // Add slide in animation with better timing
+  requestAnimationFrame(() => {
+    chatElement.classList.add('chat-animate-in');
+  });
 };
 
 const animateCloseChat = (chatElement: HTMLElement | null) => {
   if (!chatElement) return;
-  
+
   // Remove any existing animation classes
-  chatElement.classList.remove('chat-animate-in');
-  
-  // Add slide out animation
-  chatElement.classList.add('chat-animate-out');
+  chatElement.classList.remove('chat-animate-out');
+  chatElement.style.willChange = 'transform, opacity';
+
+  // Add slide out animation with better timing
+  requestAnimationFrame(() => {
+    chatElement.classList.add('chat-animate-out');
+  });
+
+  // Clean up after animation
+  setTimeout(() => {
+    chatElement.style.willChange = 'auto';
+  }, 250);
 };
 
 const animateMinimize = (
-  fullElement: HTMLElement | null, 
+  fullElement: HTMLElement | null,
   minimizedElement: HTMLElement | null
 ) => {
   if (!fullElement || !minimizedElement) return;
-  
+
+  // Optimize performance
+  fullElement.style.willChange = 'transform, opacity';
+  minimizedElement.style.willChange = 'transform, opacity';
+
   // Animate full chatbot out
   fullElement.classList.add('chat-animate-out');
-  
-  // After animation completes
+
+  // After animation completes with reduced timing
   setTimeout(() => {
     fullElement.style.display = 'none';
     fullElement.classList.remove('chat-animate-out');
-    
+    fullElement.style.willChange = 'auto';
+
     // Setup minimized version
     minimizedElement.style.display = 'flex';
     minimizedElement.classList.add('chat-fixed');
-    
+
     // Animate minimized version in
-    minimizedElement.classList.add('chat-animate-in');
-  }, 200);
+    requestAnimationFrame(() => {
+      minimizedElement.classList.add('chat-animate-in');
+    });
+
+    // Clean up after animation
+    setTimeout(() => {
+      minimizedElement.style.willChange = 'auto';
+    }, 250);
+  }, 180);
 };
 
 const animateMaximize = (
-  minimizedElement: HTMLElement | null, 
+  minimizedElement: HTMLElement | null,
   fullElement: HTMLElement | null
 ) => {
   if (!minimizedElement || !fullElement) return;
-  
+
+  // Optimize performance
+  minimizedElement.style.willChange = 'transform, opacity';
+  fullElement.style.willChange = 'transform, opacity';
+
   // Animate minimized version out
   minimizedElement.classList.add('chat-animate-out');
-  
-  // After animation completes
+
+  // After animation completes with reduced timing
   setTimeout(() => {
     minimizedElement.style.display = 'none';
     minimizedElement.classList.remove('chat-animate-out');
-    
+    minimizedElement.style.willChange = 'auto';
+
     // Setup full version
     fullElement.style.display = 'flex';
     fullElement.classList.add('chat-fixed');
-    
+
     // Animate full version in
-    fullElement.classList.add('chat-animate-in');
-  }, 200);
+    requestAnimationFrame(() => {
+      fullElement.classList.add('chat-animate-in');
+    });
+
+    // Clean up after animation
+    setTimeout(() => {
+      fullElement.style.willChange = 'auto';
+    }, 250);
+  }, 180);
 };
 
 import {
@@ -164,6 +231,11 @@ import aiSettings, {
   getFallbackModelsByPriority,
   getPrimaryModelTimeout,
   getFallbackNotificationSettings,
+  getUserTemperature,
+  setUserTemperature,
+  getUserMaxTokens,
+  setUserMaxTokens,
+  getEffectiveModelSettings,
   AIModelSettings,
   FallbackModelConfig
 } from '@/utils/nexiousAISettings';
@@ -175,6 +247,10 @@ import responseTraining, { generateContextualResponse, trainingExamples } from '
 
 // Import performance monitoring for smooth 60fps experience
 import performanceMonitor, { PerformanceMetrics } from '@/utils/performanceMonitor';
+
+// Import model status indicator component
+import ModelStatusIndicator from './ModelStatusIndicator';
+import ThinkingContainer from './ThinkingContainer';
 
 interface Message {
   role: 'user' | 'assistant' | 'system';
@@ -191,6 +267,11 @@ interface PageContext {
   gradientFrom: string;
   gradientTo: string;
   systemPromptAddition: string;
+}
+
+interface MinimizedPosition {
+  right: string;
+  bottom: string;
 }
 
 // Define a maintenance message constant
@@ -218,16 +299,18 @@ const PRO_MODE_KEY = 'nexious-pro-mode';
 
 // Team information
 const teamInfo = {
-  size: 5,
+  size: 7,
   members: [
-    { name: "Ali Hasnaat", role: "Fullstack Developer & Team Lead" },
-    { name: "EMAN-ALI", role: "UI/UX Designer" },
-    { name: "ANNS-BASHIR", role: "AI AGENT DEVELOPER (N8N.MAKE.COM etc)" },
-    { name: "MUDASSIR-AHMAD", role: "Ai workflows for bussiness" },
-    { name: "USMAN-AFTAB", role: "AI databse (vector database expert) & DevOps" }
+    { name: "Ali Hasnaat", role: "Founder & Lead Developer" },
+    { name: "Mudassir Ahmad", role: "AI Workflows for Business Specialist" },
+    { name: "Faizan Khan", role: "UI/UX Designer" },
+    { name: "Eman Ali", role: "Backend Developer" },
+    { name: "Anns Bashir", role: "AI Agent Developer (N8N, Make.com Specialist)" },
+    { name: "Hassam Baloch", role: "AI Agent Developer (N8N, Make.com Specialist)" },
+    { name: "Usman Aftab", role: "AI Database & DevOps Specialist" }
   ],
   founded: "2018",
-  projects: "50+"
+  projects: "950+"
 };
 
 // Competitor comparison data
@@ -334,7 +417,7 @@ const pageContexts: Record<string, PageContext> = {
   about: {
     icon: <Bot size={18} className="text-white" />,
     title: "About Us",
-    description: "Team Assistant",
+    description: "",
     gradientFrom: "from-blue-800",
     gradientTo: "to-indigo-900",
     systemPromptAddition: "You are currently on the About page. Focus on our team information, founding story, and company values. Highlight our experience and expertise.",
@@ -342,7 +425,7 @@ const pageContexts: Record<string, PageContext> = {
   contact: {
     icon: <Bot size={18} className="text-white" />,
     title: "Contact",
-    description: "Support Assistant",
+    description: "",
     gradientFrom: "from-teal-800",
     gradientTo: "to-emerald-900",
     systemPromptAddition: "You are currently on the Contact page. Help users reach out to us effectively. Our contact email is contact@nex-devs.com, and we typically respond within 24 hours. Offer to guide them through project inquiries.",
@@ -462,7 +545,7 @@ const pageContexts: Record<string, PageContext> = {
   default: {
     icon: <Bot size={18} className="text-white" />,
     title: "Nexious",
-    description: "AI Assistant",
+    description: "",
     gradientFrom: "from-purple-800",
     gradientTo: "to-indigo-900",
     systemPromptAddition: "You are on the NEX-DEVS website. Offer general help about our services, team, and process.",
@@ -638,7 +721,7 @@ When users ask about specific pages or how to navigate the site, refer to this s
   Tech: ${service.technologies.join(', ')}
   Time: ${service.timeline}
   Price: ${service.exactPrice ? '$' + service.exactPrice : service.priceRange}`;
-      
+
       if (service.popular) {
         prompt += ` (popular)`;
       }
@@ -764,16 +847,16 @@ When users ask about specific pages or how to navigate the site, refer to this s
 // Update getTextSizeClass function to accept parameters
 const getTextSizeClass = (role: string, isProMode: boolean = false, isDesktop: boolean = false) => {
   if (role === 'system') return 'text-xs';
-  
+
   if (isProMode && isDesktop) {
     return 'text-[13px] leading-relaxed'; // Make text smaller for PRO mode on desktop
   }
-  
+
   // Use medium font weight for PRO mode but keep text smaller
   if (isProMode) {
     return 'text-sm font-medium leading-relaxed';
   }
-  
+
   return 'text-base'; // Standard text size for other cases
 };
 
@@ -798,71 +881,71 @@ const createInitialMessage = (isProEnabled: boolean = false) => {
 const analyzeQueryComplexity = (query: string): string => {
   // Convert to lowercase for easier pattern matching
   const lowerQuery = query.toLowerCase();
-  
+
   // Check for comparison requests
   if (
-    lowerQuery.includes('compare') || 
-    lowerQuery.includes('vs') || 
-    lowerQuery.includes('versus') || 
-    lowerQuery.includes('difference between') || 
+    lowerQuery.includes('compare') ||
+    lowerQuery.includes('vs') ||
+    lowerQuery.includes('versus') ||
+    lowerQuery.includes('difference between') ||
     lowerQuery.includes('how does nex-devs compare')
   ) {
     return 'comparison';
   }
-  
+
   // Check for code requests
   if (
-    lowerQuery.includes('code') || 
-    lowerQuery.includes('function') || 
-    lowerQuery.includes('implementation') || 
-    lowerQuery.includes('syntax') || 
+    lowerQuery.includes('code') ||
+    lowerQuery.includes('function') ||
+    lowerQuery.includes('implementation') ||
+    lowerQuery.includes('syntax') ||
     lowerQuery.includes('example of') ||
     lowerQuery.includes('how to implement')
   ) {
     return 'code';
   }
-  
+
   // Check for technical explanation requests
   if (
-    lowerQuery.includes('explain') || 
-    lowerQuery.includes('how does') || 
-    lowerQuery.includes('what is') || 
-    lowerQuery.includes('concept of') || 
+    lowerQuery.includes('explain') ||
+    lowerQuery.includes('how does') ||
+    lowerQuery.includes('what is') ||
+    lowerQuery.includes('concept of') ||
     lowerQuery.includes('understand')
   ) {
     return 'technical';
   }
-  
+
   // Check for step-by-step guides
   if (
-    lowerQuery.includes('step') || 
-    lowerQuery.includes('guide') || 
-    lowerQuery.includes('process') || 
-    lowerQuery.includes('how to') || 
+    lowerQuery.includes('step') ||
+    lowerQuery.includes('guide') ||
+    lowerQuery.includes('process') ||
+    lowerQuery.includes('how to') ||
     lowerQuery.includes('instructions')
   ) {
     return 'guide';
   }
-  
+
   // Check for pricing or service inquiries (should be concise)
   if (
-    lowerQuery.includes('price') || 
-    lowerQuery.includes('cost') || 
-    lowerQuery.includes('service') || 
-    lowerQuery.includes('offering') || 
+    lowerQuery.includes('price') ||
+    lowerQuery.includes('cost') ||
+    lowerQuery.includes('service') ||
+    lowerQuery.includes('offering') ||
     lowerQuery.includes('package')
   ) {
     return 'service';
   }
-  
+
   // Check for simple questions
   if (
-    lowerQuery.split(' ').length < 8 || 
+    lowerQuery.split(' ').length < 8 ||
     lowerQuery.endsWith('?') && lowerQuery.split(' ').length < 10
   ) {
     return 'simple';
   }
-  
+
   // Default to moderate complexity
   return 'moderate';
 };
@@ -988,7 +1071,7 @@ const logChatRequest = async (request: string, response: string, responseTime: n
   try {
     // Only log if we're in a browser environment
     if (typeof window === 'undefined') return;
-    
+
     const logData = {
       timestamp: Date.now(),
       request,
@@ -996,7 +1079,7 @@ const logChatRequest = async (request: string, response: string, responseTime: n
       responseTime,
       status
     };
-    
+
     // Use simple localStorage logging first for persistence
     // This will be used as a fallback if the API call fails
     try {
@@ -1010,7 +1093,7 @@ const logChatRequest = async (request: string, response: string, responseTime: n
     } catch (e) {
       console.error('Error storing logs in localStorage:', e);
     }
-    
+
     // Also try to send to server API
     try {
       await fetch('/api/chatbot/log', {
@@ -1041,10 +1124,10 @@ const isChatbotEnabled = async () => {
         return cachedSettings.enabled;
       }
     }
-    
+
     // Always add a cache-busting timestamp
     const timestamp = Date.now();
-    
+
     // If no valid cache, check with the server
     const response = await fetch(`/api/chatbot/settings/public?t=${timestamp}`, {
       method: 'GET',
@@ -1054,7 +1137,7 @@ const isChatbotEnabled = async () => {
         'X-Requested-With': 'fetch'
       }
     });
-    
+
     if (response.ok) {
       const data = await response.json();
       // Cache the result with timestamp
@@ -1062,13 +1145,13 @@ const isChatbotEnabled = async () => {
         enabled: data.enabled,
         timestamp: Date.now()
       }));
-      
+
       // Log status change for debugging
       console.log(`Chatbot status: ${data.enabled ? 'Enabled' : 'Disabled'}`);
-      
+
       return data.enabled;
     }
-    
+
     // If we can't reach the server, check localStorage regardless of time
     // This is a fallback to prevent constant API calls if the server is down
     if (cachedSettingsStr) {
@@ -1079,7 +1162,7 @@ const isChatbotEnabled = async () => {
         console.error('Error parsing cached settings:', e);
       }
     }
-    
+
     // Default to disabled if we can't determine status
     return false;
   } catch (error) {
@@ -1095,13 +1178,13 @@ const isChatbotEnabled = async () => {
 const handle402Error = async (errorDetails: string, userMessage: string) => {
   // Log the error
   console.error('OpenRouter API 402 Error:', errorDetails);
-  
+
   // Notify admin
   notifyApiKeyIssue('BILLING_ERROR', `402 Payment Required - ${errorDetails}`);
-  
+
   // Create a professional user-friendly message that doesn't mention billing
   const fallbackResponse = "I apologize, but our AI service is currently undergoing scheduled maintenance to improve performance. Our team has been notified. In the meantime, I can still assist with questions about our web development services, including custom solutions tailored to your specific needs.";
-  
+
   // Try to use the backup API key from centralized settings
   try {
     console.log('Attempting to use backup API key...');
@@ -1114,7 +1197,7 @@ const handle402Error = async (errorDetails: string, userMessage: string) => {
       headers: backupRequest.headers,
       body: JSON.stringify(backupRequest.body)
     });
-    
+
     // Check if backup request succeeded
     if (response.ok) {
       const data = await response.json();
@@ -1131,7 +1214,7 @@ const handle402Error = async (errorDetails: string, userMessage: string) => {
   } catch (backupError) {
     console.error('Backup API key also failed:', backupError);
   }
-  
+
   // If backup fails, return the professional message
   return {
     error: 'System maintenance or resource optimization in progress',
@@ -1145,17 +1228,17 @@ const getApiKey = async () => {
   try {
     // Use the new module's getAPIKey function - we can use either mode since they share the same key now
     const apiKey = await getAPIKey('standard');
-    
+
     if (!apiKey) {
       throw new Error('No API key available');
     }
-    
+
     // Basic validation for API key format
     if (!apiKey.startsWith('sk-or-')) {
       console.error('Invalid OpenRouter API key format. API key should start with sk-or-');
       throw new Error('Invalid API key format');
     }
-    
+
     return apiKey;
   } catch (error) {
     console.error('Error retrieving API key:', error);
@@ -1218,19 +1301,19 @@ function MobilePopup({ onClose }: { onClose: () => void }) {
   }, []);
 
   return (
-    <div 
+    <div
       id="mobile-popup-container"
       className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-[6px] transform-gpu opacity-0 transition-opacity duration-150"
-      style={{ 
+      style={{
         transform: 'translate3d(0,0,0)',
         willChange: 'transform, opacity',
         WebkitBackfaceVisibility: 'hidden',
         backfaceVisibility: 'hidden'
       }}
     >
-      <div 
+      <div
         className="bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-5 max-w-[90vw] w-[320px] shadow-2xl border border-gray-700/50 transform-gpu"
-        style={{ 
+        style={{
           transform: 'translate3d(0,0,0)',
           willChange: 'transform',
           WebkitBackfaceVisibility: 'hidden',
@@ -1245,21 +1328,21 @@ function MobilePopup({ onClose }: { onClose: () => void }) {
               <path d="M21 12C21 12 18 18 12 18C6 18 3 12 3 12C3 12 6 6 12 6C18 6 21 12 21 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </div>
-          
+
           {/* Optimized Title */}
           <h3 className="text-lg font-semibold text-white mb-2">
             Nexious AI Experience
           </h3>
-          
+
           {/* Optimized Message */}
           <p className="text-gray-300 text-sm leading-relaxed mb-4">
             We're excited to have you try our powerful AI chat! 🌟 For the smoothest experience, we recommend using a desktop device as our mobile version is currently being optimized.
           </p>
-          
+
           <p className="text-gray-400 text-xs leading-relaxed mb-4">
             Our team is working hard to bring you the best mobile experience soon. Thank you for your patience! 💜
           </p>
-          
+
           {/* Optimized Button with touch feedback */}
           <button
             onClick={onClose}
@@ -1289,10 +1372,10 @@ function MobilePopup({ onClose }: { onClose: () => void }) {
 export default function NexiousChatbot() {
   const pathname = usePathname();
   const pageContext = getPageContext(pathname || '');
-  
+
   // Flag to control display of the decorative floating label above the chat button. Disabled to avoid duplicate labels.
   const showFloatingLabel = false;
-  
+
   // Inject global CSS animations once the component is mounted (valid hook usage)
   useEffect(() => {
     if (typeof document !== 'undefined') {
@@ -1304,14 +1387,14 @@ export default function NexiousChatbot() {
       };
     }
   }, []);
-  
+
   // Initialize state to always closed on page load
   const [isOpen, setIsOpen] = useState(false);
   const [isMinimized, setIsMinimized] = useState(false);
   const [inputValue, setInputValue] = useState('');
   const [showPromo, setShowPromo] = useState(true); // State to control promotional area visibility
-  const [showMobilePopup, setShowMobilePopup] = useState(false); // Add state for mobile popup
-  
+  // Removed mobile popup - now using direct mobile chat experience
+
   // Add new states for adjustable chat size, text size, and PRO mode
   const [chatSize, setChatSize] = useState({ width: 380, height: 520 }); // Increased size for better mobile experience
   const [isResizing, setIsResizing] = useState(false);
@@ -1319,7 +1402,7 @@ export default function NexiousChatbot() {
   const [isMobile, setIsMobile] = useState(false);
   const [currentSection, setCurrentSection] = useState(''); // Track current section of the page
   const [isFullscreen, setIsFullscreen] = useState(false); // For mobile fullscreen mode
-  const [minimizedPosition, setMinimizedPosition] = useState({ left: '1.25rem', bottom: '1.25rem' }); // Track minimized position
+  const [minimizedPosition, setMinimizedPosition] = useState({ right: '24px', bottom: '24px' }); // Track minimized position
   const [isChatbotDisabled, setIsChatbotDisabled] = useState(false); // Track disabled status
   const [isProMode, setIsProMode] = useState(() => {
     // Initialize PRO mode from localStorage if available
@@ -1328,11 +1411,15 @@ export default function NexiousChatbot() {
     }
     return false;
   });
-  
+
   // Add state for PRO mode features popup
   const [showProFeaturesPopup, setShowProFeaturesPopup] = useState(false);
   // Add state for fullscreen suggestion
   const [showFullscreenSuggestion, setShowFullscreenSuggestion] = useState(false);
+
+  // AI Model state (simplified - no popup switching)
+  const [currentAIModel, setCurrentAIModel] = useState('deepseek/deepseek-r1-0528:free');
+  const [isModelSwitching, setIsModelSwitching] = useState(false);
   // Add state for Pro Mode maintenance popup
   const [showProMaintenancePopup, setShowProMaintenancePopup] = useState(false);
   // Add state for countdown timer
@@ -1343,8 +1430,9 @@ export default function NexiousChatbot() {
   // AI Model Info Panel State
   const [showAIModelInfo, setShowAIModelInfo] = useState(true); // Show by default for visibility
 
-  // Auto-scroll functionality state
-  const [autoScrollEnabled, setAutoScrollEnabled] = useState(true); // Auto-scroll enabled by default
+  // Intelligent auto-scroll state - tracks user scroll behavior
+  const [isUserScrolledUp, setIsUserScrolledUp] = useState(false);
+  const [lastScrollTop, setLastScrollTop] = useState(0);
 
   // Add state for API keys
   const [standardApiKey, setStandardApiKey] = useState('');
@@ -1361,7 +1449,7 @@ export default function NexiousChatbot() {
     }
     return isProMode ? 0.3 : 0.4;
   });
-  
+
   const [showSidebar, setShowSidebar] = useState(false); // Always initialize sidebar as closed
 
   // Add more AI model parameter states
@@ -1369,7 +1457,17 @@ export default function NexiousChatbot() {
   const [maxTokens, setMaxTokens] = useState(isProMode ? 700 : 1024);
   const [presencePenalty, setPresencePenalty] = useState(0);
   const [frequencyPenalty, setFrequencyPenalty] = useState(0);
-  
+
+  // Standard mode user-customizable settings
+  const [standardTemperature, setStandardTemperature] = useState(() => getUserTemperature('standard'));
+  const [standardMaxTokens, setStandardMaxTokens] = useState(() => getUserMaxTokens('standard'));
+
+  // NEW: Additional professional sliders for enhanced control
+  const [responseSpeed, setResponseSpeed] = useState(1.0); // 0.1 to 2.0 range
+  const [focusLevel, setFocusLevel] = useState(0.7); // 0.0 to 1.0 range
+  const [creativityBoost, setCreativityBoost] = useState(0.5); // 0.0 to 1.0 range
+  const [precisionMode, setPrecisionMode] = useState(0.6); // 0.0 to 1.0 range
+
   // Add state to track which settings panel is active in the sidebar
   const [activeSidebarPanel, setActiveSidebarPanel] = useState('controls'); // 'controls' or 'model'
 
@@ -1382,7 +1480,6 @@ export default function NexiousChatbot() {
   const [fallbackSystemEnabled, setFallbackSystemEnabled] = useState(false);
   const [currentFallbackModel, setCurrentFallbackModel] = useState<FallbackModelConfig | null>(null);
   const [fallbackAttempts, setFallbackAttempts] = useState(0);
-  const [showFallbackNotification, setShowFallbackNotification] = useState(false);
   const [fallbackNotificationMessage, setFallbackNotificationMessage] = useState('');
   const [primaryModelTimeout, setPrimaryModelTimeout] = useState(9000);
   const [fallbackModels, setFallbackModels] = useState<FallbackModelConfig[]>([]);
@@ -1398,7 +1495,7 @@ export default function NexiousChatbot() {
     if (typeof window !== 'undefined') {
       // Check if chat was previously open when the user left
       const chatWasOpen = localStorage.getItem(CHAT_IS_OPEN_KEY) === 'true';
-      
+
       // Only restore chat history if the chat was open when the user left
       if (chatWasOpen) {
         const savedMessages = localStorage.getItem(CHAT_STORAGE_KEY);
@@ -1415,13 +1512,13 @@ export default function NexiousChatbot() {
         }
       }
     }
-    
+
     // Create system prompt with page-specific context
     const contextualSystemPrompt = generateSystemPrompt(
-      pageContext.systemPromptAddition, 
+      pageContext.systemPromptAddition,
       isProMode
     );
-    
+
     // Default initial messages
     return [
       { role: 'system', content: contextualSystemPrompt, timestamp: Date.now() },
@@ -1433,6 +1530,7 @@ export default function NexiousChatbot() {
   const [currentTypingMessage, setCurrentTypingMessage] = useState('');
   const [userIsTyping, setUserIsTyping] = useState(false);
   const [hasNewMessages, setHasNewMessages] = useState(false);
+  const [showTypingIndicator, setShowTypingIndicator] = useState(false);
 
   // New state variables for streaming functionality with performance optimization
   const [isStreaming, setIsStreaming] = useState(false);
@@ -1440,6 +1538,15 @@ export default function NexiousChatbot() {
   const [isThinking, setIsThinking] = useState(false);
   const [thinkingText, setThinkingText] = useState('');
   const [streamedMessageId, setStreamedMessageId] = useState<string | null>(null);
+  const [isThinkingCollapsed, setIsThinkingCollapsed] = useState(false);
+  const [thinkingHistory, setThinkingHistory] = useState<string[]>([]);
+
+  // Enhanced thinking state management
+  const [isThinkingModelActive, setIsThinkingModelActive] = useState(false);
+  const [thinkingStreamText, setThinkingStreamText] = useState('');
+  const [isThinkingContainerVisible, setIsThinkingContainerVisible] = useState(false);
+  const [thinkingAutoCollapseTimer, setThinkingAutoCollapseTimer] = useState<NodeJS.Timeout | null>(null);
+  const [currentUserQuery, setCurrentUserQuery] = useState('');
 
   // Performance optimization states
   const [isScrolling, setIsScrolling] = useState(false);
@@ -1470,11 +1577,17 @@ export default function NexiousChatbot() {
   // FPS meter state
   const [currentFPS, setCurrentFPS] = useState<number>(60);
   const [isFPSOptimal, setIsFPSOptimal] = useState<boolean>(true);
-  
+
   // Chat scroll position state
   const [preserveScrollPosition, setPreserveScrollPosition] = useState<boolean>(false);
   const [lastScrollPosition, setLastScrollPosition] = useState<number>(0);
-  
+
+  // Website scroll position preservation
+  const [websiteScrollPosition, setWebsiteScrollPosition] = useState<number>(0);
+
+  // Settings refresh state
+  const [lastRefreshCheck, setLastRefreshCheck] = useState<number>(0);
+
   // Standard Mode Cooldown Timer
   const [showCooldownTimer, setShowCooldownTimer] = useState<boolean>(false);
   const [cooldownRemaining, setCooldownRemaining] = useState<{hours: number, minutes: number, seconds: number}>({
@@ -1482,39 +1595,111 @@ export default function NexiousChatbot() {
     minutes: 0,
     seconds: 0
   });
-  
+
+  // Effect to ensure Pro Features popup is cleared when Pro Mode is disabled
+  useEffect(() => {
+    if (!isProMode) {
+      setShowProFeaturesPopup(false);
+      setShowFullscreenSuggestion(false);
+    }
+  }, [isProMode]);
+
+  // Effect to check for settings refresh signals
+  useEffect(() => {
+    const checkForRefreshSignal = async () => {
+      try {
+        const response = await fetch('/api/chatbot/force-refresh', {
+          method: 'GET',
+          headers: {
+            'Authorization': 'Bearer nex-devs919'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.hasRefreshSignal && data.timestamp > lastRefreshCheck) {
+            console.log('Chatbot refresh signal detected, reloading settings...');
+            setLastRefreshCheck(data.timestamp);
+
+            // Force enable the chatbot
+            setIsChatbotDisabled(false);
+
+            // Clear localStorage cache to force fresh settings check
+            localStorage.removeItem('nexious-chatbot-settings');
+
+            // Clear the refresh signal
+            try {
+              await fetch('/api/chatbot/force-refresh', {
+                method: 'DELETE',
+                headers: {
+                  'Authorization': 'Bearer nex-devs919'
+                }
+              });
+            } catch (error) {
+              console.error('Error clearing refresh signal:', error);
+            }
+
+            // Force reload the page to apply new settings
+            if (typeof window !== 'undefined') {
+              setTimeout(() => {
+                window.location.reload();
+              }, 1000); // Small delay to show the enable status first
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error checking for refresh signal:', error);
+      }
+    };
+
+    // Check for refresh signals every 5 seconds when chatbot is open
+    let intervalId: NodeJS.Timeout | null = null;
+    if (isOpen) {
+      intervalId = setInterval(checkForRefreshSignal, 5000);
+      // Also check immediately when opening
+      checkForRefreshSignal();
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isOpen, lastRefreshCheck]);
+
   // Add a new function to stop the AI response generation
   const stopResponseGeneration = () => {
     if (responseController) {
       console.log('Stopping AI response generation');
       responseController.abort();
       setResponseController(null);
-      
+
       // End streaming and thinking states immediately
       setIsStreaming(false);
       setIsThinking(false);
       setIsLoading(false);
-      
+      setShowTypingIndicator(false);
+
       // Update FPS meter to show optimal performance
       setCurrentFPS(60);
       setIsFPSOptimal(true);
-      
+
       // Add a message indicating the response was stopped
       setMessages(prev => {
         // Check if the last message is from the assistant and has little content
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant' && 
+        if (lastMessage && lastMessage.role === 'assistant' &&
             (!lastMessage.content || lastMessage.content.length < 20)) {
           // If the message is very short, replace it
-          return prev.map((msg, idx) => 
-            idx === prev.length - 1 ? 
-            { ...msg, content: "I stopped my response. Would you like me to try again or answer differently?" } : 
+          return prev.map((msg, idx) =>
+            idx === prev.length - 1 ?
+            { ...msg, content: "I stopped my response. Would you like me to try again or answer differently?" } :
             msg
           );
         } else {
           // Otherwise add a new message
-          return [...prev, { 
-        role: 'assistant', 
+          return [...prev, {
+        role: 'assistant',
             content: "I stopped my response. Would you like me to try again or answer differently?",
         timestamp: Date.now()
           }];
@@ -1525,11 +1710,12 @@ export default function NexiousChatbot() {
       setIsStreaming(false);
       setIsThinking(false);
       setIsLoading(false);
+      setShowTypingIndicator(false);
     }
-    
+
     // Reset streamedMessageId to ensure no message is still in streaming state
     setStreamedMessageId(null);
-    
+
     // Ensure input is enabled
     if (inputRef.current) {
       setTimeout(() => {
@@ -1549,11 +1735,11 @@ export default function NexiousChatbot() {
         sections.forEach((section) => {
           const rect = section.getBoundingClientRect();
           const windowHeight = window.innerHeight;
-          
+
           // Calculate how much of the section is visible in the viewport
           const visibleHeight = Math.min(rect.bottom, windowHeight) - Math.max(rect.top, 0);
           const visiblePercentage = visibleHeight > 0 ? visibleHeight / rect.height : 0;
-          
+
           if (visiblePercentage > maxVisibility) {
             maxVisibility = visiblePercentage;
             currentSectionId = section.id;
@@ -1569,7 +1755,7 @@ export default function NexiousChatbot() {
 
       window.addEventListener('scroll', detectVisibleSections);
       detectVisibleSections(); // Run once on mount
-      
+
       return () => window.removeEventListener('scroll', detectVisibleSections);
     }
   }, [isOpen, pathname, currentSection]);
@@ -1578,12 +1764,12 @@ export default function NexiousChatbot() {
   const updateSystemMessageWithSection = (sectionId: string) => {
     const sectionContext = getSectionContext(sectionId);
     if (!sectionContext) return messages; // Return unchanged messages if no context found
-    
+
     const updatedSystemPrompt = generateSystemPrompt(
       pageContext.systemPromptAddition + "\n\n" + sectionContext,
       isProMode
     );
-    
+
     return setMessages(prevMessages => {
       return prevMessages.map(msg => {
         if (msg.role === 'system') {
@@ -1594,52 +1780,122 @@ export default function NexiousChatbot() {
     });
   };
 
-  // Simulate thinking animation
+  // Function to detect if current model is a thinking model
+  const isThinkingModel = (modelName: string): boolean => {
+    const thinkingModels = [
+      'deepseek/deepseek-r1',
+      'deepseek/deepseek-r1-0528',
+      'openai/o1-preview',
+      'openai/o1-mini',
+      'anthropic/claude-3-5-sonnet-thinking'
+    ];
+
+    return thinkingModels.some(thinkingModel =>
+      modelName.toLowerCase().includes(thinkingModel.toLowerCase())
+    );
+  };
+
+  // Enhanced function to extract thinking text from response with better separation
+  const extractThinkingText = (fullResponse: string): { thinking: string; response: string } => {
+    // For DeepSeek R1 models, thinking text is typically enclosed in <think> tags
+    const thinkingMatch = fullResponse.match(/<think>([\s\S]*?)<\/think>/);
+
+    if (thinkingMatch) {
+      const thinking = thinkingMatch[1].trim();
+      const response = fullResponse.replace(/<think>[\s\S]*?<\/think>/g, '').trim();
+      return { thinking, response };
+    }
+
+    // Enhanced patterns for better thinking text detection
+    const patterns = [
+      // Common thinking model patterns
+      /^(.*?)\n\n---+\n\n([\s\S]*)$/,  // Thinking separated by --- (multiple dashes)
+      /^Thinking:([\s\S]*?)\n\nResponse:([\s\S]*)$/i,  // Explicit thinking/response labels
+      /^\*\*Thinking\*\*:([\s\S]*?)\n\n([\s\S]*)$/i,  // Bold thinking label
+      /^# Thinking([\s\S]*?)\n\n# Response([\s\S]*)$/i,  // Markdown headers
+      /^<thinking>([\s\S]*?)<\/thinking>([\s\S]*)$/i,  // XML-style thinking tags
+      /^Reasoning:([\s\S]*?)\n\nAnswer:([\s\S]*)$/i,  // Reasoning/Answer format
+      /^Internal thoughts:([\s\S]*?)\n\nFinal response:([\s\S]*)$/i,  // Internal thoughts format
+    ];
+
+    for (const pattern of patterns) {
+      const match = fullResponse.match(pattern);
+      if (match) {
+        const thinking = match[1].trim();
+        const response = match[2].trim();
+        // Ensure we don't return empty responses
+        if (response.length > 0) {
+          return { thinking, response };
+        }
+      }
+    }
+
+    // Advanced heuristic: If response starts with thinking-like content, try to separate
+    const lines = fullResponse.split('\n');
+    let thinkingEndIndex = -1;
+
+    // Look for transition indicators
+    const transitionIndicators = [
+      'Based on this analysis',
+      'Given this information',
+      'Therefore',
+      'In conclusion',
+      'To answer your question',
+      'Here\'s my response',
+      'My answer is',
+      'The solution is'
+    ];
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].toLowerCase();
+      if (transitionIndicators.some(indicator => line.includes(indicator.toLowerCase()))) {
+        thinkingEndIndex = i;
+        break;
+      }
+    }
+
+    if (thinkingEndIndex > 0) {
+      const thinking = lines.slice(0, thinkingEndIndex).join('\n').trim();
+      const response = lines.slice(thinkingEndIndex).join('\n').trim();
+      if (thinking.length > 50 && response.length > 10) { // Reasonable length checks
+        return { thinking, response };
+      }
+    }
+
+    // If no thinking pattern found, return empty thinking and full response
+    return { thinking: '', response: fullResponse };
+  };
+
+  // Enhanced thinking simulation with streaming text
   const simulateThinking = async () => {
+    const currentModel = getModelSettings(isProMode).model;
+    const isThinkingModelActive = isThinkingModel(currentModel);
+
     setIsThinking(true);
-    setThinkingText('');
-    
+    setThinkingStreamText('');
+
+    // Show thinking container for all models now
+    setIsThinkingContainerVisible(true);
+    setIsThinkingCollapsed(false);
+
     // Generate a random ID for this streamed message
     const messageId = `thinking-${Date.now()}`;
     setStreamedMessageId(messageId);
-    
+
     // Add an empty assistant message that will be updated with the streaming content
-    setMessages(prev => [...prev, { 
-      role: 'assistant', 
+    setMessages(prev => [...prev, {
+      role: 'assistant',
       content: '',
       timestamp: Date.now(),
       id: messageId
     }]);
-    
-    // Get the thinking time from the appropriate mode settings
-    const settings = getModelSettings(isProMode);
-    const thinkingTime = settings.thinkingTime;
-    
-    // Updated thinking animation with new phrases
-    await new Promise(resolve => {
-      const thinkingPhrases = isProMode ?
-        ['Thinking...', 'Looking for content...', 'Analyzing content...' ,'searching for details...'] :
-        ['Thinking...', 'Looking for content...', 'Analyzing content...'];
 
-      let index = 0;
-      const interval = setInterval(() => {
-        if (index < thinkingPhrases.length) {
-          setThinkingText(thinkingPhrases[index]);
-          index++;
-        } else {
-          clearInterval(interval);
-          resolve(true);
-        }
-      }, 0); // No delay between phrases
+    // Clear any existing auto-collapse timer
+    if (thinkingAutoCollapseTimer) {
+      clearTimeout(thinkingAutoCollapseTimer);
+      setThinkingAutoCollapseTimer(null);
+    }
 
-      // Auto-resolve immediately
-      setTimeout(() => {
-        clearInterval(interval);
-        resolve(true);
-      }, 0);
-    });
-    
-    setIsThinking(false);
     return messageId;
   };
 
@@ -1656,40 +1912,40 @@ export default function NexiousChatbot() {
   const processStreamedText = (text: string): string => {
     // First apply the regular message formatting
     let formattedText = formatMessage(text);
-    
+
     // Handle markdown code blocks properly even if incomplete
     const codeBlockRegex = /```([a-zA-Z0-9]*)([\s\S]*?)```/g;
     const openCodeBlockRegex = /```([a-zA-Z0-9]*)([\s\S]*?)$/;
-    
+
     // If there's an open code block (starts with ``` but doesn't end with ```)
     if (openCodeBlockRegex.test(formattedText) && !formattedText.trim().endsWith('```')) {
       // Temporarily close it for proper syntax highlighting
       const language = formattedText.match(openCodeBlockRegex)?.[1] || '';
       const code = formattedText.match(openCodeBlockRegex)?.[2] || '';
-      
+
       // Replace the open code block with a properly formatted one
       formattedText = formattedText.replace(openCodeBlockRegex, '```$1$2```');
     }
-    
+
     // Add subtle highlights to important phrases
     formattedText = formattedText.replace(
       /(important|note|key|remember|tip):/gi,
       '<span class="highlight">$1:</span>'
     );
-    
+
     // Add animation delays to list items
     let liIndex = 0;
     formattedText = formattedText.replace(
       /<li>/g,
       () => `<li style="--li-index: ${liIndex++}">`
     );
-    
+
     // Add smooth reveal animation to paragraphs that aren't in code blocks
     formattedText = formattedText.replace(
       /(<p>(?!<code>).*?<\/p>)/g,
       (match: string) => `<div class="reveal-text">${match}</div>`
     );
-    
+
     return formattedText;
   };
 
@@ -1729,7 +1985,7 @@ export default function NexiousChatbot() {
         guidance: 'Reference relevant FAQs and provide additional clarity on policies, processes, and services.'
       }
     };
-    
+
     return sections[sectionId];
   };
 
@@ -1773,7 +2029,7 @@ export default function NexiousChatbot() {
     }
   }, []);
 
-  // Detect mobile devices
+  // Enhanced mobile detection with keyboard handling
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkMobile = () => {
@@ -1785,12 +2041,79 @@ export default function NexiousChatbot() {
         }
       };
 
+      // Enhanced mobile keyboard handling with better detection
+      const handleViewportChange = () => {
+        if (isMobile && isOpen) {
+          const viewportHeight = window.visualViewport?.height || window.innerHeight;
+          const windowHeight = window.innerHeight;
+          const keyboardHeight = windowHeight - viewportHeight;
+
+          // Adjust chat container when keyboard appears
+          const chatWindow = document.getElementById('chat-window');
+          if (chatWindow) {
+            if (keyboardHeight > 150) { // Keyboard is open (threshold increased for better detection)
+              chatWindow.style.height = `${viewportHeight}px`;
+              chatWindow.style.paddingBottom = '0px';
+              chatWindow.classList.add('keyboard-open');
+
+              // Ensure header remains visible
+              const header = chatWindow.querySelector('.flex.items-center.justify-between');
+              if (header) {
+                (header as HTMLElement).style.position = 'sticky';
+                (header as HTMLElement).style.top = '0';
+                (header as HTMLElement).style.zIndex = '1000';
+              }
+
+              // Adjust input area to be visible above keyboard
+              const inputArea = chatWindow.querySelector('.flex.items-end.gap-2');
+              if (inputArea) {
+                (inputArea as HTMLElement).style.paddingBottom = '10px';
+                (inputArea as HTMLElement).style.position = 'sticky';
+                (inputArea as HTMLElement).style.bottom = '0';
+                (inputArea as HTMLElement).style.zIndex = '999';
+              }
+            } else { // Keyboard is closed
+              chatWindow.style.height = '100vh';
+              chatWindow.style.paddingBottom = '0px';
+              chatWindow.classList.remove('keyboard-open');
+
+              // Reset header positioning
+              const header = chatWindow.querySelector('.flex.items-center.justify-between');
+              if (header) {
+                (header as HTMLElement).style.position = '';
+                (header as HTMLElement).style.top = '';
+                (header as HTMLElement).style.zIndex = '';
+              }
+
+              // Reset input area positioning
+              const inputArea = chatWindow.querySelector('.flex.items-end.gap-2');
+              if (inputArea) {
+                (inputArea as HTMLElement).style.paddingBottom = '';
+                (inputArea as HTMLElement).style.position = '';
+                (inputArea as HTMLElement).style.bottom = '';
+                (inputArea as HTMLElement).style.zIndex = '';
+              }
+            }
+          }
+        }
+      };
+
       checkMobile();
       window.addEventListener('resize', checkMobile);
 
-      return () => window.removeEventListener('resize', checkMobile);
+      // Add viewport change listener for keyboard handling
+      if (window.visualViewport) {
+        window.visualViewport.addEventListener('resize', handleViewportChange);
+      }
+
+      return () => {
+        window.removeEventListener('resize', checkMobile);
+        if (window.visualViewport) {
+          window.visualViewport.removeEventListener('resize', handleViewportChange);
+        }
+      };
     }
-  }, [isFullscreen]);
+  }, [isFullscreen, isMobile, isOpen]);
 
   // Handle chat resizing
   const startResizing = (e: React.MouseEvent) => {
@@ -1807,7 +2130,7 @@ export default function NexiousChatbot() {
       // Set minimum and maximum sizes
       const newWidth = Math.max(320, Math.min(600, e.clientX - chatWindowRef.current.getBoundingClientRect().left));
       const newHeight = Math.max(400, Math.min(800, e.clientY - chatWindowRef.current.getBoundingClientRect().top));
-      
+
       setChatSize({ width: newWidth, height: newHeight });
     }
   };
@@ -1817,7 +2140,7 @@ export default function NexiousChatbot() {
       window.addEventListener('mousemove', resize);
       window.addEventListener('mouseup', stopResizing);
     }
-    
+
     return () => {
       window.removeEventListener('mousemove', resize);
       window.removeEventListener('mouseup', stopResizing);
@@ -1830,12 +2153,12 @@ export default function NexiousChatbot() {
       localStorage.setItem(CHAT_STORAGE_KEY, JSON.stringify(messages));
     }
   }, [messages]);
-  
+
   // Don't update chat open state in localStorage to prevent auto-opening on reload
   useEffect(() => {
     if (typeof window !== 'undefined') {
       // Don't store open state to prevent auto-opening on reload
-      
+
       // If chat is closed, remove chat history
       if (!isOpen) {
         // We don't immediately clear messages from state to allow for a smooth UX if reopened
@@ -1849,34 +2172,35 @@ export default function NexiousChatbot() {
     if (!isOpen && messages.length > 2) {
       // Check if there are any assistant messages in the last 2 minutes
       const recentMessages = messages.filter(
-        msg => msg.role === 'assistant' && 
-        msg.timestamp && 
+        msg => msg.role === 'assistant' &&
+        msg.timestamp &&
         (Date.now() - msg.timestamp < 2 * 60 * 1000)
       );
-      
+
       if (recentMessages.length > 0) {
         setHasNewMessages(true);
       }
     }
   }, [isOpen, messages]);
 
-  // Optimized scroll to bottom function with performance optimization and auto-scroll control
+  // Strict scroll to bottom function - only when user hasn't scrolled up
   const scrollToBottom = useCallback(() => {
-    // Only scroll if auto-scroll is enabled
-    if (messagesEndRef.current && isOpen && autoScrollEnabled) {
+    if (messagesEndRef.current && isOpen && !isUserScrolledUp && !isStreaming) {
       // Use requestAnimationFrame for smooth scrolling
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
 
       animationFrameRef.current = requestAnimationFrame(() => {
-        messagesEndRef.current?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'end'
-        });
+        if (messagesEndRef.current) {
+          messagesEndRef.current.scrollIntoView({
+            behavior: 'smooth',
+            block: 'end'
+          });
+        }
       });
     }
-  }, [isOpen, autoScrollEnabled]);
+  }, [isOpen, isUserScrolledUp, isStreaming]);
 
   // Optimized smooth scroll handler with debouncing
   const handleSmoothScroll = useCallback((element: HTMLElement, targetScrollTop: number) => {
@@ -1904,10 +2228,29 @@ export default function NexiousChatbot() {
     requestAnimationFrame(animateScroll);
   }, []);
 
-  // Optimized scroll handler with performance monitoring
+  // Enhanced scroll handler with strict user control detection
   const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     performanceMonitor.markScrollStart();
     setIsScrolling(true);
+
+    const target = e.target as HTMLDivElement;
+    const { scrollTop, scrollHeight, clientHeight } = target;
+
+    // Check if user is at the very bottom (within 10px for strict detection)
+    const isAtBottom = scrollHeight - scrollTop - clientHeight < 10;
+
+    // Detect any manual scroll up from the user - be very sensitive
+    const scrolledUp = scrollTop < lastScrollTop;
+
+    // If user scrolls up even slightly, respect their intention
+    if (scrolledUp) {
+      setIsUserScrolledUp(true);
+    } else if (isAtBottom) {
+      // Only reset when user is back at the bottom
+      setIsUserScrolledUp(false);
+    }
+
+    setLastScrollTop(scrollTop);
 
     if (scrollTimeout) {
       clearTimeout(scrollTimeout);
@@ -1919,9 +2262,9 @@ export default function NexiousChatbot() {
     }, 150);
 
     setScrollTimeout(timeout);
-  }, [scrollTimeout]);
+  }, [scrollTimeout, lastScrollTop]);
 
-  // Optimized streaming text renderer with performance monitoring
+  // Smooth streaming text renderer without blinking animations
   const renderStreamingText = useCallback((text: string, targetElement: HTMLElement | null) => {
     if (!targetElement || !text) return;
 
@@ -1930,7 +2273,7 @@ export default function NexiousChatbot() {
     const currentTime = performance.now();
     const timeSinceLastRender = currentTime - lastRenderTime;
 
-    // Throttle rendering to 60fps for smooth performance
+    // Throttle rendering to 60fps for smooth performance without blinking
     if (timeSinceLastRender < 16.67) { // ~60fps
       if (frameId) {
         cancelAnimationFrame(frameId);
@@ -1946,16 +2289,18 @@ export default function NexiousChatbot() {
     // Update render buffer and display with optimized DOM manipulation
     renderBufferRef.current = text;
 
-    // Use textContent for better performance than innerHTML when possible
-    if (targetElement.textContent !== text) {
-      targetElement.textContent = text;
+    // Use innerHTML for rich formatting with smooth updates (no blinking)
+    const processedText = processStreamedText(cleanText(text));
+    if (targetElement.innerHTML !== processedText) {
+      // Direct update without transition effects to prevent blinking
+      targetElement.innerHTML = processedText;
     }
 
     setLastRenderTime(currentTime);
     performanceMonitor.markRenderEnd();
 
-    // Smooth scroll to bottom during streaming - only if auto-scroll is enabled
-    if (!isScrolling && messagesEndRef.current && autoScrollEnabled) {
+    // Smooth scroll to bottom - only when not streaming to prevent jitter
+    if (!isScrolling && messagesEndRef.current && !isUserScrolledUp && !isStreaming) {
       if (animationFrameRef.current) {
         cancelAnimationFrame(animationFrameRef.current);
       }
@@ -2021,19 +2366,19 @@ export default function NexiousChatbot() {
     });
   }, [visibleMessages, renderMessage]);
 
-  // Optimized scroll to bottom of chat when messages change
+  // Optimized scroll to bottom of chat when messages change - enhanced with user scroll detection
   useEffect(() => {
     if (messagesContainerRef.current && preserveScrollPosition) {
       // Save current scroll position before navigating between chats
       setLastScrollPosition(messagesContainerRef.current.scrollTop);
-    } else if (!isScrolling && !preserveScrollPosition) {
-      // Only auto-scroll if we're not preserving position and not actively scrolling
+    } else if (!isScrolling && !preserveScrollPosition && !isUserScrolledUp) {
+      // Only auto-scroll if user hasn't manually scrolled up
       scrollToBottom();
     } else if (messagesContainerRef.current && preserveScrollPosition && lastScrollPosition > 0) {
       // Restore previous scroll position when switching between chats
       messagesContainerRef.current.scrollTop = lastScrollPosition;
     }
-  }, [messages, typingEffect, currentTypingMessage, isOpen, scrollToBottom, isScrolling, preserveScrollPosition, lastScrollPosition]);
+  }, [messages, typingEffect, currentTypingMessage, isOpen, scrollToBottom, isScrolling, preserveScrollPosition, lastScrollPosition, isUserScrolledUp]);
 
   // Focus input when chat opens
   useEffect(() => {
@@ -2087,7 +2432,7 @@ export default function NexiousChatbot() {
       const assistantMessage = createInitialMessage(isProMode).content;
       setCurrentTypingMessage('');
       setTypingEffect(true);
-      
+
       let i = 0;
       const typeInterval = setInterval(() => {
         if (i < assistantMessage.length) {
@@ -2097,8 +2442,8 @@ export default function NexiousChatbot() {
           clearInterval(typeInterval);
           setTypingEffect(false);
         }
-      }, 20); // Faster typing for better performance
-      
+      }, 5); // Ultra-fast typing with no delay for smooth experience
+
       return () => clearInterval(typeInterval);
     }
   }, [isOpen, isProMode]);
@@ -2107,15 +2452,15 @@ export default function NexiousChatbot() {
   useEffect(() => {
     // Create a new system message with the updated context
     const updatedSystemPrompt = generateSystemPrompt(
-      pageContext.systemPromptAddition, 
+      pageContext.systemPromptAddition,
       isProMode
     );
-    
+
     // Update the system message in the messages array
     setMessages(prev => {
       // Find the system message index
       const systemMessageIndex = prev.findIndex(msg => msg.role === 'system');
-      
+
       // If no system message exists, add one
       if (systemMessageIndex === -1) {
         return [
@@ -2123,7 +2468,7 @@ export default function NexiousChatbot() {
           ...prev
         ];
       }
-      
+
       // Create a new array with the updated system message
       const newMessages = [...prev];
       newMessages[systemMessageIndex] = {
@@ -2131,7 +2476,7 @@ export default function NexiousChatbot() {
         content: updatedSystemPrompt,
         timestamp: Date.now()
       };
-      
+
       return newMessages;
     });
   }, [pathname, isProMode, pageContext]); // Re-run when pathname, PRO mode, or pageContext changes
@@ -2147,7 +2492,7 @@ export default function NexiousChatbot() {
     // Only add very subtle professional touches without changing the core content
     let mood = 'neutral';
     const lowerContent = content.toLowerCase();
-    
+
     // Technical-focused moods
     if (lowerContent.includes('issue') || lowerContent.includes('problem') || lowerContent.includes('error')) {
       mood = 'technical';
@@ -2160,7 +2505,7 @@ export default function NexiousChatbot() {
     } else if (lowerContent.includes('improve') || lowerContent.includes('upgrade') || lowerContent.includes('enhance')) {
       mood = 'solution';
     }
-    
+
     // Store mood for potential animation
     setMessageMood(mood);
 
@@ -2172,7 +2517,7 @@ export default function NexiousChatbot() {
 
     // Minimal professional processing - keep the original content intact
     // Only make very subtle adjustments if absolutely necessary
-    
+
     return modifiedContent;
   };
 
@@ -2181,19 +2526,19 @@ export default function NexiousChatbot() {
     if (isCodeMode) {
       // Handle code snippet submission
       if (!codeSnippet.trim()) return;
-      
+
       // Format the code for sending
       const formattedCode = "```" + codeLanguage + "\n" + codeSnippet + "\n```";
       const messagePrefix = "Here's my code snippet. Can you help me with this?";
       const fullMessage = messagePrefix + "\n\n" + formattedCode;
-      
+
       // Set the message in the input value temporarily
       setInputValue(fullMessage);
-      
+
       // Reset code mode and snippet
       setIsCodeMode(false);
       setCodeSnippet('');
-      
+
       // Use setTimeout to ensure state is updated before sending
       setTimeout(() => {
         handleNormalSendMessage();
@@ -2203,7 +2548,7 @@ export default function NexiousChatbot() {
       handleNormalSendMessage();
     }
   };
-  
+
   // Original send message logic moved to a separate function
   const handleNormalSendMessage = async () => {
     // Only block if input is empty - allow multiple messages even during processing
@@ -2246,6 +2591,9 @@ export default function NexiousChatbot() {
     setInputValue('');
     setUserIsTyping(false);
 
+    // Store current user query for thinking container
+    setCurrentUserQuery(userMessage);
+
     // Enhanced logging for debugging
     console.log(`📝 NEXIOUS: Processing user message: "${userMessage}"`);
     console.log(`⚙️ NEXIOUS: Mode: ${isProMode ? 'PRO' : 'STANDARD'}`);
@@ -2276,8 +2624,11 @@ export default function NexiousChatbot() {
 
     // Immediate state updates for zero-delay response initiation
     setIsLoading(true);
+    setShowTypingIndicator(true); // Show typing indicator immediately
     setIsThinking(true);
     setThinkingText('thinking');
+    setIsThinkingCollapsed(false); // Show thinking container
+    setThinkingHistory([]); // Clear previous thinking history
 
     console.log(`🔄 NEXIOUS: States updated - Starting AI response generation`);
 
@@ -2292,7 +2643,7 @@ export default function NexiousChatbot() {
       // Start the thinking animation and get the message ID with minimal delay
       const messageId = await simulateThinking();
       setStreamedMessageId(messageId);
-    
+
     // Enhanced retry mechanism with immediate response guarantee
       const MAX_RETRIES = 3;
       const BACKUP_RETRIES = 2;
@@ -2341,7 +2692,7 @@ export default function NexiousChatbot() {
 
           console.log(`✅ NEXIOUS: API request prepared - URL: ${request.url}`);
           console.log(`📊 NEXIOUS: Request body contains ${JSON.stringify(request.body).length} characters`);
-          
+
           // Create AbortController for timeout handling
           const controller = new AbortController();
         setResponseController(controller);
@@ -2391,17 +2742,17 @@ export default function NexiousChatbot() {
           if ((!response || !response.ok || primaryError) && fallbackSystemEnabled && fallbackModels.length > 0) {
             console.log(`🔄 NEXIOUS FALLBACK: Primary model failed, attempting fallback models`);
 
-            // Show fallback notification to user
-            if (getFallbackNotificationSettings().enabled) {
-              setShowFallbackNotification(true);
-              setTimeout(() => setShowFallbackNotification(false), 3000);
-            }
+            // Show model switching in header via ModelStatusIndicator
+            setIsModelSwitching(true);
 
             // Try each fallback model in priority order
             for (let i = 0; i < fallbackModels.length && i < 3; i++) {
               const fallbackModel = fallbackModels[i];
               setCurrentFallbackModel(fallbackModel);
               setFallbackAttempts(i + 1);
+
+              // Update current model to show in header
+              setCurrentAIModel(fallbackModel.model);
 
               console.log(`🔄 NEXIOUS FALLBACK: Attempting fallback ${i + 1}/${fallbackModels.length} - ${fallbackModel.model}`);
 
@@ -2457,6 +2808,7 @@ export default function NexiousChatbot() {
             // Reset fallback states
             setCurrentFallbackModel(null);
             setFallbackAttempts(0);
+            setIsModelSwitching(false);
           }
 
           // Final check - if still no valid response, throw error
@@ -2473,7 +2825,7 @@ export default function NexiousChatbot() {
             console.error(`❌ NEXIOUS: Error details:`, errorData);
             throw new Error(errorData.error?.message || `API returned status ${response.status}`);
           }
-          
+
           // Handle streaming response
           const reader = response.body?.getReader();
           if (!reader) {
@@ -2485,6 +2837,25 @@ export default function NexiousChatbot() {
           let accumulatedResponse = '';
           let chunkCount = 0;
 
+          // Start thinking animation during streaming
+          const thinkingPhrases = [
+            'Processing your request',
+            'Analyzing context',
+            'Generating response',
+            'Optimizing output',
+            'Refining content',
+            'Structuring information',
+            'Applying knowledge',
+            'Crafting response'
+          ];
+          let thinkingIndex = 0;
+          const thinkingInterval = setInterval(() => {
+            if (isThinking) {
+              setThinkingText(thinkingPhrases[thinkingIndex % thinkingPhrases.length]);
+              thinkingIndex++;
+            }
+          }, 800); // Update thinking text every 800ms
+
           // Process the stream
           while (true) {
             const { done, value } = await reader.read();
@@ -2493,54 +2864,65 @@ export default function NexiousChatbot() {
               break;
             }
             chunkCount++;
-            
+
             // Convert the chunk to text
             const chunk = new TextDecoder().decode(value);
-            
+
             // OpenRouter/API sends data: prefix for each chunk
             const lines = chunk.split('\n').filter(line => line.trim() !== '');
-            
+
             for (const line of lines) {
               if (line.startsWith('data: ')) {
                 const data = line.slice(5).trim();
-                
+
                 // Check for the [DONE] marker
                 if (data === '[DONE]') {
                   continue;
                 }
-                
+
                 try {
                   const parsedData = JSON.parse(data);
                   const content = parsedData.choices?.[0]?.delta?.content || '';
-                  
+
                   if (content) {
                     // Accumulate the response
                     accumulatedResponse += content;
-                    
-                    // Format the accumulated response
-                    const formattedResponse = processStreamedText(accumulatedResponse);
-                    
-                    // Update the streamed response
-                    setStreamedResponse(formattedResponse);
-                    
-                    // Update the message in the messages array with optimized rendering
-                    setMessages(prev => prev.map(msg =>
-                      msg.id === messageId ? { ...msg, content: formattedResponse } : msg
-                    ));
 
-                    // Optimized smooth scroll to latest message - only if auto-scroll is enabled
-                    if (!isScrolling && messagesEndRef.current && !preserveScrollPosition && autoScrollEnabled) {
-                      if (animationFrameRef.current) {
-                        cancelAnimationFrame(animationFrameRef.current);
+                    // Hide typing indicator once content starts arriving
+                    if (showTypingIndicator && accumulatedResponse.trim()) {
+                      setShowTypingIndicator(false);
+                    }
+
+                    // Check if this is a thinking model and extract thinking text
+                    const currentModel = getModelSettings(isProMode).model;
+                    if (isThinkingModel(currentModel)) {
+                      const { thinking, response } = extractThinkingText(accumulatedResponse);
+
+                      // Update thinking text if available (keep it separate)
+                      if (thinking && thinking !== thinkingStreamText) {
+                        setThinkingStreamText(thinking);
                       }
 
-                      animationFrameRef.current = requestAnimationFrame(() => {
-                        messagesEndRef.current?.scrollIntoView({
-                          behavior: 'smooth',
-                          block: 'end'
-                        });
-                      });
+                      // Format the main response (without thinking text) - only show actual response
+                      const formattedResponse = processStreamedText(response);
+                      setStreamedResponse(formattedResponse);
+
+                      // Update the message with ONLY the main response (no thinking text)
+                      setMessages(prev => prev.map(msg =>
+                        msg.id === messageId ? { ...msg, content: formattedResponse } : msg
+                      ));
+                    } else {
+                      // For non-thinking models, process normally
+                      const formattedResponse = processStreamedText(accumulatedResponse);
+                      setStreamedResponse(formattedResponse);
+
+                      setMessages(prev => prev.map(msg =>
+                        msg.id === messageId ? { ...msg, content: formattedResponse } : msg
+                      ));
                     }
+
+                    // Completely disable auto-scroll during streaming for smooth experience
+                    // Auto-scroll will be handled after response completion
                   }
                 } catch (e) {
                   console.error('Error parsing streaming data:', e);
@@ -2548,19 +2930,32 @@ export default function NexiousChatbot() {
               }
             }
           }
-          
+
           // Clear the controller from state since the request is complete
           setResponseController(null);
           clearTimeout(timeoutId); // Clear timeout
-          
+
           // End streaming mode with slight delay to ensure a smooth transition
           setTimeout(() => {
             setIsStreaming(false);
+            setIsThinking(false);
+
+            // Auto-collapse thinking container for thinking models
+            const currentModel = getModelSettings(isProMode).model;
+            if (isThinkingModel(currentModel) && isThinkingContainerVisible) {
+              const timer = setTimeout(() => {
+                setIsThinkingContainerVisible(false);
+                setIsThinkingCollapsed(true);
+              }, 3000); // Auto-collapse after 3 seconds
+
+              setThinkingAutoCollapseTimer(timer);
+            }
+
             // Update FPS meter to show optimal status when response is complete
             setCurrentFPS(60);
             setIsFPSOptimal(true);
           }, 100);
-          
+
           // Validate and process the final response with enhanced formatting
           let processedResponse = '';
 
@@ -2599,68 +2994,68 @@ export default function NexiousChatbot() {
 
         // Log successful request
         await logChatRequest(userMessage, processedResponse, Date.now() - startTime, 'success');
-        
+
         // Successfully got response, exit retry loop
         break;
-        
+
         } catch (error: any) { // Add type annotation
         // Clear the controller from state
         setResponseController(null);
-        
+
         // Check if this was an abort error (user clicked stop)
         if (error.name === 'AbortError') {
           console.log('Request was aborted by user');
           break; // Exit the retry loop
         }
-        
+
         console.error(`Chat error (attempt ${attempts}/${MAX_RETRIES}):`, error);
-        
+
         // Get the error message but intercept specific messages
           let errorMsg = error.toString();
-        
+
         // Replace specific rate limit error messages with professional alternatives
-        if (errorMsg.includes('Rate limit exceeded: free-models-per-day') || 
+        if (errorMsg.includes('Rate limit exceeded: free-models-per-day') ||
             errorMsg.includes('Add 10 credits to unlock 1000 free model')) {
           errorMsg = 'AI service currently experiencing high demand';
           console.log('Replaced rate limit error with professional message');
         }
-        
+
         if (attempts >= MAX_RETRIES) {
             // End streaming mode
             setIsStreaming(false);
-          
+
           // Create a professional error message that doesn't explicitly mention rate limits
           let professionalErrorMessage = "";
-          
-          if (errorMsg.includes("rate limit") || errorMsg.includes("quota exceeded") || 
+
+          if (errorMsg.includes("rate limit") || errorMsg.includes("quota exceeded") ||
               errorMsg.includes("high demand") || errorMsg.includes("free-models-per-day")) {
             // For rate limit errors, provide a professional alternative message
-            professionalErrorMessage = 
+            professionalErrorMessage =
               "I apologize, but our AI service is currently experiencing high demand. " +
               "Our systems are optimizing resources to ensure quality service for all users. " +
               "Please try again in a few moments while we enhance processing capacity.";
           } else if (errorMsg.includes("402") || errorMsg.includes("billing")) {
             // For billing errors
-            professionalErrorMessage = 
+            professionalErrorMessage =
               "I apologize, but we're currently performing scheduled maintenance on our AI systems. " +
               "Our team is working to complete this process as quickly as possible. " +
               "Please try again shortly.";
           } else {
             // For other errors
-            professionalErrorMessage = 
+            professionalErrorMessage =
               "I apologize, but I encountered a technical limitation. " +
               "Our systems are working to resolve this. " +
               "Please try again in a moment.";
           }
-          
+
             // Update the message with the error
-            setMessages(prev => prev.map(msg => 
+            setMessages(prev => prev.map(msg =>
               msg.id === messageId ? { ...msg, content: professionalErrorMessage } : msg
             ));
-          
+
           // Log error request with original error for debugging
             await logChatRequest(userMessage, `Error: ${errorMsg}`, Date.now() - startTime, 'error');
-            
+
         } else {
           console.log(`Retrying after error: ${errorMsg}`);
           // Add shorter backoff delay
@@ -2708,28 +3103,42 @@ export default function NexiousChatbot() {
     }
     } catch (error: any) { // Add type annotation
       console.error('Error in chat flow:', error);
-      
+
       // Ensure streaming and thinking states are reset in case of errors
       setIsStreaming(false);
       setIsThinking(false);
-      
+
       // Add a fallback error message if something went wrong with the thinking animation
-      setMessages(prev => [...prev, { 
-        role: 'assistant', 
+      setMessages(prev => [...prev, {
+        role: 'assistant',
         content: "I'm sorry, but I encountered an unexpected error. Please try again.",
         timestamp: Date.now()
       }]);
     } finally {
       // Always make sure loading state is reset
-    setIsLoading(false);
+      setIsLoading(false);
+      setIsStreaming(false);
+      setIsThinking(false);
+      setShowTypingIndicator(false); // Reset typing indicator
+
+      // Clear any thinking auto-collapse timer
+      if (thinkingAutoCollapseTimer) {
+        clearTimeout(thinkingAutoCollapseTimer);
+        setThinkingAutoCollapseTimer(null);
+      }
+
+      // Reset thinking container visibility
+      setIsThinkingContainerVisible(false);
+      setThinkingStreamText('');
     }
   };
 
+  // Enhanced keyboard handling with comprehensive desktop shortcuts
   const handleKeyDown = (e: React.KeyboardEvent) => {
     // Prevent sending message with Enter key if already loading
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      
+
       // Only process if not already loading
       if (!isLoading) {
         handleSendMessage();
@@ -2744,6 +3153,8 @@ export default function NexiousChatbot() {
       setUserIsTyping(false);
     }
   };
+
+
 
   // Add a state variable to track if we've shown the stop button notification
   const [hasShownStopButtonNotification, setHasShownStopButtonNotification] = useState(() => {
@@ -2763,81 +3174,215 @@ export default function NexiousChatbot() {
   }, []);
 
   const toggleChat = () => {
-    // Instant popup for mobile users with optimized check
-    if (isMobileDevice) {
-      setShowMobilePopup(true);
+    // For mobile users, open chat directly in fullscreen mode
+    if (isMobileDevice || isMobile) {
+      const newState = !isOpen;
+
+      if (newState) {
+        // Save current scroll position before opening chatbot on mobile
+        if (typeof window !== 'undefined') {
+          const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+          setWebsiteScrollPosition(currentScrollY);
+        }
+      }
+
+      setIsOpen(newState);
+
+      if (newState) {
+        // Open in fullscreen mode for mobile
+        setIsFullscreen(true);
+        setIsMinimized(false);
+
+        // Reset chat if needed
+        if (messages.length === 0) {
+          resetChat();
+        }
+
+        // Use CSS animation for opening
+        if (chatWindowRef.current) {
+          animateOpenChat(chatWindowRef.current);
+        }
+
+        // Prevent body scrolling on mobile and ensure full coverage
+        if (typeof document !== 'undefined') {
+          document.body.classList.add('chat-open');
+          document.body.style.overflow = 'hidden';
+          document.body.style.touchAction = 'none';
+          document.body.style.position = 'fixed';
+          document.body.style.width = '100%';
+          document.body.style.height = '100%';
+          document.body.style.top = '0';
+          document.body.style.left = '0';
+
+          // Ensure chatbot container has highest z-index
+          const chatContainer = document.getElementById('nexious-chat-container');
+          if (chatContainer) {
+            chatContainer.style.zIndex = '999999';
+          }
+
+          // Hide navbar for mobile full preview
+          const navbar = document.querySelector('nav, .navbar, [role="navigation"]');
+          if (navbar) {
+            (navbar as HTMLElement).style.zIndex = '1';
+          }
+        }
+      } else {
+        // Close chat
+        if (chatWindowRef.current) {
+          animateCloseChat(chatWindowRef.current);
+        }
+
+        // Reset fullscreen mode when closing chat
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        }
+
+        // Restore body scrolling and navbar
+        if (typeof document !== 'undefined') {
+          document.body.classList.remove('chat-open');
+          document.body.style.overflow = '';
+          document.body.style.touchAction = 'auto';
+          document.body.style.position = '';
+          document.body.style.width = '';
+          document.body.style.height = '';
+          document.body.style.top = '';
+          document.body.style.left = '';
+
+          // Restore navbar z-index
+          const navbar = document.querySelector('nav, .navbar, [role="navigation"]');
+          if (navbar) {
+            (navbar as HTMLElement).style.zIndex = '';
+          }
+
+          // Restore the website scroll position for mobile after a brief delay
+          setTimeout(() => {
+            if (typeof window !== 'undefined' && websiteScrollPosition > 0) {
+              window.scrollTo({
+                top: websiteScrollPosition,
+                behavior: 'smooth'
+              });
+            }
+          }, 100);
+        }
+      }
+      return;
     }
-    
+
     const newState = !isOpen;
-    
+
     if (newState) {
+      // Save current scroll position before opening chatbot
+      if (typeof window !== 'undefined') {
+        const currentScrollY = window.scrollY || document.documentElement.scrollTop;
+        setWebsiteScrollPosition(currentScrollY);
+      }
+
       // If we're opening, check if we need to reset the chat
       if (typeof window !== 'undefined' && localStorage.getItem(CHAT_IS_OPEN_KEY) !== 'true') {
         resetChat();
       }
-      
+
       // Use CSS animation for opening
       if (chatWindowRef.current) {
         animateOpenChat(chatWindowRef.current);
       }
-      
-      // Add chat-open class to body to prevent scrolling
+
+      // Add chat-open class to body - CSS will handle mobile vs desktop behavior
       if (typeof document !== 'undefined') {
         document.body.classList.add('chat-open');
+
+        // For desktop, ensure we don't interfere with scrolling
+        if (!isMobile && !isMobileDevice) {
+          // Explicitly allow scrolling on desktop
+          document.body.style.overflow = 'auto';
+          document.body.style.position = 'static';
+          document.body.style.touchAction = 'auto';
+        }
       }
-      
+
       // Show the stop button notification if we haven't shown it before
       if (!hasShownStopButtonNotification) {
         setTimeout(() => {
-          setMessages(prev => [...prev, { 
-            role: 'assistant', 
+          setMessages(prev => [...prev, {
+            role: 'assistant',
             content: "✨ New Feature: You can now stop AI responses while they're being generated by clicking the red X button that appears during generation.",
             timestamp: Date.now()
           }]);
-          
+
           // Mark the notification as shown
           setHasShownStopButtonNotification(true);
           localStorage.setItem('nexious-stop-button-notification-shown', 'true');
         }, 1000);
       }
+
+      // Auto-open AI Model Info popup when chatbot opens (desktop only)
+      if (!isMobile) {
+        setTimeout(() => {
+          setShowAIModelInfo(true);
+        }, 500); // Delay to allow chatbot to fully open first
+      }
     } else {
       // Don't store chat state in localStorage when closing
-      
+
       // Use CSS animation for closing
       if (chatWindowRef.current) {
         animateCloseChat(chatWindowRef.current);
       }
-      
+
           // Reset fullscreen mode when closing chat
     if (isFullscreen) {
       setIsFullscreen(false);
     }
-    
+
     // Remove chat-open class from body to restore scrolling
     if (typeof document !== 'undefined') {
       document.body.classList.remove('chat-open');
+      document.body.classList.remove('chat-minimized'); // Also remove minimized class when closing
+
+      // Ensure scrolling is restored on all devices
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.touchAction = '';
+      document.body.style.width = '';
+      document.body.style.height = '';
+      document.body.style.top = '';
+      document.body.style.left = '';
+
+      // Restore the website scroll position after a brief delay to ensure DOM is ready
+      setTimeout(() => {
+        if (typeof window !== 'undefined' && websiteScrollPosition > 0) {
+          window.scrollTo({
+            top: websiteScrollPosition,
+            behavior: 'smooth'
+          });
+        }
+      }, 100);
     }
+
+    // Close AI Model Info popup when chatbot closes
+    setShowAIModelInfo(false);
   }
-  
+
   // Update state
   setIsOpen(newState);
   setIsMinimized(false);
   setHasNewMessages(false);
-    
+
       // Don't store chat state in localStorage to prevent auto-opening on reload
+    console.log("Chat toggled:", newState ? "opened" : "closed");
   };
 
   // Updated toggleMinimize function to use CSS animations
   const toggleMinimize = () => {
     const willBeMinimized = !isMinimized;
-    
+
     // Save the current position for reopening when minimizing
     if (!isMinimized) {
       // Calculate and store current position
-      const posLeft = isMobile ? '1.25rem' : '1.25rem'; 
-      const posBottom = isMobile ? '1.25rem' : '1.25rem';
-      setMinimizedPosition({ left: posLeft, bottom: posBottom });
-      
+      const posRight = isMobile ? '24px' : '24px';
+      const posBottom = isMobile ? '24px' : '40px';
+      setMinimizedPosition({ right: posRight, bottom: posBottom });
+
       // Use CSS animation for minimizing
       const fullElement = chatWindowRef.current;
       // The minimized element might not exist yet, so create it if needed
@@ -2850,14 +3395,54 @@ export default function NexiousChatbot() {
           animateMinimize(fullElement, minimizedElement);
         }
       }
-      
-      // Explicitly enable scrolling when minimizing
-      if (typeof document !== 'undefined' && isMobile) {
+
+      // Explicitly enable scrolling when minimizing and remove all overlays
+      if (typeof document !== 'undefined') {
+        // Apply to both mobile and desktop to ensure scrolling works
         document.body.style.overflow = '';
-        document.body.classList.remove('chat-open');
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.width = '';
+        document.body.style.height = '';
         document.body.style.touchAction = 'auto'; // Enable touch actions
+        document.body.classList.remove('chat-open'); // Remove chat-open class
+        document.body.classList.add('chat-minimized'); // Add minimized class for layout
+
+        // Forcefully remove all blur effects and overlays when minimized
+        const overlay = document.getElementById('chatbot-overlay');
+        if (overlay) {
+          overlay.style.display = 'none';
+          overlay.classList.add('invisible');
+          overlay.classList.add('opacity-0');
+          overlay.style.pointerEvents = 'none';
+          overlay.style.backdropFilter = 'none';
+          (overlay.style as any).webkitBackdropFilter = 'none';
+          overlay.style.backgroundColor = 'transparent';
+        }
+
+        // Remove any remaining blur effects from body or html
+        document.documentElement.style.filter = 'none';
+        document.body.style.filter = 'none';
+        document.documentElement.style.backdropFilter = 'none';
+        document.body.style.backdropFilter = 'none';
+
+        // Reset fullscreen state when minimizing
+        if (isFullscreen) {
+          setIsFullscreen(false);
+        }
+
+        // Restore the website scroll position when minimizing
+        setTimeout(() => {
+          if (typeof window !== 'undefined' && websiteScrollPosition > 0) {
+            window.scrollTo({
+              top: websiteScrollPosition,
+              behavior: 'smooth'
+            });
+          }
+        }, 100);
       }
-      
+
       // Remember sidebar state before minimizing
       if (showSidebar) {
         setShowSidebar(false);
@@ -2870,14 +3455,40 @@ export default function NexiousChatbot() {
       if (minimizedElement && fullElement) {
         animateMaximize(minimizedElement, fullElement);
       }
-      
-      // When maximizing, prevent scrolling on mobile
-      if (typeof document !== 'undefined' && isMobile) {
+
+      // When maximizing, prevent scrolling and restore blur effects
+      if (typeof document !== 'undefined') {
+        // Apply to both mobile and desktop
         document.body.style.overflow = 'hidden';
         document.body.classList.add('chat-open');
-        document.body.style.touchAction = 'none'; // Disable touch actions to prevent background scrolling
+        document.body.classList.remove('chat-minimized'); // Remove minimized class
+
+        if (isMobile) {
+          document.body.style.touchAction = 'none'; // Disable touch actions to prevent background scrolling
+        }
+
+        // Restore overlay and blur effects when maximizing
+        const overlay = document.getElementById('chatbot-overlay');
+        if (overlay) {
+          overlay.style.display = '';
+          overlay.classList.remove('invisible');
+          overlay.classList.remove('opacity-0');
+          overlay.classList.add('opacity-100');
+          overlay.style.pointerEvents = 'none'; // Keep it non-interactive
+
+          // Restore blur effects
+          overlay.style.backdropFilter = '';
+          (overlay.style as any).webkitBackdropFilter = '';
+          overlay.style.backgroundColor = '';
+        }
+
+        // Clear any forced removal of blur effects
+        document.documentElement.style.filter = '';
+        document.body.style.filter = '';
+        document.documentElement.style.backdropFilter = '';
+        document.body.style.backdropFilter = '';
       }
-      
+
       // Restore sidebar state after a slight delay
       setTimeout(() => {
         const sidebarWasOpen = localStorage.getItem('nexious-sidebar-was-open') === 'true';
@@ -2887,7 +3498,7 @@ export default function NexiousChatbot() {
         }
       }, 300);
     }
-    
+
     // Update state
     setIsMinimized(willBeMinimized);
   };
@@ -2899,7 +3510,7 @@ export default function NexiousChatbot() {
 
     setShowSidebar(prev => {
       const newState = !prev;
-      
+
       // For mobile, adjust body scroll and add proper touch handling
       if (isMobile) {
         if (newState) {
@@ -2954,9 +3565,21 @@ export default function NexiousChatbot() {
     ]);
     setInputValue('');
     setIsLoading(false);
+    setShowTypingIndicator(false);
   };
 
 
+
+  // Dynamic border color function for assistant messages
+  const getBorderColor = (messageIndex: number) => {
+    const colors = [
+      'border-cyan-400 shadow-cyan-400/20', // Neon blue
+      'border-purple-400 shadow-purple-400/20', // Purple
+      'border-yellow-400 shadow-yellow-400/20', // Yellow
+      'border-green-400 shadow-green-400/20', // Green
+    ];
+    return colors[messageIndex % colors.length];
+  };
 
   // Enhanced text cleaning with markdown support for PRO mode
   const cleanText = (content: string) => {
@@ -2968,16 +3591,16 @@ export default function NexiousChatbot() {
         content = content.replace(/```([\w-]+)?\n([\s\S]*?)```/g, (match, lang, code) => {
           // Determine the language for syntax highlighting
           const language = lang || 'text';
-          
+
           // Sanitize code but only what's necessary to prevent XSS
           const safeCode = code
             .replace(/</g, '&lt;')
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;');
-          
+
           // Create a unique ID for each code block (for copy functionality)
           const blockId = `code-block-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
-          
+
           // Optimized code block template with better styling and performance
           return `
           <div class="code-block bg-gray-900 border border-gray-700/50 rounded-xl overflow-hidden my-3 shadow-lg">
@@ -2988,10 +3611,10 @@ export default function NexiousChatbot() {
                 </svg>
                 <div class="text-gray-300 text-xs font-medium">${language}</div>
               </div>
-              <button 
+              <button
                 class="code-copy-btn bg-gray-700/50 hover:bg-gray-700 text-gray-400 hover:text-white text-xs px-2 py-1 rounded-full transition-colors flex items-center gap-1.5"
-                onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(code)}')).then(() => { 
-                  this.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'></polyline></svg> Copied!'; 
+                onclick="navigator.clipboard.writeText(decodeURIComponent('${encodeURIComponent(code)}')).then(() => {
+                  this.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><polyline points=\\'20 6 9 17 4 12\\'></polyline></svg> Copied!';
                   this.classList.add('bg-green-500/20', 'text-green-400');
                   setTimeout(() => {
                     this.innerHTML = '<svg xmlns=\\'http://www.w3.org/2000/svg\\' width=\\'12\\' height=\\'12\\' viewBox=\\'0 0 24 24\\' fill=\\'none\\' stroke=\\'currentColor\\' stroke-width=\\'2\\' stroke-linecap=\\'round\\' stroke-linejoin=\\'round\\'><rect x=\\'9\\' y=\\'9\\' width=\\'13\\' height=\\'13\\' rx=\\'2\\' ry=\\'2\\'></rect><path d=\\'M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1\\'></path></svg> Copy';
@@ -3007,50 +3630,79 @@ export default function NexiousChatbot() {
           </div>`;
         });
       }
-        
-      // Only process these if needed (performance optimization)
+
+      // Enhanced inline code styling for dark theme
       if (content.includes('`') && !content.includes('```')) {
-        // Inline code - more efficient regex
-        content = content.replace(/`([^`]+)`/g, '<code class="bg-gray-800 px-2 py-0.5 rounded-full text-gray-200 border border-gray-700/30" style="font-family: monospace; font-size: 0.9em;">$1</code>');
+        // Inline code - enhanced with better dark theme styling
+        content = content.replace(/`([^`]+)`/g, '<code class="bg-black border-2 border-purple-500/50 px-3 py-1.5 rounded-lg text-purple-200 font-mono font-semibold shadow-lg" style="font-family: \'SF Mono\', \'Monaco\', \'Consolas\', monospace; font-size: 0.95em; letter-spacing: 0.5px;">$1</code>');
       }
-      
-      // Markdown only if these characters are present (optimize performance)
+
+      // Enhanced markdown formatting with dark theme styling
       if (content.includes('**')) {
-        // Bold
-        content = content.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-semibold text-gray-100">$1</strong>');
+        // Bold - enhanced with better contrast and styling
+        content = content.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white bg-purple-900/30 px-1 py-0.5 rounded border border-purple-500/30">$1</strong>');
       }
-      
+
       if (content.includes('*') && !content.includes('**')) {
-        // Italic - only process if there's a single asterisk but not double
-        content = content.replace(/\*([^*]+)\*/g, '<em class="text-gray-300 italic">$1</em>');
+        // Italic - enhanced with better styling for dark theme
+        content = content.replace(/\*([^*]+)\*/g, '<em class="text-gray-100 italic font-medium bg-gray-800/30 px-1 py-0.5 rounded">$1</em>');
       }
-      
+
       if (content.includes('#')) {
-        // Headers - only process if there are headers
+        // Enhanced Headers with better typography, spacing, and dark theme styling
         content = content
-        .replace(/^### (.*$)/gm, '<h3 class="text-base font-semibold my-2 text-gray-100">$1</h3>')
-        .replace(/^## (.*$)/gm, '<h2 class="text-lg font-semibold my-2.5 text-gray-100">$1</h2>')
-          .replace(/^# (.*$)/gm, '<h1 class="text-xl font-bold my-3 text-gray-100">$1</h1>');
+        .replace(/^### (.*$)/gm, '<h3 class="text-xl font-semibold my-4 text-white leading-tight border-l-4 border-purple-500 pl-4 bg-gray-900/30 py-2 rounded-r-lg">$1</h3>')
+        .replace(/^## (.*$)/gm, '<h2 class="text-2xl font-bold my-5 text-white leading-tight border-b-2 border-purple-500/50 pb-3 bg-gray-900/20 px-3 py-2 rounded-lg">$1</h2>')
+          .replace(/^# (.*$)/gm, '<h1 class="text-3xl font-bold my-6 text-white leading-tight border-b-3 border-purple-600 pb-4 bg-gradient-to-r from-gray-900/40 to-purple-900/20 px-4 py-3 rounded-lg shadow-lg">$1</h1>');
       }
-      
+
       if (content.includes('-') || content.includes('*')) {
-        // Lists - unordered - only process if there are list markers
-        content = content.replace(/^\s*[-*] (.*$)/gm, '<div class="flex my-1"><span class="mr-2 text-gray-400">•</span><span>$1</span></div>');
+        // Enhanced Lists - unordered with better spacing, styling, and dark theme
+        content = content.replace(/^\s*[-*] (.*$)/gm, '<div class="flex my-3 leading-relaxed bg-gray-900/20 px-3 py-2 rounded-lg border-l-3 border-purple-400/50"><span class="mr-4 text-purple-400 font-bold text-lg mt-0.5 min-w-[16px]">•</span><span class="text-white font-medium">$1</span></div>');
       }
-      
+
       if (/^\s*\d+\./.test(content)) {
-        // Lists - ordered - only process if there are numbered lists
-        content = content.replace(/^\s*(\d+)\. (.*$)/gm, '<div class="flex my-1"><span class="mr-2 text-gray-400 min-w-[20px]">$1.</span><span>$2</span></div>');
+        // Enhanced Lists - ordered with better typography and dark theme
+        content = content.replace(/^\s*(\d+)\. (.*$)/gm, '<div class="flex my-3 leading-relaxed bg-gray-900/20 px-3 py-2 rounded-lg border-l-3 border-blue-400/50"><span class="mr-4 text-blue-400 font-bold text-lg min-w-[32px] mt-0.5">$1.</span><span class="text-white font-medium">$2</span></div>');
       }
-      
+
       if (content.includes('[') && content.includes(']') && content.includes('(') && content.includes(')')) {
         // Links - only process if there are potential links
         content = content.replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-blue-400 underline hover:text-blue-300" target="_blank" rel="noopener noreferrer">$1</a>');
       }
+    } else {
+      // Standard mode - enhanced dark theme formatting
+      if (content.includes('#')) {
+        // Enhanced headers for standard mode with dark theme
+        content = content
+        .replace(/^## (.*$)/gm, '<h2 class="text-xl font-bold my-4 text-white leading-tight border-b border-purple-500/40 pb-2 bg-gray-900/20 px-2 py-1 rounded">$1</h2>')
+        .replace(/^### (.*$)/gm, '<h3 class="text-lg font-semibold my-3 text-white leading-snug border-l-2 border-purple-400 pl-3 bg-gray-900/10 py-1">$1</h3>');
+      }
+
+      if (content.includes('-') || content.includes('*')) {
+        // Enhanced lists for standard mode with dark theme
+        content = content.replace(/^\s*[-*] (.*$)/gm, '<div class="flex my-2.5 leading-relaxed bg-gray-900/15 px-2 py-1.5 rounded border-l-2 border-purple-400/40"><span class="mr-3 text-purple-400 font-bold text-base">•</span><span class="text-white font-medium">$1</span></div>');
+      }
+
+      // Enhanced basic formatting for standard mode with dark theme
+      if (content.includes('**')) {
+        content = content.replace(/\*\*([^*]+)\*\*/g, '<strong class="font-bold text-white bg-purple-900/20 px-1 py-0.5 rounded">$1</strong>');
+      }
+
+      if (content.includes('*') && !content.includes('**')) {
+        content = content.replace(/\*([^*]+)\*/g, '<em class="italic text-gray-100 font-medium bg-gray-800/20 px-1 py-0.5 rounded">$1</em>');
+      }
+
+      if (content.includes('`') && !content.includes('```')) {
+        content = content.replace(/`([^`]+)`/g, '<code class="bg-black border border-purple-500/40 px-2 py-1 rounded text-purple-200 font-mono font-semibold" style="font-family: \'SF Mono\', \'Monaco\', \'Consolas\', monospace; font-size: 0.9em;">$1</code>');
+      }
     }
-    
-    // Basic linebreak conversion for all modes
-    return content.replace(/\n/g, '<br>');
+
+    // Enhanced linebreak conversion with proper spacing for dark theme
+    return content
+      .replace(/\n\n\n/g, '<div class="my-6 border-t border-gray-800/30 pt-4"></div>') // Triple line breaks with separator
+      .replace(/\n\n/g, '<div class="my-5"></div>') // Double line breaks become larger spacers
+      .replace(/\n/g, '<br class="leading-relaxed my-1">'); // Single line breaks with better spacing
   };
 
   // Function to dismiss the promotional area
@@ -3071,16 +3723,16 @@ export default function NexiousChatbot() {
         document.querySelector('.floating-cta'),
         document.querySelector('.newsletter-popup')
       ];
-      
+
       elementsToHide.forEach(el => {
         if (el) {
           (el as HTMLElement).style.display = 'none';
         }
       });
-      
+
       // Prevent body scrolling on mobile when chat is open
       document.body.style.overflow = 'hidden';
-      
+
       return () => {
         // Restore elements when chat is closed
         elementsToHide.forEach(el => {
@@ -3088,7 +3740,7 @@ export default function NexiousChatbot() {
             (el as HTMLElement).style.display = '';
           }
         });
-        
+
         document.body.style.overflow = '';
       };
     }
@@ -3097,29 +3749,29 @@ export default function NexiousChatbot() {
   // Adjust mobile display styling
   const getMobileStyles = () => {
     if (!isMobile) return {};
-    
-    if (isFullscreen) {
+
+    if (isFullscreen || (isMobile && isOpen)) {
       return {
         position: 'fixed',
         top: 0,
         right: 0,
         bottom: 0,
         left: 0,
-        zIndex: 9999,
+        zIndex: 999999, // Higher z-index to ensure it's above everything
         borderRadius: 0,
-        width: '100%',
-        height: '100%',
-        maxWidth: 'none',
-        maxHeight: 'none'
+        width: '100vw',
+        height: '100vh',
+        maxWidth: '100vw',
+        maxHeight: '100vh'
       };
     }
-    
+
     return {
       position: 'fixed',
       bottom: '1rem',
       right: '1rem',
       maxWidth: '100%',
-      zIndex: 1050
+      zIndex: 999999 // Consistent high z-index
     };
   };
 
@@ -3133,13 +3785,13 @@ export default function NexiousChatbot() {
         pricing: 'Pricing varies from $137.45 to $900 based on service tier.',
         team: teamInfo.members.map(m => m.name).join(', ')
       };
-      
+
       // Make it available in window scope for faster access
       if (typeof window !== 'undefined') {
         (window as any).__nexiousCache = cachedResponses;
       }
     };
-    
+
     optimizeKnowledge();
   }, []);
 
@@ -3150,29 +3802,29 @@ export default function NexiousChatbot() {
         const wasMobile = isMobile;
         const newIsMobile = window.innerWidth < 768;
         setIsMobile(newIsMobile);
-        
+
         // Reset fullscreen mode if device is no longer mobile
         if (wasMobile && !newIsMobile && isFullscreen) {
           setIsFullscreen(false);
         }
-        
+
         // Handle scrolling based on status
         if (isOpen && newIsMobile && !isMinimized) {
           document.body.style.overflow = 'hidden';
         } else if (!isOpen || isMinimized) {
           document.body.style.overflow = '';
         }
-        
+
         // Ensure chat is closed on mobile when resizing to mobile from desktop
         if (newIsMobile && !wasMobile && isOpen) {
           setIsOpen(false);
           // Don't store chat state in localStorage
         }
       };
-      
+
       checkMobile();
       window.addEventListener('resize', checkMobile);
-      
+
       return () => {
         window.removeEventListener('resize', checkMobile);
         // Always restore scrolling when component unmounts
@@ -3225,12 +3877,12 @@ export default function NexiousChatbot() {
       if (!isProMode) {
         const count = getStandardModeRequestCount();
         setStandardRequestCount(count);
-        
+
         // Check if we're on cooldown and need to show the timer
         const isCooldown = isStandardModeOnCooldown();
         setOnCooldown(isCooldown);
         setShowCooldownTimer(isCooldown);
-        
+
         if (isCooldown) {
           // Update cooldown timer immediately
           const timeRemaining = getStandardModeCooldownRemaining();
@@ -3246,15 +3898,15 @@ export default function NexiousChatbot() {
     if (isOpen) {
       updateRequestCount();
     }
-    
+
     // Set up interval to update cooldown timer every second if needed
     let intervalId: NodeJS.Timeout | null = null;
-    
+
     if (showCooldownTimer && !isProMode) {
       intervalId = setInterval(() => {
         const timeRemaining = getStandardModeCooldownRemaining();
         setCooldownRemaining(timeRemaining);
-        
+
         // Stop timer when cooldown is over
         if (timeRemaining.hours === 0 && timeRemaining.minutes === 0 && timeRemaining.seconds === 0) {
           setShowCooldownTimer(false);
@@ -3263,7 +3915,7 @@ export default function NexiousChatbot() {
         }
       }, 1000);
     }
-    
+
     return () => {
       if (intervalId) clearInterval(intervalId);
     };
@@ -3317,6 +3969,11 @@ export default function NexiousChatbot() {
         setTimeout(() => {
           chatContainer.classList.remove('deactivating-pro-mode');
         }, 1000);
+
+        // Immediately hide Pro Features popup when disabling Pro Mode
+        setShowProFeaturesPopup(false);
+        // Also hide fullscreen suggestion if it's showing
+        setShowFullscreenSuggestion(false);
       }
     }
 
@@ -3343,55 +4000,84 @@ export default function NexiousChatbot() {
     });
   };
 
-  // Add a new function to pause/resume the AI response generation
+  // Enhanced function to immediately halt AI response generation
   const toggleResponsePause = () => {
-    // This function acts as an alternative stop button with different styling
-    if (responseController) {
-      console.log('Pausing AI response generation');
-      responseController.abort();
-      setResponseController(null);
-      
+    console.log('🛑 NEXIOUS: Immediate response halt requested');
+
+    try {
+      // Abort any active API request
+      if (responseController) {
+        console.log('🛑 NEXIOUS: Aborting active API request');
+        responseController.abort();
+        setResponseController(null);
+      }
+
+      // Clear any active timeouts
+      if (thinkingAutoCollapseTimer) {
+        clearTimeout(thinkingAutoCollapseTimer);
+        setThinkingAutoCollapseTimer(null);
+      }
+
       // Immediately reset all streaming and thinking states
       setIsStreaming(false);
       setIsThinking(false);
       setIsLoading(false);
-      
-      // Add a message indicating the response was paused
+      setShowTypingIndicator(false);
+      setThinkingText('');
+      setThinkingStreamText('');
+      setIsThinkingContainerVisible(false);
+      setIsThinkingCollapsed(true);
+
+      // Reset message streaming state
+      setStreamedMessageId(null);
+      setStreamedResponse('');
+
+      // Add a professional completion message
       setMessages(prev => {
-        // Check if the last message is from the assistant
         const lastMessage = prev[prev.length - 1];
-        if (lastMessage && lastMessage.role === 'assistant') {
-          // Always append a new message for better UX
-          return [...prev, { 
-            role: 'assistant', 
-            content: "I paused my response. Let me know if you want me to continue or try a different approach.",
+        if (lastMessage && lastMessage.role === 'assistant' && lastMessage.content.trim() === '') {
+          // Remove empty assistant message and add completion message
+          return [...prev.slice(0, -1), {
+            role: 'assistant',
+            content: "Response stopped. How can I help you further?",
+            timestamp: Date.now()
+          }];
+        } else if (lastMessage && lastMessage.role === 'assistant') {
+          // Add completion message after existing content
+          return [...prev, {
+            role: 'assistant',
+            content: "Response stopped. Feel free to ask me anything else.",
             timestamp: Date.now()
           }];
         } else {
-          // Fallback case - should rarely happen
-          return [...prev, { 
-            role: 'assistant', 
-            content: "Response paused. How would you like to proceed?",
+          // Fallback case
+          return [...prev, {
+            role: 'assistant',
+            content: "Ready to help. What would you like to know?",
             timestamp: Date.now()
           }];
         }
       });
-      
-      // Reset streamedMessageId to ensure no message is still in streaming state
-      setStreamedMessageId(null);
-      
-      // Focus the input field with a small delay to ensure UI has updated
-      if (inputRef.current) {
-        setTimeout(() => {
-          inputRef.current?.focus();
-        }, 100);
-      }
-    } else {
-      // Even if no controller, ensure states are reset
-      console.log('No active response to pause, resetting states');
+
+      // Update performance indicators
+      setCurrentFPS(60);
+      setIsFPSOptimal(true);
+
+      // Focus input field for immediate user interaction
+      setTimeout(() => {
+        if (inputRef.current) {
+          inputRef.current.focus();
+        }
+      }, 100);
+
+      console.log('✅ NEXIOUS: Response halt completed successfully');
+    } catch (error) {
+      console.error('❌ NEXIOUS: Error during response halt:', error);
+      // Ensure states are reset even if error occurs
       setIsStreaming(false);
       setIsThinking(false);
       setIsLoading(false);
+      setShowTypingIndicator(false);
       setStreamedMessageId(null);
     }
   };
@@ -3527,11 +4213,21 @@ export default function NexiousChatbot() {
     const newTemperature = parseFloat(value.toFixed(2));
     setTemperature(newTemperature);
 
-    console.log(`Temperature changed to: ${newTemperature} (${newTemperature < 0.3 ? 'Precise' : newTemperature > 0.7 ? 'Creative' : 'Balanced'})`);
+    console.log(`🌡️ NEXIOUS TEMPERATURE: Changed to ${newTemperature} (${newTemperature < 0.3 ? 'Precise' : newTemperature > 0.7 ? 'Creative' : 'Balanced'})`);
 
     // Store preference in localStorage
     if (typeof window !== 'undefined') {
       localStorage.setItem('nexious-temperature', newTemperature.toString());
+    }
+
+    // Update the settings in nexiousAISettings.ts
+    try {
+      const { updateModelSettings } = require('../utils/nexiousAISettings');
+      const mode = isProMode ? 'pro' : 'standard';
+      updateModelSettings(mode, { temperature: newTemperature });
+      console.log(`🔧 NEXIOUS SETTINGS: Updated ${mode} mode temperature to ${newTemperature}`);
+    } catch (error) {
+      console.error('❌ NEXIOUS SETTINGS: Failed to update temperature in settings file:', error);
     }
   };
 
@@ -3558,18 +4254,34 @@ export default function NexiousChatbot() {
     setFrequencyPenalty(parseFloat(scaledValue.toFixed(2)));
   };
 
+  // Standard mode handlers for user-customizable settings
+  const handleStandardTemperatureChange = (value: number) => {
+    const newTemperature = parseFloat(value.toFixed(2));
+    setStandardTemperature(newTemperature);
+    setUserTemperature('standard', newTemperature);
+    console.log(`🌡️ NEXIOUS STANDARD TEMPERATURE: Changed to ${newTemperature}`);
+  };
+
+  const handleStandardMaxTokensChange = (value: number) => {
+    const tokenRange = { min: 500, max: 6000 };
+    const scaledValue = Math.floor(tokenRange.min + value * (tokenRange.max - tokenRange.min));
+    setStandardMaxTokens(scaledValue);
+    setUserMaxTokens('standard', scaledValue);
+    console.log(`📝 NEXIOUS STANDARD MAX TOKENS: Changed to ${scaledValue}`);
+  };
+
   // Modify the settings UI to include a single API key input
   const renderSettingsPanel = () => {
     return (
       <div className="h-full overflow-y-auto">
         <div className="p-4 space-y-4">
           <h3 className="text-lg font-semibold text-white mb-3">Settings</h3>
-          
+
           {/* Pro Mode Toggle */}
           <div className="flex flex-col space-y-2">
             <label className="flex items-center justify-between">
               <span className="text-gray-200 font-medium">Pro Mode</span>
-              <button 
+              <button
                 onClick={toggleProMode}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${isProMode ? 'bg-purple-800' : 'bg-gray-600'}`}
               >
@@ -3577,12 +4289,12 @@ export default function NexiousChatbot() {
               </button>
             </label>
             <p className="text-xs text-gray-400">
-              {isProMode ? 
-                'Pro Mode: Advanced features with Claude 3 Opus' : 
+              {isProMode ?
+                'Pro Mode: Advanced features with Claude 3 Opus' :
                 'Standard Mode: DeepSeek R1 with simplified responses'}
             </p>
           </div>
-          
+
           {/* Current Model Info */}
           <div className="pt-3 pb-2 border-t border-gray-700/50">
             <div className="flex items-center justify-between">
@@ -3592,24 +4304,24 @@ export default function NexiousChatbot() {
               </span>
             </div>
             <p className="mt-1 text-xs text-gray-400">
-              {isProMode ? 
-                'Advanced reasoning, longer context, code expertise' : 
+              {isProMode ?
+                'Advanced reasoning, longer context, code expertise' :
                 'Fast responses, friendly chat, basic assistance'}
             </p>
           </div>
-          
+
           {/* OpenRouter API Key (single field for both modes) */}
           <div className="pt-4 pb-2 border-t border-gray-700/50">
             <h4 className="text-sm font-medium text-gray-300 mb-2">OpenRouter API Key</h4>
             <div className="flex space-x-2">
-              <input 
-                type="password" 
+              <input
+                type="password"
                 className="flex-1 bg-gray-800 rounded-lg text-white text-sm px-3 py-2 border border-gray-700/50 focus:outline-none focus:ring-1 focus:ring-purple-500/50"
-                placeholder="sk-or-..." 
+                placeholder="sk-or-..."
                 value={standardApiKey || ''}
                 onChange={(e) => setStandardApiKey(e.target.value)}
               />
-              <button 
+              <button
                 onClick={() => saveApiKey('standard', standardApiKey)}
                 className="px-3 py-2 bg-gray-700 text-white text-sm rounded-lg hover:bg-gray-600 transition-colors"
               >
@@ -3621,7 +4333,45 @@ export default function NexiousChatbot() {
               <span className="block mt-1">The same API key is used for both Standard and Pro modes</span>
             </p>
           </div>
-          
+
+          {/* Temperature Control - Standard Mode Only - ALWAYS VISIBLE IN STANDARD MODE */}
+          {!isProMode && (
+            <div className="mt-4 p-4 bg-blue-900/30 border border-blue-600/50 rounded-lg shadow-sm">
+              <h4 className="text-sm font-semibold text-blue-200 mb-3 flex items-center">
+                <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M14 4V10C15.1046 10 16 10.8954 16 12C16 13.1046 15.1046 14 14 14V20C14 21.1046 13.1046 22 12 22C10.8954 22 10 21.1046 10 20V14C8.89543 14 8 13.1046 8 12C8 10.8954 8.89543 10 10 10V4C10 2.89543 10.8954 2 12 2C13.1046 2 14 2.89543 14 4Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+                Standard Mode Temperature
+              </h4>
+              <div>
+                <div className="flex justify-between items-center text-xs mb-2">
+                  <span className="text-gray-200 font-medium">Temperature</span>
+                  <span className="text-blue-300 font-semibold">{temperature.toFixed(1)}</span>
+                </div>
+                <input
+                  type="range"
+                  min="0"
+                  max="1"
+                  step="0.1"
+                  value={temperature}
+                  onChange={(e) => handleTemperatureChange(parseFloat(e.target.value))}
+                  className="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer slider-thumb"
+                  style={{
+                    background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${temperature * 100}%, #374151 ${temperature * 100}%, #374151 100%)`
+                  }}
+                />
+                <div className="flex justify-between text-gray-400 text-xs mt-2">
+                  <span>Precise</span>
+                  <span>Balanced</span>
+                  <span>Creative</span>
+                </div>
+                <p className="text-xs text-gray-300 mt-2 leading-relaxed">
+                  Controls AI response creativity: Lower values for focused answers, higher for creative responses
+                </p>
+              </div>
+            </div>
+          )}
+
           {/* Pro Mode Settings */}
           {isProMode && (
             <div className="mt-4 p-3 bg-purple-900/20 border border-purple-800/30 rounded-lg">
@@ -3649,7 +4399,7 @@ export default function NexiousChatbot() {
                     <span>Creative</span>
                   </div>
                 </div>
-                
+
                 <div>
                   <div className="flex justify-between items-center text-xs mb-1">
                     <span className="text-gray-300">Max Tokens</span>
@@ -3693,7 +4443,7 @@ export default function NexiousChatbot() {
       console.error(`No API key provided`);
       return;
     }
-    
+
     try {
       // Use the setAPIKey function from our settings module - this now saves for both modes
       const success = await setAPIKey(key);
@@ -3716,7 +4466,7 @@ export default function NexiousChatbot() {
       try {
         // We only need to load the API key once since it's shared
         const apiKey = await getAPIKey('standard');
-        
+
         if (apiKey) {
           setStandardApiKey(apiKey);
           setProApiKey(apiKey); // Keep both state variables in sync
@@ -3725,16 +4475,16 @@ export default function NexiousChatbot() {
         console.error('Error loading API key:', error);
       }
     };
-    
+
     loadApiKeys();
   }, []);
 
   // Toggle between normal chat and code snippet mode (Pro mode only)
   const toggleCodeMode = () => {
     if (!isProMode) return; // Only allow in Pro mode
-    
+
     setIsCodeMode(!isCodeMode);
-    
+
     // Reset inputs when switching modes
     if (isCodeMode) {
       // When switching from code mode to normal mode
@@ -3745,7 +4495,7 @@ export default function NexiousChatbot() {
       setInputValue('');
       setCodeSnippet('');
     }
-    
+
     // Focus the appropriate input after transition
     setTimeout(() => {
       if (inputRef.current) {
@@ -3759,6 +4509,44 @@ export default function NexiousChatbot() {
     setCodeLanguage(lang);
   };
 
+  // AI Model switching functions
+  const handleModelSwitch = async (modelId: string) => {
+    if (modelId === currentAIModel || isModelSwitching) return;
+
+    setIsModelSwitching(true);
+    console.log(`🔄 NEXIOUS MODEL: Switching from ${currentAIModel} to ${modelId}`);
+
+    try {
+      // Simulate model switching delay (in real implementation, this would update the AI settings)
+      await new Promise(resolve => setTimeout(resolve, 1500));
+
+      setCurrentAIModel(modelId);
+
+      // Add a system message to indicate model switch
+      const modelName = modelId.split('/')[1]?.replace(':free', '').replace('-', ' ') || 'AI Model';
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: `🤖 Switched to ${modelName}. I'm ready to assist you with enhanced capabilities!`,
+        timestamp: Date.now()
+      }]);
+
+      console.log(`✅ NEXIOUS MODEL: Successfully switched to ${modelId}`);
+    } catch (error) {
+      console.error('❌ NEXIOUS MODEL: Failed to switch model:', error);
+
+      // Add error message
+      setMessages(prev => [...prev, {
+        role: 'system',
+        content: '⚠️ Failed to switch AI model. Please try again.',
+        timestamp: Date.now()
+      }]);
+    } finally {
+      setIsModelSwitching(false);
+    }
+  };
+
+
+
   // Initialize chatbot fixed positioning
   useEffect(() => {
     const chatbotContainer = document.getElementById('nexious-chat-container');
@@ -3766,7 +4554,7 @@ export default function NexiousChatbot() {
       // Apply fixed positioning directly
       chatbotContainer.style.position = 'fixed';
       chatbotContainer.style.bottom = '20px';
-      chatbotContainer.style.left = '20px';
+      chatbotContainer.style.right = '20px';
       chatbotContainer.style.zIndex = '999999';
       chatbotContainer.style.transform = 'none'; // Reset any transforms
       chatbotContainer.style.transition = 'none'; // Disable transitions
@@ -3775,7 +4563,7 @@ export default function NexiousChatbot() {
         document.body.appendChild(chatbotContainer);
       }
     }
-    
+
     // Add custom styles to document head
     if (typeof document !== 'undefined') {
       const fixedPositionStyles = document.createElement('style');
@@ -3783,41 +4571,53 @@ export default function NexiousChatbot() {
         #nexious-chat-container {
           position: fixed !important;
           bottom: 20px !important;
-          left: 20px !important;
+          right: 20px !important;
           z-index: 999999 !important;
           transform: none !important;
           transition: none !important;
           will-change: auto !important;
         }
-        
+
         .nexious-chat-container {
           position: fixed !important;
           bottom: 20px !important;
-          left: 20px !important;
+          right: 20px !important;
           z-index: 999999 !important;
           transform: none !important;
           transition: none !important;
           will-change: auto !important;
         }
-        
+
         .nexious-minimized-chat {
           position: fixed !important;
           bottom: 20px !important;
-          left: 20px !important;
+          right: 20px !important;
           z-index: 999999 !important;
           transform: none !important;
         }
-        
-        /* Prevent scrolling when chat is open */
-        body.chat-open {
-          overflow: hidden !important;
-          position: fixed !important;
-          width: 100% !important;
-          height: 100% !important;
-          touch-action: none !important;
-          -webkit-overflow-scrolling: touch !important;
+
+        /* Prevent scrolling when chat is open - ONLY on mobile devices */
+        @media (max-width: 768px) {
+          body.chat-open {
+            overflow: hidden !important;
+            position: fixed !important;
+            width: 100% !important;
+            height: 100% !important;
+            touch-action: none !important;
+            -webkit-overflow-scrolling: touch !important;
+          }
         }
-        
+
+        /* On desktop, allow background scrolling when chat is open */
+        @media (min-width: 769px) {
+          body.chat-open {
+            /* Allow normal scrolling on desktop */
+            overflow: auto !important;
+            position: static !important;
+            touch-action: auto !important;
+          }
+        }
+
         /* Special animation class for pulsing effect */
         .pulse-effect {
           animation: pulse 2s infinite;
@@ -3825,16 +4625,16 @@ export default function NexiousChatbot() {
 
         @keyframes pulse {
           0% {
-            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0.7);
+            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.7);
           }
           70% {
-            box-shadow: 0 0 0 10px rgba(79, 70, 229, 0);
+            box-shadow: 0 0 0 15px rgba(139, 92, 246, 0);
           }
           100% {
-            box-shadow: 0 0 0 0 rgba(79, 70, 229, 0);
+            box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
           }
         }
-        
+
         /* Material design animation classes */
         .animate-material-slideIn {
           animation: material-slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
@@ -3850,7 +4650,7 @@ export default function NexiousChatbot() {
             transform: scale(1);
           }
         }
-        
+
         /* Sidebar position fixes */
         .chatbot-sidebar {
           position: absolute !important;
@@ -3861,42 +4661,185 @@ export default function NexiousChatbot() {
           transform: translateX(100%) !important;
           transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease !important;
         }
-        
+
         .chatbot-sidebar.visible {
           transform: translateX(0) !important;
         }
       `;
       document.head.appendChild(fixedPositionStyles);
-      
+
       return () => {
         document.head.removeChild(fixedPositionStyles);
       };
     }
   }, []);
-  
+
+  // Global keyboard shortcuts handler for desktop users
+  const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
+    // Only apply shortcuts on desktop (not mobile)
+    if (isMobileDevice) return;
+
+    // Escape key - Close modals and chat
+    if (e.key === 'Escape') {
+      e.preventDefault();
+
+      // Priority order: Close popups first, then modals, then chat
+      if (showProFeaturesPopup) {
+        setShowProFeaturesPopup(false);
+      } else if (showFullscreenSuggestion) {
+        setShowFullscreenSuggestion(false);
+      } else if (showSidebar) {
+        setShowSidebar(false);
+      } else if (isOpen && !isMinimized) {
+        toggleChat();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + Enter - Send message (alternative to Enter)
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+      e.preventDefault();
+      if (isOpen && !isLoading && inputValue.trim()) {
+        handleSendMessage();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + K - Focus input and clear it
+    if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+      e.preventDefault();
+      if (isOpen && inputRef.current) {
+        inputRef.current.focus();
+        setInputValue('');
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + M - Toggle minimize/maximize
+    if ((e.ctrlKey || e.metaKey) && e.key === 'm') {
+      e.preventDefault();
+      if (isOpen) {
+        toggleMinimize();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + S - Toggle sidebar
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'S') {
+      e.preventDefault();
+      if (isOpen) {
+        setShowSidebar(!showSidebar);
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + P - Toggle Pro mode
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'P') {
+      e.preventDefault();
+      if (isOpen) {
+        toggleProMode();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + C - Clear chat history
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'C') {
+      e.preventDefault();
+      if (isOpen && !isLoading) {
+        resetChat();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + / - Show keyboard shortcuts help
+    if ((e.ctrlKey || e.metaKey) && e.key === '/') {
+      e.preventDefault();
+      if (isOpen) {
+        // Add a help message to the chat
+        setMessages(prev => [...prev, {
+          role: 'assistant',
+          content: `🎹 **Keyboard Shortcuts:**
+• **Enter** - Send message
+• **Ctrl/Cmd + Enter** - Send message (alternative)
+• **Escape** - Close chat/modals
+• **Ctrl/Cmd + K** - Focus and clear input
+• **Ctrl/Cmd + M** - Toggle minimize
+• **Ctrl/Cmd + Shift + S** - Toggle sidebar
+• **Ctrl/Cmd + Shift + P** - Toggle Pro mode
+• **Ctrl/Cmd + Shift + C** - Clear chat
+• **Ctrl/Cmd + /** - Show this help`,
+          timestamp: Date.now()
+        }]);
+      }
+      return;
+    }
+
+    // Alt + N - Open/toggle Nexious chat
+    if (e.altKey && e.key === 'n') {
+      e.preventDefault();
+      if (!isOpen) {
+        toggleChat();
+      } else if (isMinimized) {
+        toggleMinimize();
+      } else {
+        toggleChat();
+      }
+      return;
+    }
+
+    // Ctrl/Cmd + Shift + F - Toggle fullscreen (mobile)
+    if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'F') {
+      e.preventDefault();
+      if (isOpen && isMobile) {
+        setIsFullscreen(!isFullscreen);
+      }
+      return;
+    }
+  }, [
+    isMobileDevice, showProFeaturesPopup, showFullscreenSuggestion,
+    showSidebar, isOpen, isMinimized, isLoading, inputValue, isMobile, isFullscreen,
+    toggleChat, toggleMinimize, toggleProMode, resetChat, handleSendMessage
+  ]);
+
+  // Add global keyboard event listeners for desktop shortcuts
+  useEffect(() => {
+    // Only add global shortcuts on desktop
+    if (!isMobileDevice) {
+      document.addEventListener('keydown', handleGlobalKeyDown);
+
+      return () => {
+        document.removeEventListener('keydown', handleGlobalKeyDown);
+      };
+    }
+  }, [handleGlobalKeyDown, isMobileDevice]);
+
   return (
     <>
-      {/* Background blur overlay when chatbot is open */}
-      {isOpen && !isMinimized && (
-        <div 
+      {/* Background blur overlay when chatbot is open - ONLY for desktop and NOT minimized */}
+      {isOpen && !isMinimized && !isMobile && (
+        <div
           className="fixed inset-0 z-[998] pointer-events-none"
           style={{
-            backdropFilter: 'blur(6px)',
-            WebkitBackdropFilter: 'blur(6px)',
-            backgroundColor: 'rgba(10, 10, 20, 0.4)',
+            backdropFilter: 'blur(3px)',
+            WebkitBackdropFilter: 'blur(3px)',
+            backgroundColor: 'rgba(10, 10, 20, 0.2)',
             transition: 'all 0.3s ease-in-out'
           }}
         />
       )}
-      
-      <div 
-        ref={chatWindowRef} 
-        id="nexious-chat-container" 
-        className="nexious-chat-container" 
-        style={{ 
+
+      <div
+        ref={chatWindowRef}
+        id="nexious-chat-container"
+        className="nexious-chat-container"
+        style={{
           position: 'fixed',
-          bottom: '20px',
-          left: '20px',
+          bottom: isMobile && isOpen ? '0' : '20px',
+          right: isMobile && isOpen ? '0' : '20px',
+          top: isMobile && isOpen ? '0' : 'auto',
+          left: isMobile && isOpen ? '0' : 'auto',
+          width: isMobile && isOpen ? '100vw' : 'auto',
+          height: isMobile && isOpen ? '100vh' : 'auto',
           zIndex: 999999,
           transform: 'none',
           maxHeight: isMobile ? '100vh' : 'calc(100vh - 80px)',
@@ -3904,423 +4847,380 @@ export default function NexiousChatbot() {
           WebkitOverflowScrolling: 'touch',
           touchAction: isOpen ? 'none' : 'auto'
         }}>
-      
-      {/* Chat Button - Visible when chat is not open */}
-      {!isOpen && (
-        <button 
-          onClick={toggleChat}
-          className="nexious-chat-button group fixed cursor-pointer px-4 py-2 rounded-full bg-gradient-to-r from-purple-600/90 to-indigo-600/90 backdrop-blur-sm border border-white/10 transition-all duration-300 hover:bg-black/40 flex items-center gap-2 shadow-lg hover:shadow-purple-500/20"
-          aria-label="Open AI Chat Assistant"
+
+      {/* Chat Button - Visible when chat is not open OR when mobile and minimized */}
+      {(!isOpen || (isMobile && isMinimized)) && (
+        <button
+          onClick={isMobile && isMinimized ? toggleMinimize : toggleChat}
+          className="nexious-chat-button group fixed cursor-pointer px-3 py-2 rounded-full bg-white backdrop-blur-sm border-2 transition-all duration-300 hover:bg-white/90 flex items-center gap-1 shadow-lg pulse-effect"
+          aria-label={isMobile && isMinimized ? "Restore AI Chat" : "Open AI Chat Assistant"}
           style={{
             position: 'fixed',
-            bottom: '20px',
-            left: '20px',
+            bottom: isMobile ? '20px' : '32px', // Moved down slightly
+            right: isMobile ? '16px' : '16px', // Moved more to the right
             zIndex: 999999,
             transform: 'translateZ(0)',
-            display: 'flex !important',
-            opacity: '1 !important',
-            visibility: 'visible !important'
+            display: 'flex',
+            opacity: '1',
+            visibility: 'visible',
+            borderRadius: '25px', // More rounded edges
+            minWidth: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '48px' : '56px') : '164px',
+            height: isMobile ? '48px' : '48px',
+            padding: (isMinimized || (isMobile && !isOpen)) ? '0px' : '12px 16px',
+            boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06)', // Clean shadow without glow
+            border: '3px solid #8b5cf6', // Bold neon purple border
+            willChange: 'transform'
           }}
         >
-          <div className="flex items-center gap-2">
-            <Bot className="w-5 h-5 text-white" />
-            <span 
-              className="text-sm font-semibold text-white" 
-              style={{ textShadow: '0 0 8px rgba(255,255,255,0.3)' }}
-            >
-              Chat with Nexious
-            </span>
+          <div className="flex items-center justify-center bg-white rounded-full" style={{
+            width: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '40px' : '44px') : '34px', // Smaller on mobile
+            height: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '40px' : '44px') : '34px', // Smaller on mobile
+            minWidth: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '40px' : '44px') : '34px',
+            margin: (isMinimized || (isMobile && !isOpen)) ? '2px' : '0 1px 0 0'
+          }}>
+            <img
+              src="https://ik.imagekit.io/u7ipvwnqb/Beige%20and%20Black%20Classic%20Initial%20Wedding%20Logo.png?updatedAt=1752254056269"
+              alt="Nexious Logo"
+              className="rounded-full object-cover"
+              style={{ width: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '36px' : '40px') : '30px', height: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '36px' : '40px') : '30px' }}
+            />
           </div>
+          {!(isMinimized || (isMobile && !isOpen)) && <span className={`${audiowide.className} text-black whitespace-nowrap text-sm tracking-tight font-medium`}>Ask Nexious</span>}
         </button>
       )}
 
-      {/* AI Model Info Section - Desktop Only */}
-      {!isMobile && isOpen && !isMinimized && (
+      {/* Minimized Chat - Circular Logo Only */}
+      {isOpen && isMinimized && (
         <div
-          className="fixed z-[998] ai-model-info-section transition-all duration-500 ease-out"
+          onClick={toggleMinimize}
+          className={`nexious-minimized-chat cursor-pointer transition-all duration-300 hover:scale-110 group ${
+            !isMobile ? 'bg-gradient-to-r from-gray-900/95 via-gray-800/95 to-gray-900/95 border border-gray-700/40 shadow-2xl hover:shadow-3xl' : ''
+          }`}
           style={{
-            left: 'calc(100% + 90px)', // 90px spacing from chatbot container
+            position: 'fixed',
+            bottom: isMobile ? '20px' : '20px', // Bottom edge positioning
+            right: isMobile ? '20px' : '20px',
+            zIndex: 999999,
+            borderRadius: '50%', // Perfect circle
+            padding: !isMobile ? '8px' : '0', // Padding only for desktop
+            width: isMobile ? '56px' : '60px',
+            height: isMobile ? '56px' : '60px',
+            // Desktop gets background, mobile gets clean look
+            boxShadow: !isMobile ? '0 6px 25px rgba(0, 0, 0, 0.15), 0 3px 10px rgba(0, 0, 0, 0.08)' : 'none',
+            willChange: 'transform'
+          }}
+          title="Click to restore NEXIOUS AI Chat"
+        >
+          <div className="flex items-center justify-center w-full h-full relative">
+            {/* Nexious Logo - White background for desktop, clean for mobile */}
+            <div
+              className={`flex items-center justify-center rounded-full transition-all duration-300 group-hover:scale-110 ${
+                !isMobile ? 'bg-white' : ''
+              }`}
+              style={{
+                width: isMobile ? '56px' : '44px',
+                height: isMobile ? '56px' : '44px'
+              }}
+            >
+              <img
+                src="https://ik.imagekit.io/u7ipvwnqb/Beige%20and%20Black%20Classic%20Initial%20Wedding%20Logo.png?updatedAt=1752254056269"
+                alt="Nexious Logo"
+                className="rounded-full object-cover"
+                style={{
+                  width: isMobile ? '56px' : '40px',
+                  height: isMobile ? '56px' : '40px',
+                  boxShadow: isMobile ? '0 4px 12px rgba(0, 0, 0, 0.3)' : 'none'
+                }}
+              />
+            </div>
+
+            {/* Pro Mode Indicator - Small badge */}
+            {isProMode && (
+              <div
+                className="absolute -top-1 -right-1 bg-blue-500 text-white rounded-full flex items-center justify-center border-2 border-gray-900"
+                style={{ width: '16px', height: '16px', fontSize: '8px', fontWeight: 'bold' }}
+              >
+                P
+              </div>
+            )}
+
+            {/* Active indicator dot */}
+            <div className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-gray-900 animate-pulse"></div>
+          </div>
+        </div>
+      )}
+      {/* New AI Model Info Popup - Left side of chatbot with proper spacing */}
+      {isOpen && !isMinimized && !isMobile && showAIModelInfo && (
+        <div
+          className="fixed z-[997] ai-model-info-popup transition-all duration-300 ease-out"
+          style={{
+            right: `calc(100% + 20px)`, // Position to left of chatbot with 20px spacing
             top: '50%',
             transform: 'translateY(-50%)',
-            width: '340px',
+            width: '260px', // Significantly narrower than chatbot
+            maxHeight: '65vh', // Increased height for more content space
             willChange: 'transform, opacity',
             backfaceVisibility: 'hidden',
             perspective: '1000px'
           }}
         >
-          {/* Main Info Panel */}
+          {/* Main Info Panel with solid black background and neon borders */}
           <div
-            className="relative rounded-2xl shadow-2xl border border-purple-500/30 p-6 text-white transform-gpu overflow-hidden animate-in slide-in-from-right-4 duration-500"
+            className="relative rounded-lg text-white transform-gpu overflow-hidden animate-in slide-in-from-left-4 duration-300"
             style={{
-              background: 'linear-gradient(135deg, rgba(17, 24, 39, 0.92) 0%, rgba(31, 41, 55, 0.95) 50%, rgba(17, 24, 39, 0.92) 100%)',
-              backdropFilter: 'blur(12px) saturate(130%)',
-              WebkitBackdropFilter: 'blur(12px) saturate(130%)',
-              boxShadow: '0 20px 40px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(139, 92, 246, 0.25), inset 0 1px 0 rgba(255, 255, 255, 0.08)',
+              background: 'rgba(0, 0, 0, 0.2)', // More transparent frosted background
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+              border: '2px solid #8b5cf6', // Neon purple border, no glow
+              boxShadow: 'none', // No glow effects
               willChange: 'transform',
               backfaceVisibility: 'hidden'
             }}
           >
-            {/* Enhanced Glassmorphism Layers */}
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-white/8 via-white/4 to-transparent opacity-70"
-              style={{
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)'
-              }}
-            />
-            <div
-              className="absolute inset-0 bg-gradient-to-r from-purple-500/6 via-blue-500/6 to-purple-500/6 opacity-90"
-              style={{
-                backdropFilter: 'blur(6px)',
-                WebkitBackdropFilter: 'blur(6px)'
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-white/2 to-transparent animate-pulse opacity-50" />
 
-            {/* Content Container */}
-            <div className="relative z-10">
-              {/* Header with Icon */}
-              <div className="flex items-center mb-5">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500 via-blue-600 to-purple-700 flex items-center justify-center mr-4 shadow-lg border border-purple-400/30">
-                  <svg className="w-6 h-6 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                    <path d="M19 11L19.74 13.74L22.5 14.5L19.74 15.26L19 18L18.26 15.26L15.5 14.5L18.26 13.74L19 11Z" fill="currentColor"/>
-                    <circle cx="12" cy="12" r="1.5" fill="currentColor" opacity="0.6"/>
-                  </svg>
+            {/* Close button - Enhanced functionality */}
+            <button
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('AI Model Info close button clicked');
+                setShowAIModelInfo(false);
+              }}
+              onMouseDown={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              onTouchStart={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer z-50"
+              aria-label="Close AI Model Info panel"
+              title="Close AI Model Info"
+              style={{
+                WebkitTouchCallout: 'none',
+                WebkitUserSelect: 'none',
+                userSelect: 'none',
+                pointerEvents: 'auto',
+                zIndex: 50
+              }}
+            >
+              <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </button>
+
+            {/* Content Container with scrollable area */}
+            <div className="relative z-10 h-full flex flex-col p-4">
+              {/* Header with Nexious Logo - Compact */}
+              <div className="flex items-center mb-4">
+                <div className="w-10 h-10 rounded-lg bg-white flex items-center justify-center mr-3">
+                  <img
+                    src="https://ik.imagekit.io/u7ipvwnqb/Beige%20and%20Black%20Classic%20Initial%20Wedding%20Logo.png?updatedAt=1752254056269"
+                    alt="Nexious Logo"
+                    className="rounded-lg object-cover"
+                    style={{ width: '36px', height: '36px' }}
+                  />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-purple-300 tracking-wide">AI Model Info <span className="text-sm text-gray-400 ml-2">Independent Agency</span></h3>
-                  <p className="text-xs text-gray-400 mt-0.5">Transparent Technology</p>
+                  <h3 className="text-base font-bold text-white tracking-wide">NEXIOUS AI</h3>
+                  <p className="text-xs text-purple-400">Advanced AI Technology</p>
                 </div>
               </div>
 
-              {/* Content Sections */}
-              <div className="space-y-4 text-sm leading-relaxed">
-                {/* Independent Agency Section */}
-                <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 border border-purple-500/25 rounded-xl p-4 backdrop-blur-sm">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center flex-shrink-0 mt-0.5">
-                      <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M12 14C8.13401 14 5 17.134 5 21H19C19 17.134 15.866 14 12 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                    </div>
-                    <div>
-                      <p className="text-purple-200 font-medium mb-1">Independent Innovation</p>
-                      <p className="text-gray-300 text-xs leading-relaxed">
-                        We're an independent development agency led by a passionate 19-year-old entrepreneur,
-                        building cutting-edge solutions with determination and innovation.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Technology Stack Section */}
-                <div>
-                  <p className="text-gray-200 mb-3">
-                    <span className="text-blue-300 font-semibold">Nexious</span> leverages advanced AI models from
-                    <span className="text-purple-300 font-semibold"> OpenRouter</span>,
-                    <span className="text-blue-300 font-semibold"> Hugging Face</span>, and
-                   <span className="text-green-300 font-semibold"> Google</span> to deliver intelligent responses.
-                  </p>
-
-                  <div className="bg-blue-900/25 border border-blue-500/25 rounded-xl p-3 mb-3">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
-                      <span className="text-blue-300 font-medium text-xs">Advanced Fallback System</span>
-                    </div>
-                    <p className="text-gray-300 text-xs leading-relaxed">
-                      Our intelligent fallback system ensures seamless conversations by automatically switching
-                      between models for optimal performance and reliability.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Transparency Section */}
-                <div className="bg-orange-900/20 border border-orange-500/25 rounded-xl p-3">
-                  <div className="flex items-center space-x-2 mb-2">
-                    <svg className="w-4 h-4 text-orange-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 9V13M12 17H12.01M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                    <span className="text-orange-300 font-medium text-xs">Honest Communication</span>
-                  </div>
-                  <p className="text-gray-300 text-xs leading-relaxed">
-                    Any response delays are due to free model limitations, not our system.
-                    We're actively pursuing premium partnerships with Claude and OpenAI for enhanced performance.
-                  </p>
-                </div>
-
-                {/* Gratitude Section */}
-                <div className="pt-3 border-t border-gray-700/40">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <svg className="w-4 h-4 text-pink-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20.84 4.61C19.5 3.28 17.45 3.28 16.11 4.61L12 8.69L7.89 4.61C6.55 3.28 4.5 3.28 3.16 4.61C1.82 5.95 1.82 8 3.16 9.34L12 18.16L20.84 9.34C22.18 8 22.18 5.95 20.84 4.61Z" fill="currentColor"/>
-                      </svg>
-                      <span className="text-pink-300 font-medium text-xs">Thank You</span>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
-                      <span className="text-green-400 text-xs font-semibold">Active</span>
-                    </div>
-                  </div>
-                  <p className="text-gray-300 text-xs leading-relaxed mt-2">
-                    Your patience and support fuel our journey toward building exceptional AI experiences.
-                    Together, we're shaping the future of intelligent assistance.
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* AI Model Info Section - Enhanced with White Frosted Glass & Connecting Lines */}
-      {isOpen && !isMinimized && !isMobile && showAIModelInfo && (
-        <div
-          className="fixed z-[998] ai-model-info-panel transition-all duration-300 ease-out"
-          style={{
-            left: `calc(${isMobile ? '100%' : (isProMode ? '520px' : `${Math.max(chatSize.width, 460)}px`)} + 90px)`, // 90px spacing from chat
-            top: `calc(50% + 40px)`, // Position slightly lower than chatbot center
-            transform: 'translateY(-50%)',
-            willChange: 'transform, opacity',
-            backfaceVisibility: 'hidden',
-            perspective: '1000px'
-          }}
-        >
-          {/* Slim Information Panel with Dark Transparent Frosted Glass */}
-          <div
-            className="relative rounded-xl shadow-xl border border-purple-400/30 p-3 text-white transform-gpu overflow-hidden animate-in slide-in-from-right-4 duration-500"
-            style={{
-              width: '260px', // Made slimmer
-              height: `${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75}px`, // Reduced height to 75%
-              background: 'linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.4) 100%)', // Dark transparent
-              backdropFilter: 'blur(24px) saturate(120%)',
-              WebkitBackdropFilter: 'blur(24px) saturate(120%)',
-              boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(139, 92, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05)',
-              willChange: 'transform',
-              backfaceVisibility: 'hidden'
-            }}
-          >
-            {/* Enhanced Dark Frosted Glass Background */}
-            <div
-              className="absolute inset-0 bg-gradient-to-br from-black/20 via-gray-900/30 to-black/20 opacity-80"
-              style={{
-                backdropFilter: 'blur(20px)',
-                WebkitBackdropFilter: 'blur(20px)'
-              }}
-            />
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent via-purple-900/10 to-transparent animate-pulse opacity-30" />
-
-
-
-            {/* Content Container */}
-            <div className="relative z-10 h-full flex flex-col">
-              {/* Close button - Enhanced for better visibility and functionality */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  console.log('AI Model Info close button clicked');
-                  setShowAIModelInfo(false);
-                }}
-                className="absolute top-2 right-2 w-7 h-7 rounded-full bg-red-600/80 hover:bg-red-500 flex items-center justify-center transition-all duration-200 group border border-red-400/50 shadow-lg hover:shadow-xl z-20 cursor-pointer"
-                aria-label="Close AI Model Info panel"
-                title="Close AI Model Info"
+              {/* Scrollable Content Area - Optimized for 60fps */}
+              <div
+                className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-purple-500/50 scrollbar-track-transparent pr-1"
                 style={{
-                  WebkitTouchCallout: 'none',
-                  WebkitUserSelect: 'none',
-                  userSelect: 'none'
+                  maxHeight: 'calc(65vh - 100px)',
+                  scrollBehavior: 'smooth',
+                  willChange: 'scroll-position',
+                  transform: 'translateZ(0)', // Hardware acceleration
+                  backfaceVisibility: 'hidden'
                 }}
               >
-                <svg className="w-4 h-4 text-white group-hover:text-red-100 transition-colors" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* Compact Header */}
-              <div className="flex items-center mb-3">
-                <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mr-2.5 shadow-md border border-purple-400/40">
-                  <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                    <path d="M19 11L19.74 13.74L22.5 14.5L19.74 15.26L19 18L18.26 15.26L15.5 14.5L18.26 13.74L19 11Z" fill="currentColor"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="text-sm font-bold text-white tracking-wide">AI Model Info</h3>
-                  <p className="text-xs text-gray-300/80">Independent Agency</p>
-                </div>
-              </div>
-
-              {/* Compact Content - Scrollable */}
-              <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs" style={{ scrollbarWidth: 'thin', scrollbarColor: 'rgba(139, 92, 246, 0.3) transparent' }}>
-                {/* Agency Description */}
-                <div className="bg-gradient-to-r from-gray-800/30 to-gray-700/30 rounded-lg p-2.5 border border-gray-600/30">
-                  <p className="text-gray-100 leading-relaxed">
-                    We're an <span className="text-white font-medium">independent development agency</span> led by a passionate{' '}
-                    <span className="text-gray-200 font-medium">19-year-old entrepreneur</span>, building AI-powered solutions.
-                  </p>
-                </div>
-
-                {/* AI System Features */}
-                <div className="bg-gradient-to-r from-gray-700/30 to-gray-800/30 rounded-lg p-2.5 border border-gray-600/30">
-                  <p className="text-gray-100 leading-relaxed">
-                    Our AI system leverages <span className="text-white font-medium">free models</span> from OpenRouter, HuggingFace, and Google
-                    with an <span className="text-gray-200 font-medium">advanced fallback system</span> ensuring seamless experiences.
-                  </p>
-                </div>
-
-                {/* Advanced Fallback System */}
-                <div className="bg-gradient-to-br from-gray-800/30 to-gray-600/30 rounded-lg p-2.5 border border-gray-600/30">
-                  <div className="flex items-start">
-                    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-purple-500 to-purple-700 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                <div className="space-y-3 text-xs leading-relaxed">
+                  {/* AI Technology Overview */}
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #8b5cf6', // Muted purple border
+                      transform: 'translateZ(0)', // Hardware acceleration
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-purple-400 mb-2 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
+                        <path d="M19 11L19.74 13.74L22.5 14.5L19.74 15.26L19 18L18.26 15.26L15.5 14.5L18.26 13.74L19 11Z" fill="currentColor"/>
                       </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-semibold text-white mb-1">Advanced Fallback System</h4>
-                  <p className="text-gray-300 text-xs leading-relaxed">
-                    Any response delays are due to free model limitations. Our intelligent routing ensures optimal performance.
-                  </p>
-                      <p className="text-gray-300 leading-relaxed">
-                        Any response delays are due to free model limitations.
-                        Our intelligent routing ensures optimal performance.
-                      </p>
-                    </div>
+                      Advanced AI Technology
+                    </h4>
+                    <p className="text-gray-300">
+                      NEXIOUS leverages FREE AI models For Now, from <span className="text-purple-400">Claude</span>, <span className="text-blue-400">OpenRouter</span>, <span className="text-green-400">Hugging Face</span>, <span className="text-yellow-400">Google Gemini 27B</span>, <span className="text-red-400">DeepSeek</span>, and other premium providers.
+                    </p>
                   </div>
-                </div>
 
-                {/* Premium Partnerships */}
-                <div className="bg-gradient-to-br from-gray-700/30 to-gray-800/30 rounded-lg p-2.5 border border-gray-600/30">
-                  <div className="flex items-start">
-                    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  {/* Developer & Technology */}
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #6366f1', // Muted blue border
+                      transform: 'translateZ(0)',
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-blue-400 mb-2 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 7C16 9.20914 14.2091 11 12 11C9.79086 11 8 9.20914 8 7C8 4.79086 9.79086 3 12 3C14.2091 3 16 4.79086 16 7Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M12 14C16.4183 14 20 17.5817 20 22H4C4 17.5817 7.58172 14 12 14Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Innovation & Development
+                    </h4>
+                    <p className="text-gray-300">
+                      Developed by a dedicated 19-year-old developer with passion for AI, NEXIOUS utilizes advanced <span className="text-blue-400">Vector databases</span> and <span className="text-purple-400">Natural Language Processing</span> algorithms.
+                    </p>
+                  </div>
+
+                  {/* Fallback System */}
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #22c55e', // Muted green border
+                      transform: 'translateZ(0)',
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-green-400 mb-2 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M9 12L11 14L15 10M21 12C21 16.9706 16.9706 21 12 21C7.02944 21 3 16.9706 3 12C3 7.02944 7.02944 3 12 3C16.9706 3 21 7.02944 21 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-semibold text-white mb-1">Premium Partnerships</h4>
-                      <p className="text-gray-300 leading-relaxed">
-                        We're actively in discussions with <span className="text-white font-medium">Claude</span> and{' '}
-                        <span className="text-white font-medium">OpenAI</span> for premium partnerships.
-                      </p>
-                    </div>
+                      World's First Fallback AI System
+                    </h4>
+                    <p className="text-gray-300">
+                      We're proud to introduce the <span className="text-green-400 font-bold">world's first Fallback AI System</span>, employing backup models to ensure 100% request completion with natural responses using free model access.
+                    </p>
                   </div>
-                </div>
 
-                {/* Thank You Message */}
-                <div className="bg-gradient-to-br from-gray-600/30 to-gray-800/30 rounded-lg p-2.5 border border-gray-600/30">
-                  <div className="flex items-start">
-                    <div className="w-5 h-5 rounded-md bg-gradient-to-br from-green-500 to-green-700 flex items-center justify-center mr-2 mt-0.5 flex-shrink-0">
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M20.84 4.61A5.5 5.5 0 0 0 15.5 3H12V21L15.5 18.5C18.14 18.5 20.84 16.36 20.84 13.39V4.61Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M3.16 4.61A5.5 5.5 0 0 1 8.5 3H12V21L8.5 18.5C5.86 18.5 3.16 16.36 3.16 13.39V4.61Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  {/* Performance & Partnerships */}
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #facc15', // Muted yellow border
+                      transform: 'translateZ(0)',
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-yellow-400 mb-2 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
-                    </div>
-                    <div>
-                      <h4 className="text-xs font-semibold text-white mb-1">Thank You</h4>
-                      <p className="text-gray-300 leading-relaxed">
-                        Your patience and support fuel our journey toward building exceptional
-                        AI experiences. <span className="text-white font-medium">Together, we're shaping the future.</span>
-                      </p>
-                    </div>
+                      Performance & Partnerships
+                    </h4>
+                    <p className="text-gray-300">
+                      Response delays are due to free API limitations. We collaborate with <span className="text-yellow-400">Claude</span>, <span className="text-blue-400">Google</span>, and <span className="text-purple-400">Grok</span> to integrate models like <span className="text-green-400">KIMI K2</span>.
+                    </p>
                   </div>
-                </div>
 
-                {/* Footer */}
-                <div className="flex items-center justify-between pt-2.5 border-t border-gray-600/30">
-                  <span className="text-gray-400 text-xs font-medium">Powered by NEX-DEVS</span>
-                  <div className="flex items-center space-x-2">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse shadow-lg shadow-green-400/50"></div>
-                    <span className="text-green-400 text-xs font-semibold">Active</span>
+                  {/* Appreciation Message */}
+                  <div
+                    className="rounded-lg p-3 text-center"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #f472b6', // Muted pink border
+                      transform: 'translateZ(0)',
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-pink-400 mb-2 flex items-center justify-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M20.84 4.61C20.3292 4.099 19.7228 3.69364 19.0554 3.41708C18.3879 3.14052 17.6725 2.99817 16.95 2.99817C16.2275 2.99817 15.5121 3.14052 14.8446 3.41708C14.1772 3.69364 13.5708 4.099 13.06 4.61L12 5.67L10.94 4.61C9.9083 3.5783 8.50903 2.9987 7.05 2.9987C5.59096 2.9987 4.19169 3.5783 3.16 4.61C2.1283 5.6417 1.5487 7.04097 1.5487 8.5C1.5487 9.95903 2.1283 11.3583 3.16 12.39L12 21.23L20.84 12.39C21.351 11.8792 21.7563 11.2728 22.0329 10.6053C22.3095 9.93789 22.4518 9.22248 22.4518 8.5C22.4518 7.77752 22.3095 7.06211 22.0329 6.39467C21.7563 5.72723 21.351 5.1208 20.84 4.61V4.61Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                      Thank You for Your Support
+                    </h4>
+                    <p className="text-gray-300 italic">
+                      We appreciate your support as we democratize AI access. Your patience helps us provide free, high-quality AI assistance worldwide.
+                    </p>
+                  </div>
+
+                  {/* Technical Specifications */}
+                  <div
+                    className="rounded-lg p-3"
+                    style={{
+                      background: '#000000',
+                      border: '1px solid #9ca3af', // Muted gray border
+                      transform: 'translateZ(0)',
+                      willChange: 'transform'
+                    }}
+                  >
+                    <h4 className="font-bold text-gray-400 mb-2 flex items-center text-sm">
+                      <svg className="w-4 h-4 mr-1" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2" stroke="currentColor" strokeWidth="2"/>
+                        <line x1="8" y1="21" x2="16" y2="21" stroke="currentColor" strokeWidth="2"/>
+                        <line x1="12" y1="17" x2="12" y2="21" stroke="currentColor" strokeWidth="2"/>
+                      </svg>
+                      Technical Specifications
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2 text-xs">
+                      <div
+                        className="rounded p-2"
+                        style={{ background: '#000000', border: '1px solid #8b5cf6' }}
+                      >
+                        <span className="text-purple-400 font-medium">Architecture:</span>
+                        <br />
+                        <span className="text-gray-400">Vector DB + NLP</span>
+                      </div>
+                      <div
+                        className="rounded p-2"
+                        style={{ background: '#000000', border: '1px solid #6366f1' }}
+                      >
+                        <span className="text-blue-400 font-medium">Response:</span>
+                        <br />
+                        <span className="text-gray-400">1-10 seconds</span>
+                      </div>
+                      <div
+                        className="rounded p-2"
+                        style={{ background: '#000000', border: '1px solid #22c55e' }}
+                      >
+                        <span className="text-green-400 font-medium">Uptime:</span>
+                        <br />
+                        <span className="text-gray-400">79.9%</span>
+                      </div>
+                      <div
+                        className="rounded p-2"
+                        style={{ background: '#000000', border: '1px solid #facc15' }}
+                      >
+                        <span className="text-yellow-400 font-medium">Models:</span>
+                        <br />
+                        <span className="text-gray-400">10+ providers</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      )}
-
-      {/* Enhanced Curved Connecting Lines - AI Model Info to Nexious Chatbot */}
-      {isOpen && !isMinimized && !isMobile && showAIModelInfo && (
-        <svg
-          className="fixed z-[995] pointer-events-none"
-          style={{
-            left: `calc(${isMobile ? '100%' : (isProMode ? '520px' : `${Math.max(chatSize.width, 460)}px`)} + 5px)`,
-            top: `calc(50% + 40px)`,
-            transform: 'translateY(-50%)',
-            width: '85px',
-            height: `${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75}px`,
-            willChange: 'transform, opacity'
-          }}
-        >
-          {/* Top connecting line - from middle of AI Model Info to top middle of chatbot header */}
-          <path
-            d="M 0 80 Q 20 60 45 40 Q 65 20 85 0"
-            stroke="url(#topLineGradientEnhanced)"
-            strokeWidth="2"
-            fill="none"
-            className="animate-draw-line-top-enhanced"
-            style={{
-              strokeDasharray: '140',
-              strokeDashoffset: '140',
-              filter: 'drop-shadow(0 0 8px rgba(139, 92, 246, 0.8)) drop-shadow(0 0 16px rgba(139, 92, 246, 0.4))',
-              opacity: 0,
-              strokeLinecap: 'round',
-              strokeLinejoin: 'round'
-            }}
-          />
-
-          {/* Bottom connecting line - from bottom middle of AI Model Info to middle bottom of chatbot footer */}
-          <path
-            d={`M 0 ${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75 - 80} Q 25 ${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75 - 60} 50 ${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75 - 40} Q 70 ${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75 - 20} 85 ${(isMobile ? 520 : (isProMode ? 680 : chatSize.height + 80)) * 0.75}`}
-            stroke="url(#bottomLineGradientEnhanced)"
-            strokeWidth="2.5"
-            fill="none"
-            className="animate-draw-line-bottom-enhanced"
-            style={{
-              strokeDasharray: '160',
-              strokeDashoffset: '160',
-              filter: 'drop-shadow(0 0 10px rgba(59, 130, 246, 0.9)) drop-shadow(0 0 20px rgba(59, 130, 246, 0.5))',
-              opacity: 0,
-              strokeLinecap: 'round',
-              strokeLinejoin: 'round'
-            }}
-          />
-
-          {/* Enhanced Gradient definitions with purple/blue theme */}
-          <defs>
-            <linearGradient id="topLineGradientEnhanced" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(139, 92, 246, 0.9)" />
-              <stop offset="50%" stopColor="rgba(147, 51, 234, 0.8)" />
-              <stop offset="100%" stopColor="rgba(168, 85, 247, 0.7)" />
-            </linearGradient>
-            <linearGradient id="bottomLineGradientEnhanced" x1="0%" y1="0%" x2="100%" y2="0%">
-              <stop offset="0%" stopColor="rgba(59, 130, 246, 0.9)" />
-              <stop offset="50%" stopColor="rgba(37, 99, 235, 0.8)" />
-              <stop offset="100%" stopColor="rgba(139, 92, 246, 0.7)" />
-            </linearGradient>
-          </defs>
-        </svg>
       )}
 
       {/* Mobile overlay when chat is open and fullscreen */}
-      {isMobile && isOpen && isFullscreen && (
-        <div 
-          className="fixed inset-0 bg-black/70 backdrop-blur-md z-[1000]" 
-          onClick={toggleChat} 
+      {isMobile && isOpen && !isMinimized && isFullscreen && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[1000]"
+          onClick={toggleChat}
           style={{
             opacity: showSidebar ? 0.8 : 0.7,
             transition: 'opacity 0.3s ease'
           }}
         />
       )}
-      
+
       {/* Mobile backdrop for sidebar - improved touch handling */}
-      {isMobile && isOpen && showSidebar && (
+      {isMobile && isOpen && !isMinimized && showSidebar && (
         <div
           className="fixed inset-0 bg-black/20 backdrop-blur-sm z-[999]"
           onClick={toggleSidebar}
@@ -4333,14 +5233,15 @@ export default function NexiousChatbot() {
           }}
         />
       )}
-      
+
       {/* Pro Mode Maintenance Popup - Fixed z-index with backdrop */}
       {showProMaintenancePopup && (
         <>
           {/* Popup backdrop for better visibility */}
-          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]" onClick={() => setShowProMaintenancePopup(false)} />
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" style={{ zIndex: 9999998 }} onClick={() => setShowProMaintenancePopup(false)} />
 
-          <div className="fixed z-[9999] pro-maintenance-popup" style={{
+          <div className="fixed pro-maintenance-popup" style={{
+            zIndex: 9999999,
             top: '50%',
             left: '50%',
             transform: 'translate(-50%, -50%)',
@@ -4406,63 +5307,22 @@ export default function NexiousChatbot() {
         </>
       )}
 
-      {/* Advanced Fallback System Notification */}
-      {showFallbackNotification && (
-        <div className="fixed z-[9999] fallback-notification" style={{
-          top: '20px',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: isMobile ? 'calc(100% - 40px)' : '400px',
-          maxWidth: isMobile ? '320px' : '400px'
-        }}>
-          <div className="bg-gradient-to-r from-blue-900/95 to-purple-900/95 backdrop-blur-lg rounded-2xl shadow-2xl overflow-hidden border border-blue-500/40 relative animate-in slide-in-from-top-4 duration-300">
-            {/* Notification header */}
-            <div className={`${isMobile ? 'p-3' : 'p-4'} text-white`}>
-              <h4 className={`font-semibold text-blue-300 ${isMobile ? 'mb-2' : 'mb-3'} flex items-center ${isMobile ? 'text-sm' : 'text-base'}`}>
-                <svg className={`${isMobile ? 'w-4 h-4' : 'w-5 h-5'} mr-2`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-                AI Model Switched
-              </h4>
 
-              <div className={`${isMobile ? 'text-xs' : 'text-sm'} text-gray-200 leading-relaxed ${isMobile ? 'mb-2' : 'mb-3'}`}>
-                {fallbackNotificationMessage}
-              </div>
 
-              {currentFallbackModel && (
-                <div className={`bg-blue-900/30 border border-blue-700/30 rounded-xl ${isMobile ? 'p-2' : 'p-3'}`}>
-                  <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-blue-300 ${isMobile ? 'mb-1' : 'mb-1'} font-medium`}>
-                    Now using: {currentFallbackModel.description}
-                  </div>
-                  <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-300`}>
-                    Priority: {currentFallbackModel.priority} | Attempt: {fallbackAttempts}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Notification footer */}
-            <div className={`bg-gray-800/80 ${isMobile ? 'p-2' : 'p-3'} flex justify-between items-center`}>
-              <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-gray-400`}>
-                <span className="text-blue-300">Enhanced</span> performance active
-              </div>
-              <div className={`${isMobile ? 'text-xs' : 'text-xs'} text-blue-300 font-medium`}>
-                Auto-dismiss in 3s
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* PRO Features Popup - Fixed z-index and optimized for mobile */}
+      {/* PRO Features Popup - Higher z-index to appear above chatbot */}
       {showProFeaturesPopup && isProMode && (
-        <div className="fixed z-[9999] pro-features-popup" style={{
-          bottom: isMobile ? '90px' : '100px',
-          left: isMobile ? '50%' : '24px',
-          transform: isMobile ? 'translateX(-50%)' : 'none',
-          width: isMobile ? 'calc(100% - 24px)' : '360px',
-          maxWidth: isMobile ? '85vw' : '400px'
-        }}>
+        <>
+          {/* Popup backdrop for better visibility */}
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" style={{ zIndex: 99999998 }} onClick={() => setShowProFeaturesPopup(false)} />
+
+          <div className="fixed pro-features-popup" style={{
+            zIndex: 99999999, // Much higher z-index to ensure it appears above chatbot
+            bottom: isMobile ? '90px' : '100px',
+            left: isMobile ? '50%' : '24px',
+            transform: isMobile ? 'translateX(-50%)' : 'none',
+            width: isMobile ? 'calc(100% - 24px)' : '360px',
+            maxWidth: isMobile ? '85vw' : '400px'
+          }}>
           {/* Pop-up header */}
           <div className="bg-gray-900/95 backdrop-blur-lg rounded-2xl shadow-xl overflow-hidden">
             {/* Pop-up body */}
@@ -4473,7 +5333,7 @@ export default function NexiousChatbot() {
                 </svg>
                 PRO Features Enabled
               </h4>
-              
+
               <ul className="space-y-2 mt-2">
                 <li className="flex items-start text-xs md:text-sm">
                   <div className="bg-purple-800/20 rounded-full p-1 mr-2 mt-0.5">
@@ -4532,13 +5392,13 @@ export default function NexiousChatbot() {
                 </li>
               </ul>
             </div>
-            
+
             {/* Pop-up footer */}
             <div className="bg-gray-800/80 p-2.5 md:p-3 flex justify-between items-center">
               <div className="text-xs text-gray-400">
                 <span className="text-purple-300">PRO</span> mode is now active
               </div>
-              <button 
+              <button
                 onClick={() => setShowProFeaturesPopup(false)}
                 className="bg-purple-800/80 hover:bg-purple-700 text-white text-xs px-3 py-1 rounded-full transition-colors"
               >
@@ -4546,271 +5406,8 @@ export default function NexiousChatbot() {
               </button>
             </div>
           </div>
-        </div>
-      )}
-      
-      {/* Chat Label (disabled by showFloatingLabel flag) */}
-      {showFloatingLabel && !isOpen && (
-        <div 
-          className={`absolute ${isMobile ? '-top-14 left-0 ml-0.5' : '-top-14 left-1'} rounded-full shadow-xl flex items-center justify-center overflow-hidden material-shadow`}
-          style={{
-            background: `linear-gradient(135deg, ${pageContext.gradientFrom.replace('from-', '')} 0%, ${pageContext.gradientTo.replace('to-', '')} 100%)`,
-            padding: '8px 20px',
-            height: isMobile ? '32px' : '36px',
-            zIndex: 55,
-            maxWidth: isMobile ? '160px' : '190px',
-            animation: 'float-gentle 3s ease-in-out infinite, appear 0.5s ease-out',
-          }}
-        >
-          {/* Material design glass effect */}
-          <div 
-            className="absolute inset-0 backdrop-blur-sm rounded-full"
-            style={{
-              background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15), rgba(255, 255, 255, 0.08))',
-              animation: 'pulse-subtle 3s ease-in-out infinite'
-            }}
-          ></div>
-          
-          {/* Enhanced glow effect */}
-          <div className="absolute inset-0 opacity-60 animate-glow-pulse rounded-full" style={{
-            background: 'radial-gradient(circle at 50% 50%, rgba(139, 92, 246, 0.6), transparent 70%)'
-          }}></div>
-          
-          {/* Material design shine animation */}
-          <div className="absolute inset-0 overflow-hidden rounded-full">
-            <div className="absolute top-0 -left-[100%] h-full w-[40%] bg-gradient-to-r from-transparent via-white/40 to-transparent transform skew-x-[15deg] animate-material-shine"></div>
           </div>
-          
-          {/* Text content with enhanced styling */}
-          <div className="flex items-center justify-center relative z-10 w-full">
-            <span 
-              className={`font-medium text-white ${isMobile ? 'text-[10px]' : 'text-sm'} tracking-wide whitespace-nowrap text-center`} 
-              style={{
-                textShadow: '0 1px 2px rgba(0, 0, 0, 0.15)',
-                letterSpacing: '0.05em',
-              }}
-            >
-              Chat with Nexious
-            </span>
-          </div>
-        </div>
-      )}
-      
-      {/* Chat bubble button for closed state */}
-      {!isOpen && (
-        <div className="flex items-center gap-2 fixed" style={{
-          position: 'fixed',
-          bottom: '20px',
-          left: '20px',
-          zIndex: 999999
-        }}>
-          {/* PRO mode toggle button for closed state - Enhanced for mobile */}
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              toggleProMode();
-            }}
-            onTouchStart={(e) => {
-              // Enhanced mobile touch feedback
-              e.currentTarget.style.transform = 'scale(0.92)';
-              if (navigator.vibrate) {
-                navigator.vibrate(30);
-              }
-            }}
-            onTouchEnd={(e) => {
-              setTimeout(() => {
-                e.currentTarget.style.transform = 'scale(1)';
-              }, 150);
-            }}
-            className={`flex items-center justify-center ${isMobile ? 'w-6 h-6' : 'w-14 h-14'} ${isMobile ? 'rounded-full' : 'rounded-full'} ${isProMode ? 'bg-gradient-to-br from-blue-600 to-blue-800' : 'bg-gradient-to-br from-gray-700 to-gray-900'} text-white material-shadow hover:scale-105 transition-all duration-300 relative overflow-hidden ${isMobile ? 'touch-manipulation' : ''}`}
-            aria-label={isProMode ? "Disable PRO mode" : "Enable PRO mode"}
-            title={isProMode ? "Disable PRO mode" : "Enable PRO mode"}
-            style={isMobile ? {
-              WebkitTouchCallout: 'none',
-              WebkitUserSelect: 'none',
-              userSelect: 'none',
-              minHeight: '24px',
-              minWidth: '24px',
-              borderRadius: '999px',
-              boxShadow: '0 2px 5px rgba(0, 0, 0, 0.2)'
-            } : {}}
-          >
-            {/* Material design ripple effect */}
-            <div className="absolute inset-0 bg-white/10 rounded-full material-ripple-circle"></div>
-
-            <Zap size={isMobile ? 14 : 24} className={`${isProMode ? 'text-white animate-pulse' : 'text-gray-200'} relative z-10`} />
-            {isProMode && (
-              <span className={`absolute -top-1 -right-1 ${isMobile ? 'w-2 h-2' : 'w-3 h-3'} bg-purple-500 border border-purple-700 rounded-full animate-pulse`}></span>
-            )}
-          </button>
-          
-          {/* Plain chat button - Smaller size */}
-          <button
-            onClick={toggleChat}
-            onTouchStart={(e) => {
-              if (navigator.vibrate) {
-                navigator.vibrate(20);
-              }
-            }}
-            className={`flex items-center justify-center ${isMobile ? 'w-10 h-10' : 'w-12 h-12'} rounded-full bg-gray-800 text-white shadow-md hover:bg-gray-700 transition-all duration-200 relative overflow-hidden ${isMobile ? 'touch-manipulation' : ''}`}
-            aria-label="Open chat"
-            style={{
-              ...(isMobile ? {
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none',
-                minHeight: '40px',
-                minWidth: '40px'
-              } : {})
-            }}
-          >
-            {/* Material design ripple effect */}
-            <div className="absolute inset-0 bg-white/10 rounded-full material-ripple-circle"></div>
-
-            <div className="relative flex items-center justify-center">
-              {hasNewMessages && !isChatbotDisabled && (
-                <div className={`absolute -top-2 -right-2 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'} rounded-full bg-red-500 border border-red-700 animate-pulse`}></div>
-              )}
-              {!hasNewMessages && !isChatbotDisabled && (
-                <div className={`absolute -top-2 -right-2 ${isMobile ? 'w-3 h-3' : 'w-3.5 h-3.5'} rounded-full bg-green-400 material-glow`}></div>
-              )}
-              {isChatbotDisabled && (
-                <div className={`absolute -top-2 -right-2 ${isMobile ? 'w-4 h-4' : 'w-4 h-4'} rounded-full bg-red-500 border border-red-700 animate-pulse`}></div>
-              )}
-              
-              {/* Dynamic AI Chat Icon based on page context - Enhanced for mobile */}
-              <div className={`${isMobile ? 'w-10 h-10' : 'w-11 h-11'} flex items-center justify-center relative`}>
-                {isChatbotDisabled ? (
-                  <svg className={`${isMobile ? 'w-7 h-7' : 'w-7 h-7'} text-white z-10`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-                  </svg>
-                ) : pathname?.includes('contact') ? (
-                  <svg className={`${isMobile ? 'w-7 h-7' : 'w-7 h-7'} text-white z-10`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 12C14.2091 12 16 10.2091 16 8C16 5.79086 14.2091 4 12 4C9.79086 4 8 5.79086 8 8C8 10.2091 9.79086 12 12 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M5 20V19C5 15.6863 7.68629 13 11 13H13C16.3137 13 19 15.6863 19 19V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                ) : pathname?.includes('pricing') ? (
-                  <svg className={`${isMobile ? 'w-7 h-7' : 'w-7 h-7'} text-white z-10`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16 8.00003L8.00003 16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 7.99997C12.5523 7.99997 13 7.55226 13 6.99997C13 6.44769 12.5523 5.99997 12 5.99997C11.4477 5.99997 11 6.44769 11 6.99997C11 7.55226 11.4477 7.99997 12 7.99997Z" fill="currentColor"/>
-                    <path d="M12 18C12.5523 18 13 17.5523 13 17C13 16.4477 12.5523 16 12 16C11.4477 16 11 16.4477 11 17C11 17.5523 11.4477 18 12 18Z" fill="currentColor"/>
-                  </svg>
-                ) : (
-                  <div className="relative w-full h-full flex items-center justify-center">
-                    {/* Material design AI brain animation */}
-                    <div className="absolute inset-0 flex items-center justify-center">
-                      <div className={`${isMobile ? 'w-6 h-6' : 'w-6 h-6'} bg-purple-400/20 rounded-full animate-ping-pulse`}></div>
-                    </div>
-                    <svg className={`${isMobile ? 'w-7 h-7' : 'w-7 h-7'} text-white z-10`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                      <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M21 12C21 12 18 18 12 18C6 18 3 12 3 12C3 12 6 6 12 6C18 6 21 12 21 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                      <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" fillOpacity="0.2"/>
-                    </svg>
-                  </div>
-                )}
-              </div>
-            </div>
-          </button>
-        </div>
-      )}
-
-      {/* Minimized Chat Bar - with Material design */}
-      {isOpen && isMinimized && (
-        <div 
-          className="nexious-minimized-chat bg-gray-900/90 backdrop-blur-lg rounded-full shadow-2xl flex items-center cursor-pointer animate-material-slideIn material-shadow"
-          onClick={() => setIsMinimized(false)}
-          style={{
-            position: 'fixed',
-            bottom: minimizedPosition.bottom,
-            left: minimizedPosition.left,
-            width: isMobile ? '190px' : '260px',
-            height: isMobile ? '44px' : '54px',
-            padding: isMobile ? '0.5rem' : '0.75rem',
-            zIndex: 999
-          }}
-        >
-          <div className="flex items-center flex-1 pl-3">
-            <div className={`${isMobile ? 'w-9 h-9' : 'w-10 h-10'} rounded-full bg-gradient-to-br ${pageContext.gradientFrom} ${pageContext.gradientTo} flex items-center justify-center material-shadow mr-2.5`}>
-              <svg className={`${isMobile ? 'w-5 h-5' : 'w-6 h-6'} text-white`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M21 12C21 12 18 18 12 18C6 18 3 12 3 12C3 12 6 6 12 6C18 6 21 12 21 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" fill="currentColor" fillOpacity="0.2"/>
-              </svg>
-            </div>
-            <div className="font-medium text-white">
-              <span className={`${isMobile ? 'text-sm' : 'text-base'}`}>Nexious</span>
-              <span className={`ml-1.5 ${isMobile ? 'text-2xs' : 'text-xs'} text-gray-400`}>minimized</span>
-            </div>
-          </div>
-          <div className="flex gap-1.5 pr-3">
-            {/* Material design PRO mode toggle button */}
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                toggleProMode();
-              }}
-              className={`flex items-center justify-center ${isMobile ? 'h-6 px-1.5' : 'h-6 px-1.5'} ${isMobile ? 'rounded-md' : 'rounded-full'} transition-all duration-300 ${
-                isProModeUnderMaintenance()
-                  ? 'bg-orange-500 hover:bg-orange-600 text-white cursor-pointer'
-                  : isProMode
-                    ? 'bg-purple-500 hover:bg-purple-600 text-white'
-                    : 'bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white'
-              } ${isMobile ? 'text-2xs' : 'text-2xs'} font-medium relative ${isMobile ? 'touch-manipulation' : ''}`}
-              title={isProModeUnderMaintenance() ? 'Pro Mode is under maintenance - Click for details' : (isProMode ? 'Disable Pro Mode' : 'Enable Pro Mode')}
-              style={isMobile ? {
-                WebkitTouchCallout: 'none',
-                WebkitUserSelect: 'none',
-                userSelect: 'none'
-              } : {}}
-            >
-              <Zap size={isMobile ? 9 : 10} className="mr-0.5" />
-              {isProModeUnderMaintenance() ? (
-                <span className="flex items-center">
-                  PRO
-                  {shouldShowProModeCountdown() && (
-                    <span className="ml-1 text-2xs opacity-80">
-                      {proModeCountdown.days}d {proModeCountdown.hours}h
-                    </span>
-                  )}
-                </span>
-              ) : (
-                'PRO'
-              )}
-              {isProModeUnderMaintenance() && (
-                <span className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-orange-400 rounded-full animate-pulse"></span>
-              )}
-            </button>
-            
-            {/* Material design maximize button */}
-            <button
-              onClick={toggleMinimize}
-              className="text-gray-300 hover:text-white bg-gray-800/60 hover:bg-gray-700/60 rounded-full p-1.5 transition-all duration-200 material-button-effect"
-              aria-label="Maximize chat"
-              title="Maximize chat"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M4 14H10V20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M20 10H14V4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M14 10L21 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M3 21L10 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-            
-            {/* Material design close button */}
-            <button
-              onClick={toggleChat}
-              className="text-gray-300 hover:text-white bg-gray-800/60 hover:bg-gray-700/60 rounded-full p-1.5 transition-all duration-200 material-button-effect"
-              aria-label="Close chat"
-              title="Close chat"
-            >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                <path d="M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-            </button>
-          </div>
-        </div>
+        </>
       )}
 
 
@@ -4820,10 +5417,10 @@ export default function NexiousChatbot() {
           ref={chatWindowRef}
           id="chat-window"
           className={`${
-            isMobile 
-              ? 'fixed inset-0 z-[1000]' 
+            isMobile
+              ? 'fixed inset-0 z-[99999]'
               : 'relative'
-          } bg-black/90 backdrop-blur-xl rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-white/10 ${
+          } bg-black/90 backdrop-blur-xl ${isMobile ? 'rounded-none' : 'rounded-2xl'} shadow-2xl flex flex-col overflow-hidden ${
             isMobile ? 'animate-mobile-chat-slide' : 'animate-material-slideIn'
           }`}
           style={{
@@ -4835,25 +5432,31 @@ export default function NexiousChatbot() {
             minHeight: isMobile ? '100vh' : '520px',
             top: isMobile ? '0' : 'auto',
             left: isMobile ? '0' : 'auto',
+            right: isMobile ? '0' : 'auto',
+            bottom: isMobile ? '0' : 'auto',
             position: isMobile ? 'fixed' : 'relative',
+            zIndex: isMobile ? 999999 : 'auto', // Ensure mobile chatbot is above everything
             transition: isMobile ? 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
             transform: isMobile ? (isMinimized ? 'translateY(120%)' : 'translateY(0)') : 'none',
-            borderRadius: isMobile ? '0' : '24px',
-            boxShadow: isMobile ? 'none' : '0 20px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1)',
+            borderRadius: isMobile ? '16px' : '24px',
+            boxShadow: isMobile ? 'none' : '0 20px 40px rgba(0, 0, 0, 0.5)',
             background: 'rgba(0, 0, 0, 0.5)',
             backdropFilter: 'blur(8px)',
             WebkitBackdropFilter: 'blur(8px)',
-            border: '1px solid rgba(255, 255, 255, 0.2)',
+            border: '2px solid #8b5cf6',
           }}
         >
 
-          {/* Mobile-Optimized Compact Header */}
+          {/* Mobile-Optimized Header with proper touch targets */}
           <div
-            className={`flex items-center justify-between ${isMobile ? 'px-2 py-1' : 'px-3 py-1.5'} bg-gray-800/40 ${isMobile && isFullscreen ? '' : (isMobile ? 'rounded-t-2xl' : 'rounded-t-3xl')} ${isProMode ? 'pro-mode-header' : ''}`}
+            className={`flex items-center justify-between ${isMobile ? 'px-4 py-3' : 'px-3 py-1.5'} ${isMobile && isFullscreen ? '' : (isMobile ? 'rounded-t-2xl' : 'rounded-t-3xl')} ${isProMode ? 'pro-mode-header' : ''}`}
             style={{
-              height: isMobile ? '40px' : '52px',
+              height: isMobile ? '60px' : '52px',
               borderBottom: 'none',
-              minHeight: isMobile ? '40px' : '52px'
+              minHeight: isMobile ? '60px' : '52px',
+              background: 'rgba(0, 0, 0, 0.2)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
             }}
           >
             {/* Modern particles background effect */}
@@ -4862,24 +5465,24 @@ export default function NexiousChatbot() {
                 {/* Background particles animation will be handled by CSS */}
               </div>
             </div>
-            
+
             {/* Moving code text background for PRO mode */}
             {isProMode && (
               <div className="absolute inset-0 overflow-hidden opacity-20">
                 <div className="code-scroll-bg">
                   <pre className="text-xs font-mono whitespace-pre-wrap leading-relaxed">
-                    <span className="code-keyword">const</span> <span className="code-var">nexiousPro</span> = () =&gt; {'{'} 
+                    <span className="code-keyword">const</span> <span className="code-var">nexiousPro</span> = () =&gt; {'{'}
                       <span className="code-keyword">function</span> <span className="code-function">enhancedResponse</span>(<span className="code-param">query</span>) {'{'}
                         <span className="code-keyword">return</span> <span className="code-string">"Professional answers"</span>;
                       {'}'}
-                      <span className="code-keyword">const</span> <span className="code-var">styles</span> = {'{'} 
+                      <span className="code-keyword">const</span> <span className="code-var">styles</span> = {'{'}
                         codeHighlighting: <span className="code-boolean">true</span>,
                         formatting: <span className="code-string">"perfect"</span>,
                         mode: <span className="code-string">"professional"</span>
                       {'}'};
                       <span className="code-comment">// Advanced technical capabilities</span>
-                      <span className="code-keyword">class</span> <span className="code-class">DeveloperTools</span> {'{'} 
-                        <span className="code-function">debugCode</span>() {'{'} 
+                      <span className="code-keyword">class</span> <span className="code-class">DeveloperTools</span> {'{'}
+                        <span className="code-function">debugCode</span>() {'{'}
                           <span className="code-keyword">return</span> <span className="code-string">"Solved!"</span>;
                         {'}'}
                       {'}'}
@@ -4888,21 +5491,22 @@ export default function NexiousChatbot() {
                 </div>
               </div>
             )}
-            
+
             {/* Modern sleek header layout */}
             <div className="flex items-center justify-between w-full relative z-10">
               {/* Logo and title section */}
               <div className="flex items-center">
-                {/* Mobile-optimized avatar container */}
-                <div className={`${isMobile ? 'w-6 h-6' : 'w-8 h-8'} rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ${isMobile ? 'mr-1.5' : 'mr-2'} overflow-hidden relative p-1`}>
+                {/* Mobile-optimized avatar container - Larger on mobile */}
+                <div className={`${isMobile ? 'w-10 h-10' : 'w-8 h-8'} rounded-full bg-white flex items-center justify-center ${isMobile ? 'mr-3' : 'mr-2'} overflow-hidden relative p-1`}>
                   {/* New AI Logo Image */}
                   <img
-                    src="https://cdn-icons-png.flaticon.com/128/5291/5291454.png"
+                    src="https://ik.imagekit.io/u7ipvwnqb/Beige%20and%20Black%20Classic%20Initial%20Wedding%20Logo.png?updatedAt=1752254056269"
                     alt="Nexious AI Logo"
-                    className={`${isMobile ? 'w-3 h-3' : 'w-5 h-5'} object-contain filter brightness-0 invert`}
+                    className={`${isMobile ? 'w-8 h-8' : 'w-6 h-6'} object-contain`}
                     style={{
-                      filter: 'brightness(0) invert(1)', // Makes the icon white
-                      imageRendering: 'crisp-edges'
+                      background: 'white',
+                      borderRadius: '50%',
+                      padding: '1px'
                     }}
                     onError={(e) => {
                       // Fallback to original SVG if image fails to load
@@ -4913,7 +5517,7 @@ export default function NexiousChatbot() {
                   />
                   {/* Fallback SVG (hidden by default) */}
                   <svg
-                    className={`${isMobile ? 'w-3 h-3' : 'w-4 h-4'} text-white`}
+                    className={`${isMobile ? 'w-6 h-6' : 'w-4 h-4'} text-white`}
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -4925,152 +5529,149 @@ export default function NexiousChatbot() {
                   </svg>
                 </div>
 
-                {/* Mobile-optimized title and subtitle - Larger for mobile */}
+                {/* Mobile-optimized title and subtitle - Larger and clearer for mobile */}
                 <div className="flex flex-col">
-                  <h1 className={`font-bold text-white ${isMobile ? 'text-sm' : 'text-base'} flex items-center tracking-wide`}>
+                  <h1 className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-base'} flex items-center tracking-wide`}>
                     <span className="nexious-title-modern nexious-title-animation">
                       NEXIOUS
                     </span>
-                    {isProMode && (
-                                    <span className="ml-1.5 text-2xs font-medium bg-blue-500 text-white px-1.5 py-0.5 rounded-full flex items-center justify-center" style={{ maxHeight: '16px', fontSize: '8px', lineHeight: '1' }}>
-                      PRO
+                    {/* BETA Label with Curly Brackets - Larger on mobile */}
+                    <span className={`ml-2 font-medium bg-gray-600/80 text-gray-300 px-2 py-1 rounded border border-gray-500/50 flex items-center justify-center ${isMobile ? 'text-xs' : 'text-2xs'}`} style={{ maxHeight: isMobile ? '20px' : '16px', fontSize: isMobile ? '10px' : '8px', lineHeight: '1' }}>
+                      {`{BETA}`}
                     </span>
+                    {isProMode && (
+                      <span className={`ml-1.5 font-medium bg-blue-500 text-white px-2 py-1 rounded-full flex items-center justify-center ${isMobile ? 'text-xs' : 'text-2xs'}`} style={{ maxHeight: isMobile ? '20px' : '16px', fontSize: isMobile ? '10px' : '8px', lineHeight: '1' }}>
+                        PRO
+                      </span>
                     )}
                   </h1>
-                  <div className={`text-gray-300 ${isMobile ? 'text-xs' : 'text-xs'} font-normal flex items-center mt-0.5`}>
-                    <div className="w-1 h-1 rounded-full bg-green-400 mr-1"></div>
+                  <div className={`text-gray-300 ${isMobile ? 'text-sm' : 'text-xs'} font-normal flex items-center mt-1`}>
+                    <div className={`${isMobile ? 'w-2 h-2' : 'w-1 h-1'} rounded-full bg-green-400 mr-2`}></div>
                     Active now
                   </div>
                 </div>
               </div>
 
               {/* Control buttons with consistent styling - Organized and optimized */}
-              <div className="flex items-center gap-1">
-                {/* PRO MODE button */}
+              <div className="flex items-center gap-1.5">
+                {/* PRO MODE button - Consistent size with other buttons */}
                 <button
                   onClick={toggleProMode}
-                  className={`flex items-center justify-center ${isMobile ? 'h-5 px-1.5 min-w-[32px] text-[9px]' : 'h-6 px-2 text-2xs'} rounded-full transition-all duration-300 ${
+                  className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
                     isProModeUnderMaintenance()
-                      ? 'bg-orange-500 hover:bg-orange-600 text-white cursor-pointer'
+                      ? 'bg-orange-500 hover:bg-orange-600 text-white cursor-pointer border border-orange-400'
                       : isProMode
-                        ? 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg'
+                        ? 'bg-white hover:bg-gray-50 text-black border border-gray-300 shadow-md'
                         : 'bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white'
-                  } font-semibold relative ${isMobile ? 'touch-manipulation' : ''}`}
+                  } font-bold relative ${isMobile ? 'touch-manipulation' : ''}`}
                   title={isProModeUnderMaintenance() ? 'Pro Mode is under maintenance - Click for details' : (isProMode ? 'Disable Pro Mode' : 'Enable Pro Mode')}
                   style={isMobile ? {
                     WebkitTouchCallout: 'none',
                     WebkitUserSelect: 'none',
                     userSelect: 'none',
-                    borderRadius: '999px',
-                    boxShadow: isProMode ? '0 2px 8px rgba(220, 38, 38, 0.3)' : '0 1px 3px rgba(0, 0, 0, 0.1)',
-                    fontSize: '9px',
-                    lineHeight: '1'
+                    minHeight: '36px',
+                    minWidth: '36px'
                   } : {}}
                 >
-                  <Zap size={isMobile ? 8 : 10} className={isMobile ? 'mr-0.5' : 'mr-0.5'} />
-                  {isProModeUnderMaintenance() ? (
-                    <span className="flex items-center">
-                      PRO
-                      {shouldShowProModeCountdown() && !isMobile && (
-                        <span className="ml-1 text-2xs opacity-80">
-                          {proModeCountdown.days}d {proModeCountdown.hours}h
-                        </span>
-                      )}
-                    </span>
-                  ) : (
-                    'PRO'
-                  )}
+                  <Zap size={isMobile ? 12 : 10} />
                   {isProModeUnderMaintenance() && (
-                    <span className={`absolute ${isMobile ? '-top-0.5 -right-0.5 w-1 h-1' : '-top-0.5 -right-0.5 w-1.5 h-1.5'} bg-orange-400 rounded-full animate-pulse`}></span>
+                    <span className={`absolute ${isMobile ? '-top-1 -right-1 w-2 h-2' : '-top-0.5 -right-0.5 w-1.5 h-1.5'} bg-orange-400 rounded-full animate-pulse`}></span>
                   )}
                 </button>
 
-                {/* For Desktop: Keep original buttons */}
+                {/* For Desktop: Add close, minimize, and settings buttons */}
                 {!isMobile && (
                   <>
-                    {/* Auto-scroll toggle button */}
+                    {/* Close button with dash icon - White background with black icon */}
                     <button
-                      onClick={() => {
-                        setAutoScrollEnabled(!autoScrollEnabled);
-                        console.log('Auto-scroll toggled:', !autoScrollEnabled);
-                      }}
-                      className="flex items-center justify-center h-6 px-2 text-2xs rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold relative"
-                      title={`Auto-scroll: ${autoScrollEnabled ? 'Enabled' : 'Disabled'}`}
+                      onClick={toggleChat}
+                      className="flex items-center justify-center h-7 w-7 rounded-full transition-all duration-300 bg-white hover:bg-gray-100 text-black border border-gray-300 shadow-sm font-semibold"
+                      title="Close Chatbot"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        {autoScrollEnabled ? (
-                          <>
-                            <path d="M7 13L12 18L17 13" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                            <path d="M7 6L12 11L17 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                          </>
-                        ) : (
-                          <>
-                            <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
-                            <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
-                          </>
-                        )}
+                        <path d="M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* AI Model Info toggle button */}
+                    {/* Minimize button - matching settings gear styling */}
                     <button
-                      onClick={() => setShowAIModelInfo(!showAIModelInfo)}
-                      className="flex items-center justify-center h-6 px-2 text-2xs rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold relative"
-                      title="AI Model Info"
+                      onClick={toggleMinimize}
+                      className="flex items-center justify-center h-7 w-7 rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
+                      title="Minimize Chatbot"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                        <path d="M19 11L19.74 13.74L22.5 14.5L19.74 15.26L19 18L18.26 15.26L15.5 14.5L18.26 13.74L19 11Z" fill="currentColor"/>
+                        <path d="M7 14L12 9L17 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* Sidebar settings toggle button */}
+                    {/* Settings/Sidebar toggle button */}
                     <button
                       onClick={toggleSidebar}
-                      className="flex items-center justify-center h-6 px-2 text-2xs rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold relative"
-                      title="Settings"
+                      className="flex items-center justify-center h-7 px-2 text-2xs rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
+                      title="Settings & Controls"
                     >
                       <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 16.96 19.71L16.9 19.65C16.6643 19.4195 16.365 19.2648 16.0406 19.206C15.7162 19.1472 15.3816 19.1869 15.08 19.32C14.7842 19.4468 14.532 19.6572 14.3543 19.9255C14.1766 20.1938 14.0813 20.5082 14.08 20.83V21C14.08 21.5304 13.8693 22.0391 13.4942 22.4142C13.1191 22.7893 12.6104 23 12.08 23C11.5496 23 11.0409 22.7893 10.6658 22.4142C10.2907 22.0391 10.08 21.5304 10.08 21V20.91C10.0723 20.579 9.96512 20.258 9.77251 19.9887C9.5799 19.7194 9.31074 19.5143 9 19.4C8.69838 19.2669 8.36381 19.2272 8.03941 19.286C7.71502 19.3448 7.41568 19.4995 7.18 19.73L7.12 19.79C6.93425 19.976 6.71368 20.1235 6.47088 20.2241C6.22808 20.3248 5.96783 20.3766 5.705 20.3766C5.44217 20.3766 5.18192 20.3248 4.93912 20.2241C4.69632 20.1235 4.47575 19.976 4.29 19.79C4.10405 19.6043 3.95653 19.3837 3.85588 19.1409C3.75523 18.8981 3.70343 18.6378 3.70343 18.375C3.70343 18.1122 3.75523 17.8519 3.85588 17.6091C3.95653 17.3663 4.10405 17.1457 4.29 16.96L4.35 16.9C4.58054 16.6643 4.73519 16.365 4.794 16.0406C4.85282 15.7162 4.81312 15.3816 4.68 15.08C4.55324 14.7842 4.34276 14.532 4.07447 14.3543C3.80618 14.1766 3.49179 14.0813 3.17 14.08H3C2.46957 14.08 1.96086 13.8693 1.58579 13.4942C1.21071 13.1191 1 12.6104 1 12.08C1 11.5496 1.21071 11.0409 1.58579 10.6658C1.96086 10.2907 2.46957 10.08 3 10.08H3.09C3.42099 10.0723 3.742 9.96512 4.0113 9.77251C4.28059 9.5799 4.48572 9.31074 4.6 9C4.73312 8.69838 4.77282 8.36381 4.714 8.03941C4.65519 7.71502 4.50054 7.41568 4.27 7.18L4.21 7.12C4.02405 6.93425 3.87653 6.71368 3.77588 6.47088C3.67523 6.22808 3.62343 5.96783 3.62343 5.705C3.62343 5.44217 3.67523 5.18192 3.77588 4.93912C3.87653 4.69632 4.02405 4.47575 4.21 4.29C4.39575 4.10405 4.61632 3.95653 4.85912 3.85588C5.10192 3.75523 5.36217 3.70343 5.625 3.70343C5.88783 3.70343 6.14808 3.75523 6.39088 3.85588C6.63368 3.95653 6.85425 4.10405 7.04 4.29L7.1 4.35C7.33568 4.58054 7.63502 4.73519 7.95941 4.794C8.28381 4.85282 8.61838 4.81312 8.92 4.68H9C9.29577 4.55324 9.54802 4.34276 9.72569 4.07447C9.90337 3.80618 9.99872 3.49179 10 3.17V3C10 2.46957 10.2107 1.96086 10.5858 1.58579C10.9609 1.21071 11.4696 1 12 1C12.5304 1 13.0391 1.21071 13.4142 1.58579C13.7893 1.96086 14 2.46957 14 3V3.09C14.0013 3.41179 14.0966 3.72618 14.2743 3.99447C14.452 4.26276 14.7042 4.47324 15 4.6C15.3016 4.73312 15.6362 4.77282 15.9606 4.714C16.285 4.65519 16.5843 4.50054 16.82 4.27L16.88 4.21C17.0657 4.02405 17.2863 3.87653 17.5291 3.77588C17.7719 3.67523 18.0322 3.62343 18.295 3.62343C18.5578 3.62343 18.8181 3.67523 19.0609 3.77588C19.3037 3.87653 19.5243 4.02405 19.71 4.21C19.896 4.39575 20.0435 4.61632 20.1441 4.85912C20.2448 5.10192 20.2966 5.36217 20.2966 5.625C20.2966 5.88783 20.2448 6.14808 20.1441 6.39088C20.0435 6.63368 19.896 6.85425 19.71 7.04L19.65 7.1C19.4195 7.33568 19.2648 7.63502 19.206 7.95941C19.1472 8.28381 19.1869 8.61838 19.32 8.92V9C19.4468 9.29577 19.6572 9.54802 19.9255 9.72569C20.1938 9.90337 20.5082 9.99872 20.83 10C21.5304 10 22.0391 10.2107 22.4142 10.5858C22.7893 10.9609 23 11.4696 23 12C23 12.5304 22.7893 13.0391 22.4142 13.4142C22.0391 13.7893 21.5304 14 21 14H20.91C20.5882 14.0013 20.2738 14.0966 20.0055 14.2743C19.7372 14.452 19.5268 14.7042 19.4 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 17.28 19.71L17.22 19.65C16.9843 19.4195 16.685 19.2648 16.3606 19.206C16.0362 19.1472 15.7016 19.1869 15.4 19.32C15.1042 19.4468 14.852 19.6572 14.6743 19.9255C14.4966 20.1938 14.4013 20.5082 14.4 20.83V21C14.4 21.5304 14.1893 22.0391 13.8142 22.4142C13.4391 22.7893 12.9304 23 12.4 23C11.8696 23 11.3609 22.7893 10.9858 22.4142C10.6107 22.0391 10.4 21.5304 10.4 21V20.91C10.3923 20.579 10.2851 20.258 10.0925 19.9887C9.8999 19.7194 9.63074 19.5143 9.32 19.4C9.01838 19.2669 8.68381 19.2272 8.35941 19.286C8.03502 19.3448 7.73568 19.4995 7.5 19.73L7.44 19.79C7.25425 19.976 7.03368 20.1235 6.79088 20.2241C6.54808 20.3248 6.28783 20.3766 6.025 20.3766C5.76217 20.3766 5.50192 20.3248 5.25912 20.2241C5.01632 20.1235 4.79575 19.976 4.61 19.79C4.42405 19.6043 4.27653 19.3837 4.17588 19.1409C4.07523 18.8981 4.02343 18.6378 4.02343 18.375C4.02343 18.1122 4.07523 17.8519 4.17588 17.6091C4.27653 17.3663 4.42405 17.1457 4.61 16.96L4.67 16.9C4.90054 16.6643 5.05519 16.365 5.114 16.0406C5.17282 15.7162 5.13312 15.3816 5 15.08C4.87324 14.7842 4.66276 14.532 4.39447 14.3543C4.12618 14.1766 3.81179 14.0813 3.49 14.08H3.32C2.78957 14.08 2.28086 13.8693 1.90579 13.4942C1.53071 13.1191 1.32 12.6104 1.32 12.08C1.32 11.5496 1.53071 11.0409 1.90579 10.6658C2.28086 10.2907 2.78957 10.08 3.32 10.08H3.41C3.74099 10.0723 4.062 9.96512 4.3313 9.77251C4.60059 9.5799 4.80572 9.31074 4.92 9C5.05312 8.69838 5.09282 8.36381 5.034 8.03941C4.97519 7.71502 4.82054 7.41568 4.59 7.18L4.53 7.12C4.34405 6.93425 4.19653 6.71368 4.09588 6.47088C3.99523 6.22808 3.94343 5.96783 3.94343 5.705C3.94343 5.44217 3.99523 5.18192 4.09588 4.93912C4.19653 4.69632 4.34405 4.47575 4.53 4.29C4.71575 4.10405 4.93632 3.95653 5.17912 3.85588C5.42192 3.75523 5.68217 3.70343 5.945 3.70343C6.20783 3.70343 6.46808 3.75523 6.71088 3.85588C6.95368 3.95653 7.17425 4.10405 7.36 4.29L7.42 4.35C7.65568 4.58054 7.95502 4.73519 8.27941 4.794C8.60381 4.85282 8.93838 4.81312 9.24 4.68H9.32C9.61577 4.55324 9.86802 4.34276 10.0457 4.07447C10.2234 3.80618 10.3187 3.49179 10.32 3.17V3C10.32 2.46957 10.5307 1.96086 10.9058 1.58579C11.2809 1.21071 11.7896 1 12.32 1C12.8504 1 13.3591 1.21071 13.7342 1.58579C14.1093 1.96086 14.32 2.46957 14.32 3V3.09C14.3213 3.41179 14.4166 3.72618 14.5943 3.99447C14.772 4.26276 15.0242 4.47324 15.32 4.6C15.6216 4.73312 15.9562 4.77282 16.2806 4.714C16.605 4.65519 16.9043 4.50054 17.14 4.27L17.2 4.21C17.3857 4.02405 17.6063 3.87653 17.8491 3.77588C18.0919 3.67523 18.3522 3.62343 18.615 3.62343C18.8778 3.62343 19.1381 3.67523 19.3809 3.77588C19.6237 3.87653 19.8443 4.02405 20.03 4.21C20.216 4.39575 20.3635 4.61632 20.4641 4.85912C20.5648 5.10192 20.6166 5.36217 20.6166 5.625C20.6166 5.88783 20.5648 6.14808 20.4641 6.39088C20.3635 6.63368 20.216 6.85425 20.03 7.04L19.97 7.1C19.7395 7.33568 19.5848 7.63502 19.526 7.95941C19.4672 8.28381 19.5069 8.61838 19.64 8.92V9C19.7668 9.29577 19.9772 9.54802 20.2455 9.72569C20.5138 9.90337 20.8282 9.99872 21.15 10H21.32C21.8504 10 22.3591 10.2107 22.7342 10.5858C23.1093 10.9609 23.32 11.4696 23.32 12C23.32 12.5304 23.1093 13.0391 22.7342 13.4142C22.3591 13.7893 21.8504 14 21.32 14H21.23C20.9082 14.0013 20.5938 14.0966 20.3255 14.2743C20.0572 14.452 19.8468 14.7042 19.72 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                   </>
                 )}
 
-                {/* For Mobile: Replace with close, new chat, and minimize buttons */}
+                {/* For Mobile: Optimized buttons with proper touch targets */}
                 {isMobile && (
                   <>
-                    {/* Close button */}
+                    {/* Close button - Consistent styling */}
                     <button
                       onClick={toggleChat}
-                      className="flex items-center justify-center h-4 w-4 rounded-full bg-red-600 hover:bg-red-700 transition-all duration-300 touch-manipulation"
+                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="Close"
+                      style={{
+                        minHeight: '36px',
+                        minWidth: '36px',
+                        WebkitTouchCallout: 'none',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none'
+                      }}
                     >
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* New chat button */}
+                    {/* New chat button - Consistent styling */}
                     <button
                       onClick={resetChat}
-                      className="flex items-center justify-center h-4 w-4 rounded-full bg-blue-600 hover:bg-blue-700 transition-all duration-300 touch-manipulation"
+                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="New Chat"
+                      style={{
+                        minHeight: '36px',
+                        minWidth: '36px',
+                        WebkitTouchCallout: 'none',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none'
+                      }}
                     >
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M12 5V19M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* Minimize button */}
+                    {/* Minimize button - Consistent styling */}
                     <button
                       onClick={toggleMinimize}
-                      className="flex items-center justify-center h-4 w-4 rounded-full bg-gray-600 hover:bg-gray-700 transition-all duration-300 touch-manipulation"
+                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="Minimize"
+                      style={{
+                        minHeight: '36px',
+                        minWidth: '36px',
+                        WebkitTouchCallout: 'none',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none'
+                      }}
                     >
-                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M5 12H19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M7 14L12 9L17 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
                   </>
@@ -5078,40 +5679,46 @@ export default function NexiousChatbot() {
               </div>
             </div>
           </div>
-          
-          {/* Status indicators - iPhone style - Smaller */}
+
+          {/* Optimized Header Status Bar - Reduced spacing and better alignment */}
           {!isMinimized && (
-            <div className="bg-gray-900/40 py-1 px-2 text-xs text-gray-400 flex items-center justify-center border-b border-gray-800/30">
-              <div className="flex items-center gap-1 justify-center">
+            <div className="py-1 px-3 text-xs text-gray-400 flex items-center justify-between border-b border-gray-800/30" style={{
+              background: 'rgba(0, 0, 0, 0.5)',
+              backdropFilter: 'blur(8px)',
+              WebkitBackdropFilter: 'blur(8px)',
+            }}>
+              {/* Left side - Message Counter */}
+              <div className="flex items-center">
                 {/* Standard Mode Request Counter */}
                 {!isProMode && (
-                  <div className="flex items-center bg-blue-900/30 px-1 py-0.5 rounded-full text-xs">
+                  <div className="flex items-center bg-blue-900/30 px-2 py-1 rounded-full text-xs">
                     <span className="text-blue-300 font-medium text-2xs">
                       {standardRequestCount}/{getStandardModeConfig().requestLimit} msgs
                     </span>
                   </div>
                 )}
 
-                {/* Compact MULTI AI MODELS & Powered by NEX-DEVS PRO in one line */}
-                <div className="flex items-center bg-gradient-to-r from-purple-900/30 to-blue-900/30 px-1 py-0.5 rounded-full text-xs border border-purple-500/20">
-                  <svg className="w-1.5 h-1.5 text-purple-400 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="currentColor"/>
-                    <path d="M19 11L19.74 13.74L22.5 14.5L19.74 15.26L19 18L18.26 15.26L15.5 14.5L18.26 13.74L19 11Z" fill="currentColor"/>
-                  </svg>
-                  <span className="text-purple-300 font-medium text-2xs">MULTI AI (10+)</span>
-                  <span className="text-gray-500 mx-0.5 text-2xs">•</span>
-                  <svg className="w-1.5 h-1.5 text-blue-400 mr-0.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M13 2L3 14H12L11 22L21 10H12L13 2Z" fill="currentColor"/>
-                  </svg>
-                  <span className="text-blue-300 font-medium text-2xs">NEX-DEVS PRO</span>
-                </div>
-
+                {/* Pro Mode Indicator */}
                 {isProMode && (
-                  <div className="flex items-center bg-purple-900/30 px-1 py-0.5 rounded-full text-xs animate-pulse-slow transition-all duration-500">
+                  <div className="flex items-center bg-purple-900/30 px-2 py-1 rounded-full text-xs animate-pulse-slow transition-all duration-500">
                     <Zap size={6} className="text-purple-400 mr-0.5 animate-pulse" />
                     <span className="text-purple-300 font-medium text-2xs">PRO</span>
                   </div>
                 )}
+              </div>
+
+              {/* Right side - Enhanced Model Status Indicator */}
+              <div className="flex items-center">
+                <ModelStatusIndicator
+                  currentModel={currentAIModel}
+                  isLoading={isLoading}
+                  isSwitching={isModelSwitching}
+                  isProMode={isProMode}
+                  isMobile={isMobile}
+                  isThinking={isThinking}
+                  thinkingText={thinkingText}
+                  className="shadow-sm"
+                />
               </div>
             </div>
           )}
@@ -5129,24 +5736,45 @@ export default function NexiousChatbot() {
                   transform: 'translateZ(0)', // Force hardware acceleration
                   backfaceVisibility: 'hidden', // Optimize for smooth scrolling
                   background: 'transparent',
+                  // Enhanced 60fps scroll optimization
+                  WebkitOverflowScrolling: 'touch',
+                  scrollbarWidth: 'thin',
                   ...(isMobile ? { padding: '10px' } : {}) // Smaller padding for mobile
                 }}
               >
                 {!visibleMessages.some(m => m.role === 'user') && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none z-0">
                     <div className="text-center text-white/90 p-4">
-                      <p className="font-bold text-lg uppercase tracking-wider">
-                        HELLO! I'M NEXIOUS
+                      <p className="font-bold text-xl tracking-wide mb-2">
+                        Welcome to Nexious AI
                       </p>
-                      <p className="text-sm">
-                        YOUR AI CHATBOT TRAINED BY NEX-DEVS
+                      <p className="text-sm text-white/80 mb-3">
+                        Your intelligent assistant powered by NEX-DEVS
                       </p>
-                      <p className="text-xs mt-2">
-                        "HOW CAN I HELP YOU WITH OUR SERVICES?"
+                      <p className="text-xs text-white/70 leading-relaxed">
+                        I'm here to help you explore our premium web development services, answer questions about our solutions, and guide you toward the perfect digital experience for your business.
                       </p>
                     </div>
                   </div>
                 )}
+
+                {/* New Dedicated Thinking Container */}
+                <ThinkingContainer
+                  isVisible={isThinkingContainerVisible}
+                  isThinking={isThinking}
+                  thinkingText={thinkingStreamText}
+                  isCollapsed={isThinkingCollapsed}
+                  onToggleCollapse={() => setIsThinkingCollapsed(!isThinkingCollapsed)}
+                  onAutoCollapse={() => {
+                    setIsThinkingContainerVisible(false);
+                    setIsThinkingCollapsed(true);
+                  }}
+                  autoCollapseDelay={3000}
+                  currentModel={getModelSettings(isProMode).model}
+                  userQuery={currentUserQuery}
+                  isThinkingModel={isThinkingModel(getModelSettings(isProMode).model)}
+                />
+
                 <div
                   className={`flex flex-col ${isMobile ? 'gap-2' : 'gap-4'} nexious-chat`}
                   style={{
@@ -5159,18 +5787,22 @@ export default function NexiousChatbot() {
                     const isThinkingMessage = isThinking && message.id === streamedMessageId;
                     // Check if this is a streaming message
                     const isStreamingMessage = isStreaming && message.id === streamedMessageId;
-                    
+
                     // Only apply typing effect to the first assistant message when index is 0
                     const isFirstAssistantMessage = message.role === 'assistant' && index === 0 && typingEffect;
                     const displayContent = isFirstAssistantMessage ? currentTypingMessage : message.content;
-                    
+
+                    // Count assistant messages to determine border color
+                    const assistantMessageIndex = visibleMessages.slice(0, index + 1).filter(msg => msg.role === 'assistant').length - 1;
+                    const dynamicBorderColor = message.role === 'assistant' ? getBorderColor(assistantMessageIndex) : '';
+
                     return (
                       <div
                         key={`${message.id || index}-${message.content.length}`}
-                        className={`${isMobile ? 'px-3 py-2' : 'px-4 py-3'} max-w-[90%] ${
+                        className={`${isMobile ? 'px-4 py-3' : 'px-5 py-4'} max-w-[90%] ${
                           message.role === 'user'
                             ? 'bg-gradient-to-r from-purple-500 to-purple-600 text-white ml-auto message-slide-in user-message shadow-lg'
-                            : 'bg-gray-800/90 text-gray-100 mr-auto message-slide-in assistant-message border border-gray-700/30'
+                            : `bg-black text-white mr-auto message-slide-in assistant-message border-2 ${dynamicBorderColor} shadow-lg`
                         } ${isAnimating && index === messages.length - 1 ? 'animate-material-popIn' : ''}`}
                         style={{
                           borderRadius: message.role === 'user' ?
@@ -5183,95 +5815,45 @@ export default function NexiousChatbot() {
                           boxShadow: 'none'
                         }}
                       >
-                        {isThinkingMessage ? (
-                          // Enhanced AI Robot Thinking Animation
-                          <div className="flex items-center min-h-[50px]">
-                            <div className="relative w-10 h-10 mr-3 bg-gradient-to-br from-purple-500 via-blue-600 to-purple-700 rounded-xl flex items-center justify-center overflow-hidden border border-purple-400/40 shadow-lg">
-                              {/* Animated background glow */}
-                              <div className="absolute inset-0 bg-gradient-to-br from-purple-400/20 via-blue-500/20 to-purple-600/20 animate-pulse"></div>
-
-                              {/* Professional AI Robot Icon */}
-                              <div className="relative w-full h-full flex items-center justify-center">
-                                <svg className="w-6 h-6 text-white ai-robot-thinking" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  {/* Robot head */}
-                                  <rect x="6" y="8" width="12" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" fill="none" className="robot-head"/>
-
-                                  {/* Robot eyes with blinking animation */}
-                                  <circle cx="9" cy="12" r="1" fill="currentColor" className="robot-eye-left animate-pulse"/>
-                                  <circle cx="15" cy="12" r="1" fill="currentColor" className="robot-eye-right animate-pulse"/>
-
-                                  {/* Robot mouth/speaker */}
-                                  <rect x="10.5" y="14.5" width="3" height="1.5" rx="0.75" stroke="currentColor" strokeWidth="1" fill="none" className="robot-mouth"/>
-
-                                  {/* Robot antenna with signal */}
-                                  <line x1="12" y1="8" x2="12" y2="6" stroke="currentColor" strokeWidth="1.5" className="robot-antenna"/>
-                                  <circle cx="12" cy="5" r="1" fill="currentColor" className="robot-signal animate-ping"/>
-
-                                  {/* Robot body connection */}
-                                  <line x1="12" y1="18" x2="12" y2="20" stroke="currentColor" strokeWidth="1.5"/>
-
-                                  {/* Processing indicators */}
-                                  <circle cx="7.5" cy="10" r="0.5" fill="currentColor" className="processing-dot-1" opacity="0.6"/>
-                                  <circle cx="16.5" cy="10" r="0.5" fill="currentColor" className="processing-dot-2" opacity="0.6"/>
-                                </svg>
-                              </div>
-
-                              {/* Rotating processing ring */}
-                              <div className="absolute inset-0 border-2 border-transparent border-t-purple-300 border-r-blue-300 rounded-xl animate-spin opacity-60"></div>
-                            </div>
-
-                            <div className="thinking-pulse bg-gradient-to-r from-gray-800/80 to-gray-900/80 px-4 py-2 rounded-2xl backdrop-blur-sm border border-purple-500/20 shadow-lg">
-                              <span className="font-medium text-purple-200 text-sm flex items-center">
-                                {isProMode ? (
-                                  <>
-                                    <span className="mr-2 text-purple-400">⚡</span>
-                                    <span className="bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent font-semibold">
-                                      {thinkingText}
-                                    </span>
-                                  </>
-                                ) : (
-                                  <>
-                                    <span className="mr-2 text-blue-400">🤖</span>
-                                    <span className="bg-gradient-to-r from-purple-300 to-blue-300 bg-clip-text text-transparent font-semibold">
-                                      {thinkingText}
-                                    </span>
-                                  </>
-                                )}
-                              </span>
-                            </div>
-                          </div>
-                        ) : isStreamingMessage ? (
-                          // Streaming response with optimized cursor and smooth rendering - 16px text
-                          <div className="text-base leading-relaxed font-normal message-text streaming-message"
+                        {isStreamingMessage ? (
+                          // Smooth streaming response without blinking animations
+                          <div className="text-base leading-relaxed font-medium message-text streaming-message"
                           style={{
                             transform: 'translateZ(0)', // Force hardware acceleration
                             willChange: 'contents', // Optimize for content changes
-                            backfaceVisibility: 'hidden' // Smooth text rendering
+                            backfaceVisibility: 'hidden', // Smooth text rendering
+                            color: '#ffffff', // Ensure white text
+                            textShadow: '0 1px 2px rgba(0,0,0,0.5)' // Better text contrast
                           }}>
-                            <div
-                              ref={isStreamingMessage ? streamingTextRef : undefined}
-                              dangerouslySetInnerHTML={{
-                                __html: processStreamedText(cleanText(displayContent))
-                              }}
-                              style={{
-                                transform: 'translateZ(0)', // Force hardware acceleration for text
-                                willChange: 'contents'
-                              }}
-                            />
-                            <span
-                              className="cursor-blink"
-                              style={{
-                                transform: 'translateZ(0)', // Smooth cursor animation
-                                willChange: 'opacity'
-                              }}
-                            ></span>
-
-
+                            {/* Show typing indicator if no content yet */}
+                            {showTypingIndicator && !displayContent.trim() ? (
+                              <div className="typing-animation">
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                                <div className="dot"></div>
+                              </div>
+                            ) : (
+                              <div
+                                ref={isStreamingMessage ? streamingTextRef : undefined}
+                                dangerouslySetInnerHTML={{
+                                  __html: processStreamedText(cleanText(displayContent))
+                                }}
+                                style={{
+                                  transform: 'translateZ(0)', // Force hardware acceleration for text
+                                  willChange: 'contents',
+                                  color: '#ffffff' // Ensure white text in content
+                                }}
+                              />
+                            )}
                           </div>
                         ) : (
-                          // Regular message with enhanced styling - 16px text
-                        <div className="text-base leading-relaxed font-normal message-text"
-                        style={{ fontSize: '16px' }}>
+                          // Enhanced regular message with dark theme styling
+                        <div className="text-base leading-relaxed font-medium message-text"
+                        style={{
+                          fontSize: '16px',
+                          color: message.role === 'assistant' ? '#ffffff' : 'inherit',
+                          textShadow: message.role === 'assistant' ? '0 1px 2px rgba(0,0,0,0.5)' : 'none'
+                        }}>
                             {message.role === 'user' ? (
                               <div className="flex items-start">
                                 <div className="flex-grow">
@@ -5280,7 +5862,7 @@ export default function NexiousChatbot() {
                               </div>
                             ) : (
                               <div className="flex items-start">
-                                <div className="flex-grow">
+                                <div className="flex-grow" style={{ color: '#ffffff' }}>
                                   <div dangerouslySetInnerHTML={{ __html: cleanText(displayContent) }} />
                                 </div>
                               </div>
@@ -5306,7 +5888,7 @@ export default function NexiousChatbot() {
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Optimized CSS for smooth animations and performance */}
                   <style jsx>{`
                     .typing-animation {
@@ -5318,56 +5900,76 @@ export default function NexiousChatbot() {
 
                     .typing-animation .dot {
                       display: inline-block;
-                      width: 6px;
-                      height: 6px;
+                      width: 5px;
+                      height: 5px;
                       border-radius: 50%;
-                      margin-right: 4px;
+                      margin-right: 3px;
                       background: #a78bfa;
-                      animation: typing-animation 1.4s infinite ease-in-out both;
+                      animation: typing-animation 1.6s infinite ease-in-out both;
                       transform: translateZ(0);
                       will-change: transform, opacity;
                       backface-visibility: hidden;
+                      box-shadow: 0 1px 3px rgba(167, 139, 250, 0.3);
                     }
 
                     .typing-animation .dot:nth-child(1) {
-                      animation-delay: -0.32s;
+                      animation-delay: -0.4s;
                     }
 
                     .typing-animation .dot:nth-child(2) {
-                      animation-delay: -0.16s;
+                      animation-delay: -0.2s;
+                    }
+
+                    .typing-animation .dot:nth-child(3) {
+                      animation-delay: 0s;
                     }
 
                     @keyframes typing-animation {
                       0%, 80%, 100% {
-                        transform: scale(0.6) translateZ(0);
+                        transform: translateY(0) scale(0.8) translateZ(0);
                         opacity: 0.6;
                       }
                       40% {
-                        transform: scale(1) translateZ(0);
+                        transform: translateY(-4px) scale(1) translateZ(0);
                         opacity: 1;
                       }
                     }
 
-                    .cursor-blink {
-                      display: inline-block;
-                      width: 2px;
-                      height: 1em;
-                      background: currentColor;
-                      margin-left: 2px;
-                      animation: cursor-blink 1s infinite;
-                      transform: translateZ(0);
-                      will-change: opacity;
-                    }
 
-                    @keyframes cursor-blink {
-                      0%, 50% { opacity: 1; }
-                      51%, 100% { opacity: 0; }
-                    }
 
                     .streaming-message {
                       transform: translateZ(0);
                       will-change: contents;
                       backface-visibility: hidden;
+                      color: #ffffff !important;
+                      text-rendering: optimizeLegibility;
+                      -webkit-font-smoothing: antialiased;
+                      -moz-osx-font-smoothing: grayscale;
+                    }
+
+                    .streaming-message * {
+                      color: inherit !important;
+                    }
+
+                    /* Dynamic neon border effects */
+                    .border-cyan-400 {
+                      border-color: #22d3ee !important;
+                      box-shadow: 0 0 20px rgba(34, 211, 238, 0.3), inset 0 0 20px rgba(34, 211, 238, 0.1) !important;
+                    }
+
+                    .border-purple-400 {
+                      border-color: #c084fc !important;
+                      box-shadow: 0 0 20px rgba(192, 132, 252, 0.3), inset 0 0 20px rgba(192, 132, 252, 0.1) !important;
+                    }
+
+                    .border-yellow-400 {
+                      border-color: #facc15 !important;
+                      box-shadow: 0 0 20px rgba(250, 204, 21, 0.3), inset 0 0 20px rgba(250, 204, 21, 0.1) !important;
+                    }
+
+                    .border-green-400 {
+                      border-color: #4ade80 !important;
+                      box-shadow: 0 0 20px rgba(74, 222, 128, 0.3), inset 0 0 20px rgba(74, 222, 128, 0.1) !important;
                     }
 
                     .nexious-chat {
@@ -5431,23 +6033,36 @@ export default function NexiousChatbot() {
 
               {/* Enhanced suggested questions for mobile */}
               {messages.length <= 3 && !isLoading && (
-                <div className="px-4 mb-3 animate-material-slideUp" style={{ animationDelay: '0.2s' }}>
+                <div className="px-4 mb-3 animate-material-slideUp relative z-30" style={{ animationDelay: '0.2s', pointerEvents: 'auto' }}>
                   <p className={`${isMobile ? 'text-sm' : 'text-xs'} text-gray-400 mb-3 font-medium`}>Suggested questions:</p>
-                  <div className={`flex flex-wrap gap-${isMobile ? '3' : '2'}`}>
+                  <div className={`flex flex-wrap gap-${isMobile ? '3' : '2'}`} style={{ pointerEvents: 'auto' }}>
                     {getPageSuggestedQuestions(pathname).map((question, index) => (
                       <button
                         key={index}
                         onClick={(e) => {
                           e.preventDefault();
+                          e.stopPropagation();
+                          console.log('Suggested question clicked:', question);
+                          console.log('Input ref current:', inputRef.current);
+                          console.log('Is mobile:', isMobile);
+
+                          // Set the input value
                           setInputValue(question);
+
+                          // Focus the input and handle sending
                           if (inputRef.current) {
                             inputRef.current.focus();
+                            inputRef.current.value = question;
+
                             // Trigger send immediately on mobile for better UX
                             if (isMobile) {
                               setTimeout(() => {
+                                console.log('Auto-sending on mobile:', question);
                                 handleSendMessage();
-                              }, 100);
+                              }, 150);
                             }
+                          } else {
+                            console.warn('Input ref not available');
                           }
                         }}
                         onTouchStart={(e) => {
@@ -5466,12 +6081,13 @@ export default function NexiousChatbot() {
                             e.currentTarget.style.backgroundColor = '';
                           }, 150);
                         }}
-                        className={`${isMobile ? 'text-sm px-5 py-4' : 'text-xs px-4 py-2'} bg-gray-700/60 text-gray-200 rounded-2xl hover:bg-gray-600/60 hover:text-white transition-all duration-200 active:scale-95 ${isMobile ? 'min-h-[52px] touch-manipulation font-medium' : ''} border border-gray-600/30 hover:border-purple-500/40`}
+                        className={`${isMobile ? 'text-sm px-5 py-4' : 'text-xs px-4 py-2'} bg-gray-700/60 text-gray-200 rounded-2xl hover:bg-gray-600/60 hover:text-white transition-all duration-200 active:scale-95 ${isMobile ? 'min-h-[52px] touch-manipulation font-medium' : ''} border border-gray-600/30 hover:border-purple-500/40 cursor-pointer relative z-50`}
                         style={{
                           animationDelay: `${0.1 + (index * 0.05)}s`,
                           WebkitTouchCallout: 'none',
                           WebkitUserSelect: 'none',
                           userSelect: 'none',
+                          pointerEvents: 'auto',
                           ...(isMobile ? {
                             minWidth: '120px',
                             textAlign: 'center',
@@ -5492,7 +6108,11 @@ export default function NexiousChatbot() {
               )}
 
               {/* iPhone iMessage-style input area - Smaller */}
-              <div className="relative flex items-center p-2 bg-gray-900/50 rounded-b-3xl border-t border-gray-800/40">
+              <div className="relative flex items-center p-2 rounded-b-3xl border-t border-gray-800/40" style={{
+                background: 'rgba(0, 0, 0, 0.2)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)'
+              }}>
                 {/* Code mode toggle button for Pro mode */}
                 {isProMode && (
                   <button
@@ -5512,7 +6132,7 @@ export default function NexiousChatbot() {
                     <Code size={isMobile ? 20 : 18} />
                   </button>
                 )}
-                
+
                 {/* Enhanced chat input for mobile */}
                 {!isCodeMode && (
                 <textarea
@@ -5538,7 +6158,7 @@ export default function NexiousChatbot() {
                   }}
                 />
                 )}
-                
+
                 {/* Code snippet input for Pro mode */}
                 {isCodeMode && (
                   <div className="w-full flex flex-col">
@@ -5581,7 +6201,7 @@ export default function NexiousChatbot() {
                     />
                   </div>
                 )}
-                
+
                 {/* Enhanced Stop/Send Button for mobile */}
                 {(isLoading || isStreaming || isThinking) ? (
                   <button
@@ -5595,24 +6215,24 @@ export default function NexiousChatbot() {
                         e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
                       }, 100);
                     }}
-                    className={`absolute ${isMobile ? 'right-4' : 'right-4'} ${isMobile ? 'p-3' : 'p-1.5'} rounded-full bg-yellow-500 hover:bg-yellow-600 active:bg-yellow-700 text-black transition-all duration-300 flex items-center justify-center ${isMobile ? 'touch-manipulation' : ''} shadow-lg`}
+                    className={`absolute ${isMobile ? 'right-3' : 'right-4'} ${isMobile ? 'p-2.5' : 'p-2'} rounded-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white border border-gray-500/50 transition-all duration-300 flex items-center justify-center ${isMobile ? 'touch-manipulation' : ''} shadow-md`}
                     style={{
-                      width: isMobile ? '52px' : '36px',
-                      height: isMobile ? '52px' : '36px',
+                      width: isMobile ? '44px' : '40px',
+                      height: isMobile ? '44px' : '40px',
                       top: '50%',
                       transform: 'translateY(-50%)',
                       ...(isMobile ? {
                         WebkitTouchCallout: 'none',
                         WebkitUserSelect: 'none',
                         userSelect: 'none',
-                        minHeight: '52px',
-                        minWidth: '52px'
+                        minHeight: '44px',
+                        minWidth: '44px'
                       } : {})
                     }}
-                    aria-label="Pause generation"
-                    title="Pause generation"
+                    aria-label="Stop generation"
+                    title="Stop generation"
                   >
-                    <Pause size={isMobile ? 20 : 16} />
+                    <X size={isMobile ? 18 : 16} />
                   </button>
                 ) : (
                 <button
@@ -5629,16 +6249,16 @@ export default function NexiousChatbot() {
                     }, 100);
                   }}
                     disabled={!inputValue.trim() && (!isCodeMode || !codeSnippet.trim())}
-                    className={`absolute ${isMobile ? 'right-3' : 'right-3'} ${isMobile ? 'p-2.5' : 'p-2'} rounded-full ${
+                    className={`absolute ${isMobile ? 'right-3' : 'right-4'} ${isMobile ? 'p-2.5' : 'p-2'} rounded-full ${
                       (!inputValue.trim() && (!isCodeMode || !codeSnippet.trim()))
                         ? 'bg-gray-600/50 text-gray-400'
                         : isCodeMode
-                          ? 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white'
-                          : 'bg-blue-500 hover:bg-blue-600 active:bg-blue-700 text-white'
-                    } transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center ${isMobile ? 'touch-manipulation' : ''} shadow-lg`}
+                          ? 'bg-white hover:bg-gray-50 active:bg-gray-100 text-black border border-gray-300'
+                          : 'bg-white hover:bg-gray-50 active:bg-gray-100 text-black border border-gray-300'
+                    } transition-all duration-300 disabled:cursor-not-allowed flex items-center justify-center ${isMobile ? 'touch-manipulation' : ''} shadow-md`}
                   style={{
-                    width: isMobile ? '44px' : '40px',
-                    height: isMobile ? '44px' : '40px',
+                    width: isMobile ? '44px' : '42px',
+                    height: isMobile ? '44px' : '42px',
                     top: '50%',
                     transform: 'translateY(-50%)',
                     ...(isMobile ? {
@@ -5656,9 +6276,13 @@ export default function NexiousChatbot() {
                 </button>
                 )}
               </div>
-              
+
               {/* iPhone-style footer */}
-              <div className="px-4 py-2 bg-gray-900/60 text-left flex items-center justify-between rounded-b-3xl border-t border-gray-800/30">
+              <div className="px-4 py-2 text-left flex items-center justify-between rounded-b-3xl border-t border-gray-800/30" style={{
+                background: 'rgba(0, 0, 0, 0.5)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+              }}>
                 {showCooldownTimer && !isProMode ? (
                   <div className="flex items-center text-xs">
                     <span className="font-semibold text-amber-400">Message limit reached:</span>
@@ -5692,10 +6316,10 @@ export default function NexiousChatbot() {
               </div>
             </>
           )}
-          
+
           {/* Resize handle - Only show when not minimized and not on mobile */}
           {!isMinimized && !isMobile && (
-            <div 
+            <div
               className="absolute bottom-0 right-0 w-4 h-4 cursor-se-resize"
               onMouseDown={startResizing}
               style={{
@@ -5721,8 +6345,8 @@ export default function NexiousChatbot() {
         />
       )}
 
-      {/* Sidebar for settings and controls - optimized for mobile */}
-      {isOpen && !isMinimized && (
+      {/* Sidebar for settings and controls - Hidden on mobile */}
+      {isOpen && !isMinimized && !isMobile && (
       <div
         className={`absolute right-0 top-0 bottom-0 bg-gradient-to-b from-gray-900/98 via-gray-950/98 to-gray-900/98 backdrop-blur-xl border-l ${isProMode ? 'border-purple-500/30' : 'border-gray-700/40'} flex flex-col chatbot-sidebar ${showSidebar ? 'visible' : ''} shadow-2xl`}
         style={{
@@ -5780,7 +6404,7 @@ export default function NexiousChatbot() {
                 <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
-            
+
             {/* Minimize button */}
             <button
               onClick={toggleMinimize}
@@ -5807,9 +6431,9 @@ export default function NexiousChatbot() {
             >
               <Minimize2 size={isMobile ? 22 : 20} />
             </button>
-            
 
-            
+
+
             {/* Reset chat button */}
             <button
               onClick={resetChat}
@@ -5866,12 +6490,49 @@ export default function NexiousChatbot() {
             >
               <X size={isMobile ? 22 : 20} />
             </button>
-            
+
             {/* Divider */}
             <div className="w-10 h-px bg-gray-700 my-2"></div>
+
+            {/* Settings button for Standard mode */}
+            {!isProMode && (
+              <button
+                onClick={() => setActiveSidebarPanel('standard-settings')}
+                onTouchStart={(e) => {
+                  e.currentTarget.style.transform = 'scale(0.95)';
+                  if (navigator.vibrate) {
+                    navigator.vibrate(25);
+                  }
+                }}
+                onTouchEnd={(e) => {
+                  setTimeout(() => {
+                    e.currentTarget.style.transform = 'scale(1)';
+                  }, 100);
+                }}
+                className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white transition-all duration-300 shadow-lg sidebar-btn active:scale-95`}
+                aria-label="AI Settings"
+                title="AI Settings"
+                style={{
+                  touchAction: 'manipulation',
+                  WebkitTouchCallout: 'none',
+                  WebkitUserSelect: 'none',
+                  userSelect: 'none'
+                }}
+              >
+                {/* Professional AI Brain Icon - Removed Duplicate Settings Icon */}
+                <svg className={`${isMobile ? 'w-6 h-6' : 'w-5 h-5'}`} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M9.5 2C8.11929 2 7 3.11929 7 4.5V5.5C7 6.88071 8.11929 8 9.5 8H14.5C15.8807 8 17 6.88071 17 5.5V4.5C17 3.11929 15.8807 2 14.5 2H9.5Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M12 8V12" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 12H16C18.2091 12 20 13.7909 20 16V18C20 20.2091 18.2091 22 16 22H8C5.79086 22 4 20.2091 4 18V16C4 13.7909 5.79086 12 8 12Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M8 16H10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M14 16H16" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  <path d="M10 19H14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+            )}
           </div>
         )}
-        
+
         {/* Model Settings Panel - PRO mode only - make it more mobile friendly */}
         {activeSidebarPanel === 'model' && isProMode && (
           <div className="flex flex-col items-center py-4 h-full w-full overflow-y-auto sidebar-panel">
@@ -5887,7 +6548,7 @@ export default function NexiousChatbot() {
                   <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </button>
-              
+
               {/* Title with back button */}
               <div className="text-center relative cursor-pointer" onClick={backToControls}>
                 <div className="text-xs font-semibold text-blue-400 flex items-center">
@@ -5898,51 +6559,51 @@ export default function NexiousChatbot() {
                 </div>
                 <div className="text-[10px] text-gray-400">Settings</div>
               </div>
-              
+
               {/* Empty div for balance */}
               <div className="w-7"></div>
             </div>
-            
-            {/* Sliders container - more compact layout */}
-            <div className="flex flex-col gap-5 items-center py-1">
-              {/* Top-P slider - more compact */}
+
+            {/* Enhanced Sliders container - Professional Design */}
+            <div className="flex flex-col gap-8 items-center py-4">
+              {/* Enhanced Temperature slider */}
               <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 mb-1">Top-P</span>
-                <div 
-                  className="relative h-24 w-6 bg-gray-800 rounded-full flex flex-col items-center cursor-pointer temperature-slider"
+                <span className="text-xs text-gray-300 mb-2 font-semibold">Temperature</span>
+                <div
+                  className="relative h-28 w-7 bg-gradient-to-t from-gray-800/90 to-gray-700/90 rounded-xl flex flex-col items-center cursor-pointer temperature-slider shadow-lg border border-gray-600/30"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const height = rect.height;
                     const y = e.clientY - rect.top;
                     const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
-                    handleTopPChange(percentage);
+                    handleTemperatureChange(percentage);
                   }}
                 >
-                  <div 
-                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-blue-500 to-cyan-400 w-full slider-track"
-                    style={{ 
-                      height: `${(topP / 1) * 100}%`
+                  <div
+                    className="absolute bottom-0 rounded-xl bg-gradient-to-t from-purple-600 to-pink-500 w-full slider-track shadow-inner"
+                    style={{
+                      height: `${(temperature / 1) * 100}%`
                     }}
                   />
-                  <div 
-                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[10px] font-medium text-gray-900 shadow-md slider-thumb"
-                    style={{ 
-                      bottom: `calc(${(topP / 1) * 100}% - 10px)`
+                  <div
+                    className="absolute rounded-full bg-white w-6 h-6 flex items-center justify-center text-[10px] font-bold text-gray-900 shadow-xl border-2 border-gray-100 slider-thumb"
+                    style={{
+                      bottom: `calc(${(temperature / 1) * 100}% - 12px)`
                     }}
                   >
-                    {topP.toFixed(1)}
+                    {temperature.toFixed(1)}
                   </div>
                 </div>
-                <div className="mt-1 text-[9px] text-gray-500 text-center slider-label">
-                  Diversity
+                <div className="mt-2 text-[10px] text-gray-400 text-center slider-label font-medium">
+                  Creativity Control
                 </div>
               </div>
-              
-              {/* Max Tokens slider - more compact */}
+
+              {/* Enhanced Max Tokens slider */}
               <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 mb-1">Tokens</span>
-                <div 
-                  className="relative h-24 w-6 bg-gray-800 rounded-full flex flex-col items-center cursor-pointer temperature-slider"
+                <span className="text-xs text-gray-300 mb-2 font-semibold">Max Tokens</span>
+                <div
+                  className="relative h-28 w-7 bg-gradient-to-t from-gray-800/90 to-gray-700/90 rounded-xl flex flex-col items-center cursor-pointer temperature-slider shadow-lg border border-gray-600/30"
                   onClick={(e) => {
                     const rect = e.currentTarget.getBoundingClientRect();
                     const height = rect.height;
@@ -5951,99 +6612,27 @@ export default function NexiousChatbot() {
                     handleMaxTokensChange(percentage);
                   }}
                 >
-                  <div 
-                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-teal-500 to-emerald-400 w-full slider-track"
-                    style={{ 
+                  <div
+                    className="absolute bottom-0 rounded-xl bg-gradient-to-t from-teal-600 to-emerald-500 w-full slider-track shadow-inner"
+                    style={{
                       height: `${((maxTokens - 100) / 1900) * 100}%` // Normalize from range 100-2000
                     }}
                   />
-                  <div 
-                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[10px] font-medium text-gray-900 shadow-md slider-thumb"
-                    style={{ 
-                      bottom: `calc(${((maxTokens - 100) / 1900) * 100}% - 10px)`
+                  <div
+                    className="absolute rounded-full bg-white w-6 h-6 flex items-center justify-center text-[9px] font-bold text-gray-900 shadow-xl border-2 border-gray-100 slider-thumb"
+                    style={{
+                      bottom: `calc(${((maxTokens - 100) / 1900) * 100}% - 12px)`
                     }}
                   >
                     {maxTokens}
                   </div>
                 </div>
-                <div className="mt-1 text-[9px] text-gray-500 text-center slider-label">
-                  Length
-                </div>
-              </div>
-              
-              {/* Presence Penalty slider - more compact */}
-              <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 mb-1">P-Pen</span>
-                <div 
-                  className="relative h-24 w-6 bg-gray-800 rounded-full flex flex-col items-center cursor-pointer temperature-slider"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const height = rect.height;
-                    const y = e.clientY - rect.top;
-                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
-                    handlePresencePenaltyChange(percentage);
-                  }}
-                >
-                  <div className="absolute h-px w-full bg-gray-600" style={{ bottom: '50%' }}></div>
-                  <div 
-                    className={`absolute rounded-full w-full slider-track ${presencePenalty >= 0 ? 'bg-gradient-to-t from-transparent to-amber-500' : 'bg-gradient-to-b from-transparent to-amber-500'}`}
-                    style={{ 
-                      height: `${Math.abs(presencePenalty / 2) * 50}%`,
-                      bottom: presencePenalty >= 0 ? '50%' : 'auto',
-                      top: presencePenalty < 0 ? '50%' : 'auto'
-                    }}
-                  />
-                  <div 
-                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[10px] font-medium text-gray-900 shadow-md slider-thumb"
-                    style={{ 
-                      bottom: `calc(50% + ${(presencePenalty / 2) * 50}% - 10px)`
-                    }}
-                  >
-                    {presencePenalty.toFixed(1)}
-                  </div>
-                </div>
-                <div className="mt-1 text-[9px] text-gray-500 text-center slider-label">
-                  Topic Focus
-                </div>
-              </div>
-              
-              {/* Frequency Penalty slider - more compact */}
-              <div className="flex flex-col items-center">
-                <span className="text-xs text-gray-400 mb-1">F-Pen</span>
-                <div 
-                  className="relative h-24 w-6 bg-gray-800 rounded-full flex flex-col items-center cursor-pointer temperature-slider"
-                  onClick={(e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const height = rect.height;
-                    const y = e.clientY - rect.top;
-                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
-                    handleFrequencyPenaltyChange(percentage);
-                  }}
-                >
-                  <div className="absolute h-px w-full bg-gray-600" style={{ bottom: '50%' }}></div>
-                  <div 
-                    className={`absolute rounded-full w-full slider-track ${frequencyPenalty >= 0 ? 'bg-gradient-to-t from-transparent to-orange-500' : 'bg-gradient-to-b from-transparent to-orange-500'}`}
-                    style={{ 
-                      height: `${Math.abs(frequencyPenalty / 2) * 50}%`,
-                      bottom: frequencyPenalty >= 0 ? '50%' : 'auto',
-                      top: frequencyPenalty < 0 ? '50%' : 'auto'
-                    }}
-                  />
-                  <div 
-                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[10px] font-medium text-gray-900 shadow-md slider-thumb"
-                    style={{ 
-                      bottom: `calc(50% + ${(frequencyPenalty / 2) * 50}% - 10px)`
-                    }}
-                  >
-                    {frequencyPenalty.toFixed(1)}
-                  </div>
-                </div>
-                <div className="mt-1 text-[9px] text-gray-500 text-center slider-label">
-                  Repetition
+                <div className="mt-2 text-[10px] text-gray-400 text-center slider-label font-medium">
+                  Response Length
                 </div>
               </div>
             </div>
-            
+
             {/* Additional back button at the bottom */}
             <button
               onClick={backToControls}
@@ -6056,9 +6645,187 @@ export default function NexiousChatbot() {
             </button>
           </div>
         )}
+
+        {/* Standard Mode Settings Panel */}
+        {activeSidebarPanel === 'standard-settings' && !isProMode && (
+          <div className="flex flex-col items-center py-4 h-full w-full overflow-y-auto sidebar-panel">
+            {/* Header with back button */}
+            <div className="w-full flex justify-between items-center mb-3 px-1">
+              <button
+                onClick={() => setActiveSidebarPanel('controls')}
+                className="flex items-center justify-center w-7 h-7 rounded-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white shadow-md transition-all duration-300 sidebar-btn group"
+                aria-label="Back to main controls"
+                title="Back to main controls"
+              >
+                <svg className="w-4 h-4 group-hover:translate-x-[-2px] transition-transform duration-300" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                </svg>
+              </button>
+
+              <div className="text-center relative cursor-pointer" onClick={() => setActiveSidebarPanel('controls')}>
+                <div className="text-xs font-semibold text-blue-400 flex items-center">
+                  <svg className="w-3 h-3 mr-1 opacity-70" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  AI Settings
+                </div>
+                <div className="text-[10px] text-gray-400">Standard</div>
+              </div>
+
+              <div className="w-7"></div>
+            </div>
+
+            {/* Standard mode sliders - Enhanced with 4 professional sliders */}
+            <div className="flex flex-col gap-5 items-center py-1">
+              {/* Temperature slider */}
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-gray-400 mb-1 font-medium">Temp</span>
+                <div
+                  className="relative h-24 w-6 bg-gray-800/80 rounded-full flex flex-col items-center cursor-pointer temperature-slider shadow-inner border border-gray-700/50"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const height = rect.height;
+                    const y = e.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    handleStandardTemperatureChange(percentage);
+                  }}
+                >
+                  <div
+                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-purple-600 to-pink-500 w-full slider-track shadow-sm"
+                    style={{
+                      height: `${(standardTemperature / 1) * 100}%`
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[9px] font-bold text-gray-900 shadow-lg border border-gray-200 slider-thumb"
+                    style={{
+                      bottom: `calc(${(standardTemperature / 1) * 100}% - 10px)`
+                    }}
+                  >
+                    {standardTemperature.toFixed(1)}
+                  </div>
+                </div>
+                <div className="mt-1 text-[9px] text-gray-400 text-center slider-label font-medium">
+                  Creativity
+                </div>
+              </div>
+
+              {/* Max Tokens slider */}
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-gray-400 mb-1 font-medium">Tokens</span>
+                <div
+                  className="relative h-24 w-6 bg-gray-800/80 rounded-full flex flex-col items-center cursor-pointer temperature-slider shadow-inner border border-gray-700/50"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const height = rect.height;
+                    const y = e.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    handleStandardMaxTokensChange(percentage);
+                  }}
+                >
+                  <div
+                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-teal-600 to-emerald-500 w-full slider-track shadow-sm"
+                    style={{
+                      height: `${((standardMaxTokens - 500) / 5500) * 100}%` // Normalize from range 500-6000
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[9px] font-bold text-gray-900 shadow-lg border border-gray-200 slider-thumb"
+                    style={{
+                      bottom: `calc(${((standardMaxTokens - 500) / 5500) * 100}% - 10px)`
+                    }}
+                  >
+                    {standardMaxTokens}
+                  </div>
+                </div>
+                <div className="mt-1 text-[9px] text-gray-400 text-center slider-label font-medium">
+                  Length
+                </div>
+              </div>
+
+              {/* NEW: Creativity Boost slider - Professional Design */}
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-gray-400 mb-1 font-medium">Boost</span>
+                <div
+                  className="relative h-24 w-6 bg-gray-800/80 rounded-full flex flex-col items-center cursor-pointer temperature-slider shadow-inner border border-gray-700/50"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const height = rect.height;
+                    const y = e.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    setCreativityBoost(percentage);
+                  }}
+                >
+                  <div
+                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-orange-600 to-yellow-500 w-full slider-track shadow-sm"
+                    style={{
+                      height: `${creativityBoost * 100}%`
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[9px] font-bold text-gray-900 shadow-lg border border-gray-200 slider-thumb"
+                    style={{
+                      bottom: `calc(${creativityBoost * 100}% - 10px)`
+                    }}
+                  >
+                    {creativityBoost.toFixed(1)}
+                  </div>
+                </div>
+                <div className="mt-1 text-[9px] text-gray-400 text-center slider-label font-medium">
+                  Creative
+                </div>
+              </div>
+
+              {/* NEW: Precision Mode slider - Professional Design */}
+              <div className="flex flex-col items-center">
+                <span className="text-xs text-gray-400 mb-1 font-medium">Mode</span>
+                <div
+                  className="relative h-24 w-6 bg-gray-800/80 rounded-full flex flex-col items-center cursor-pointer temperature-slider shadow-inner border border-gray-700/50"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const height = rect.height;
+                    const y = e.clientY - rect.top;
+                    const percentage = Math.max(0, Math.min(1, 1 - (y / height)));
+                    setPrecisionMode(percentage);
+                  }}
+                >
+                  <div
+                    className="absolute bottom-0 rounded-full bg-gradient-to-t from-indigo-600 to-blue-500 w-full slider-track shadow-sm"
+                    style={{
+                      height: `${precisionMode * 100}%`
+                    }}
+                  />
+                  <div
+                    className="absolute rounded-full bg-white w-5 h-5 flex items-center justify-center text-[9px] font-bold text-gray-900 shadow-lg border border-gray-200 slider-thumb"
+                    style={{
+                      bottom: `calc(${precisionMode * 100}% - 10px)`
+                    }}
+                  >
+                    {precisionMode.toFixed(1)}
+                  </div>
+                </div>
+                <div className="mt-1 text-[9px] text-gray-400 text-center slider-label font-medium">
+                  Precision
+                </div>
+              </div>
+            </div>
+
+            {/* Back button at the bottom */}
+            <button
+              onClick={() => setActiveSidebarPanel('controls')}
+              className="mt-4 flex items-center justify-center px-3.5 py-1.5 rounded-full bg-gradient-to-r from-gray-800 to-gray-700 hover:from-blue-600 hover:to-blue-500 text-gray-300 hover:text-white transition-all duration-300 text-xs shadow-md"
+            >
+              <svg className="w-3 h-3 mr-1.5 transition-transform duration-300 group-hover:translate-x-[-2px]" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M15 18L9 12L15 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              Back
+            </button>
+          </div>
+        )}
       </div>
       )}
-    </div>
+      </div>
+
     </>
   );
-} 
+}

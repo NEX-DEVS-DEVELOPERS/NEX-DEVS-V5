@@ -10,54 +10,138 @@ import { audiowide, vt323 } from '@/app/utils/fonts'
 
 const services = [
   {
-    title: "WordPress & Shopify",
-    description: "Custom e-commerce solutions and content management systems that drive sales and engagement.",
-    icon: "🛍️",
-    link: "/services/wordpress-shopify",
+    title: "AI Chatbot Integration",
+    description: "Professional AI chatbot solutions with advanced NLP processing and vector database integration for 24/7 customer engagement.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/908shots_so.png",
+    link: "/services/ai-chatbot-integration",
     features: [
-      "Custom Theme Development",
-      "E-commerce Solutions",
-      "Plugin Development",
-      "Performance Optimization",
-      "Security Implementation"
+      "Claude, Gemini, DeepSeek, Grok Integration",
+      "Vector Database Knowledge Integration",
+      "Custom Fine-Tuning & Optimization",
+      "Real-Time Analytics Dashboard",
+      "Multi-Platform Deployment"
     ],
-    gradient: "from-blue-500/20 to-purple-500/20"
+    gradient: "from-blue-500/20 to-cyan-500/20"
   },
   {
-    title: "Web Development",
-    description: "Modern web applications built with Next.js, React, and cutting-edge technologies.",
-    icon: "💻",
-    link: "/services/web-development",
+    title: "AI Agent Workflow Automation",
+    description: "Intelligent automation solutions using n8n, Zapier, and Make.com to transform business processes and boost productivity.",
+    icon: "https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Home_Dev_O_Ps_43aa01a07b.webp",
+    link: "/services/ai-workflow-automation",
     features: [
-      "Next.js Development",
-      "React Applications",
-      "Progressive Web Apps",
-      "AI Integration",
-      "API Development"
+      "n8n Custom Workflow Implementation",
+      "Zapier Advanced Integration",
+      "Make.com (Integromat) Solutions",
+      "10x Productivity Enhancement",
+      "Custom API Development & Connection"
+    ],
+    gradient: "from-green-500/20 to-emerald-500/20"
+  },
+  {
+    title: "AI-Mobile Apps",
+    description: "Premium iOS and Android applications with advanced AI integration, delivering intelligent experiences and passive income generation.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/774_1x_shots_so.png",
+    link: "/services/ai-mobile-apps",
+    features: [
+      "Cross-Platform AI-Powered Development",
+      "Native Performance Optimization",
+      "Self-Updating AI Systems with Memory",
+      "App Store Ranking Algorithms",
+      "Enterprise-Grade Security"
+    ],
+    gradient: "from-purple-500/20 to-violet-500/20"
+  },
+  {
+    title: "3D Web Development",
+    description: "Immersive 3D websites using Three.js, Spline, and WebGL for captivating user experiences and interactive showcases.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/452_1x_shots_so.png",
+    link: "/services/3d-web-development",
+    features: [
+      "Three.js Advanced Rendering",
+      "Spline 3D Integration",
+      "Custom GLSL Shaders",
+      "WebGL Performance Optimization",
+      "Interactive 3D Configurators"
+    ],
+    gradient: "from-cyan-500/20 to-blue-500/20"
+  },
+  {
+    title: "AI-Based SaaS Products",
+    description: "Enterprise-grade SaaS solutions powered by advanced AI, delivering intelligent and scalable business applications.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/343_1x_shots_so.png",
+    link: "/services/ai-saas-products",
+    features: [
+      "Enterprise AI Integration",
+      "Predictive Analytics Engine",
+      "Multi-tenant Design",
+      "Intelligent Cloud Infrastructure",
+      "Advanced SaaS Architecture"
+    ],
+    gradient: "from-indigo-500/20 to-purple-500/20"
+  },
+  {
+    title: "AI-Enhanced WordPress",
+    description: "AI-Enhanced WordPress solutions featuring smart content generation, automated SEO optimization, and intelligent management systems.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/821shots_so.png",
+    link: "/services/ai-wordpress-development",
+    features: [
+      "AI-Powered Content Generation & SEO",
+      "Smart Media Processing & Optimization",
+      "Intelligent User Engagement Systems",
+      "Automated Content Scheduling",
+      "AI Agent for Content Creation"
     ],
     gradient: "from-purple-500/20 to-pink-500/20"
   },
   {
+    title: "Full-Stack Development",
+    description: "Comprehensive AI-integrated development combining advanced Machine Learning with robust cloud-native architecture.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/NEX-WEBS%20NEXJS%20WEBSITE%20.png",
+    link: "/services/full-stack-development",
+    features: [
+      "AI-Driven Full Stack Solutions",
+      "Advanced ML Model Integration",
+      "Next.js 14 Development",
+      "Smart Cloud Infrastructure",
+      "Progressive Web Apps"
+    ],
+    gradient: "from-indigo-500/20 to-blue-500/20"
+  },
+  {
+    title: "Shopify E-commerce",
+    description: "AI-Driven e-commerce solutions with advanced analytics, intelligent automation, and smart product recommendations for maximized sales.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/694_1x_shots_so.png",
+    link: "/services/shopify-ecommerce",
+    features: [
+      "AI-Powered Product Recommendations",
+      "Smart Inventory Management",
+      "Predictive Sales Analytics",
+      "Automated Customer Segmentation",
+      "Dynamic Pricing Optimization"
+    ],
+    gradient: "from-green-500/20 to-teal-500/20"
+  },
+  {
     title: "UI/UX Design",
-    description: "Beautiful and intuitive user interfaces designed with Figma and Framer.",
-    icon: "🎨",
+    description: "Beautiful and intuitive user interfaces designed with Figma and Framer, featuring data-driven design decisions and accessibility focus.",
+    icon: "https://ik.imagekit.io/u7ipvwnqb/127shots_so.png",
     link: "/services/ui-ux-design",
     features: [
-      "User Research",
-      "Interface Design",
-      "Prototyping",
-      "Design Systems",
-      "User Testing"
+      "Pixel-Perfect Designs That Convert",
+      "Data-Driven Design Decisions",
+      "Interactive Prototypes",
+      "Design Systems & Components",
+      "Accessibility & Usability Focus"
     ],
     gradient: "from-pink-500/20 to-orange-500/20"
   }
 ]
 
 const stats = [
-  { number: "100+", label: "Completed Projects" },
-  { number: "50+", label: "Happy Clients" },
-  { number: "95%", label: "Client Retention" },
-  { number: "24/7", label: "Support" }
+  { number: "150+", label: "AI-Powered Projects" },
+  { number: "75+", label: "Happy Clients" },
+  { number: "98%", label: "Client Retention" },
+  { number: "24/7", label: "AI Support" }
 ]
 
 const workflowSteps = [
@@ -112,41 +196,95 @@ const workflowSteps = [
 ]
 
 const funFacts = [
-  "Did you know? We've written enough code to reach the moon... if printed on paper! 🌙",
-  "Our fastest website loads faster than you can say 'NEX-WEBS'! ⚡",
-  "We've fixed so many bugs, we should get an honorary degree in digital pest control! 🐛",
-  "Our coffee consumption directly correlates with our code quality! ☕",
-  "We dream in JSX and wake up with solutions! 💭",
-  "Our designs are so responsive, they reply to your emails! 📱",
-  "We've used so many gradients, we're practically color scientists! 🌈"
+  "Our AI chatbots are so smart, they've started giving us coding advice! 🤖",
+  "We've automated so many workflows, our computers work harder than we do! ⚡",
+  "Our 3D websites are so immersive, users forget they're on the internet! 🌐",
+  "Our AI models process more data than a coffee-fueled developer on deadline! ☕",
+  "We dream in neural networks and wake up with AI solutions! 💭",
+  "Our mobile apps are so intelligent, they predict what users want before they know it! 📱",
+  "We've integrated so much AI, our code reviews itself! 🧠"
 ]
 
 const serviceFacts = [
   {
-    title: "WordPress & Shopify",
+    title: "AI Chatbot Integration",
     facts: [
-      "🚀 Our WooCommerce stores process 10,000+ orders daily",
-      "💪 Custom Shopify apps for unique business needs",
-      "🔒 Advanced security measures for e-commerce",
-      "⚡ 99.9% uptime guarantee for all stores"
+      "🤖 Support for Claude, Gemini, DeepSeek, and Grok models",
+      "🧠 Vector database integration for intelligent responses",
+      "⚡ 24/7 automated customer support capabilities",
+      "📊 Real-time analytics and conversation insights"
     ]
   },
   {
-    title: "Web Development",
+    title: "AI Agent Workflow Automation",
+    facts: [
+      "🚀 10x productivity enhancement through automation",
+      "🔗 Seamless integration with 1000+ business tools",
+      "⚙️ Custom n8n workflows for complex processes",
+      "💰 Average 60% reduction in operational costs"
+    ]
+  },
+  {
+    title: "AI-Mobile Apps",
+    facts: [
+      "📱 Cross-platform development for iOS and Android",
+      "🧠 Self-learning AI systems with contextual memory",
+      "💎 Premium app store optimization strategies",
+      "💸 Passive income generation through AI automation"
+    ]
+  },
+  {
+    title: "3D Web Development",
+    facts: [
+      "🎮 Three.js and WebGL for immersive experiences",
+      "✨ Custom GLSL shaders for unique visual effects",
+      "🎯 Interactive 3D product configurators",
+      "⚡ Optimized performance across all devices"
+    ]
+  },
+  {
+    title: "AI-Based SaaS Products",
+    facts: [
+      "🏢 Enterprise-grade multi-tenant architecture",
+      "🔮 Predictive analytics for business intelligence",
+      "🛡️ Advanced security and compliance features",
+      "📈 Scalable infrastructure for rapid growth"
+    ]
+  },
+  {
+    title: "AI-Enhanced WordPress",
+    facts: [
+      "✍️ AI-powered content generation and SEO optimization",
+      "🎯 Smart media processing and optimization",
+      "📅 Automated content scheduling and distribution",
+      "🔧 Intelligent backup and maintenance systems"
+    ]
+  },
+  {
+    title: "Full-Stack Development",
     facts: [
       "🌐 Next.js 14 for blazing fast performance",
-      "📱 Progressive Web Apps that work offline",
-      "🤖 AI-powered features for smart interactions",
-      "🛠️ Custom API development and integration"
+      "🤖 Advanced ML model integration",
+      "☁️ Smart cloud-native architecture",
+      "🛠️ Custom API development and microservices"
+    ]
+  },
+  {
+    title: "Shopify E-commerce",
+    facts: [
+      "🛒 AI-powered product recommendation engines",
+      "📊 Predictive inventory management systems",
+      "💰 Dynamic pricing optimization algorithms",
+      "🎯 Automated customer segmentation and targeting"
     ]
   },
   {
     title: "UI/UX Design",
     facts: [
-      "🎨 Pixel-perfect designs that convert",
-      "📊 Data-driven design decisions",
-      "🔄 Iterative design process with user feedback",
-      "🎯 Focus on accessibility and usability"
+      "🎨 Pixel-perfect designs that convert visitors",
+      "📊 Data-driven design decisions and A/B testing",
+      "♿ Accessibility-first design approach",
+      "🔄 Iterative design process with user feedback"
     ]
   }
 ]
@@ -208,8 +346,8 @@ export default function ServicesPage() {
               </motion.span>
             </h1>
             <p className={`text-base sm:text-lg md:text-xl text-gray-400 max-w-2xl mx-auto mt-4 sm:mt-8 px-4 ${vt323.className}`}>
-              From concept to deployment, we deliver comprehensive digital solutions
-              that help businesses thrive in the modern world.
+              From AI-powered chatbots to immersive 3D experiences, we deliver cutting-edge digital solutions
+              that transform businesses and drive innovation in the AI era.
             </p>
           </motion.div>
         </div>
@@ -267,9 +405,24 @@ export default function ServicesPage() {
                               rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500" />
                 <div className="relative p-4 sm:p-6 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                               hover:border-purple-500/50 transition-all duration-300">
-                  <h3 className={`text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-2 ${audiowide.className}`}>
-                    <span>{service.title === "WordPress & Shopify" ? "🛍️" : 
-                           service.title === "Web Development" ? "💻" : "🎨"}</span>
+                  <h3 className={`text-lg sm:text-xl font-semibold text-white mb-3 sm:mb-4 flex items-center gap-3 ${audiowide.className}`}>
+                    <div className="w-8 h-8 sm:w-10 sm:h-10 relative rounded-lg overflow-hidden bg-white/10 backdrop-blur-sm flex-shrink-0">
+                      <Image
+                        src={service.title === "AI Chatbot Integration" ? "https://ik.imagekit.io/u7ipvwnqb/908shots_so.png" :
+                              service.title === "AI Agent Workflow Automation" ? "https://n8niostorageaccount.blob.core.windows.net/n8nio-strapi-blobs-prod/assets/Home_Dev_O_Ps_43aa01a07b.webp" :
+                              service.title === "AI-Mobile Apps" ? "https://ik.imagekit.io/u7ipvwnqb/774_1x_shots_so.png" :
+                              service.title === "3D Web Development" ? "https://ik.imagekit.io/u7ipvwnqb/452_1x_shots_so.png" :
+                              service.title === "AI-Based SaaS Products" ? "https://ik.imagekit.io/u7ipvwnqb/343_1x_shots_so.png" :
+                              service.title === "AI-Enhanced WordPress" ? "https://ik.imagekit.io/u7ipvwnqb/821shots_so.png" :
+                              service.title === "Full-Stack Development" ? "https://ik.imagekit.io/u7ipvwnqb/NEX-WEBS%20NEXJS%20WEBSITE%20.png" :
+                              service.title === "Shopify E-commerce" ? "https://ik.imagekit.io/u7ipvwnqb/694_1x_shots_so.png" :
+                              "https://ik.imagekit.io/u7ipvwnqb/127shots_so.png"}
+                        alt={`${service.title} service icon`}
+                        fill
+                        className="object-cover"
+                        sizes="(max-width: 640px) 32px, 40px"
+                      />
+                    </div>
                     {service.title}
                   </h3>
                   <ul className={`space-y-2 sm:space-y-3 ${vt323.className}`}>
@@ -304,15 +457,21 @@ export default function ServicesPage() {
                                 rounded-xl blur-xl group-hover:opacity-75 transition-opacity duration-500`} />
                   <div className="relative p-4 sm:p-8 rounded-xl border border-white/10 bg-black/50 backdrop-blur-sm
                                 hover:border-purple-500/50 transition-all duration-300 h-full">
-                    <span 
-                      className="text-3xl sm:text-4xl mb-3 sm:mb-4 block cursor-pointer transform transition-transform hover:scale-110"
+                    <div
+                      className="w-16 h-16 sm:w-20 sm:h-20 mb-3 sm:mb-4 relative rounded-xl overflow-hidden bg-white/10 backdrop-blur-sm cursor-pointer transform transition-transform hover:scale-110 group-hover:shadow-lg"
                       onClick={(e) => {
                         e.preventDefault()
                         handleIconClick(service.title.toLowerCase().split(' ')[0])
                       }}
                     >
-                      {service.icon}
-                    </span>
+                      <Image
+                        src={service.icon}
+                        alt={`${service.title} service showcase`}
+                        fill
+                        className="object-cover transition-transform duration-300 group-hover:scale-105"
+                        sizes="(max-width: 640px) 64px, 80px"
+                      />
+                    </div>
                     <h3 className={`text-xl sm:text-2xl font-semibold text-white mb-2 sm:mb-3 ${audiowide.className}`}>{service.title}</h3>
                     <p className={`text-sm sm:text-base text-gray-400 mb-4 sm:mb-6 ${vt323.className}`}>{service.description}</p>
                     

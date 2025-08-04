@@ -12,6 +12,8 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
   const [prevHero, setPrevHero] = useState<'original' | 'business'>(currentHero);
   const [isDragging, setIsDragging] = useState(false);
   const [showHint, setShowHint] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  const [showWelcome, setShowWelcome] = useState(false);
   const toggleContainerRef = useRef<HTMLDivElement>(null);
   
   // Get container width for calculations
@@ -34,28 +36,57 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
   const leftTextOpacity = useTransform(progress, [0, 0.4], [1, 0.5]);
   const rightTextOpacity = useTransform(progress, [0.6, 1], [0.5, 1]);
   
+  // Mobile detection
+  useEffect(() => {
+    const checkMobile = () => {
+      const userAgent = navigator.userAgent;
+      const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
+      const isSmallScreen = window.innerWidth <= 768;
+      const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+      setIsMobile(isMobileDevice && isSmallScreen && isTouchDevice);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Listen for welcome screen state changes
+  useEffect(() => {
+    const handleWelcomeScreenStateChange = (event: CustomEvent) => {
+      setShowWelcome(event.detail.showWelcome);
+    };
+
+    window.addEventListener('welcomeScreenStateChange', handleWelcomeScreenStateChange as EventListener);
+
+    return () => {
+      window.removeEventListener('welcomeScreenStateChange', handleWelcomeScreenStateChange as EventListener);
+    };
+  }, []);
+
   // Update container dimensions on mount and resize
   useEffect(() => {
     if (!toggleContainerRef.current) return;
-    
+
     const updateDimensions = () => {
       if (toggleContainerRef.current) {
         const rect = toggleContainerRef.current.getBoundingClientRect();
         setContainerWidth(rect.width);
         // Set handle width to 50% of container for the pill design
         setHandleWidth(rect.width * 0.5);
-        
+
         // Update x position based on current hero
         x.set(currentHero === 'original' ? 0 : rect.width - rect.width * 0.5);
       }
     };
-    
+
     updateDimensions();
-    
+
     // Use ResizeObserver for better performance
     const resizeObserver = new ResizeObserver(updateDimensions);
     resizeObserver.observe(toggleContainerRef.current);
-    
+
     return () => {
       resizeObserver.disconnect();
     };
@@ -116,14 +147,34 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
     }
   }, [isDragging, progress]);
   
+  // Handle mobile click toggle
+  const handleMobileClick = () => {
+    if (!isMobile) return;
+
+    const newHero = currentHero === 'original' ? 'business' : 'original';
+    setPrevHero(currentHero);
+    onToggle(newHero);
+
+    // Update position immediately
+    springX.set(newHero === 'original' ? 0 : containerWidth - handleWidth);
+
+    // Dispatch event
+    const event = new CustomEvent('heroToggleFinished', {
+      detail: { hero: newHero }
+    });
+    window.dispatchEvent(event);
+  };
+
   // Handle drag end with optimized snap animation
   const handleDragEnd = () => {
+    if (isMobile) return; // Disable drag on mobile
+
     setIsDragging(false);
-    
+
     // Get current position
     const currentPosition = springX.get();
     const threshold = containerWidth / 2 - handleWidth / 2;
-    
+
     // Determine which hero to show based on position
     if (currentPosition < threshold) {
       // Snap to original - immediate for better responsiveness
@@ -140,17 +191,20 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
         onToggle('business');
       }
     }
-    
+
     // Dispatch final position event using requestAnimationFrame for better performance
     requestAnimationFrame(() => {
-    const finalEvent = new CustomEvent('heroToggleFinished', { 
-      detail: { 
+    const finalEvent = new CustomEvent('heroToggleFinished', {
+      detail: {
         hero: currentPosition < threshold ? 'original' : 'business'
-      } 
+      }
     });
     window.dispatchEvent(finalEvent);
     });
   };
+
+  // Hide during welcome screen
+  if (showWelcome) return null;
 
   return (
     <motion.div
@@ -158,9 +212,9 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
       className={`fixed left-0 right-0 w-full flex justify-center z-[60] px-4 ${
-        isHeroPage ? 'top-4 sm:top-4' : 'top-4 sm:top-5'
+        isHeroPage ? 'top-15 sm:top-1' : 'top-15 sm:top-1'
       }`}
-      style={{ 
+      style={{
         transform: 'translate3d(0, 0, 0)',
         willChange: 'transform',
         pointerEvents: 'none' // Make container not block interactions
@@ -179,7 +233,7 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
             >
               <div className="bg-black/90 text-white text-xs px-3 py-1 rounded-full border border-yellow-500/30 flex items-center gap-1.5 shadow-lg shadow-black/20">
                 <span className="text-yellow-400">👍</span>
-                <span>Slide to switch</span>
+                <span>{isMobile ? 'Tap to switch' : 'Slide to switch'}</span>
               </div>
             </motion.div>
           )}
@@ -197,7 +251,7 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
         {/* Main slider container - black pill design with white border */}
         <div
           ref={toggleContainerRef}
-          className={`relative backdrop-blur-xl rounded-full overflow-hidden w-64 h-8 sm:w-80 sm:h-9`}
+          className={`relative backdrop-blur-xl rounded-full overflow-hidden w-64 h-15 sm:w-80 sm:h-9`}
           style={{
             transform: 'translate3d(0, 0, 0)',
             willChange: 'transform',
@@ -245,19 +299,22 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
           
           {/* Sliding pill handle with white border */}
           <motion.div
-            drag="x"
+            drag={isMobile ? false : "x"}
             dragConstraints={toggleContainerRef}
             dragElastic={0.03} // Less elasticity for more precise control
             dragMomentum={false}
-            onDragStart={() => setIsDragging(true)}
+            onDragStart={() => !isMobile && setIsDragging(true)}
             onDragEnd={handleDragEnd}
-            style={{ 
+            onClick={handleMobileClick}
+            style={{
               x: springX,
               width: handleWidth,
               height: '100%',
               willChange: 'transform'
             }}
-            className="absolute top-0 bottom-0 cursor-grab active:cursor-grabbing z-20"
+            className={`absolute top-0 bottom-0 z-20 ${
+              isMobile ? 'cursor-pointer' : 'cursor-grab active:cursor-grabbing'
+            }`}
           >
             {/* White pill with blur effect and border */}
             <motion.div 
@@ -278,7 +335,7 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
                   alignItems: 'center'
                 }}
               >
-                <span className="text-sm font-medium text-black">Primary</span>
+                <span className="text-sm font-medium text-black">Meet-ALI</span>
               </motion.div>
               
                 <motion.div 
@@ -290,7 +347,7 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
                   alignItems: 'center'
                   }}
               >
-                <span className="text-sm font-medium text-black">Business</span>
+                <span className="text-sm font-medium text-black">OUR-Experties</span>
               </motion.div>
             </motion.div>
               </motion.div>
