@@ -47,7 +47,6 @@
     "clsx": "^2.1.1",
     "critters": "^0.0.23",
     "dotenv": "^16.5.0",
-    "framer": "^2.4.1",
     "framer-motion": "^12.23.0",
     "gsap": "^3.13.0",
     "lemonsqueezy.ts": "^0.1.8",
