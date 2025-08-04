@@ -471,29 +471,32 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
   }, []);
 
   return (
-    <>
+    <div>
       {/* Custom scrollbar styles */}
-      <style jsx global>{scrollbarStyles}</style>
+      <style dangerouslySetInnerHTML={{ __html: scrollbarStyles }} />
       
       {/* Mobile Button */}
       {isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="fixed bottom-4 right-4 z-[99999]"
-          style={{ 
+          className="fixed bottom-6 right-6 z-[99999] bg-gradient-to-r from-purple-600 to-purple-700 backdrop-blur-sm rounded-full p-4 shadow-2xl hover:from-purple-700 hover:to-purple-800 transition-all border-2 border-purple-400/50 hover:border-purple-300/70"
+          style={{
             position: "fixed",
-            bottom: "16px",
-            right: "16px",
-            zIndex: 99999
+            bottom: "24px",
+            right: "24px",
+            zIndex: 99999,
+            minWidth: "64px",
+            minHeight: "64px",
+            boxShadow: "0 0 20px rgba(147, 51, 234, 0.4)"
           }}
           aria-label={isOpen ? "Close reviews" : "Open reviews"}
         >
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
             </svg>
-            <span className="text-purple-200 text-sm font-medium">Reviews</span>
-            <div className="bg-purple-500/80 text-white text-xs h-5 w-5 flex items-center justify-center rounded-full">
+            <span className="text-white text-sm font-medium hidden sm:inline">Reviews</span>
+            <div className="bg-white/30 text-white text-xs h-6 w-6 flex items-center justify-center rounded-full font-bold">
               {displayedReviews.length}
             </div>
           </div>
@@ -504,152 +507,153 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
       {!isMobile && (
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className={`fixed right-0 top-[105px] z-[9999] bg-purple-400/15 backdrop-blur-lg flex flex-col items-start w-32 h-[calc(100vh-130px)] rounded-l-2xl border-l border-t border-b border-purple-300/20 hover:bg-purple-400/20 transition-all duration-400 p-2.5 gap-2 shadow-lg shadow-purple-500/10 ${isOpen ? 'opacity-0' : 'opacity-100'}`}
-          style={{ 
+          className={`fixed right-0 top-20 z-[9999] bg-gradient-to-l from-purple-600/20 to-purple-500/10 backdrop-blur-lg flex flex-col items-start w-36 h-[calc(100vh-5rem)] rounded-l-2xl border-l-2 border-t-2 border-b-2 border-purple-500/40 hover:border-purple-400/60 hover:bg-gradient-to-l hover:from-purple-600/30 hover:to-purple-500/15 transition-all duration-300 p-4 gap-3 shadow-2xl shadow-purple-500/20 ${isOpen ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+          style={{
             position: "fixed",
             right: 0,
-            top: "105px",
+            top: "80px", // Below navigation bar
             zIndex: 9999,
-            transition: 'opacity 0.3s ease-out'
+            transition: 'all 0.3s ease-out'
           }}
           aria-label={isOpen ? "Close reviews" : "Open reviews"}
         >
           <div className="w-full">
-            <div className="flex items-center justify-between w-full mb-2">
-              <h3 className="text-base font-medium text-white">Client<br/>Reviews</h3>
+            <div className="flex items-center justify-between w-full mb-3">
+              <h3 className="text-lg font-bold text-white leading-tight">Client<br/>Reviews</h3>
               <motion.div
-                animate={{ 
+                animate={{
                   rotate: isOpen ? 180 : 0,
                   x: isOpen ? -2 : 0
                 }}
-                transition={{ 
-                  duration: 0.3, 
-                  ease: "anticipate" 
+                transition={{
+                  duration: 0.3,
+                  ease: "anticipate"
                 }}
+                className="bg-purple-500/20 p-1 rounded-full"
               >
-                <svg className="w-4 h-4 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                 </svg>
               </motion.div>
             </div>
-            <div className="text-purple-200 text-xs mb-1.5">
+            <div className="text-green-400 text-sm font-bold mb-2">
               {currentStats.satisfactionRate}% Satisfied
             </div>
-            <motion.div 
-              className="h-0.5 w-full bg-purple-900/40 rounded-full overflow-hidden"
+            <motion.div
+              className="h-1 w-full bg-purple-900/50 rounded-full overflow-hidden mb-3"
               initial={{ opacity: 0.7, scaleX: 0.9 }}
               animate={{ opacity: 1, scaleX: 1 }}
               transition={{ duration: 0.3, delay: 0.1 }}
             >
-              <motion.div 
-                className="h-full bg-green-400/80 rounded-full"
+              <motion.div
+                className="h-full bg-gradient-to-r from-green-400 to-emerald-400 rounded-full"
                 initial={{ width: 0 }}
                 animate={{ width: `${currentStats.satisfactionRate}%` }}
-                transition={{ 
-                  duration: 0.5, 
-                  delay: 0.2, 
-                  ease: "easeOut" 
+                transition={{
+                  duration: 0.5,
+                  delay: 0.2,
+                  ease: "easeOut"
                 }}
               />
             </motion.div>
           </div>
 
-          <div className="flex-1 overflow-hidden space-y-2">
-            <div className="text-purple-200 text-xs">Latest Reviews:</div>
-            
+          <div className="flex-1 overflow-hidden space-y-3">
+            <div className="text-purple-200 text-sm font-medium">Latest Reviews:</div>
+
             {/* First Review */}
             {reviews.length > 0 && (
-              <motion.div 
-                className="bg-purple-900/30 rounded-lg p-2 border border-purple-500/20"
+              <motion.div
+                className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 rounded-xl p-3 border border-purple-500/30 hover:border-purple-400/50 transition-colors"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: 0.25 }}
               >
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="flex-shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-xs text-white">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-xs text-white font-bold">
                       {reviews[0].author.charAt(0)}
                     </div>
                   </div>
                   <div>
-                    <div className="text-white text-xs">{reviews[0].author}</div>
-                    <div className="text-purple-200 text-[10px]">{reviews[0].role}</div>
+                    <div className="text-white text-xs font-medium">{reviews[0].author}</div>
+                    <div className="text-purple-300 text-[10px]">{reviews[0].role}</div>
                   </div>
                 </div>
-                <div className="text-green-400 text-[10px] mb-1">★★★★★</div>
-                <p className="text-purple-100 text-[10px] line-clamp-2">{reviews[0].text}</p>
+                <div className="text-yellow-400 text-xs mb-1">★★★★★</div>
+                <p className="text-purple-100 text-[10px] line-clamp-2 leading-relaxed">{reviews[0].text}</p>
               </motion.div>
             )}
             
             {/* Second Review */}
             {reviews.length > 1 && (
-              <motion.div 
-                className="bg-purple-900/30 rounded-lg p-2 border border-purple-500/20"
+              <motion.div
+                className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 rounded-xl p-3 border border-purple-500/30 hover:border-purple-400/50 transition-colors"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: 0.3 }}
               >
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="flex-shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-xs text-white">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-xs text-white font-bold">
                       M
                     </div>
                   </div>
                   <div>
-                    <div className="text-white text-xs">Mariam Siddiqui</div>
-                    <div className="text-purple-200 text-[10px]">Content Creator</div>
+                    <div className="text-white text-xs font-medium">Mariam Siddiqui</div>
+                    <div className="text-purple-300 text-[10px]">Content Creator</div>
                   </div>
                 </div>
-                <div className="text-green-400 text-[10px] mb-1">★★★★★</div>
-                <p className="text-purple-100 text-[10px] line-clamp-2">Exceptional service for my personal blog. The WordPress solution was perfect!</p>
+                <div className="text-yellow-400 text-xs mb-1">★★★★★</div>
+                <p className="text-purple-100 text-[10px] line-clamp-2 leading-relaxed">Exceptional service for my personal blog. The WordPress solution was perfect!</p>
               </motion.div>
             )}
             
             {/* Third Review */}
             {reviews.length > 2 && (
-              <motion.div 
-                className="bg-purple-900/30 rounded-lg p-2 border border-purple-500/20"
+              <motion.div
+                className="bg-gradient-to-br from-purple-900/40 to-purple-800/30 rounded-xl p-3 border border-purple-500/30 hover:border-purple-400/50 transition-colors"
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.2, delay: 0.35 }}
               >
-                <div className="flex items-center gap-1.5 mb-1">
+                <div className="flex items-center gap-2 mb-2">
                   <div className="flex-shrink-0">
-                    <div className="w-5 h-5 rounded-full bg-purple-600 flex items-center justify-center text-xs text-white">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-xs text-white font-bold">
                       J
                     </div>
                   </div>
                   <div>
-                    <div className="text-white text-xs">John Smith</div>
-                    <div className="text-purple-200 text-[10px]">Photographer</div>
+                    <div className="text-white text-xs font-medium">John Smith</div>
+                    <div className="text-purple-300 text-[10px]">Photographer</div>
                   </div>
                 </div>
-                <div className="text-green-400 text-[10px] mb-1">★★★★★</div>
-                <p className="text-purple-100 text-[10px] line-clamp-2">The perfect solution for my photography portfolio. Fast, responsive, and beautiful!</p>
+                <div className="text-yellow-400 text-xs mb-1">★★★★★</div>
+                <p className="text-purple-100 text-[10px] line-clamp-2 leading-relaxed">The perfect solution for my photography portfolio. Fast, responsive, and beautiful!</p>
               </motion.div>
             )}
           </div>
 
-          <motion.div 
-            className="text-center w-full pt-2 border-t border-purple-500/20"
+          <motion.div
+            className="text-center w-full pt-4 border-t-2 border-purple-500/30 mt-4"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.2, delay: 0.4 }}
           >
-            <div className="text-purple-200 text-xs mb-1">
-              25 Client Reviews
+            <div className="text-purple-200 text-sm font-bold mb-2">
+              {displayedReviews.length} Client Reviews
             </div>
-            <div className="text-purple-100 text-[10px] flex items-center justify-center gap-1">
-              <span>View All Reviews</span>
-              <motion.svg 
-                className="w-3 h-3" 
-                fill="none" 
-                stroke="currentColor" 
+            <div className="text-purple-100 text-xs flex items-center justify-center gap-2 bg-purple-500/10 px-3 py-2 rounded-full border border-purple-500/20">
+              <span className="font-medium">View All Reviews</span>
+              <motion.svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
                 animate={{ x: [0, 3, 0] }}
-                transition={{ 
-                  duration: 1.2, 
-                  repeat: Infinity, 
+                transition={{
+                  duration: 1.2,
+                  repeat: Infinity,
                   repeatType: "loop",
                   ease: "easeInOut"
                 }}
@@ -661,152 +665,207 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
         </button>
       )}
 
-      {/* Floating Reviews Drawer */}
+      {/* Reviews Drawer */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
             ref={drawerRef}
-            className="floating-reviews-drawer"
-            initial={{ opacity: 0, x: 100 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: 100 }}
+            className="reviews-drawer"
+            initial={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : 100 }}
+            animate={{ opacity: 1, y: 0, x: 0 }}
+            exit={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : 100 }}
             transition={{ type: "spring", damping: 30, stiffness: 200 }}
             style={{
               position: 'fixed',
-              top: '105px',
-              right: '20px',
+              top: isMobile ? '80px' : '80px', // Below navigation bar for all screen sizes
+              right: isMobile ? '0' : '0', // Open from right side
+              left: isMobile ? '0' : 'auto',
+              bottom: isMobile ? '0' : '0',
               zIndex: 99999,
-              width: isMobile ? 'calc(100vw - 40px)' : '600px',
-              height: 'calc(100vh - 130px)',
-              background: 'rgba(10, 5, 20, 0.9)',
-              backdropFilter: 'blur(16px)',
-              WebkitBackdropFilter: 'blur(16px)',
-              borderRadius: '16px',
-              boxShadow: '0 8px 40px rgba(0, 0, 0, 0.4)',
-              border: '1px solid rgba(255, 255, 255, 0.1)',
+              width: isMobile ? '100vw' : '480px', // Full width on mobile, fixed width on desktop
+              height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 80px)',
+              maxHeight: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 80px)',
+              background: 'rgba(10, 5, 20, 0.98)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              borderRadius: isMobile ? '0' : '16px 0 0 16px', // Rounded left edges for desktop
+              boxShadow: '0 0 40px rgba(147, 51, 234, 0.3), inset 0 0 0 2px rgba(147, 51, 234, 0.5)',
+              border: '2px solid rgba(147, 51, 234, 0.6)',
+              borderRight: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : 'none',
               pointerEvents: 'auto'
             }}
           >
-            <div className="relative w-full h-full bg-black/50 text-white p-6 rounded-xl overflow-y-auto custom-scrollbar">
+            {/* Header Section - Fixed */}
+            <div className="sticky top-0 z-20 bg-gradient-to-b from-black/95 to-black/80 backdrop-blur-lg p-6 border-b border-purple-500/30">
               {/* Close button */}
               <button
                 onClick={closeWithAnimation}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-purple-700/50 rounded-full transition-colors z-10"
+                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-purple-700/50 rounded-full transition-all duration-200 z-30"
                 aria-label="Close reviews drawer"
               >
                 <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
+            </div>
 
-              {/* Header */}
-              <div className="flex justify-between items-center mb-6">
-                <h2 className="text-2xl font-bold text-white">Client Testimonials</h2>
-                <div className="flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1 rounded-full">
-                  <FaStar />
-                  <span className="font-bold">{averageRating.toFixed(1)}</span>
-                </div>
-              </div>
+            {/* Scrollable Content Area */}
+            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ height: 'calc(100% - 80px)' }}>
+              <div className="p-6 pt-0 space-y-6">
 
-              {/* Stats Section */}
-              <div className="grid grid-cols-3 gap-4 text-center mb-8 p-4 bg-gray-900/50 rounded-lg border border-gray-700/50">
-                <div>
-                  <FaCheckCircle className="mx-auto text-purple-400 text-3xl mb-2" />
-                  <p className="text-xl font-bold">{currentStats.satisfactionRate}%</p>
-                  <p className="text-sm text-gray-400">Satisfaction</p>
+                {/* Main Header */}
+                <div className="flex justify-between items-center mb-8">
+                  <div>
+                    <h2 className="text-3xl font-bold text-white mb-2">Client Testimonials</h2>
+                    <p className="text-purple-300 text-sm">Discover what our clients say about our work</p>
+                  </div>
+                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 px-4 py-2 rounded-full border border-green-500/30">
+                    <FaStar className="text-yellow-400" />
+                    <span className="font-bold text-lg">{averageRating.toFixed(1)}</span>
+                  </div>
                 </div>
-                <div>
-                  <FaBriefcase className="mx-auto text-purple-400 text-3xl mb-2" />
-                  <p className="text-xl font-bold">{currentStats.projectsDelivered}</p>
-                  <p className="text-sm text-gray-400">Projects</p>
-                </div>
-                <div>
-                  <FaUsers className="mx-auto text-purple-400 text-3xl mb-2" />
-                  <p className="text-xl font-bold">{currentStats.clientsServed}</p>
-                  <p className="text-sm text-gray-400">Clients</p>
-                </div>
-              </div>
 
-              {/* Filter Section */}
-              <div className="mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Filter Reviews:</h3>
-                  <span className="text-sm text-gray-400 bg-gray-800 px-3 py-1 rounded-full">{displayedReviewCount} reviews</span>
+                {/* Stats Section */}
+                <div className="grid grid-cols-3 gap-6 text-center mb-8 p-6 bg-gradient-to-br from-purple-900/30 to-purple-800/20 rounded-2xl border-2 border-purple-500/30 backdrop-blur-sm">
+                  <div className="group hover:scale-105 transition-transform duration-200">
+                    <FaCheckCircle className="mx-auto text-green-400 text-4xl mb-3 group-hover:text-green-300 transition-colors" />
+                    <p className="text-2xl font-bold text-white">{currentStats.satisfactionRate}%</p>
+                    <p className="text-sm text-purple-300 font-medium">Satisfaction</p>
+                  </div>
+                  <div className="group hover:scale-105 transition-transform duration-200">
+                    <FaBriefcase className="mx-auto text-blue-400 text-4xl mb-3 group-hover:text-blue-300 transition-colors" />
+                    <p className="text-2xl font-bold text-white">{currentStats.projectsDelivered}</p>
+                    <p className="text-sm text-purple-300 font-medium">Projects</p>
+                  </div>
+                  <div className="group hover:scale-105 transition-transform duration-200">
+                    <FaUsers className="mx-auto text-purple-400 text-4xl mb-3 group-hover:text-purple-300 transition-colors" />
+                    <p className="text-2xl font-bold text-white">{currentStats.clientsServed}</p>
+                    <p className="text-sm text-purple-300 font-medium">Clients</p>
+                  </div>
                 </div>
-                <div className="flex gap-2 overflow-x-auto pb-2 custom-scrollbar">
-                  <button onClick={() => setFilteredPlan(null)} className={`px-4 py-2 text-sm rounded-full transition-colors ${!filteredPlan ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}>
-                    All Reviews
-                  </button>
-                  {planCategories.map(category => (
-                    <button key={category} onClick={() => setFilteredPlan(category)} className={`px-4 py-2 text-sm rounded-full transition-colors whitespace-nowrap ${filteredPlan === category ? 'bg-purple-600 text-white' : 'bg-gray-800 text-gray-300 hover:bg-gray-700'}`}>
-                      {category}
+
+                {/* Filter Section */}
+                <div className="mb-8 p-6 bg-gradient-to-r from-gray-900/60 to-gray-800/40 rounded-2xl border-2 border-purple-500/20 backdrop-blur-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">Filter Reviews</h3>
+                      <p className="text-purple-300 text-sm">Browse reviews by service category</p>
+                    </div>
+                    <div className="bg-purple-600/20 text-purple-300 px-4 py-2 rounded-full border border-purple-500/30">
+                      <span className="font-bold">{displayedReviewCount}</span>
+                      <span className="text-sm ml-1">reviews</span>
+                    </div>
+                  </div>
+                  <div className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar">
+                    <button
+                      onClick={() => setFilteredPlan(null)}
+                      className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 whitespace-nowrap ${
+                        !filteredPlan
+                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/30 border-2 border-purple-400'
+                          : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 border-2 border-gray-600/30 hover:border-purple-500/30'
+                      }`}
+                    >
+                      All Reviews
                     </button>
-                  ))}
+                    {planCategories.map(category => (
+                      <button
+                        key={category}
+                        onClick={() => setFilteredPlan(category)}
+                        className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 whitespace-nowrap ${
+                          filteredPlan === category
+                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/30 border-2 border-purple-400'
+                            : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 border-2 border-gray-600/30 hover:border-purple-500/30'
+                        }`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
                 </div>
-              </div>
 
-              {/* Reviews List */}
-              <div className="space-y-6 mb-8">
-                {displayedReviews.map((review) => (
-                  <motion.div
-                    key={review.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className="p-5 bg-gray-900/70 rounded-2xl border border-gray-700/50"
-                  >
-                    <div className="flex gap-4 items-center">
-                      <div className="w-10 h-10 rounded-full bg-purple-600 flex items-center justify-center text-lg font-bold flex-shrink-0">
-                        {review.author[0]}
-                      </div>
-                      <div className="w-full">
-                        <h4 className="font-bold text-white">{review.author}</h4>
-                        <p className="text-sm text-gray-400">{review.role}</p>
-                      </div>
-                      {review.isVerified && (
-                        <span className="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full whitespace-nowrap">Verified</span>
-                      )}
-                    </div>
-                    <div className="pt-4 mt-4 border-t border-gray-700/50">
-                      <div className="flex items-center gap-2 mb-2">
-                        <div className="flex items-center gap-0.5 text-yellow-400">
-                          {[...Array(5)].map((_, i) => (
-                            <FaStar key={i} className={i < review.rating ? 'text-yellow-400' : 'text-gray-600'} />
-                          ))}
+                {/* Reviews List */}
+                <div className="space-y-6 mb-8">
+                  {displayedReviews.map((review, index) => (
+                    <motion.div
+                      key={review.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: index * 0.1 }}
+                      className="group p-6 bg-gradient-to-br from-gray-900/80 to-gray-800/60 rounded-2xl border-2 border-gray-700/30 hover:border-purple-500/50 transition-all duration-300 backdrop-blur-sm"
+                    >
+                      <div className="flex gap-4 items-start">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-purple-600 to-purple-700 flex items-center justify-center text-lg font-bold flex-shrink-0 shadow-lg">
+                          {review.author[0]}
                         </div>
-                        <span className="font-semibold text-purple-300">{review.planTitle}</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between mb-2">
+                            <div>
+                              <h4 className="font-bold text-white text-lg">{review.author}</h4>
+                              <p className="text-sm text-purple-300 font-medium">{review.role}</p>
+                            </div>
+                            {review.isVerified && (
+                              <span className="text-xs bg-green-500/20 text-green-400 px-3 py-1 rounded-full border border-green-500/30 font-medium">
+                                ✓ Verified
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 mb-4">
+                            <div className="flex items-center gap-1">
+                              {[...Array(5)].map((_, i) => (
+                                <FaStar key={i} className={`text-lg ${i < review.rating ? 'text-yellow-400' : 'text-gray-600'}`} />
+                              ))}
+                            </div>
+                            <span className="font-semibold text-purple-400 bg-purple-500/10 px-3 py-1 rounded-full text-sm border border-purple-500/20">
+                              {review.planTitle}
+                            </span>
+                          </div>
+                          <p className="text-gray-200 leading-relaxed font-medium">{review.text}</p>
+                        </div>
                       </div>
-                      <p className="text-gray-200 uppercase font-medium tracking-wide">{review.text}</p>
-                    </div>
-                  </motion.div>
-                ))}
-              </div>
-
-              {/* Client Satisfaction Section */}
-              <div className="p-6 bg-gray-900/50 rounded-lg border border-gray-700 mb-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-lg font-semibold">Client Satisfaction</h3>
-                  <span className="text-sm text-green-400 flex items-center gap-1"><FaCheck /> 100% recommend</span>
-                </div>
-                <div className="grid grid-cols-2 gap-x-8 gap-y-4">
-                  {currentStats.satisfactionStats.map(stat => (
-                    <div key={stat.label}>
-                      <div className="flex justify-between text-sm mb-1 text-gray-300">
-                        <span>{stat.label}</span>
-                        <span className="font-medium text-white">{stat.percentage}%</span>
-                      </div>
-                      <div className="w-full bg-gray-700 rounded-full h-1.5">
-                        <div className="bg-green-500 h-1.5 rounded-full" style={{ width: `${stat.percentage}%` }}></div>
-                      </div>
-                    </div>
+                    </motion.div>
                   ))}
                 </div>
-              </div>
-              
-              {/* Footer Testimonial */}
-              <div className="text-center text-gray-400 italic p-4 border-t border-gray-700/50">
-                "Working with NEX-WEBS has been a game-changer for our business. Their professional approach and technical excellence exceeded all expectations!"
-              </div>
 
+                {/* Client Satisfaction Section */}
+                <div className="p-6 bg-gradient-to-br from-gray-900/70 to-gray-800/50 rounded-2xl border-2 border-purple-500/20 mb-8 backdrop-blur-sm">
+                  <div className="flex justify-between items-center mb-6">
+                    <div>
+                      <h3 className="text-xl font-bold text-white mb-1">Client Satisfaction</h3>
+                      <p className="text-purple-300 text-sm">Performance metrics across all projects</p>
+                    </div>
+                    <div className="flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-full border border-green-500/30">
+                      <FaCheck className="text-sm" />
+                      <span className="font-bold">100% recommend</span>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {currentStats.satisfactionStats.map(stat => (
+                      <div key={stat.label} className="space-y-3">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-purple-300 font-medium">{stat.label}</span>
+                          <span className="font-bold text-white text-lg">{stat.percentage}%</span>
+                        </div>
+                        <div className="w-full bg-gray-700/50 rounded-full h-3 overflow-hidden">
+                          <motion.div
+                            className="bg-gradient-to-r from-green-500 to-emerald-400 h-3 rounded-full"
+                            initial={{ width: 0 }}
+                            animate={{ width: `${stat.percentage}%` }}
+                            transition={{ duration: 1, delay: 0.2 }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Footer Testimonial */}
+                <div className="text-center p-6 bg-gradient-to-r from-purple-900/30 to-purple-800/20 rounded-2xl border-2 border-purple-500/20 mb-6">
+                  <blockquote className="text-purple-100 italic text-lg leading-relaxed">
+                    "Working with NEX-DEVS has been a game-changer for our business. Their professional approach and technical excellence exceeded all expectations!"
+                  </blockquote>
+                  <cite className="text-purple-300 text-sm font-medium mt-3 block">— Satisfied Client</cite>
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -1062,7 +1121,7 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 };
 

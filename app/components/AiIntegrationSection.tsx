@@ -463,7 +463,8 @@ const AiIntegrationSection: React.FC = () => {
       transition={{ duration: 0.8, ease: "easeOut" }}
       className="relative overflow-hidden rounded-2xl"
       ref={containerRef}
-      style={{ minHeight: "400px" }}
+      style={{ minHeight: "300px" }}
+      className="md:min-h-[400px]"
     >
       {/* Canvas background with floating AI terms */}
       <canvas
@@ -476,9 +477,9 @@ const AiIntegrationSection: React.FC = () => {
       />
       
       {/* Content overlay */}
-      <div className="relative z-10 py-8">
+      <div className="relative z-10 py-4 md:py-8">
         {/* NEX-DEVS Specialty Banner - Enhanced */}
-        <div className="flex justify-center mb-6">
+        <div className="flex justify-center mb-3 md:mb-6">
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -492,7 +493,7 @@ const AiIntegrationSection: React.FC = () => {
             <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 via-purple-600/20 to-blue-600/20 rounded-full blur-xl group-hover:blur-2xl transition-all duration-500 animate-pulse"></div>
             
             {/* Main banner */}
-            <div className="bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-indigo-600/10 px-8 py-3 rounded-full backdrop-blur-md relative">
+            <div className="bg-gradient-to-r from-indigo-600/10 via-purple-600/10 to-indigo-600/10 px-4 md:px-8 py-2 md:py-3 rounded-full backdrop-blur-md relative">
               {/* Animated border */}
               <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-500/0 via-purple-500/50 to-blue-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
               
@@ -506,11 +507,11 @@ const AiIntegrationSection: React.FC = () => {
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
-                  className="text-lg md:text-xl font-bold"
+                  className="text-base md:text-lg lg:text-xl font-bold"
                 >
                   <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 animate-gradient">NEX-DEVS</span>
                 </motion.span>
-                <span className="text-blue-100 text-lg md:text-xl font-semibold tracking-wider">MAIN SPECIALTY</span>
+                <span className="text-blue-100 text-base md:text-lg lg:text-xl font-semibold tracking-wider">MAIN SPECIALTY</span>
               </div>
             </div>
           </motion.div>
@@ -521,11 +522,11 @@ const AiIntegrationSection: React.FC = () => {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5 }}
-          className="flex flex-col items-center text-center mb-8"
+          className="flex flex-col items-center text-center mb-4 md:mb-8"
         >
           <div className="relative">
-            <div className="absolute inset-0 blur-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl -m-4"></div>
-            <h2 className={`${audiowide.className} text-xl md:text-3xl font-bold text-white mb-3 px-6 py-4 bg-black/30 backdrop-blur-lg border border-blue-500/20 rounded-2xl shadow-xl relative z-10`}>
+            <div className="absolute inset-0 blur-xl bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-3xl -m-2 md:-m-4"></div>
+            <h2 className={`${audiowide.className} text-lg md:text-xl lg:text-3xl font-bold text-white mb-2 md:mb-3 px-3 md:px-6 py-2 md:py-4 bg-black/30 backdrop-blur-lg border border-blue-500/20 rounded-xl md:rounded-2xl shadow-xl relative z-10`}>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-400">
                 AI INTEGRATION
               </span>{" "}
@@ -539,9 +540,9 @@ const AiIntegrationSection: React.FC = () => {
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.4, duration: 0.5 }}
-            className="max-w-3xl mt-4 px-4 py-3 bg-black/30 backdrop-blur-md rounded-xl border border-blue-500/20"
+            className="max-w-3xl mt-2 md:mt-4 px-3 md:px-4 py-2 md:py-3 bg-black/30 backdrop-blur-md rounded-lg md:rounded-xl border border-blue-500/20"
           >
-            <p className="text-blue-100 text-sm md:text-base">
+            <p className="text-blue-100 text-xs md:text-sm lg:text-base">
               Transform your business with cutting-edge AI solutions. Our custom chatbots and AI integrations 
               enhance customer experiences, automate tasks, and provide valuable insights.
             </p>
@@ -549,7 +550,7 @@ const AiIntegrationSection: React.FC = () => {
         </motion.div>
         
         {/* AI Service Cards - Enhanced Modern Look */}
-        <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto px-4">
+        <div className="mt-3 md:mt-6 grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-6 max-w-5xl mx-auto px-3 md:px-4">
           {/* Custom AI Chatbot Card */}
           <motion.div
             initial={{ opacity: 0, x: -20 }}
@@ -588,17 +589,17 @@ const AiIntegrationSection: React.FC = () => {
             }}
           >
             <Link href="/ai-services/custom-chatbot">
-              <div className="p-6 relative">
+              <div className="p-3 md:p-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/0 via-cyan-500/20 to-cyan-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out"></div>
                 
                 <div className="relative transition-transform duration-300 ease-out group-hover:translate-x-1">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="text-xl p-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
+                  <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-4">
+                    <div className="text-lg md:text-xl p-2 md:p-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg flex items-center justify-center">
                       <span role="img" aria-label="robot">🤖</span>
                     </div>
-                    <h3 className={`${audiowide.className} text-xl font-bold text-white`}>Custom AI Chatbot</h3>
+                    <h3 className={`${audiowide.className} text-lg md:text-xl font-bold text-white`}>Custom AI Chatbot</h3>
                   </div>
-                  <p className={`${vt323.className} text-gray-300 mb-6`} style={{ fontSize: '16px' }}>
+                  <p className={`${vt323.className} text-gray-300 mb-3 md:mb-6 text-sm md:text-base`}>
                     Personalized AI chatbot solutions tailored to your business needs, with natural language understanding and 24/7 customer support capabilities.
                   </p>
                   <div className="flex items-center text-cyan-400 group-hover:text-cyan-300 transition-colors">
@@ -659,23 +660,23 @@ const AiIntegrationSection: React.FC = () => {
             {/* Available Now - No Lock */}
 
             <Link href="/ai-services/business-integration">
-              <div className="p-6 relative">
+              <div className="p-3 md:p-6 relative">
                 <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/0 via-indigo-500/20 to-indigo-500/0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 ease-out"></div>
-                
+
                 <div className="relative transition-transform duration-300 ease-out group-hover:translate-x-1">
-                  <div className="flex items-center gap-4 mb-4">
-                    <div className="text-xl p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <div className="flex items-center gap-2 md:gap-4 mb-2 md:mb-4">
+                    <div className="text-lg md:text-xl p-2 md:p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                       <span role="img" aria-label="brain">🧠</span>
                     </div>
-                    <h3 className={`${audiowide.className} text-xl font-bold text-white`}>AI Business Integration</h3>
+                    <h3 className={`${audiowide.className} text-lg md:text-xl font-bold text-white`}>AI Business Integration</h3>
                   </div>
-                  <p className={`${vt323.className} text-gray-300 mb-6`} style={{ fontSize: '16px' }}>
+                  <p className={`${vt323.className} text-gray-300 mb-3 md:mb-6 text-sm md:text-base`}>
                     Seamlessly integrate AI into your existing business workflows to automate processes, analyze data, and gain actionable insights.
                   </p>
                   <div className="flex items-center text-purple-400 group-hover:text-purple-300 transition-colors">
                     <span>View Details</span>
-                    <motion.svg 
-                      className="w-5 h-5 ml-2"
+                    <motion.svg
+                      className="w-4 md:w-5 h-4 md:h-5 ml-2"
                       animate={{ x: [0, 5, 0] }}
                       transition={{ duration: 1.5, repeat: Infinity }}
                       fill="none"
@@ -692,19 +693,19 @@ const AiIntegrationSection: React.FC = () => {
         </div>
         
         {/* Enhanced Promotional Banner */}
-        <div className="flex justify-center mt-8 px-4">
+        <div className="flex justify-center mt-4 md:mt-8 px-3 md:px-4">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7, duration: 0.5 }}
-            className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 px-5 py-4 rounded-xl text-center max-w-4xl border border-blue-500/30 backdrop-blur-md shadow-lg shadow-blue-900/10 relative overflow-hidden"
+            className="bg-gradient-to-r from-blue-900/30 to-purple-900/30 px-3 md:px-5 py-3 md:py-4 rounded-lg md:rounded-xl text-center max-w-4xl border border-blue-500/30 backdrop-blur-md shadow-lg shadow-blue-900/10 relative overflow-hidden"
           >
             {/* Animated glow effects */}
             <div className="absolute -top-20 -right-20 w-40 h-40 bg-blue-500/10 rounded-full filter blur-3xl"></div>
             <div className="absolute -bottom-20 -left-20 w-40 h-40 bg-purple-500/10 rounded-full filter blur-3xl"></div>
             
-            <h3 className={`${audiowide.className} text-lg font-bold text-white mb-2 relative`}>Ready to harness the power of AI?</h3>
-            <p className={`${vt323.className} text-blue-200 text-xs mb-4 relative`} style={{ fontSize: '16px' }}>
+            <h3 className={`${audiowide.className} text-base md:text-lg font-bold text-white mb-1 md:mb-2 relative`}>Ready to harness the power of AI?</h3>
+            <p className={`${vt323.className} text-blue-200 text-sm md:text-base mb-2 md:mb-4 relative`}>
               Our AI solutions are built on state-of-the-art language models with enterprise-grade security and customization.
             </p>
             <div className="flex flex-wrap justify-center gap-3 text-xs relative">

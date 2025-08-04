@@ -1401,6 +1401,7 @@ export default function NexiousChatbot() {
 
   const [isMobile, setIsMobile] = useState(false);
   const [currentSection, setCurrentSection] = useState(''); // Track current section of the page
+  const [currentPage, setCurrentPage] = useState(''); // Track current page for positioning
   const [isFullscreen, setIsFullscreen] = useState(false); // For mobile fullscreen mode
   const [minimizedPosition, setMinimizedPosition] = useState({ right: '24px', bottom: '24px' }); // Track minimized position
   const [isChatbotDisabled, setIsChatbotDisabled] = useState(false); // Track disabled status
@@ -3822,11 +3823,20 @@ export default function NexiousChatbot() {
         }
       };
 
+      // Detect current page for positioning
+      const detectCurrentPage = () => {
+        const pathname = window.location.pathname;
+        setCurrentPage(pathname);
+      };
+
       checkMobile();
+      detectCurrentPage();
       window.addEventListener('resize', checkMobile);
+      window.addEventListener('popstate', detectCurrentPage);
 
       return () => {
         window.removeEventListener('resize', checkMobile);
+        window.removeEventListener('popstate', detectCurrentPage);
         // Always restore scrolling when component unmounts
         document.body.style.overflow = '';
       };
@@ -4857,7 +4867,8 @@ export default function NexiousChatbot() {
           style={{
             position: 'fixed',
             bottom: isMobile ? '20px' : '32px', // Moved down slightly
-            right: isMobile ? '16px' : '16px', // Moved more to the right
+            right: isMobile && currentPage === '/pricing' ? 'auto' : (isMobile ? '16px' : '16px'), // Move to left on pricing page for mobile
+            left: isMobile && currentPage === '/pricing' ? '16px' : 'auto', // Position on left for pricing page mobile
             zIndex: 999999,
             transform: 'translateZ(0)',
             display: 'flex',
@@ -4978,7 +4989,7 @@ export default function NexiousChatbot() {
             }}
           >
 
-            {/* Close button - Enhanced functionality */}
+            {/* Close button - Enhanced functionality with proper top-right alignment */}
             <button
               onClick={(e) => {
                 e.preventDefault();
@@ -4994,19 +5005,21 @@ export default function NexiousChatbot() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="absolute top-2 right-2 w-6 h-6 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer z-50"
+              className="absolute w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl border border-red-400/50"
               aria-label="Close AI Model Info panel"
               title="Close AI Model Info"
               style={{
+                top: '8px',
+                right: '8px',
                 WebkitTouchCallout: 'none',
                 WebkitUserSelect: 'none',
                 userSelect: 'none',
                 pointerEvents: 'auto',
-                zIndex: 50
+                zIndex: 999
               }}
             >
-              <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
 

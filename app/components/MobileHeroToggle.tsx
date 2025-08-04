@@ -12,6 +12,7 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
   const [currentHero, setCurrentHero] = useState<'original' | 'business'>('original');
   const [isMobile, setIsMobile] = useState(false);
   const [isHomePage, setIsHomePage] = useState(false);
+  const [isBusinessPage, setIsBusinessPage] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const router = useRouter();
@@ -31,6 +32,7 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
 
   useEffect(() => {
     setIsHomePage(pathname === '/');
+    setIsBusinessPage(pathname === '/ai-services/business-integration');
   }, [pathname]);
 
   // Add scroll detection for sticky behavior
@@ -80,14 +82,17 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
         detail: { hero: newHero }
       });
       window.dispatchEvent(event);
+    } else if (isBusinessPage) {
+      // If we're on business page, navigate to home with business hero
+      router.push(`/?hero=business`);
     } else {
       // If we're not on home page, navigate to home with the selected hero
       router.push(`/?hero=${newHero}`);
     }
   };
 
-  // Only show on mobile and hide during welcome screen
-  if (!isMobile || showWelcome) return null;
+  // Only show on mobile, hide during welcome screen, and only show on home page or business integration page
+  if (!isMobile || showWelcome || (!isHomePage && !isBusinessPage)) return null;
 
   return (
     <motion.div
@@ -102,9 +107,10 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
       style={{
         transform: 'translate3d(0, 0, 0)',
         willChange: 'transform',
-        top: isScrolled ? '16px' : '96px', // Smart sticky positioning
-        zIndex: showWelcome ? 10 : 55, // Lower z-index during welcome screen
-        pointerEvents: showWelcome ? 'none' : 'auto'
+        top: isScrolled ? '20px' : '100px', // Enhanced sticky positioning
+        zIndex: showWelcome ? 10 : 60, // Higher z-index for better visibility
+        pointerEvents: showWelcome ? 'none' : 'auto',
+        position: 'fixed' // Ensure it stays sticky
       }}
     >
       <div className="relative">

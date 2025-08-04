@@ -647,21 +647,21 @@ export default function Home() {
                 {
                   title: "AI-Powered Chatbots",
                   description: "Advanced conversational agents built with transformer models that understand context, remember conversations, and provide human-like responses",
-                  imagePath: "https://www.shutterstock.com/image-vector/simple-chat-bot-logo-icon-600nw-2449965521.jpg",
+                  imagePath: "https://www.shutterstock.com/image-vector/chatbot-icon-line-vector-isolate-600nw-1841577400.jpg",
                   color: "purple",
                   features: ["Large Language Model Integration", "Context-Aware Responses", "Custom Knowledge Base", "24/7 Availability"]
                 },
                 {
                   title: "Smart Website Automation",
                   description: "AI-driven websites that analyze user behavior to dynamically adapt content, layout, and functionality for maximum engagement",
-                  imagePath: "https://cdn1.vectorstock.com/i/1000x1000/62/55/web-developer-icon-on-white-background-flat-vector-19806255.jpg",
+                  imagePath: "https://www.seekpng.com/png/detail/107-1070746_desktop-computer-on-black-square-background-vector-desktop.png",
                   color: "blue",
                   features: ["Behavior Pattern Recognition", "Personalized User Journeys", "A/B Testing Automation", "Predictive Content Delivery"]
                 },
                 {
                   title: "Business Process AI",
                   description: "Intelligent automation systems that streamline operations, analyze data patterns, and enable data-driven decision making",
-                  imagePath: "https://as2.ftcdn.net/v2/jpg/09/88/50/11/1000_F_988501143_wJzQIHvY1B49pMp3QgiQDhtdfF3dU1Wv.jpg",
+                  imagePath: "https://www.shutterstock.com/image-vector/abstract-ai-logo-set-sleek-600nw-2590920659.jpg",
                   color: "amber",
                   features: ["Workflow Intelligence", "Decision Support Systems", "Performance Analytics", "Anomaly Detection"]
                 }

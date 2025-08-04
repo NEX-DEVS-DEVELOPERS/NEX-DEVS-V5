@@ -103,7 +103,8 @@ export default function SmoothScrollInitializer() {
       // Show/hide scroll to top button
       const toggleScrollToTop = () => {
         const scrollY = window.scrollY
-        const shouldShow = scrollY > 300
+        const isMobile = window.innerWidth <= 768
+        const shouldShow = scrollY > 300 && !isMobile // Hide on mobile
 
         if (shouldShow) {
           scrollToTopBtn.style.opacity = '1'

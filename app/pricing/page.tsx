@@ -911,16 +911,17 @@ const PlanModal = memo(({ plan, onClose, onGetStarted, getFormattedPrice }: Plan
   }, [plan.features]);
 
   return (
-    <div 
-      className="fixed inset-0 bg-black/90 flex items-start justify-center z-[9999] p-4 overflow-y-auto pt-16 md:pt-32"
+    <div
+      className="fixed inset-0 bg-black/90 flex items-start justify-center z-[9999] p-4 pt-20 md:pt-24 overflow-y-auto"
       onClick={onClose}
     >
       <motion.div
         initial={{ opacity: 0, y: 20, scale: 0.95 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         exit={{ opacity: 0, y: 20, scale: 0.95 }}
-        className="bg-gradient-to-br from-black/95 to-purple-900/10 backdrop-blur-xl rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30"
+        className="bg-black/95 backdrop-blur-xl rounded-2xl p-6 md:p-8 w-full max-w-4xl mx-auto relative border border-purple-500/30 max-h-[calc(100vh-120px)] overflow-y-auto"
         onClick={(e) => e.stopPropagation()}
+        style={{ maxHeight: 'calc(100vh - 120px)' }}
       >
         {/* Close Button */}
         <button
@@ -933,87 +934,139 @@ const PlanModal = memo(({ plan, onClose, onGetStarted, getFormattedPrice }: Plan
         </button>
 
         {/* Main Content */}
-        <div className="space-y-6">
+        <div className="space-y-6 overflow-y-auto max-h-full">
           {/* Header */}
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="text-5xl phone-icon">📱</div>
+              <div className="text-5xl phone-icon">{plan.icon || '📱'}</div>
               <div className="absolute -top-2 -right-2 text-2xl sparkle-icon">✨</div>
             </div>
             <div>
               <h2 className={`${audiowide.className} text-3xl font-bold text-white mb-2 bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-pink-400`}>
-                Mobile App Development
+                {plan.title}
               </h2>
-              <p className="text-purple-300">Transform your ideas into powerful mobile experiences</p>
+              <p className="text-purple-300">{plan.description}</p>
             </div>
           </div>
 
-          {/* Store Requirements Section */}
-          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30 hover:border-purple-500/50 transition-colors">
+          {/* Plan Details Section */}
+          <div className="bg-black/60 rounded-xl p-6 border border-gray-600/50 hover:border-gray-500/70 transition-colors">
             <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-              <svg className="w-6 h-6 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              App Store Requirements
+              What's Included
             </h3>
             <div className="grid md:grid-cols-2 gap-6">
               <div className="space-y-3">
-                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-purple-300">Google Play Store</span>
-                    <span className="text-green-400 font-semibold">$25</span>
+                <h4 className="text-white font-medium mb-3">Features:</h4>
+                {plan.features.slice(0, Math.ceil(plan.features.length / 2)).map((feature, index) => (
+                  <div key={index} className="bg-gray-800/60 rounded-lg p-3 border border-gray-600/30 hover:border-gray-500/50 transition-all">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-white text-sm">{feature}</span>
+                    </div>
                   </div>
-                  <p className="text-gray-400 text-sm">One-time registration fee</p>
-                </div>
-                <div className="bg-black/40 rounded-lg p-4 border border-purple-500/20 hover:border-purple-500/40 transition-all">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-purple-300">Apple App Store</span>
-                    <span className="text-green-400 font-semibold">$99/year</span>
-                  </div>
-                  <p className="text-gray-400 text-sm">Annual developer membership</p>
-                </div>
+                ))}
               </div>
-              <div className="bg-purple-900/20 rounded-lg p-4">
-                <h4 className="text-white font-medium mb-3">Additional Requirements:</h4>
-                <ul className="space-y-2 text-gray-300 text-sm">
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Developer account verification
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    App privacy policy
-                  </li>
-                  <li className="flex items-center gap-2">
-                    <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                    Content guidelines compliance
-                  </li>
-                </ul>
+              <div className="space-y-3">
+                <h4 className="text-white font-medium mb-3">Additional Benefits:</h4>
+                {plan.features.slice(Math.ceil(plan.features.length / 2)).map((feature, index) => (
+                  <div key={index} className="bg-gray-800/60 rounded-lg p-3 border border-gray-600/30 hover:border-gray-500/50 transition-all">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-green-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="text-white text-sm">{feature}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Timeline and Price */}
+            <div className="mt-6 grid md:grid-cols-2 gap-4">
+              <div className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/30">
+                <h4 className="text-white font-medium mb-2">Timeline:</h4>
+                <p className="text-gray-300">{plan.timeline}</p>
+              </div>
+              <div className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/30">
+                <h4 className="text-white font-medium mb-2">Price:</h4>
+                <p className="text-green-400 text-xl font-bold">{getFormattedPrice(plan.basePrice)}</p>
               </div>
             </div>
           </div>
 
+          {/* Mobile App Specific Requirements */}
+          {plan.title === "Mobile App Development" && (
+            <div className="bg-black/60 rounded-xl p-6 border border-gray-600/50 hover:border-gray-500/70 transition-colors">
+              <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                App Store Requirements
+              </h3>
+              <div className="grid md:grid-cols-2 gap-6">
+                <div className="space-y-3">
+                  <div className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/30 hover:border-gray-500/50 transition-all">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white">Google Play Store</span>
+                      <span className="text-green-400 font-semibold">$25</span>
+                    </div>
+                    <p className="text-gray-300 text-sm">One-time registration fee</p>
+                  </div>
+                  <div className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/30 hover:border-gray-500/50 transition-all">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white">Apple App Store</span>
+                      <span className="text-green-400 font-semibold">$99/year</span>
+                    </div>
+                    <p className="text-gray-300 text-sm">Annual developer membership</p>
+                  </div>
+                </div>
+                <div className="bg-gray-800/60 rounded-lg p-4 border border-gray-600/30">
+                  <h4 className="text-white font-medium mb-3">Additional Requirements:</h4>
+                  <ul className="space-y-2 text-gray-300 text-sm">
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Developer account verification
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      App privacy policy
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      Content guidelines compliance
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Contact Section */}
-          <div className="bg-gradient-to-r from-purple-900/20 to-pink-900/20 rounded-xl p-6 border border-purple-500/30">
+          <div className="bg-black/60 rounded-xl p-6 border border-gray-600/50">
             <div className="grid md:grid-cols-2 gap-4">
-              <a 
-                href="mailto:nexwebs.org@gmail.com" 
-                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+              <a
+                href="mailto:nexwebs.org@gmail.com"
+                className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors bg-gray-800/60 p-3 rounded-lg hover:bg-gray-700/60 border border-gray-600/30"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                 </svg>
                 nexwebs.org@gmail.com
               </a>
-              <a 
-                href="mailto:nexdevs.org@gmail.com" 
-                className="flex items-center gap-2 text-purple-300 hover:text-purple-200 transition-colors bg-black/20 p-3 rounded-lg hover:bg-black/30"
+              <a
+                href="mailto:nexdevs.org@gmail.com"
+                className="flex items-center gap-2 text-white hover:text-gray-300 transition-colors bg-gray-800/60 p-3 rounded-lg hover:bg-gray-700/60 border border-gray-600/30"
               >
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
@@ -1032,14 +1085,14 @@ const PlanModal = memo(({ plan, onClose, onGetStarted, getFormattedPrice }: Plan
               Close
             </button>
             <a
-              href="mailto:nexwebs.org@gmail.com?subject=Mobile App Development Inquiry&body=I'm interested in developing a mobile app. Please schedule a consultation call."
-              className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg transition-all hover:from-purple-500 hover:to-pink-500 flex items-center gap-2 justify-center group"
+              href={`mailto:nexwebs.org@gmail.com?subject=${encodeURIComponent(plan.title)} Inquiry&body=I'm interested in the ${encodeURIComponent(plan.title)} package. Please schedule a consultation call.`}
+              className="px-6 py-3 bg-white text-black rounded-lg transition-all hover:bg-gray-200 flex items-center gap-2 justify-center group font-semibold"
             >
               Schedule Consultation
-              <svg 
-                className="w-4 h-4" 
-                fill="none" 
-                stroke="currentColor" 
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
                 viewBox="0 0 24 24"
               >
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" />
@@ -1992,15 +2045,21 @@ export default function PricingPage() {
       console.log("Loading timer completed, setting isLoading to false");
       setIsLoading(false);
       
-      // Then show website guide, but only if it hasn't been shown twice already
+      // Then show website guide, but only if it hasn't been shown twice already and not on mobile
       const guideTimer = setTimeout(() => {
         if (typeof window !== 'undefined') {
           window.scrollTo(0, 0);
-          
+
+          // Don't show guide on mobile devices
+          if (window.innerWidth <= 768) {
+            console.log('Guide disabled for mobile devices');
+            return;
+          }
+
           // Check localStorage for guide view count
           const guideViewCount = localStorage.getItem('pricing-guide-view-count');
           const viewCount = guideViewCount ? parseInt(guideViewCount) : 0;
-          
+
           // Only show guide if it has been shown less than twice
           if (viewCount < 2) {
             setShowWebsiteGuide(true);

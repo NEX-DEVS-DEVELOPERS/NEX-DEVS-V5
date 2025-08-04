@@ -457,7 +457,7 @@ export default function BusinessHero() {
                     description: "Advanced language model for natural text generation and understanding",
                     metrics: "175B parameters",
                     imagePlaceholder: false,
-                    imageUrl: "https://images.seeklogo.com/logo-png/42/1/open-ai-logo-png_seeklogo-428036.png"
+                    imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTJ_l5XeqAPsaIp3eTI7zZFhV5VsJWQcxKLoA&s"
                   },
                   {
                     name: "Anthropic Claude 4 sonnet / opus 4",
@@ -543,21 +543,21 @@ export default function BusinessHero() {
                     description: "Visual automation platform for complex business processes",
                     metrics: "99.9% uptime",
                     imagePlaceholder: false,
-                    imageUrl: "https://automationsprints.com/wp-content/uploads/2024/09/Make.png"
+                    imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQpad3kQ9jxPrEfSkgdXDDi7Jk9792oTshEDA&s"
                   },
                   {
                     name: "Langchain",
                     description: "Framework for developing applications powered by language models",
                     metrics: "50+ integrations",
                     imagePlaceholder: false,
-                    imageUrl: "https://images.seeklogo.com/logo-png/61/2/langchain-logo-png_seeklogo-611654.png"
+                    imageUrl: "https://images.seeklogo.com/logo-png/61/1/langchain-logo-png_seeklogo-611654.png"
                   },
                   {
                     name: "Zapier",
                     description: "Connect apps and automate workflows without coding",
                     metrics: "5000+ app connections",
                     imagePlaceholder: false,
-                    imageUrl: "https://cdn.worldvectorlogo.com/logos/zapier-2.svg"
+                    imageUrl: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT8QHGq30ozaZQoj2k_tgjyEuaXsO5UB6ng5Tc5zIRdsupDKSxzSRltoEROiLY_yeycD7g&usqp=CAU"
                   }
                 ].map((tool, i) => (
                   <div

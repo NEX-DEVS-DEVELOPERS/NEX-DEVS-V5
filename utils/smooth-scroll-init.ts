@@ -129,7 +129,8 @@ export const initSmoothScrolling = (options: SmoothScrollOptions = {}) => {
     // Show/hide scroll to top button
     const toggleScrollToTop = () => {
       const scrollY = window.scrollY;
-      const shouldShow = scrollY > 300;
+      const isMobile = window.innerWidth <= 768;
+      const shouldShow = scrollY > 300 && !isMobile; // Hide on mobile
 
       gsap.to(scrollToTopBtn, {
         opacity: shouldShow ? 1 : 0,
