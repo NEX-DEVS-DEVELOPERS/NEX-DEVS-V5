@@ -1111,64 +1111,87 @@ const logChatRequest = async (request: string, response: string, responseTime: n
   }
 };
 
-// Add chatbot enabled check function
+// Enhanced chatbot enabled check function with better caching and error handling
 const isChatbotEnabled = async () => {
   try {
-    // Check in localStorage first for faster response, but with very short cache time
+    // Check in localStorage first for faster response with longer cache time for better UX
     const cachedSettingsStr = localStorage.getItem('nexious-chatbot-settings');
     if (cachedSettingsStr) {
-      const cachedSettings = JSON.parse(cachedSettingsStr);
-      // Only use cached settings if they're very recent (less than 5 seconds old)
-      const isCacheValid = Date.now() - cachedSettings.timestamp < 5 * 1000;
-      if (isCacheValid) {
-        return cachedSettings.enabled;
+      try {
+        const cachedSettings = JSON.parse(cachedSettingsStr);
+        // Use cached settings if they're reasonably recent (less than 60 seconds old)
+        const isCacheValid = Date.now() - cachedSettings.timestamp < 60 * 1000;
+        if (isCacheValid) {
+          return cachedSettings.enabled;
+        }
+      } catch (e) {
+        console.error('Error parsing cached chatbot settings:', e);
+        // Remove corrupted cache
+        localStorage.removeItem('nexious-chatbot-settings');
       }
     }
 
     // Always add a cache-busting timestamp
     const timestamp = Date.now();
 
-    // If no valid cache, check with the server
-    const response = await fetch(`/api/chatbot/settings/public?t=${timestamp}`, {
-      method: 'GET',
-      headers: {
-        'Cache-Control': 'no-cache, no-store, must-revalidate',
-        'Pragma': 'no-cache',
-        'X-Requested-With': 'fetch'
+    // If no valid cache, check with the server with timeout
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
+    try {
+      const response = await fetch(`/api/chatbot/settings/public?t=${timestamp}`, {
+        method: 'GET',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate',
+          'Pragma': 'no-cache',
+          'X-Requested-With': 'fetch'
+        },
+        signal: controller.signal
+      });
+
+      clearTimeout(timeoutId);
+
+      if (response.ok) {
+        const data = await response.json();
+        // Cache the result with timestamp
+        localStorage.setItem('nexious-chatbot-settings', JSON.stringify({
+          enabled: data.enabled,
+          timestamp: Date.now()
+        }));
+
+        // Log status change for debugging
+        console.log(`Chatbot status updated: ${data.enabled ? 'Enabled' : 'Disabled'}`);
+
+        return data.enabled;
       }
-    });
-
-    if (response.ok) {
-      const data = await response.json();
-      // Cache the result with timestamp
-      localStorage.setItem('nexious-chatbot-settings', JSON.stringify({
-        enabled: data.enabled,
-        timestamp: Date.now()
-      }));
-
-      // Log status change for debugging
-      console.log(`Chatbot status: ${data.enabled ? 'Enabled' : 'Disabled'}`);
-
-      return data.enabled;
+    } catch (fetchError) {
+      clearTimeout(timeoutId);
+      if (fetchError.name === 'AbortError') {
+        console.warn('Chatbot settings request timed out');
+      } else {
+        console.error('Error fetching chatbot settings:', fetchError);
+      }
     }
 
     // If we can't reach the server, check localStorage regardless of time
-    // This is a fallback to prevent constant API calls if the server is down
+    // This is a fallback to prevent blocking the chatbot if the server is down
     if (cachedSettingsStr) {
       try {
         const cachedSettings = JSON.parse(cachedSettingsStr);
+        console.log('Using fallback cached chatbot settings');
         return cachedSettings.enabled;
       } catch (e) {
-        console.error('Error parsing cached settings:', e);
+        console.error('Error parsing fallback cached settings:', e);
       }
     }
 
-    // Default to disabled if we can't determine status
-    return false;
+    // Default to enabled if we can't determine status to avoid blocking users
+    console.warn('Unable to determine chatbot status, defaulting to enabled');
+    return true;
   } catch (error) {
     console.error('Error checking if chatbot is enabled:', error);
-    // Default to disabled if there's an error
-    return false;
+    // Default to enabled if there's an error to avoid blocking users
+    return true;
   }
 };
 
@@ -1404,7 +1427,8 @@ export default function NexiousChatbot() {
   const [currentPage, setCurrentPage] = useState(''); // Track current page for positioning
   const [isFullscreen, setIsFullscreen] = useState(false); // For mobile fullscreen mode
   const [minimizedPosition, setMinimizedPosition] = useState({ right: '24px', bottom: '24px' }); // Track minimized position
-  const [isChatbotDisabled, setIsChatbotDisabled] = useState(false); // Track disabled status
+  const [isChatbotDisabled, setIsChatbotDisabled] = useState(false); // Track disabled status - default to enabled for better UX
+  const [isChatbotInitializing, setIsChatbotInitializing] = useState(true); // Track initialization status
   const [isProMode, setIsProMode] = useState(() => {
     // Initialize PRO mode from localStorage if available
     if (typeof window !== 'undefined') {
@@ -2030,14 +2054,22 @@ export default function NexiousChatbot() {
     }
   }, []);
 
-  // Enhanced mobile detection with keyboard handling
+  // Enhanced mobile detection that works in browser dev tools
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const checkMobile = () => {
-        setIsMobile(window.innerWidth < 768);
+        const isSmallScreen = window.innerWidth < 768;
+        const mediaQueryMobile = window.matchMedia('(max-width: 768px)').matches;
+        const isDevToolsMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+        const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        // Enhanced detection for browser dev tools mobile preview
+        const actuallyMobile = isSmallScreen || mediaQueryMobile || isDevToolsMobile ||
+                              (isSmallScreen && isTouchDevice);
+        setIsMobile(actuallyMobile);
 
         // Reset fullscreen mode if device is no longer mobile
-        if (window.innerWidth >= 768 && isFullscreen) {
+        if (!actuallyMobile && isFullscreen) {
           setIsFullscreen(false);
         }
       };
@@ -3843,24 +3875,64 @@ export default function NexiousChatbot() {
     }
   }, [isOpen, isMinimized, isFullscreen, isMobile]);
 
-  // Add an effect to check if chatbot is disabled on mount and periodically
+  // Enhanced effect to check if chatbot is disabled with better initialization and timeout fallback
   useEffect(() => {
+    let timeoutId: NodeJS.Timeout;
+
     const checkChatbotStatus = async () => {
       try {
+        // First check localStorage for immediate response
+        const cachedSettingsStr = localStorage.getItem('nexious-chatbot-settings');
+        if (cachedSettingsStr) {
+          try {
+            const cachedSettings = JSON.parse(cachedSettingsStr);
+            // Use cached settings immediately, even if slightly old
+            setIsChatbotDisabled(!cachedSettings.enabled);
+
+            // If cache is recent (less than 30 seconds), don't make API call
+            const isCacheRecent = Date.now() - cachedSettings.timestamp < 30 * 1000;
+            if (isCacheRecent) {
+              return;
+            }
+          } catch (e) {
+            console.error('Error parsing cached chatbot settings:', e);
+          }
+        }
+
+        // If no cache or cache is old, check with server
         const enabled = await isChatbotEnabled();
         setIsChatbotDisabled(!enabled);
       } catch (error) {
         console.error('Error checking chatbot status:', error);
+        // If there's an error, assume enabled to prevent blocking the chatbot
+        setIsChatbotDisabled(false);
       }
     };
 
-    // Check immediately on mount
-    checkChatbotStatus();
+    // Set up a timeout to ensure chatbot becomes available even if settings check fails
+    timeoutId = setTimeout(() => {
+      console.log('Chatbot settings check timeout - enabling chatbot for better UX');
+      setIsChatbotDisabled(false);
+      setIsChatbotInitializing(false);
+    }, 3000); // 3 second timeout
 
-    // Set up periodic checks (every 10 seconds)
-    const statusInterval = setInterval(checkChatbotStatus, 10000);
+    // Check immediately on mount with no delay
+    checkChatbotStatus().then(() => {
+      // Clear timeout if check completes successfully
+      clearTimeout(timeoutId);
+      setIsChatbotInitializing(false);
+    }).catch(() => {
+      // Ensure initialization completes even on error
+      setIsChatbotInitializing(false);
+    });
 
-    return () => clearInterval(statusInterval);
+    // Set up periodic checks (every 30 seconds instead of 10 for better performance)
+    const statusInterval = setInterval(checkChatbotStatus, 30000);
+
+    return () => {
+      clearInterval(statusInterval);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   // Add effect to update Pro Mode countdown timer
@@ -4823,20 +4895,41 @@ export default function NexiousChatbot() {
     }
   }, [handleGlobalKeyDown, isMobileDevice]);
 
+  // Enhanced blur effect management
+  useEffect(() => {
+    const overlay = document.getElementById('chatbot-overlay');
+    if (overlay) {
+      if (isOpen && !isMinimized && !isMobile) {
+        // Show blur immediately when chat opens
+        overlay.style.display = 'block';
+        overlay.style.opacity = '1';
+        overlay.style.visibility = 'visible';
+        overlay.classList.remove('invisible');
+        document.body.classList.add('chat-open');
+        document.body.classList.remove('chat-minimized');
+      } else {
+        // Hide blur when chat closes or minimizes
+        overlay.style.opacity = '0';
+        overlay.style.visibility = 'hidden';
+        overlay.classList.add('invisible');
+        document.body.classList.remove('chat-open');
+        if (isMinimized) {
+          document.body.classList.add('chat-minimized');
+        } else {
+          document.body.classList.remove('chat-minimized');
+        }
+        // Delay hiding to allow transition
+        setTimeout(() => {
+          if (overlay.style.opacity === '0') {
+            overlay.style.display = 'none';
+          }
+        }, 300);
+      }
+    }
+  }, [isOpen, isMinimized, isMobile]);
+
   return (
     <>
-      {/* Background blur overlay when chatbot is open - ONLY for desktop and NOT minimized */}
-      {isOpen && !isMinimized && !isMobile && (
-        <div
-          className="fixed inset-0 z-[998] pointer-events-none"
-          style={{
-            backdropFilter: 'blur(3px)',
-            WebkitBackdropFilter: 'blur(3px)',
-            backgroundColor: 'rgba(10, 10, 20, 0.2)',
-            transition: 'all 0.3s ease-in-out'
-          }}
-        />
-      )}
 
       <div
         ref={chatWindowRef}
@@ -4844,8 +4937,8 @@ export default function NexiousChatbot() {
         className="nexious-chat-container"
         style={{
           position: 'fixed',
-          bottom: isMobile && isOpen ? '0' : '20px',
-          right: isMobile && isOpen ? '0' : '20px',
+          bottom: isMobile && isOpen ? '0' : '16px', // Slightly lower position
+          right: isMobile && isOpen ? '0' : '16px', // Adjusted right position
           top: isMobile && isOpen ? '0' : 'auto',
           left: isMobile && isOpen ? '0' : 'auto',
           width: isMobile && isOpen ? '100vw' : 'auto',
@@ -4858,17 +4951,29 @@ export default function NexiousChatbot() {
           touchAction: isOpen ? 'none' : 'auto'
         }}>
 
-      {/* Chat Button - Visible when chat is not open OR when mobile and minimized */}
-      {(!isOpen || (isMobile && isMinimized)) && (
+      {/* Chat Button - Always visible during initialization, then based on enabled status */}
+      {(!isOpen || (isMobile && isMinimized)) && (isChatbotInitializing || !isChatbotDisabled) && (
         <button
-          onClick={isMobile && isMinimized ? toggleMinimize : toggleChat}
-          className="nexious-chat-button group fixed cursor-pointer px-3 py-2 rounded-full bg-white backdrop-blur-sm border-2 transition-all duration-300 hover:bg-white/90 flex items-center gap-1 shadow-lg pulse-effect"
-          aria-label={isMobile && isMinimized ? "Restore AI Chat" : "Open AI Chat Assistant"}
+          onClick={isChatbotInitializing ? undefined : (isMobile && isMinimized ? toggleMinimize : toggleChat)}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.currentTarget.style.transform = 'scale(0.95)';
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            setTimeout(() => {
+              e.currentTarget.style.transform = 'scale(1)';
+            }, 100);
+          }}
+          className={`nexious-chat-button group fixed px-3 py-2 rounded-full bg-white backdrop-blur-sm border-2 transition-all duration-300 hover:bg-white/90 flex items-center gap-1 shadow-lg ${isChatbotInitializing ? 'cursor-wait opacity-75' : 'cursor-pointer pulse-effect'} ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
+          aria-label={isChatbotInitializing ? "AI Chat Loading..." : (isMobile && isMinimized ? "Restore AI Chat" : "Open AI Chat Assistant")}
+          disabled={isChatbotInitializing}
           style={{
             position: 'fixed',
-            bottom: isMobile ? '20px' : '32px', // Moved down slightly
-            right: isMobile && currentPage === '/pricing' ? 'auto' : (isMobile ? '16px' : '16px'), // Move to left on pricing page for mobile
-            left: isMobile && currentPage === '/pricing' ? '16px' : 'auto', // Position on left for pricing page mobile
+            bottom: '20px',
+            right: '20px',
+            left: 'auto',
+            top: 'auto',
             zIndex: 999999,
             transform: 'translateZ(0)',
             display: 'flex',
@@ -4896,7 +5001,11 @@ export default function NexiousChatbot() {
               style={{ width: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '36px' : '40px') : '30px', height: (isMinimized || (isMobile && !isOpen)) ? (isMobile ? '36px' : '40px') : '30px' }}
             />
           </div>
-          {!(isMinimized || (isMobile && !isOpen)) && <span className={`${audiowide.className} text-black whitespace-nowrap text-sm tracking-tight font-medium`}>Ask Nexious</span>}
+          {!(isMinimized || (isMobile && !isOpen)) && (
+            <span className={`${audiowide.className} text-black whitespace-nowrap text-sm tracking-tight font-medium`}>
+              {isChatbotInitializing ? 'Loading...' : 'Ask Nexious'}
+            </span>
+          )}
         </button>
       )}
 

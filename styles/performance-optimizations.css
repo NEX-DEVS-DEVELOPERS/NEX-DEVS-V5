@@ -1,0 +1,400 @@
+/* PERFORMANCE OPTIMIZATIONS FOR 60FPS SCROLLING */
+/* This file contains critical performance optimizations to eliminate lag and reload effects */
+
+/* ===== SCROLL PERFORMANCE ===== */
+
+/* Optimize scroll behavior */
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+}
+
+/* Disable heavy animations during scroll */
+body.is-scrolling {
+  /* Pause all animations during scroll for 60fps performance */
+}
+
+body.is-scrolling * {
+  animation-play-state: paused !important;
+  transition-duration: 0.1s !important;
+  will-change: auto !important;
+}
+
+body.is-scrolling .hero-section,
+body.is-scrolling [data-barba="container"],
+body.is-scrolling .motion-div {
+  transform: none !important;
+  animation: none !important;
+  transition: none !important;
+}
+
+/* ===== IMAGE OPTIMIZATION ===== */
+
+/* Remove reload effects from images */
+img {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+  will-change: auto !important;
+}
+
+/* Optimize Next.js Image components */
+img[data-nimg] {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Remove loading blur effects that cause reload appearance */
+.blur-sm,
+.blur-md,
+.blur-lg {
+  filter: none !important;
+}
+
+/* ===== HERO SECTION OPTIMIZATIONS ===== */
+
+/* Remove heavy hero animations */
+.hero-section-container,
+[class*="hero-section"],
+[class*="Hero"] {
+  will-change: auto !important;
+  transform: none !important;
+  animation: none !important;
+  contain: layout style paint;
+}
+
+/* Optimize hero scroll effects */
+.hero-optimized {
+  will-change: auto !important;
+  transform: none !important;
+  backface-visibility: visible !important;
+  animation: none !important;
+}
+
+/* ===== ELEMENT STYLING OPTIMIZATIONS ===== */
+
+/* Pre-style elements to avoid JavaScript styling */
+[id*="ali"], [id*="hasnaat"], .bg-white.text-black {
+  border-radius: 12px !important;
+  overflow: hidden !important;
+}
+
+a[href="/contact"], a[href="/projects"], .button {
+  border-radius: 10px !important;
+  overflow: hidden !important;
+}
+
+.space-y-2, .rounded-lg, .rounded-xl, .rounded-2xl {
+  border-radius: 16px !important;
+  overflow: hidden !important;
+}
+
+/* Welcome screen optimizations */
+[class*="Welcome"], [class*="welcome"] {
+  margin-top: 7rem !important;
+  padding-top: 4rem !important;
+  border-radius: 16px !important;
+  position: relative !important;
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.3s ease, transform 0.3s ease !important;
+}
+
+[class*="Welcome"].loaded, [class*="welcome"].loaded {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Welcome screen background effect */
+[class*="Welcome"]::before, [class*="welcome"]::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(10, 10, 30, 0.3);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+  z-index: -1;
+  transition: all 0.3s ease;
+}
+
+/* ===== FRAMER MOTION OPTIMIZATIONS ===== */
+
+/* Reduce framer motion complexity */
+[data-framer-component] {
+  will-change: auto !important;
+  transform: none !important;
+}
+
+/* Optimize motion divs */
+.motion-div {
+  will-change: auto !important;
+  animation: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+/* ===== BARBA.JS OPTIMIZATIONS ===== */
+
+/* Simplify Barba transitions */
+[data-barba="container"] {
+  will-change: auto !important;
+  transform: none !important;
+  transition: opacity 0.3s ease !important;
+  animation: none !important;
+}
+
+.barba-container {
+  will-change: auto !important;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Remove complex page transitions */
+.page-transition-enter,
+.page-transition-exit,
+.hero-transition-enter,
+.hero-transition-exit {
+  animation: none !important;
+  transform: none !important;
+  transition: opacity 0.2s ease !important;
+}
+
+/* ===== BACKDROP FILTER OPTIMIZATIONS ===== */
+
+/* Reduce backdrop blur for performance */
+.backdrop-blur-sm {
+  backdrop-filter: blur(4px) !important;
+}
+
+.backdrop-blur-md {
+  backdrop-filter: blur(6px) !important;
+}
+
+.backdrop-blur-lg {
+  backdrop-filter: blur(8px) !important;
+}
+
+.backdrop-blur-xl {
+  backdrop-filter: blur(10px) !important;
+}
+
+/* ===== ANIMATION OPTIMIZATIONS ===== */
+
+/* Disable complex animations */
+@keyframes matrix-fall,
+@keyframes neural-pulse,
+@keyframes neural-pulse-alt,
+@keyframes node-pulse,
+@keyframes code-fall,
+@keyframes float-particle,
+@keyframes processor-activity {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+/* Simplify glow effects */
+.glow-effect {
+  animation: none !important;
+  box-shadow: none !important;
+}
+
+/* Remove processor animations */
+.processor-animation,
+.processor-cell {
+  animation: none !important;
+}
+
+/* ===== SECTION OPTIMIZATIONS ===== */
+
+/* Optimize section containers */
+section {
+  contain: layout style;
+  will-change: auto !important;
+}
+
+/* Remove section animations during scroll */
+body.is-scrolling section {
+  animation: none !important;
+  transform: none !important;
+  transition: none !important;
+}
+
+/* ===== NEURAL NETWORK OPTIMIZATIONS ===== */
+
+/* Simplify neural network animations */
+.neural-network-visualization,
+.neural-connection,
+.neural-node,
+.binary-particles {
+  animation: none !important;
+  opacity: 0.2 !important;
+  will-change: auto !important;
+}
+
+/* ===== CODE SNIPPET OPTIMIZATIONS ===== */
+
+/* Remove floating code animations */
+.code-snippet {
+  animation: none !important;
+  transform: none !important;
+  position: static !important;
+}
+
+.leaky-code-left,
+.leaky-code-right {
+  animation: none !important;
+  background: none !important;
+}
+
+/* ===== SIMPLE TOUCH OPTIMIZATIONS ===== */
+
+/* Basic touch handling - no complex overrides */
+button, a[href], [role="button"] {
+  touch-action: manipulation;
+  cursor: pointer;
+}
+
+/* Minimum touch targets for mobile */
+button, a[href], [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* ===== MOBILE OPTIMIZATIONS ===== */
+
+@media (max-width: 768px) {
+  /* Light mobile optimizations - don't disable all interactions */
+
+  /* Keep essential transitions for interactivity */
+  button,
+  a,
+  .clickable {
+    transition: opacity 0.2s ease, transform 0.2s ease !important;
+    cursor: pointer !important;
+    pointer-events: auto !important;
+  }
+
+  /* Mobile-specific welcome screen optimizations */
+  [class*="Welcome"], [class*="welcome"] {
+    margin-top: 5rem !important;
+    padding-top: 2rem !important;
+  }
+}
+
+/* ===== SCROLL DETECTION OPTIMIZATIONS ===== */
+
+/* Optimize scroll detection performance */
+.optimized-scroll {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Remove scroll snap that can cause jank */
+.scroll-snap-none {
+  scroll-snap-type: none !important;
+}
+
+/* ===== PERFORMANCE MONITORING ===== */
+
+/* Add performance hints */
+.performance-optimized {
+  contain: layout style paint;
+  content-visibility: auto;
+  will-change: auto;
+}
+
+/* Critical rendering optimizations */
+.critical-render {
+  contain: layout style;
+  will-change: auto;
+}
+
+/* ===== HERO CLIENT OPTIMIZATIONS ===== */
+
+/* Optimize hero section performance */
+.hero-optimized {
+  contain: layout style paint !important;
+  will-change: auto !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+}
+
+/* Optimize neural network animations */
+.neural-network-visualization {
+  will-change: auto !important;
+  contain: layout style !important;
+}
+
+/* Optimize skill set animations */
+.skill-item {
+  will-change: auto !important;
+  contain: layout !important;
+}
+
+/* Optimize icon cloud container */
+[class*="icon-cloud"] {
+  will-change: auto !important;
+  contain: layout style !important;
+}
+
+/* ===== TECH STACK OPTIMIZATIONS ===== */
+
+/* Pre-optimize tech stack containers */
+.neon-border-purple-base,
+.neon-border-blue-base,
+.neon-border-green-base,
+.neon-border-pink-base,
+.neon-border-cyan-base,
+.neon-border-orange-base,
+.neon-border-yellow-base,
+.neon-border-violet-base {
+  contain: layout style !important;
+  will-change: auto !important;
+}
+
+/* ===== FINAL OVERRIDES ===== */
+
+/* Force disable problematic animations */
+.matrix-animation,
+.neural-pulse,
+.neural-pulse-alt,
+.bg-scanlines {
+  animation: none !important;
+  background: none !important;
+  opacity: 0.1 !important;
+}
+
+/* Ensure smooth scrolling */
+html, body {
+  scroll-behavior: smooth !important;
+}
+
+/* Remove any remaining will-change properties */
+body.performance-mode * {
+  will-change: auto !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+/* Content stability optimizations */
+.content-stable {
+  contain: layout style !important;
+}
+
+/* Optimize floating animations */
+body.is-scrolling [class*="floating"],
+body.is-scrolling [class*="animate"] {
+  animation-play-state: paused !important;
+}

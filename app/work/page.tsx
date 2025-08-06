@@ -1,73 +1,89 @@
-'use client'
-
-import { motion, AnimatePresence, useAnimation } from 'framer-motion'
-import { useState } from 'react'
+import { Metadata } from 'next'
 import Link from 'next/link'
-import { FiCode, FiLayout, FiShoppingBag, FiDatabase, FiSmartphone, FiChevronDown, FiChevronUp } from 'react-icons/fi'
+import { FiCode, FiLayout, FiShoppingBag, FiDatabase, FiSmartphone } from 'react-icons/fi'
+import { pageMetadata, generatePersonSchema, injectStructuredData } from '@/app/lib/seo'
+import WorkPageClient from './WorkPageClient'
 
-// Testimonial type definition
-type Testimonial = {
-  id: number
-  name: string
-  role: string
-  company: string
-  content: string
-  image: string
+// Generate metadata for SEO
+export const metadata: Metadata = pageMetadata.work()
+
+// Static data for server-side rendering
+const staticWorkData = {
+  testimonials: [
+    {
+      id: 1,
+      name: "JUNAID KHAN",
+      role: "CEO",
+      company: "TechCorp",
+      content: "Working with this developer was an absolute pleasure. Their attention to detail and creative solutions exceeded our expectations. The final product was exactly what we needed and more.",
+      image: "/testimonials/john.jpg"
+    },
+    {
+      id: 2,
+      name: "ALI IMRAN",
+      role: "Product Manager",
+      company: "InnovateLabs",
+      content: "The web application developed for us is not only beautiful but also highly functional. The attention to user experience and performance optimization really sets this work apart.",
+      image: "/testimonials/sarah.jpg"
+    },
+    {
+      id: 3,
+      name: "MUNEEB AHMAD",
+      role: "CTO",
+      company: "DigitalFirst",
+      content: "Exceptional work on our e-commerce platform. The implementation of modern technologies and best practices has significantly improved our conversion rates.",
+      image: "/testimonials/michael.jpg"
+    }
+  ],
+
+  workProcess: [
+    {
+      phase: "Discovery",
+      description: "Deep dive into your business needs and project requirements. We analyze market trends, user behavior, and technical constraints to create a solid foundation.",
+      steps: [
+        "Initial consultation",
+        "Requirements gathering",
+        "Market research",
+        "Technical feasibility analysis"
+      ]
+    },
+    {
+      phase: "Development",
+      description: "Building your solution using cutting-edge technologies and best practices. Focused on creating scalable, maintainable, and high-performance applications.",
+      steps: [
+        "Architecture planning",
+        "Agile development",
+        "Regular code reviews",
+        "Continuous integration"
+      ]
+    },
+    {
+      phase: "Delivery",
+      description: "Thorough testing and optimization before launch. Ensuring a smooth deployment and providing ongoing support for your success.",
+      steps: [
+        "Quality assurance",
+        "Performance optimization",
+        "Deployment strategy",
+        "Post-launch support"
+      ]
+    }
+  ],
+
+  stats: [
+    { label: "Projects Completed", value: "50+" },
+    { label: "Happy Clients", value: "30+" },
+    { label: "Years Experience", value: "5+" },
+    { label: "Technologies", value: "15+" }
+  ]
 }
 
-// Sample testimonials data
-const testimonials: Testimonial[] = [
-  {
-    id: 1,
-    name: "JUNAID KHAN",
-    role: "CEO",
-    company: "TechCorp",
-    content: "Working with this developer was an absolute pleasure. Their attention to detail and creative solutions exceeded our expectations. The final product was exactly what we needed and more.",
-    image: "/testimonials/john.jpg"
-  },
-  {
-    id: 2,
-    name: "ALI IMRAN",
-    role: "Product Manager",
-    company: "InnovateLabs",
-    content: "The web application developed for us is not only beautiful but also highly functional. The attention to user experience and performance optimization really sets this work apart.",
-    image: "/testimonials/sarah.jpg"
-  },
-  {
-    id: 3,
-    name: "MUNEEB AHMAD",
-    role: "CTO",
-    company: "DigitalFirst",
-    content: "Exceptional work on our e-commerce platform. The implementation of modern technologies and best practices has significantly improved our conversion rates.",
-    image: "/testimonials/michael.jpg"
-  }
-]
-
-// Project type definition
-type Project = {
-  id: number
-  title: string
-  description: string
-  icon: any
-  technologies: string[]
-  metrics: string[]
-  link: string
-  detailedInfo: {
-    challenge: string
-    solution: string
-    features: string[]
-    technicalDetails: string[]
-    results: string[]
-  }
-}
-
-// Enhanced featured projects data with detailed information
-const featuredProjects: Project[] = [
+// Featured projects data for server-side rendering
+const featuredProjects = [
   {
     id: 1,
     title: "E-commerce Platform",
     description: "A modern e-commerce solution built with Next.js and Shopify. Features include real-time inventory management, AI-powered recommendations, and seamless payment integration.",
-    icon: FiShoppingBag,
+    icon: "FiShoppingBag",
     technologies: ["Next.js", "Shopify", "Tailwind CSS", "TypeScript"],
     metrics: ["50% faster loading", "35% higher conversion", "99.9% uptime"],
     link: "/projects/ecommerce",
@@ -100,7 +116,7 @@ const featuredProjects: Project[] = [
     id: 2,
     title: "Portfolio Platform",
     description: "A creative portfolio platform with interactive elements and dynamic content loading. Built with modern web technologies for optimal performance.",
-    icon: FiLayout,
+    icon: "FiLayout",
     technologies: ["React", "Framer Motion", "Three.js", "TypeScript"],
     metrics: ["Perfect Lighthouse score", "2s average load time", "60fps animations"],
     link: "/projects/portfolio",
@@ -133,7 +149,7 @@ const featuredProjects: Project[] = [
     id: 3,
     title: "Mobile App Backend",
     description: "Scalable backend infrastructure for a fitness tracking mobile app. Handles real-time data synchronization and analytics.",
-    icon: FiDatabase,
+    icon: "FiDatabase",
     technologies: ["Node.js", "MongoDB", "WebSocket", "AWS"],
     metrics: ["1M+ daily requests", "50ms response time", "Zero downtime deployment"],
     link: "/projects/backend",
@@ -166,7 +182,7 @@ const featuredProjects: Project[] = [
     id: 4,
     title: "React Native App",
     description: "Cross-platform mobile application with offline capabilities and smooth animations. Features include biometric authentication and push notifications.",
-    icon: FiSmartphone,
+    icon: "FiSmartphone",
     technologies: ["React Native", "Redux", "Firebase", "Jest"],
     metrics: ["4.8★ App Store rating", "100k+ downloads", "98% crash-free sessions"],
     link: "/projects/mobile",
@@ -197,99 +213,53 @@ const featuredProjects: Project[] = [
   }
 ]
 
-// Work process details
-const workProcess = [
-  {
-    phase: "Discovery",
-    description: "Deep dive into your business needs and project requirements. We analyze market trends, user behavior, and technical constraints to create a solid foundation.",
-    steps: [
-      "Initial consultation",
-      "Requirements gathering",
-      "Market research",
-      "Technical feasibility analysis"
-    ]
-  },
-  {
-    phase: "Development",
-    description: "Building your solution using cutting-edge technologies and best practices. Focused on creating scalable, maintainable, and high-performance applications.",
-    steps: [
-      "Architecture planning",
-      "Agile development",
-      "Regular code reviews",
-      "Continuous integration"
-    ]
-  },
-  {
-    phase: "Delivery",
-    description: "Thorough testing and optimization before launch. Ensuring a smooth deployment and providing ongoing support for your success.",
-    steps: [
-      "Quality assurance",
-      "Performance optimization",
-      "Deployment strategy",
-      "Post-launch support"
-    ]
-  }
-]
-
-export default function WorkPage() {
-  const [hoveredProject, setHoveredProject] = useState<number | null>(null)
-  const [expandedProject, setExpandedProject] = useState<number | null>(null)
-  const [expandedStat, setExpandedStat] = useState<string | null>(null)
-  const controls = useAnimation()
-
-  const toggleProject = (projectId: number) => {
-    setExpandedProject(expandedProject === projectId ? null : projectId)
-  }
-
-  const handleStatClick = (label: string) => {
-    setExpandedStat(expandedStat === label ? null : label)
-  }
+// Server component - this runs on the server
+export default async function WorkPage() {
+  // Generate structured data for SEO
+  const personSchema = generatePersonSchema()
 
   return (
-    <div className="min-h-screen bg-black">
-      {/* Enhanced Background Effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[128px] animate-pulse" />
-        <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[128px] animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse delay-500" />
-      </div>
+    <>
+      {/* Inject structured data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: injectStructuredData(personSchema)
+        }}
+      />
 
-      <div className="relative pt-24 px-6 backdrop-blur-sm">
-        {/* Hero Section */}
-        <motion.section 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          className="max-w-7xl mx-auto mb-12 sm:mb-20"
-        >
-          <div className="inline-block bg-purple-500/10 text-purple-300 px-3 py-1 text-sm rounded-full mb-4 backdrop-blur-sm border border-purple-500/20">
-            MY WORK
-          </div>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
-            Crafting Digital <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Excellence</span>
-          </h1>
-          <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto">
-            Transforming ideas into exceptional digital experiences. Explore my portfolio of successful projects and discover how I can help bring your vision to life.
-          </p>
-        </motion.section>
+      {/* Static content for SEO crawlers */}
+      <div className="min-h-screen bg-black">
+        {/* Enhanced Background Effects */}
+        <div className="fixed inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-1/4 -left-1/4 w-[500px] h-[500px] bg-purple-500/10 rounded-full blur-[128px] animate-pulse" />
+          <div className="absolute bottom-1/4 -right-1/4 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[128px] animate-pulse delay-1000" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-purple-700/5 rounded-full blur-[150px] animate-pulse delay-500" />
+        </div>
 
-        {/* Enhanced Featured Projects Section */}
-        <motion.section 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-7xl mx-auto mb-12 sm:mb-20"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Featured Projects</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
-            {featuredProjects.map((project) => (
-              <motion.div
-                key={project.id}
-                className="relative overflow-hidden rounded-xl bg-white/5 border border-purple-500/10 backdrop-blur-sm hover:border-purple-500/20 transition-colors"
-                onHoverStart={() => setHoveredProject(project.id)}
-                onHoverEnd={() => setHoveredProject(null)}
-              >
-                <div className="p-4 sm:p-6">
+        <div className="relative pt-24 px-6 backdrop-blur-sm">
+          {/* Hero Section - SEO optimized */}
+          <section className="max-w-7xl mx-auto mb-12 sm:mb-20">
+            <div className="inline-block bg-purple-500/10 text-purple-300 px-3 py-1 text-sm rounded-full mb-4 backdrop-blur-sm border border-purple-500/20">
+              MY WORK
+            </div>
+            <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 sm:mb-6 text-center">
+              Crafting Digital <span className="inline-block bg-white text-black px-3 py-1 rounded-md">Excellence</span>
+            </h1>
+            <p className="text-base sm:text-lg md:text-xl text-gray-300 mb-6 sm:mb-8 max-w-2xl mx-auto text-center">
+              Transforming ideas into exceptional digital experiences. Explore my portfolio of successful projects and discover how I can help bring your vision to life.
+            </p>
+          </section>
+
+          {/* Featured Projects Preview - SEO Content */}
+          <section className="max-w-7xl mx-auto mb-12 sm:mb-20">
+            <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Featured Projects</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-8">
+              {featuredProjects.slice(0, 2).map((project) => (
+                <div
+                  key={project.id}
+                  className="relative overflow-hidden rounded-xl bg-white/5 border border-purple-500/10 backdrop-blur-sm p-4 sm:p-6"
+                >
                   <div className="flex items-center gap-3 sm:gap-4 mb-3 sm:mb-4">
                     <project.icon className="w-6 h-6 sm:w-8 sm:h-8 text-purple-400" />
                     <h3 className="text-xl sm:text-2xl font-bold">{project.title}</h3>
@@ -314,247 +284,26 @@ export default function WorkPage() {
                       ))}
                     </div>
                   </div>
-                  
-                  {/* Read More Button */}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation()
-                      toggleProject(project.id)
-                    }}
-                    className="flex items-center gap-2 mt-4 text-purple-400 hover:text-purple-300 transition-colors group"
-                  >
-                    <span>Read More</span>
-                    {expandedProject === project.id ? (
-                      <FiChevronUp className="transition-transform group-hover:-translate-y-1" />
-                    ) : (
-                      <FiChevronDown className="transition-transform group-hover:translate-y-1" />
-                    )}
-                  </button>
-
-                  {/* Expanded Content */}
-                  <AnimatePresence>
-                    {expandedProject === project.id && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ 
-                          height: { duration: 0.3 },
-                          opacity: { duration: 0.2 }
-                        }}
-                        className="overflow-hidden"
-                      >
-                        <div className="pt-4 mt-4 border-t border-purple-500/20">
-                          <motion.div 
-                            className="space-y-6"
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ delay: 0.1 }}
-                          >
-                            <div className="bg-purple-500/5 p-4 rounded-lg border border-purple-500/10">
-                              <h4 className="text-purple-300 font-semibold mb-2 flex items-center gap-2">
-                                <span className="w-1 h-1 rounded-full bg-purple-500"></span>
-                                Challenge
-                              </h4>
-                              <p className="text-gray-400">{project.detailedInfo.challenge}</p>
-                            </div>
-                            
-                            <div className="space-y-3">
-                              <h4 className="text-purple-300 font-semibold flex items-center gap-2">
-                                <span className="w-1 h-1 rounded-full bg-purple-500"></span>
-                                Solution
-                              </h4>
-                              <p className="text-gray-400">{project.detailedInfo.solution}</p>
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
-                                {project.detailedInfo.features.map((feature, index) => (
-                                  <motion.div
-                                    key={index}
-                                    initial={{ opacity: 0, x: -20 }}
-                                    animate={{ opacity: 1, x: 0 }}
-                                    transition={{ delay: index * 0.1 }}
-                                    className="flex items-center gap-2 text-gray-400 bg-purple-500/5 p-2 rounded-lg"
-                                  >
-                                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50 flex-shrink-0" />
-                                    <span className="text-sm">{feature}</span>
-                                  </motion.div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div className="space-y-3">
-                                <h4 className="text-purple-300 font-semibold flex items-center gap-2">
-                                  <span className="w-1 h-1 rounded-full bg-purple-500"></span>
-                                  Technical Details
-                                </h4>
-                                <div className="space-y-2">
-                                  {project.detailedInfo.technicalDetails.map((detail, index) => (
-                                    <motion.div
-                                      key={index}
-                                      initial={{ opacity: 0, x: -20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      transition={{ delay: index * 0.1 }}
-                                      className="flex items-center gap-2 text-gray-400 bg-purple-500/5 p-2 rounded-lg"
-                                    >
-                                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50 flex-shrink-0" />
-                                      <span className="text-sm">{detail}</span>
-                                    </motion.div>
-                                  ))}
-                                </div>
-                              </div>
-
-                              <div className="space-y-3">
-                                <h4 className="text-purple-300 font-semibold flex items-center gap-2">
-                                  <span className="w-1 h-1 rounded-full bg-purple-500"></span>
-                                  Key Results
-                                </h4>
-                                <div className="space-y-2">
-                                  {project.detailedInfo.results.map((result, index) => (
-                                    <motion.div
-                                      key={index}
-                                      initial={{ opacity: 0, x: -20 }}
-                                      animate={{ opacity: 1, x: 0 }}
-                                      transition={{ delay: index * 0.1 }}
-                                      className="flex items-center gap-2 text-gray-400 bg-purple-500/5 p-2 rounded-lg"
-                                    >
-                                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50 flex-shrink-0" />
-                                      <span className="text-sm">{result}</span>
-                                    </motion.div>
-                                  ))}
-                                </div>
-                              </div>
-                            </div>
-                          </motion.div>
-                        </div>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
                 </div>
-              </motion.div>
-            ))}
-          </div>
-          <div className="text-center mt-12">
-            <Link 
-              href="/projects" 
-              className="inline-block px-8 py-3 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/30 text-purple-300"
-            >
-              View All Projects →
-            </Link>
-          </div>
-        </motion.section>
-
-        {/* Testimonials Section */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="max-w-7xl mx-auto mb-20"
-        >
-          <h2 className="text-3xl font-bold mb-8">Client Testimonials</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {testimonials.map((testimonial) => (
-              <motion.div
-                key={testimonial.id}
-                className="bg-white/5 p-6 rounded-xl backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/20 transition-colors"
-                whileHover={{ y: -5 }}
+              ))}
+            </div>
+            <div className="text-center mt-12">
+              <Link
+                href="/projects"
+                className="inline-block px-8 py-3 bg-purple-500/10 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20 hover:border-purple-500/30 text-purple-300"
               >
-                <div className="flex items-center mb-4">
-                  <img
-                    src={testimonial.image}
-                    alt={testimonial.name}
-                    className="w-12 h-12 rounded-full mr-4 border-2 border-purple-500/20"
-                  />
-                  <div>
-                    <h3 className="font-bold">{testimonial.name}</h3>
-                    <p className="text-sm text-purple-300">{testimonial.role} at {testimonial.company}</p>
-                  </div>
-                </div>
-                <p className="text-gray-300 italic">{testimonial.content}</p>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
+                View All Projects →
+              </Link>
+            </div>
+          </section>
 
-        {/* Work Process Section */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.6 }}
-          className="max-w-7xl mx-auto mb-12 sm:mb-20"
-        >
-          <h2 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Work Process</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-8">
-            {workProcess.map((phase, index) => (
-              <motion.div
-                key={phase.phase}
-                className="bg-white/5 p-4 sm:p-6 rounded-xl backdrop-blur-sm border border-purple-500/10 hover:border-purple-500/20 transition-colors"
-                whileHover={{ scale: 1.02 }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 * index }}
-              >
-                <h3 className="text-lg sm:text-xl font-bold mb-3 sm:mb-4 text-purple-300">{phase.phase}</h3>
-                <p className="text-sm sm:text-base text-gray-300 mb-3 sm:mb-4">{phase.description}</p>
-                <ul className="space-y-2">
-                  {phase.steps.map((step, stepIndex) => (
-                    <li key={stepIndex} className="flex items-center gap-2 text-sm sm:text-base text-gray-400">
-                      <span className="w-1.5 h-1.5 rounded-full bg-purple-500/50" />
-                      {step}
-                    </li>
-                  ))}
-                </ul>
-              </motion.div>
-            ))}
-          </div>
-        </motion.section>
-
-        {/* Stats Section */}
-        <motion.section
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.8 }}
-          className="max-w-7xl mx-auto mb-12 sm:mb-20"
-        >
-          <motion.div 
-            className="grid grid-cols-2 md:grid-cols-4 gap-4 sm:gap-8"
-            animate={controls}
-          >
-            {[
-              { label: "Projects Completed", value: "50+" },
-              { label: "Happy Clients", value: "30+" },
-              { label: "Years Experience", value: "5+" },
-              { label: "Technologies", value: "15+" }
-            ].map((stat, index) => (
-              <motion.div
-                key={stat.label}
-                className={`text-center p-4 sm:p-6 rounded-xl backdrop-blur-sm cursor-pointer
-                  ${expandedStat === stat.label 
-                    ? 'bg-purple-500/30 border-purple-400/50 shadow-[0_0_30px_rgba(168,85,247,0.4)]' 
-                    : 'bg-white/5 border-purple-500/10'} 
-                  border hover:border-purple-500/30 transition-all duration-500`}
-                whileHover={{ 
-                  y: -8, 
-                  scale: 1.05,
-                  transition: { duration: 0.2 }
-                }}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.1 * index }}
-                onClick={() => handleStatClick(stat.label)}
-              >
-                <motion.h4 
-                  className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-white via-purple-300 to-purple-500 bg-clip-text text-transparent mb-2 sm:mb-3"
-                  whileHover={{ scale: 1.1 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  {stat.value}
-                </motion.h4>
-                <p className="text-sm sm:text-base text-gray-200 font-semibold">{stat.label}</p>
-              </motion.div>
-            ))}
-          </motion.div>
-        </motion.section>
+          {/* Pass data to client component for interactive features */}
+          <WorkPageClient
+            featuredProjects={featuredProjects}
+            staticData={staticWorkData}
+          />
+        </div>
       </div>
-    </div>
+    </>
   )
-} 
+}

@@ -1,11 +1,13 @@
-/* Barba.js transition styles */
+/* OPTIMIZED Barba.js transitions for 60fps performance */
 .barba-container {
   position: relative;
   opacity: 1;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.2s ease !important;
   width: 100%;
   min-height: 100vh;
   background-color: var(--nex-dark-bg);
+  will-change: auto !important;
+  transform: none !important;
 }
 
 .barba-container.barba-leave {
@@ -16,100 +18,62 @@
   z-index: 5;
 }
 
-/* Overlay for transitions */
+/* Simplified overlay for transitions */
 .transition-overlay {
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.9);
+  background-color: rgba(0, 0, 0, 0.8);
   z-index: 999;
   pointer-events: none;
   opacity: 0;
-  transition: opacity 0.5s ease;
+  transition: opacity 0.2s ease;
 }
 
 .transition-overlay.active {
   opacity: 1;
 }
 
-/* Smooth scroll styles */
+/* Optimized scroll styles */
 html.is-animating {
   scroll-behavior: smooth;
-  background-color: var(--nex-darker-bg);
 }
 
-/* Transition animations for containers */
+/* SIMPLIFIED transition animations */
 [data-barba="container"] {
   opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.5s ease, transform 0.6s ease;
+  transition: opacity 0.2s ease !important;
   width: 100%;
   min-height: 100vh;
   background-color: var(--nex-dark-bg);
+  will-change: auto !important;
+  transform: none !important;
 }
 
 [data-barba="container"].barba-leave {
-  opacity: 0;
-  transform: translateY(-10px);
+  opacity: 0.8;
 }
 
 [data-barba="container"].barba-enter {
-  opacity: 0;
-  transform: translateY(10px);
+  opacity: 0.8;
 }
 
-/* Prevent full scroll lock during transitions - only reduce scroll visibility */
-.barba-prevent-scroll {
-  /* Use pointer-events to prevent interaction but allow scrolling */
-  pointer-events: none;
-}
+/* REMOVED: Complex transitions for better performance */
 
-/* Custom page transitions */
-.page-transition-enter {
-  opacity: 0;
-  transform: translateY(20px);
-}
-
-.page-transition-enter-active {
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.5s, transform 0.5s;
-}
-
-.page-transition-exit {
-  opacity: 1;
-  transform: translateY(0);
-}
-
-.page-transition-exit-active {
-  opacity: 0;
-  transform: translateY(-20px);
-  transition: opacity 0.5s, transform 0.5s;
-}
-
-/* Hero transition styles */
-.hero-transition-enter {
-  opacity: 0;
-  transform: scale(0.95);
-}
-
-.hero-transition-enter-active {
-  opacity: 1;
-  transform: scale(1);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
-}
-
-.hero-transition-exit {
-  opacity: 1;
-  transform: scale(1);
-}
-
+/* Minimal page transitions */
+.page-transition-enter,
+.page-transition-enter-active,
+.page-transition-exit,
+.page-transition-exit-active,
+.hero-transition-enter,
+.hero-transition-enter-active,
+.hero-transition-exit,
 .hero-transition-exit-active {
-  opacity: 0;
-  transform: scale(1.05);
-  transition: opacity 0.6s ease-in, transform 0.6s ease-in;
+  opacity: 1 !important;
+  transform: none !important;
+  transition: opacity 0.1s ease !important;
 }
 
 /* Progress bar for transitions */

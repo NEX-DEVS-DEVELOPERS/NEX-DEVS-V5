@@ -500,7 +500,7 @@ interface AIProject {
 }
 
 // Project Card Component for AI Projects
-const ProjectCard = ({ project }: { project: AIProject }) => {
+const ProjectCard = ({ project, isMobile }: { project: AIProject, isMobile?: boolean }) => {
   const [imageError, setImageError] = useState(false);
   const [secondImageError, setSecondImageError] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
@@ -564,7 +564,9 @@ const ProjectCard = ({ project }: { project: AIProject }) => {
     >
       <div className="relative">
         {/* Optimized Project Image Container */}
-        <div className="relative w-full aspect-[16/9] overflow-hidden bg-gray-900">
+        <div className={`relative w-full overflow-hidden bg-gray-900 ${
+          isMobile ? 'aspect-[4/3]' : 'aspect-[16/9]'
+        }`}>
           {/* Loading skeleton */}
           {(imageLoading || (project.secondImage && secondImageLoading && isHovered)) && (
             <div className="absolute inset-0 bg-gray-900 flex items-center justify-center">
@@ -583,7 +585,7 @@ const ProjectCard = ({ project }: { project: AIProject }) => {
               }`}
               onLoad={handleImageLoad}
               onError={handleImageError}
-              sizes="(max-width: 768px) 90vw, (max-width: 1200px) 70vw, 55vw"
+              sizes={isMobile ? "(max-width: 768px) 100vw" : "(max-width: 768px) 90vw, (max-width: 1200px) 70vw, 55vw"}
               quality={90}
               priority={false}
               style={{
@@ -604,7 +606,7 @@ const ProjectCard = ({ project }: { project: AIProject }) => {
               }`}
               onLoad={handleSecondImageLoad}
               onError={handleSecondImageError}
-              sizes="(max-width: 768px) 90vw, (max-width: 1200px) 70vw, 55vw"
+              sizes={isMobile ? "(max-width: 768px) 100vw" : "(max-width: 768px) 90vw, (max-width: 1200px) 70vw, 55vw"}
               quality={90}
               priority={false}
               style={{
@@ -767,32 +769,12 @@ const ProjectCard = ({ project }: { project: AIProject }) => {
 };
 
 // Side Drawer for Projects with enhanced styling
-const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const ProjectsDrawer = ({ isOpen, onClose, isMobile }: { isOpen: boolean, onClose: () => void, isMobile: boolean }) => {
   const [aiProjects, setAiProjects] = useState<AIProject[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch AI projects when drawer opens
-  useEffect(() => {
-    if (isOpen) {
-      fetchAIProjects();
-    }
-  }, [isOpen]);
-
-  // Prevent body scrolling when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
-
-  const fetchAIProjects = async () => {
+  const fetchAIProjects = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -818,7 +800,27 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  // Fetch AI projects when drawer opens
+  useEffect(() => {
+    if (isOpen) {
+      fetchAIProjects();
+    }
+  }, [isOpen, fetchAIProjects]);
+
+  // Prevent body scrolling when drawer is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   return (
     <AnimatePresence>
@@ -829,16 +831,20 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "linear" }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+            className={`fixed inset-0 bg-black/80 backdrop-blur-md ${isMobile ? 'z-[9998]' : 'z-40'}`}
             onClick={onClose}
             style={{ willChange: "opacity" }}
           />
           <motion.div
-            initial={{ x: '-100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '-100%' }}
+            initial={isMobile ? { y: '100%' } : { x: '-100%' }}
+            animate={isMobile ? { y: 0 } : { x: 0 }}
+            exit={isMobile ? { y: '100%' } : { x: '-100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
-            className="fixed top-[80px] left-0 h-[calc(100vh-180px)] w-[90vw] md:w-[70vw] lg:w-[55vw] max-w-[900px] min-w-[320px] bg-black border-r border-purple-500/20 shadow-2xl z-50 rounded-r-2xl overflow-hidden"
+            className={`fixed bg-black shadow-2xl overflow-hidden ${
+              isMobile
+                ? 'top-[95px] left-0 right-0 h-[75vh] w-full rounded-t-2xl border-t border-purple-500/20 z-[9999]'
+                : 'top-[80px] left-0 h-[calc(100vh-180px)] w-[90vw] md:w-[70vw] lg:w-[55vw] max-w-[900px] min-w-[320px] border-r border-purple-500/20 rounded-r-2xl z-50'
+            }`}
             style={{ willChange: "transform" }}
           >
             <div className="h-full flex flex-col">
@@ -848,7 +854,9 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
               </div>
 
               {/* Enhanced Header */}
-              <div className="relative px-4 md:px-8 py-4 md:py-6 bg-black rounded-tr-2xl border-b border-purple-500/20">
+              <div className={`relative px-4 md:px-8 py-4 md:py-6 bg-black border-b border-purple-500/20 ${
+                isMobile ? 'rounded-t-2xl' : 'rounded-tr-2xl'
+              }`}>
                 <div className="relative z-10">
                   <h2 className="text-xl md:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 tracking-tight">
                     AI-BASED PROJECTS
@@ -870,11 +878,14 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                   )}
                 </div>
                 {/* Projects Drawer Close Button */}
-                <motion.button 
+                <motion.button
                   onClick={onClose}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute top-4 md:top-6 right-4 md:right-6 w-12 h-12 rounded-full hover:bg-gray-800 transition-all duration-200 bg-gray-900/90 border border-gray-600 shadow-lg hover:shadow-xl hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-center group z-50"
+                  className={`absolute top-4 md:top-6 right-4 md:right-6 rounded-full hover:bg-gray-800 transition-all duration-200 bg-gray-900/90 border border-gray-600 shadow-lg hover:shadow-xl hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-center group z-50 ${
+                    isMobile ? 'w-10 h-10' : 'w-12 h-12'
+                  }`}
+                  style={{ minWidth: '44px', minHeight: '44px' }} // Ensure minimum touch target
                   aria-label="Close projects drawer"
                 >
                   <motion.div
@@ -882,7 +893,9 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                     whileHover={{ rotate: 180 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-5 h-5 text-white group-hover:text-blue-400 transition-colors" />
+                    <X className={`text-white group-hover:text-blue-400 transition-colors ${
+                      isMobile ? 'w-4 h-4' : 'w-5 h-5'
+                    }`} />
                   </motion.div>
                 </motion.button>
               </div>
@@ -893,10 +906,10 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                 style={{
                   willChange: "scroll-position",
                   transform: 'translateZ(0)',
+                  maxHeight: isMobile ? 'calc(85vh - 120px)' : 'calc(100vh - 280px)',
                   backfaceVisibility: 'hidden',
                   contain: 'layout style paint',
-                  scrollBehavior: 'smooth',
-                  maxHeight: 'calc(100vh - 280px)'
+                  scrollBehavior: 'smooth'
                 }}
               >
                 {/* Simplified background for better performance */}
@@ -944,7 +957,7 @@ const ProjectsDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => v
                       }}
                     >
                       {aiProjects.map((project) => (
-                        <ProjectCard key={project.id} project={project} />
+                        <ProjectCard key={project.id} project={project} isMobile={isMobile} />
                       ))}
                     </div>
                   )}
@@ -1249,7 +1262,7 @@ const PricingNeuralNetwork = () => {
 };
 
 // Roadmap Drawer Component
-const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => void }) => {
+const RoadmapDrawer = ({ isOpen, onClose, isMobile }: { isOpen: boolean, onClose: () => void, isMobile: boolean }) => {
   // Prevent body scrolling when drawer is open
   useEffect(() => {
     if (isOpen) {
@@ -1272,16 +1285,20 @@ const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2, ease: "linear" }}
-            className="fixed inset-0 bg-black/80 backdrop-blur-md z-40"
+            className={`fixed inset-0 bg-black/80 backdrop-blur-md ${isMobile ? 'z-[9998]' : 'z-40'}`}
             onClick={onClose}
             style={{ willChange: "opacity" }}
           />
           <motion.div
-            initial={{ x: '100%' }}
-            animate={{ x: 0 }}
-            exit={{ x: '100%' }}
+            initial={isMobile ? { y: '100%' } : { x: '100%' }}
+            animate={isMobile ? { y: 0 } : { x: 0 }}
+            exit={isMobile ? { y: '100%' } : { x: '100%' }}
             transition={{ type: 'spring', stiffness: 300, damping: 30, mass: 0.8 }}
-            className="fixed top-[80px] right-0 h-[calc(100vh-120px)] w-[40vw] bg-black border-l border-blue-500/20 shadow-2xl z-50 rounded-l-2xl overflow-hidden"
+            className={`fixed bg-black shadow-2xl overflow-hidden ${
+              isMobile
+                ? 'top-[95px] left-0 right-0 h-[75vh] w-full rounded-t-2xl border-t border-blue-500/20 z-[9999]'
+                : 'top-[80px] right-0 h-[calc(100vh-120px)] w-[40vw] border-l border-blue-500/20 rounded-l-2xl z-50'
+            }`}
             style={{ willChange: "transform" }}
           >
             <div className="h-full flex flex-col">
@@ -1291,7 +1308,9 @@ const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
               </div>
               
               {/* Header */}
-              <div className="relative px-8 py-6 bg-black rounded-tl-2xl border-b border-blue-500/20">
+              <div className={`relative px-4 md:px-8 py-4 md:py-6 bg-black border-b border-blue-500/20 ${
+                isMobile ? 'rounded-t-2xl' : 'rounded-tl-2xl'
+              }`}>
                 <div className="relative z-10">
                   <h2 className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 tracking-tight">
                     AI IMPLEMENTATION ROADMAP
@@ -1304,11 +1323,14 @@ const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                   </div>
                 </div>
                 {/* Roadmap Drawer Close Button */}
-                <motion.button 
-                  onClick={onClose} 
+                <motion.button
+                  onClick={onClose}
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
-                  className="absolute top-6 right-6 w-12 h-12 rounded-full hover:bg-gray-800 transition-all duration-200 bg-gray-900/90 border border-gray-600 shadow-lg hover:shadow-xl hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-center group z-50"
+                  className={`absolute top-6 right-6 rounded-full hover:bg-gray-800 transition-all duration-200 bg-gray-900/90 border border-gray-600 shadow-lg hover:shadow-xl hover:border-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500/50 flex items-center justify-center group z-50 ${
+                    isMobile ? 'w-10 h-10' : 'w-12 h-12'
+                  }`}
+                  style={{ minWidth: '44px', minHeight: '44px' }} // Ensure minimum touch target
                   aria-label="Close roadmap drawer"
                 >
                   <motion.div
@@ -1316,17 +1338,19 @@ const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
                     whileHover={{ rotate: 180 }}
                     transition={{ duration: 0.2 }}
                   >
-                    <X className="w-5 h-5 text-white group-hover:text-purple-400 transition-colors" />
+                    <X className={`text-white group-hover:text-purple-400 transition-colors ${
+                      isMobile ? 'w-4 h-4' : 'w-5 h-5'
+                    }`} />
                   </motion.div>
                 </motion.button>
               </div>
 
               {/* Content Area - Fixed height with internal scrolling */}
-              <div 
-                className="flex-1 p-8 overflow-y-auto bg-black relative" 
-                style={{ 
+              <div
+                className="flex-1 p-4 md:p-8 overflow-y-auto bg-black relative"
+                style={{
                   willChange: "scroll-position",
-                  maxHeight: 'calc(100vh - 220px)'
+                  maxHeight: isMobile ? 'calc(75vh - 120px)' : 'calc(100vh - 220px)'
                 }}
               >
                 <div className="relative">
@@ -1705,32 +1729,42 @@ const RoadmapDrawer = ({ isOpen, onClose }: { isOpen: boolean, onClose: () => vo
   );
 };
 
-// Roadmap Tab Button
-const RoadmapTab = ({ onClick }: { onClick: () => void }) => {
+// Roadmap Tab Button - Mobile optimized
+const RoadmapTab = ({ onClick, isMobile }: { onClick: () => void, isMobile?: boolean }) => {
   return (
     <motion.button
       id="roadmap-fixed-button"
       onClick={onClick}
       whileHover={{ scale: 1.05, x: -5 }}
       whileTap={{ scale: 0.95 }}
-      className="flex items-center gap-3 pl-6 pr-4 py-4 bg-gradient-to-r from-black/90 to-gray-900/90
-                 backdrop-blur-xl rounded-l-xl border-t border-l border-b border-blue-500/40
-                 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-300 group"
-      style={{ 
+      className={`flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-black/90 to-gray-900/90
+                 backdrop-blur-xl border-blue-500/40 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30
+                 transition-all duration-300 group ${
+                   isMobile
+                     ? 'px-4 py-3 rounded-full border-2'
+                     : 'pl-4 sm:pl-6 pr-3 sm:pr-4 py-3 sm:py-4 rounded-l-xl border-t border-l border-b'
+                 }`}
+      style={{
         willChange: "transform",
-        transformOrigin: "right center" // Ensure transform origin is set correctly
+        transformOrigin: isMobile ? "center" : "right center",
+        minHeight: isMobile ? '48px' : 'auto', // Ensure minimum touch target size
+        minWidth: isMobile ? '48px' : 'auto'
       }}
     >
       <div className="flex flex-col items-end">
-        <span className="text-sm font-bold text-white">ROADMAP</span>
-        <span className="text-[10px] font-medium text-blue-400 mt-0.5">NEX-SHFT™ PROCESS</span>
+        <span className="text-xs sm:text-sm font-bold text-white">ROADMAP</span>
+        <span className="text-[9px] sm:text-[10px] font-medium text-blue-400 mt-0.5">NEX-SHFT™ PROCESS</span>
       </div>
-      <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/15 group-hover:bg-blue-500/30 transition-colors">
-        <motion.div 
+      <div className={`flex items-center justify-center rounded-lg bg-blue-500/15 group-hover:bg-blue-500/30 transition-colors ${
+        isMobile ? 'w-10 h-10' : 'w-7 h-7 sm:w-8 sm:h-8'
+      }`}>
+        <motion.div
           whileHover={{ rotate: 15 }}
           transition={{ duration: 0.2 }}
         >
-          <ChevronLeft size={18} className="text-blue-400 rotate-180" />
+          <ChevronLeft className={`text-blue-400 rotate-180 ${
+            isMobile ? 'w-5 h-5' : 'w-4 h-4 sm:w-[18px] sm:h-[18px]'
+          }`} />
         </motion.div>
       </div>
       
@@ -1744,34 +1778,44 @@ const RoadmapTab = ({ onClick }: { onClick: () => void }) => {
   );
 };
 
-// Enhanced Side Tab Button
-const SideTab = ({ onClick }: { onClick: () => void }) => {
+// Enhanced Side Tab Button - Mobile optimized
+const SideTab = ({ onClick, isMobile }: { onClick: () => void, isMobile?: boolean }) => {
   return (
     <motion.button
       id="projects-fixed-button"
       onClick={onClick}
       whileHover={{ scale: 1.05, x: 8 }}
       whileTap={{ scale: 0.95 }}
-      className="flex items-center gap-3 pl-4 pr-6 py-4 bg-gradient-to-r from-black/90 via-purple-900/20 to-black/90
-                 backdrop-blur-xl rounded-r-xl border-t border-r border-b border-purple-500/50
-                 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40 transition-all duration-300 group relative"
-      style={{ 
+      className={`flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-black/90 via-purple-900/20 to-black/90
+                 backdrop-blur-xl border-purple-500/50 shadow-lg shadow-purple-500/20 hover:shadow-purple-500/40
+                 transition-all duration-300 group relative ${
+                   isMobile
+                     ? 'px-4 py-3 rounded-full border-2'
+                     : 'pl-3 sm:pl-4 pr-4 sm:pr-6 py-3 sm:py-4 rounded-r-xl border-t border-r border-b'
+                 }`}
+      style={{
         willChange: "transform",
-        transformOrigin: "left center" // Ensure transform origin is set correctly
+        transformOrigin: isMobile ? "center" : "left center",
+        minHeight: isMobile ? '48px' : 'auto', // Ensure minimum touch target size
+        minWidth: isMobile ? '48px' : 'auto'
       }}
     >
-      <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 group-hover:from-purple-500/30 group-hover:to-blue-500/30 transition-all duration-300">
+      <div className={`flex items-center justify-center rounded-lg bg-gradient-to-br from-purple-500/20 to-blue-500/20 group-hover:from-purple-500/30 group-hover:to-blue-500/30 transition-all duration-300 ${
+        isMobile ? 'w-10 h-10' : 'w-8 h-8 sm:w-10 sm:h-10'
+      }`}>
         <motion.div
           whileHover={{ rotate: -15, scale: 1.1 }}
           transition={{ duration: 0.2 }}
           style={{ willChange: "transform" }}
         >
-          <Brain className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
+          <Brain className={`text-purple-400 group-hover:text-purple-300 ${
+            isMobile ? 'w-5 h-5' : 'w-4 h-4 sm:w-5 sm:h-5'
+          }`} />
         </motion.div>
       </div>
       <div className="flex flex-col items-start">
-        <span className="text-sm font-bold text-white group-hover:text-purple-200 transition-colors">AI PROJECTS</span>
-        <span className="text-[10px] font-medium text-purple-400 mt-0.5 group-hover:text-purple-300 transition-colors">BY NEX-DEVS</span>
+        <span className="text-xs sm:text-sm font-bold text-white group-hover:text-purple-200 transition-colors">AI PROJECTS</span>
+        <span className="text-[9px] sm:text-[10px] font-medium text-purple-400 mt-0.5 group-hover:text-purple-300 transition-colors">BY NEX-DEVS</span>
       </div>
 
       {/* Animated indicator */}
@@ -2088,6 +2132,30 @@ export default function BusinessIntegrationPage() {
   const [selectedTechDetails, setSelectedTechDetails] = useState<PricingTier | null>(null);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isRoadmapOpen, setIsRoadmapOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  // Mobile detection hook
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Mutual exclusivity: close other drawer when one opens
+  const handleDrawerOpen = useCallback(() => {
+    if (isRoadmapOpen) setIsRoadmapOpen(false);
+    setIsDrawerOpen(true);
+  }, [isRoadmapOpen]);
+
+  const handleRoadmapOpen = useCallback(() => {
+    if (isDrawerOpen) setIsDrawerOpen(false);
+    setIsRoadmapOpen(true);
+  }, [isDrawerOpen]);
 
   // Optimized animation variants
   const fadeInUpVariant = useMemo(() => ({
@@ -2120,88 +2188,139 @@ export default function BusinessIntegrationPage() {
   }, []);
 
   return (
-    <div className="min-h-screen bg-black pt-20 md:pt-32 relative overflow-hidden">
-      {/* Project Drawer - Fixed to left side */}
-        <div id="projects-fixed-container" className="fixed left-0 top-32 z-50" style={{ position: 'fixed', transform: 'none' }}>
-        <ProjectsDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} />
-        <SideTab onClick={() => setIsDrawerOpen(true)} />
+    <div className="min-h-screen bg-black pt-16 sm:pt-20 md:pt-32 relative overflow-hidden">
+      {/* Project Drawer - Fixed positioning with mobile optimization */}
+        <div id="projects-fixed-container" className={`fixed z-50 ${
+          isMobile ? 'bottom-4 left-4' : 'left-0 top-36 sm:top-32'
+        }`} style={{ position: 'fixed', transform: 'none' }}>
+        <ProjectsDrawer isOpen={isDrawerOpen} onClose={() => setIsDrawerOpen(false)} isMobile={isMobile} />
+        {!isRoadmapOpen && <SideTab onClick={handleDrawerOpen} isMobile={isMobile} />}
       </div>
 
-      {/* Roadmap Drawer - Fixed to right side */}
-        <div id="roadmap-fixed-container" className="fixed right-0 top-32 z-50" style={{ position: 'fixed', transform: 'none' }}>
-        <RoadmapDrawer isOpen={isRoadmapOpen} onClose={() => setIsRoadmapOpen(false)} />
-        <RoadmapTab onClick={() => setIsRoadmapOpen(true)} />
+      {/* Roadmap Drawer - Fixed positioning with mobile optimization */}
+        <div id="roadmap-fixed-container" className={`fixed z-50 ${
+          isMobile ? 'bottom-4 right-4' : 'right-0 top-36 sm:top-32'
+        }`} style={{ position: 'fixed', transform: 'none' }}>
+        <RoadmapDrawer isOpen={isRoadmapOpen} onClose={() => setIsRoadmapOpen(false)} isMobile={isMobile} />
+        {!isDrawerOpen && <RoadmapTab onClick={handleRoadmapOpen} isMobile={isMobile} />}
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 relative z-[1]">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 sm:py-8 md:py-12 relative z-[1]">
           {/* Title Section */}
         <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="text-center mb-24 relative"
+          className="text-center mb-12 sm:mb-16 md:mb-24 relative"
         >
           {/* Neural Network Animation specifically behind title */}
-          <div className="absolute inset-0 h-[500px] overflow-hidden">
+          <div className="absolute inset-0 h-[300px] sm:h-[400px] md:h-[500px] overflow-hidden">
             <TitleNeuralNetwork />
           </div>
 
-          {/* Enhanced Frosted Background for Title - Restricted to title area only */}
-          <div className="absolute inset-x-0 top-[50px] h-[300px] 
-               bg-gradient-to-r from-blue-900/15 via-purple-900/20 to-blue-900/15 
-               backdrop-blur-[8px] rounded-3xl z-[1] mx-auto w-[92%] max-w-4xl
-               border border-blue-400/10 shadow-[0_0_40px_rgba(120,180,255,0.15)]">
-            
-            {/* AI circuit pattern overlay */}
-            <div className="absolute inset-0 opacity-10 overflow-hidden">
+          {/* Enhanced Frosted Background for Title with Checkered Pattern - Mobile optimized - FORCED BEHIND TITLE */}
+          <div className="absolute inset-x-0 top-[30px] sm:top-[40px] md:top-[50px] h-[200px] sm:h-[250px] md:h-[300px]
+               bg-gradient-to-r from-blue-900/15 via-purple-900/20 to-blue-900/15
+               backdrop-blur-[12px] sm:backdrop-blur-[15px] md:backdrop-blur-[18px] rounded-2xl sm:rounded-3xl mx-auto w-[95%] sm:w-[92%] max-w-4xl
+               border border-blue-400/20 shadow-[0_0_30px_rgba(120,180,255,0.2)] sm:shadow-[0_0_40px_rgba(120,180,255,0.25)] md:shadow-[0_0_50px_rgba(120,180,255,0.3)]"
+               style={{
+                 zIndex: -50,
+                 position: 'absolute',
+                 transform: 'translateZ(-1px)'
+               }}>
+
+            {/* Checkered/Grid Pattern Background - Hidden on mobile, visible on desktop */}
+            <div className="absolute inset-0 opacity-15 sm:opacity-20 overflow-hidden rounded-2xl sm:rounded-3xl hidden sm:block">
+              <div
+                className="w-full h-full"
+                style={{
+                  backgroundImage: `
+                    repeating-linear-gradient(
+                      0deg,
+                      transparent,
+                      transparent 20px,
+                      rgba(120,180,255,0.3) 20px,
+                      rgba(120,180,255,0.3) 22px
+                    ),
+                    repeating-linear-gradient(
+                      90deg,
+                      transparent,
+                      transparent 20px,
+                      rgba(120,180,255,0.3) 20px,
+                      rgba(120,180,255,0.3) 22px
+                    )
+                  `,
+                  backgroundSize: '40px 40px'
+                }}
+              />
+
+              {/* Additional grid intersections for more detail */}
+              <div
+                className="absolute inset-0 opacity-60"
+                style={{
+                  backgroundImage: `
+                    radial-gradient(circle at 20px 20px, rgba(120,180,255,0.4) 1px, transparent 1px),
+                    radial-gradient(circle at 40px 40px, rgba(120,180,255,0.4) 1px, transparent 1px)
+                  `,
+                  backgroundSize: '40px 40px'
+                }}
+              />
+            </div>
+
+            {/* AI circuit pattern overlay - Mobile optimized */}
+            <div className="absolute inset-0 opacity-8 sm:opacity-10 overflow-hidden rounded-2xl sm:rounded-3xl">
               <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none">
-                <path d="M10,30 L90,30" stroke="rgba(150,210,255,0.8)" strokeWidth="0.5" fill="none" />
-                <path d="M10,70 L90,70" stroke="rgba(150,210,255,0.8)" strokeWidth="0.5" fill="none" />
-                <path d="M30,10 L30,90" stroke="rgba(150,210,255,0.8)" strokeWidth="0.5" fill="none" />
-                <path d="M70,10 L70,90" stroke="rgba(150,210,255,0.8)" strokeWidth="0.5" fill="none" />
-                <circle cx="30" cy="30" r="2" fill="rgba(150,210,255,0.8)" />
-                <circle cx="70" cy="30" r="2" fill="rgba(150,210,255,0.8)" />
-                <circle cx="30" cy="70" r="2" fill="rgba(150,210,255,0.8)" />
-                <circle cx="70" cy="70" r="2" fill="rgba(150,210,255,0.8)" />
+                <path d="M10,30 L90,30" stroke="rgba(150,210,255,0.8)" strokeWidth="0.3" fill="none" />
+                <path d="M10,70 L90,70" stroke="rgba(150,210,255,0.8)" strokeWidth="0.3" fill="none" />
+                <path d="M30,10 L30,90" stroke="rgba(150,210,255,0.8)" strokeWidth="0.3" fill="none" />
+                <path d="M70,10 L70,90" stroke="rgba(150,210,255,0.8)" strokeWidth="0.3" fill="none" />
+                <circle cx="30" cy="30" r="1.5" fill="rgba(150,210,255,0.8)" />
+                <circle cx="70" cy="30" r="1.5" fill="rgba(150,210,255,0.8)" />
+                <circle cx="30" cy="70" r="1.5" fill="rgba(150,210,255,0.8)" />
+                <circle cx="70" cy="70" r="1.5" fill="rgba(150,210,255,0.8)" />
               </svg>
             </div>
           </div>
 
-          {/* Title Content */}
-          <div className="relative z-10">
+          {/* Title Content - Mobile optimized - FORCED IN FRONT */}
+          <div className="relative" style={{
+            zIndex: 100,
+            position: 'relative',
+            transform: 'translateZ(1px)'
+          }}>
           <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.8 }}
-              className="mb-6"
+              className="mb-4 sm:mb-6"
           >
-              <div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full border border-blue-400/30 backdrop-blur-sm">
-                <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
-                <span className="text-xs font-semibold text-blue-300 tracking-wider">POWERED BY NEX-SHFT™</span>
-                <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+              <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-blue-500/20 to-purple-500/20 rounded-full border border-blue-400/30 backdrop-blur-sm">
+                <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-blue-400 rounded-full animate-pulse"></div>
+                <span className="text-[10px] sm:text-xs font-semibold text-blue-300 tracking-wider">POWERED BY NEX-SHFT™</span>
+                <div className="w-1.5 sm:w-2 h-1.5 sm:h-2 bg-purple-400 rounded-full animate-pulse"></div>
             </div>
           </motion.div>
 
           <motion.h1
             variants={fadeInUpVariant}
-              className="text-5xl md:text-6xl lg:text-7xl font-black mb-6 relative"
+              className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-black mb-4 sm:mb-6 relative"
             >
-              {/* AI-related effect: Binary code overlay on text */}
-              <div className="absolute inset-0 overflow-hidden opacity-10 -z-10">
-                <div className="absolute inset-0 text-[8px] text-blue-300 font-mono opacity-70 leading-3 select-none" 
+              {/* AI-related effect: Binary code overlay on text - Mobile optimized */}
+              <div className="absolute inset-0 overflow-hidden opacity-8 sm:opacity-10 -z-10">
+                <div className="absolute inset-0 text-[6px] sm:text-[8px] text-blue-300 font-mono opacity-70 leading-2 sm:leading-3 select-none"
                      style={{transform: 'rotate(5deg)'}}>
-                  {'10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101'.repeat(5)}
+                  {'10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101 10110010 01001101'.repeat(3)}
                 </div>
               </div>
-              
-              <span className={`${audiowide.className} bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 drop-shadow-[0_0_10px_rgba(120,180,255,0.3)]`}>
-                Ai-INTEGRATION
+
+              <span className={`${audiowide.className} bg-clip-text text-transparent bg-gradient-to-r from-blue-400 via-purple-400 to-blue-400 drop-shadow-[0_0_8px_rgba(120,180,255,0.3)] sm:drop-shadow-[0_0_10px_rgba(120,180,255,0.3)]`}>
+                AI-INTEGRATION
             </span>
             <br />
               <span className={`${audiowide.className} text-white relative`}>
                 IN BUSINESS
-                <motion.span 
-                  className="absolute -right-6 top-1 text-3xl text-blue-400"
+                <motion.span
+                  className="absolute -right-3 sm:-right-4 md:-right-6 top-0.5 sm:top-1 text-xl sm:text-2xl md:text-3xl text-blue-400"
                   animate={{ opacity: [0.3, 1, 0.3] }}
                   transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
                 >
@@ -2212,81 +2331,81 @@ export default function BusinessIntegrationPage() {
 
             <motion.p
             variants={fadeInUpVariant}
-              className={`${vt323.className} text-xl md:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed`}
-              style={{ fontSize: '16px' }}
+              className={`${vt323.className} text-base sm:text-lg md:text-xl lg:text-2xl text-gray-300 max-w-4xl mx-auto leading-relaxed px-2 sm:px-0`}
+              style={{ fontSize: '14px' }}
             >
               Enterprise-grade AI solutions with NLP & Vector DB technology
             </motion.p>
-            
-            {/* Modern subtitle with tech-inspired design - Enhanced with more precise terminology */}
+
+            {/* Modern subtitle with tech-inspired design - Mobile optimized */}
             <motion.div
               variants={fadeInUpVariant}
-              className="mt-6 flex justify-center"
+              className="mt-4 sm:mt-6 flex justify-center px-2"
             >
-              <div className="grid grid-cols-4 gap-5 text-center max-w-3xl">
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 md:gap-5 text-center max-w-3xl w-full">
                 <div className="flex flex-col items-center">
-                  <Brain className="w-6 h-6 text-blue-400 mb-2" />
-                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>NEX-SHFT™ Method</span>
+                  <Brain className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-blue-400 mb-1 sm:mb-2" />
+                  <span className={`${vt323.className} text-xs sm:text-sm text-gray-400 font-medium`} style={{ fontSize: '12px' }}>NEX-SHFT™</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <Cpu className="w-6 h-6 text-purple-400 mb-2" />
-                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>NLP Engine</span>
+                  <Cpu className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-purple-400 mb-1 sm:mb-2" />
+                  <span className={`${vt323.className} text-xs sm:text-sm text-gray-400 font-medium`} style={{ fontSize: '12px' }}>NLP Engine</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <Database className="w-6 h-6 text-blue-400 mb-2" />
-                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>Vector Database</span>
+                  <Database className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-blue-400 mb-1 sm:mb-2" />
+                  <span className={`${vt323.className} text-xs sm:text-sm text-gray-400 font-medium`} style={{ fontSize: '12px' }}>Vector DB</span>
                 </div>
                 <div className="flex flex-col items-center">
-                  <Bot className="w-6 h-6 text-purple-400 mb-2" />
-                  <span className={`${vt323.className} text-sm text-gray-400 font-medium`} style={{ fontSize: '16px' }}>LLM Fine-tuning</span>
+                  <Bot className="w-4 sm:w-5 md:w-6 h-4 sm:h-5 md:h-6 text-purple-400 mb-1 sm:mb-2" />
+                  <span className={`${vt323.className} text-xs sm:text-sm text-gray-400 font-medium`} style={{ fontSize: '12px' }}>LLM Tuning</span>
                 </div>
               </div>
             </motion.div>
-            
-            {/* Dedicated LLM Platform Buttons */}
+
+            {/* Dedicated LLM Platform Buttons - Mobile optimized */}
             <motion.div
               variants={fadeInUpVariant}
-              className="mt-8 flex justify-center gap-6"
+              className="mt-6 sm:mt-8 flex justify-center gap-3 sm:gap-4 md:gap-6 px-4"
             >
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-5 py-2.5 bg-gradient-to-r from-blue-500/20 to-blue-500/30 rounded-full 
-                           border border-blue-500/40 backdrop-blur-sm flex items-center gap-2 
-                           hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300"
+                className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-blue-500/20 to-blue-500/30 rounded-full
+                           border border-blue-500/40 backdrop-blur-sm flex items-center gap-1.5 sm:gap-2
+                           hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 text-sm sm:text-base"
                 onClick={() => {
                   const element = document.getElementById('openrouter-images');
                   if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }}
               >
-                <Cpu className="w-4 h-4 text-blue-400" />
-                <span className={`${vt323.className} text-sm font-medium text-blue-300`} style={{ fontSize: '16px' }}>OpenRouter</span>
+                <Cpu className="w-3 sm:w-4 h-3 sm:h-4 text-blue-400" />
+                <span className={`${vt323.className} text-xs sm:text-sm font-medium text-blue-300`} style={{ fontSize: '12px' }}>OpenRouter</span>
               </motion.button>
-              
+
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
-                className="px-5 py-2.5 bg-gradient-to-r from-purple-500/20 to-purple-500/30 rounded-full 
-                           border border-purple-500/40 backdrop-blur-sm flex items-center gap-2
-                           hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300"
+                className="px-3 sm:px-4 md:px-5 py-2 sm:py-2.5 bg-gradient-to-r from-purple-500/20 to-purple-500/30 rounded-full
+                           border border-purple-500/40 backdrop-blur-sm flex items-center gap-1.5 sm:gap-2
+                           hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 text-sm sm:text-base"
                 onClick={() => {
                   const element = document.getElementById('huggingface-images');
                   if (element) element.scrollIntoView({ behavior: 'smooth', block: 'center' });
                 }}
               >
-                <Brain className="w-4 h-4 text-purple-400" />
-                <span className={`${vt323.className} text-sm font-medium text-purple-300`} style={{ fontSize: '16px' }}>Hugging Face</span>
+                <Brain className="w-3 sm:w-4 h-3 sm:h-4 text-purple-400" />
+                <span className={`${vt323.className} text-xs sm:text-sm font-medium text-purple-300`} style={{ fontSize: '12px' }}>Hugging Face</span>
               </motion.button>
             </motion.div>
           </div>
             </motion.div>
             
-        {/* OpenRouter and Hugging Face Images Section - In a separate div with its own background */}
+        {/* OpenRouter and Hugging Face Images Section - Mobile optimized */}
         <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="mb-24 relative bg-black/40 backdrop-blur-sm rounded-2xl p-8 border border-gray-800/50"
+          className="mb-12 sm:mb-16 md:mb-20 lg:mb-24 relative bg-black/40 backdrop-blur-sm rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 border border-gray-800/50 mx-2 sm:mx-0"
         >
             <motion.div
               variants={fadeInUpVariant}
@@ -2402,12 +2521,12 @@ export default function BusinessIntegrationPage() {
             </motion.div>
         </motion.div>
 
-        {/* Four Pricing Tiers */}
+        {/* Four Pricing Tiers - Mobile optimized */}
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="mt-12 mb-20 relative"
+          className="mt-8 sm:mt-10 md:mt-12 mb-12 sm:mb-16 md:mb-20 relative"
         >
           {/* Background Glow Effects */}
           <motion.div 
@@ -2451,11 +2570,11 @@ export default function BusinessIntegrationPage() {
             }}
           />
 
-          <div className="text-center mb-16">
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-4">
           <motion.h2
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className={`${audiowide.className} text-3xl md:text-4xl font-bold text-white mb-4`}
+              className={`${audiowide.className} text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4`}
           >
               AI Integration Plans (USD)
           </motion.h2>
@@ -2463,15 +2582,15 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className={`${vt323.className} text-lg text-gray-300 max-w-2xl mx-auto`}
-              style={{ fontSize: '16px' }}
+              className={`${vt323.className} text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed`}
+              style={{ fontSize: '14px' }}
             >
               Scalable AI solutions for startups, businesses, and enterprises.
             </motion.p>
           </div>
 
-          {/* Pricing Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10 relative">
+          {/* Pricing Cards - Mobile optimized */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 md:gap-8 lg:gap-10 relative">
             {pricingTiers.map((tier) => {
                const cardColors = {
                 basic: { border: 'border-green-500/20', hoverBorder: 'hover:border-green-500', shadow: 'hover:shadow-green-500/20', gradient: 'from-green-500/10' },
@@ -2487,93 +2606,95 @@ export default function BusinessIntegrationPage() {
                 variants={fadeInUpVariant}
                   whileHover={{ scale: 1.02, y: -5 }}
                   transition={{ duration: 0.2 }}
-                className={`relative bg-white/5 backdrop-blur-xl rounded-2xl overflow-hidden border ${colors.border} ${colors.hoverBorder} transition-all duration-300 shadow-xl ${colors.shadow}
-                  ${tier.highlighted ? 'lg:scale-105 lg:-mt-4 !border-purple-500/30 hover:!border-purple-500 hover:!shadow-purple-500/20' : ''}
+                className={`relative bg-white/5 backdrop-blur-xl rounded-xl sm:rounded-2xl overflow-hidden border ${colors.border} ${colors.hoverBorder} transition-all duration-300 shadow-xl ${colors.shadow}
+                  ${tier.highlighted ? 'sm:scale-105 sm:-mt-4 !border-purple-500/30 hover:!border-purple-500 hover:!shadow-purple-500/20' : ''}
                 `}
               >
                  <div className={`absolute inset-0 bg-gradient-to-br ${tier.highlighted ? 'from-purple-500/20' : colors.gradient} via-transparent to-transparent blur-xl pointer-events-none`} />
 
-                {/* Card content */}
-                  <div className="relative h-full p-6 md:p-8">
-                  {/* Badge */}
+                {/* Card content - Mobile optimized */}
+                  <div className="relative h-full p-4 sm:p-5 md:p-6 lg:p-8">
+                  {/* Badge - Mobile optimized */}
                   {tier.badge && (
-                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                    <div className="absolute -top-3 sm:-top-4 left-1/2 transform -translate-x-1/2 z-10">
                       <div className={`
-                        text-white text-xs px-6 py-2 rounded-full font-bold flex items-center justify-center gap-1.5 shadow-lg
+                        text-white text-[10px] sm:text-xs px-3 sm:px-4 md:px-6 py-1.5 sm:py-2 rounded-full font-bold flex items-center justify-center gap-1 sm:gap-1.5 shadow-lg
                         ${tier.highlighted
-                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-2 ring-purple-400/30'
-                          : tier.id === 'basic' 
-                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 ring-2 ring-green-400/30'
+                          ? 'bg-gradient-to-r from-purple-500 to-blue-500 ring-1 sm:ring-2 ring-purple-400/30'
+                          : tier.id === 'basic'
+                            ? 'bg-gradient-to-r from-green-500 to-emerald-600 ring-1 sm:ring-2 ring-green-400/30'
                             : tier.id === 'enterprise'
-                              ? 'bg-gradient-to-r from-orange-500 to-amber-600 ring-2 ring-orange-400/30' 
+                              ? 'bg-gradient-to-r from-orange-500 to-amber-600 ring-1 sm:ring-2 ring-orange-400/30'
                               : tier.id === 'voice'
-                                ? 'bg-gradient-to-r from-pink-500 to-rose-600 ring-2 ring-pink-400/30'
-                                : 'bg-gradient-to-r from-gray-700 to-gray-900 ring-2 ring-gray-500/30'
+                                ? 'bg-gradient-to-r from-pink-500 to-rose-600 ring-1 sm:ring-2 ring-pink-400/30'
+                                : 'bg-gradient-to-r from-gray-700 to-gray-900 ring-1 sm:ring-2 ring-gray-500/30'
                         }
                       `}>
-                        {tier.highlighted && <Star className="w-3.5 h-3.5" />}
+                        {tier.highlighted && <Star className="w-2.5 sm:w-3 md:w-3.5 h-2.5 sm:h-3 md:h-3.5" />}
                         {tier.badge}
                       </div>
                     </div>
                   )}
 
-                  {/* Icon & Title */}
-                  <div className='flex items-start gap-4 mb-4'>
+                  {/* Icon & Title - Mobile optimized */}
+                  <div className='flex items-start gap-2 sm:gap-3 md:gap-4 mb-3 sm:mb-4'>
                   <div className={`
-                      mt-1 p-3 rounded-lg inline-flex
+                      mt-0.5 sm:mt-1 p-2 sm:p-2.5 md:p-3 rounded-lg inline-flex
                       ${tier.highlighted ? 'bg-purple-500/20 text-purple-300' : 'bg-blue-500/10 text-blue-400'}
                   `}>
-                    {tier.icon}
+                    <div className="w-5 sm:w-6 md:w-8 h-5 sm:h-6 md:h-8">
+                      {tier.icon}
+                    </div>
                   </div>
-                    <div>
-                        <h3 className="text-xl font-bold text-white mb-1 leading-tight">
+                    <div className="flex-1 min-w-0">
+                        <h3 className="text-base sm:text-lg md:text-xl font-bold text-white mb-1 leading-tight">
                     {tier.title}
                   </h3>
-                        <p className="text-gray-400 text-sm leading-relaxed">
+                        <p className="text-gray-400 text-xs sm:text-sm leading-relaxed">
                           {tier.description}
                         </p>
                     </div>
                   </div>
 
-                  {/* Price */}
-                  <div className="my-4">
-                    <div className="flex items-baseline gap-2">
+                  {/* Price - Mobile optimized */}
+                  <div className="my-3 sm:my-4">
+                    <div className="flex items-baseline gap-1.5 sm:gap-2">
                       <span className={`
-                        text-4xl font-bold
+                        text-2xl sm:text-3xl md:text-4xl font-bold
                         ${tier.highlighted ? 'text-purple-300' : 'text-blue-300'}
                       `}>
                         {tier.price}
                       </span>
                       {tier.originalPrice && (
-                        <span className="text-gray-500 text-lg line-through">
+                        <span className="text-gray-500 text-sm sm:text-base md:text-lg line-through">
                           {tier.originalPrice}
                         </span>
                       )}
                     </div>
                     {tier.price !== 'Custom Quote' && (
-                      <span className="text-gray-400 text-sm">one-time setup</span>
+                      <span className="text-gray-400 text-xs sm:text-sm">one-time setup</span>
                     )}
                   </div>
 
-                  {/* Features */}
-                    <ul className="space-y-3 mb-8">
+                  {/* Features - Mobile optimized */}
+                    <ul className="space-y-2 sm:space-y-2.5 md:space-y-3 mb-6 sm:mb-7 md:mb-8">
                     {tier.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-start gap-3 text-sm">
+                      <li key={featureIndex} className="flex items-start gap-2 sm:gap-2.5 md:gap-3 text-xs sm:text-sm">
                         <Check className={`
-                          w-5 h-5 mt-0.5 flex-shrink-0
+                          w-3.5 sm:w-4 md:w-5 h-3.5 sm:h-4 md:h-5 mt-0.5 flex-shrink-0
                             ${tier.highlighted ? 'text-purple-400' : tier.id === 'basic' ? 'text-green-400' : tier.id === 'enterprise' ? 'text-orange-400' : tier.id === 'voice' ? 'text-pink-400' : 'text-blue-400'}
                         `} />
-                          <span className="text-gray-300">{feature}</span>
+                          <span className="text-gray-300 leading-relaxed">{feature}</span>
                       </li>
                     ))}
                   </ul>
 
-                    {/* Technical Details Button */}
-                    <div className="flex flex-col space-y-4">
+                    {/* Technical Details Button - Mobile optimized */}
+                    <div className="flex flex-col space-y-3 sm:space-y-4">
                       <button
                     onClick={() => handleTechDetailsClick(tier)}
                         className={`
-                          flex items-center justify-center text-sm px-4 py-2 rounded-lg transition-all duration-300 border backdrop-blur-sm
+                          flex items-center justify-center text-xs sm:text-sm px-3 sm:px-4 py-2 rounded-lg transition-all duration-300 border backdrop-blur-sm
                           ${tier.highlighted
                             ? 'bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 hover:text-purple-200 border-purple-500/20 hover:border-purple-500/30'
                             : tier.id === 'basic'
@@ -2586,17 +2707,17 @@ export default function BusinessIntegrationPage() {
                           }
                         `}
                       >
-                        <Info size={16} className="mr-1" />
-                        <span>Technical Details</span>
+                        <Info size={14} className="mr-1 sm:mr-1.5" />
+                        <span>Tech Details</span>
                       </button>
 
-                      {/* CTA Button */}
+                      {/* CTA Button - Mobile optimized */}
                       <Link href={tier.buttonLink}>
                     <motion.button
                       whileHover={{ scale: 1.02 }}
                       whileTap={{ scale: 0.98 }}
                       className={`
-                            w-full py-3 px-4 rounded-lg text-white font-medium transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg
+                            w-full py-2.5 sm:py-3 px-3 sm:px-4 rounded-lg text-white text-sm sm:text-base font-medium transition-all duration-200 transform hover:-translate-y-0.5 shadow-lg
                         ${tier.highlighted
                               ? 'bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-500 hover:to-blue-500 hover:shadow-purple-500/20'
                               : tier.id === 'basic'
@@ -2620,16 +2741,16 @@ export default function BusinessIntegrationPage() {
           </div>
         </motion.div>
 
-        {/* Premium AI Models Section */}
+        {/* Premium AI Models Section - Mobile optimized */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="mt-24 mb-32 relative"
+          className="mt-12 sm:mt-16 md:mt-20 lg:mt-24 mb-16 sm:mb-20 md:mb-24 lg:mb-32 relative"
             >
-          {/* Background Glow Effects */}
+          {/* Background Glow Effects - Mobile optimized */}
               <motion.div
-            className="absolute -top-20 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"
+            className="absolute -top-10 sm:-top-15 md:-top-20 left-1/3 w-48 sm:w-64 md:w-80 lg:w-96 h-48 sm:h-64 md:h-80 lg:h-96 bg-blue-500/5 rounded-full blur-2xl sm:blur-3xl"
             animate={{
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.5, 0.3]
@@ -2640,12 +2761,12 @@ export default function BusinessIntegrationPage() {
               ease: "easeInOut"
             }}
           />
-          
-          <div className="text-center mb-16">
-            <motion.h2 
+
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-4">
+            <motion.h2
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4"
             >
               Premium AI Model Integrations
             </motion.h2>
@@ -2653,43 +2774,43 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto"
+              className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
             >
               Integrate with the world's most advanced AI models through our streamlined API documentation
             </motion.p>
           </div>
 
-          <div className="space-y-24">
-            {/* Anthropic Section */}
-            <motion.div 
+          <div className="space-y-12 sm:space-y-16 md:space-y-20 lg:space-y-24">
+            {/* Anthropic Section - Mobile optimized */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="relative"
+              className="relative px-4"
             >
-              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-                <div className="flex-1 space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-purple-900/20 rounded-xl">
+              <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-16">
+                <div className="flex-1 space-y-4 sm:space-y-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 bg-purple-900/20 rounded-xl">
                       <Image
                         src="https://i.pinimg.com/736x/9b/a3/26/9ba3260ec0c415fecc86cf76eb4ab127.jpg"
                         alt="Anthropic Logo"
                         width={48}
                         height={48}
-                        className="w-10 h-10 object-contain rounded-sm"
+                        className="w-8 sm:w-10 h-8 sm:h-10 object-contain rounded-sm"
                       />
                     </div>
-                    <h3 className="text-2xl font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
+                    <h3 className="text-lg sm:text-xl md:text-2xl font-semibold bg-gradient-to-r from-purple-400 to-purple-600 bg-clip-text text-transparent">
                       Anthropic Claude
                       </h3>
                     </div>
-                  <div className="space-y-4">
-                    <p className="text-gray-300">
+                  <div className="space-y-3 sm:space-y-4">
+                    <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
                       State-of-the-art AI model with enhanced reasoning capabilities and robust safety features.
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      <span className="px-3 py-1 text-sm bg-purple-900/20 text-purple-400 rounded-full">Claude 3</span>
-                      <span className="px-3 py-1 text-sm bg-purple-900/20 text-purple-400 rounded-full">Constitutional AI</span>
+                      <span className="px-2.5 sm:px-3 py-1 text-xs sm:text-sm bg-purple-900/20 text-purple-400 rounded-full">Claude 3</span>
+                      <span className="px-2.5 sm:px-3 py-1 text-xs sm:text-sm bg-purple-900/20 text-purple-400 rounded-full">Constitutional AI</span>
                   </div>
                   </div>
                 </div>
@@ -2806,7 +2927,7 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6 }}
-              className="relative mb-24"
+              className="relative mb-12 sm:mb-16 md:mb-20 lg:mb-24"
             >
               <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
                 <div className="flex-1 space-y-6">
@@ -2853,9 +2974,9 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.7 }}
-              className="relative mb-24"
+              className="relative mb-12 sm:mb-16 md:mb-20 lg:mb-24 px-4"
             >
-              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+              <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-16">
                 <div className="flex-1 space-y-6">
                   <div className="flex items-center gap-4">
                     <div className="p-3 bg-blue-900/20 rounded-xl">
@@ -2900,12 +3021,12 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.8 }}
-              className="relative mb-24"
+              className="relative mb-12 sm:mb-16 md:mb-20 lg:mb-24 px-4"
             >
-              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-                <div className="flex-1 space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-purple-900/20 rounded-xl">
+              <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-16">
+                <div className="flex-1 space-y-4 sm:space-y-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 bg-purple-900/20 rounded-xl">
                       <Image
                         src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRpPv1KMnK1H9jPpIRzMvNRjyGSauDIOsOONQ&s"
                         alt="Perplexity AI Logo"
@@ -2947,12 +3068,12 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.9 }}
-              className="relative mb-24"
+              className="relative mb-12 sm:mb-16 md:mb-20 lg:mb-24 px-4"
             >
-              <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
-                <div className="flex-1 space-y-6">
-                  <div className="flex items-center gap-4">
-                    <div className="p-3 bg-emerald-900/20 rounded-xl">
+              <div className="flex flex-col lg:flex-row items-center gap-6 sm:gap-8 lg:gap-16">
+                <div className="flex-1 space-y-4 sm:space-y-6">
+                  <div className="flex items-center gap-3 sm:gap-4">
+                    <div className="p-2 sm:p-3 bg-emerald-900/20 rounded-xl">
                       <Image
                         src="https://logowik.com/content/uploads/images/qwen-ai9316.logowik.com.webp"
                         alt="QWEN AI Logo"
@@ -3053,12 +3174,12 @@ export default function BusinessIntegrationPage() {
           </div>
         </motion.div>
 
-        {/* Why Choose Our AI Solutions */}
+        {/* Why Choose Our AI Solutions - Mobile optimized */}
         <motion.div
           initial="hidden"
           animate="visible"
           variants={staggerContainer}
-          className="mb-16 relative"
+          className="mb-8 sm:mb-12 md:mb-16 relative px-4"
         >
           {/* Neural Network Background for Why Choose Section */}
           <div className="absolute inset-0 opacity-15 pointer-events-none z-0">
@@ -3067,14 +3188,14 @@ export default function BusinessIntegrationPage() {
 
           <motion.h2
             variants={fadeInUpVariant}
-            className="text-3xl md:text-4xl font-bold text-center mb-12 relative z-10"
+            className="text-2xl sm:text-3xl md:text-4xl font-bold text-center mb-8 sm:mb-10 md:mb-12 relative z-10"
           >
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-blue-400">
               Why Choose NEX-DEVS AI Solutions?
             </span>
           </motion.h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             <motion.div
               variants={fadeInUpVariant}
               className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-2xl p-8 backdrop-blur-sm text-center"
@@ -3157,16 +3278,16 @@ export default function BusinessIntegrationPage() {
           </div>
         </motion.div>
 
-        {/* Premium AI Models Documentation Section */}
-        <motion.div 
+        {/* Premium AI Models Documentation Section - Mobile optimized */}
+        <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.7, delay: 0.3 }}
-          className="mt-24 mb-32 relative"
+          className="mt-12 sm:mt-16 md:mt-20 lg:mt-24 mb-16 sm:mb-20 md:mb-24 lg:mb-32 relative"
         >
-          {/* Background Glow Effects */}
-          <motion.div 
-            className="absolute -top-20 left-1/3 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"
+          {/* Background Glow Effects - Mobile optimized */}
+          <motion.div
+            className="absolute -top-10 sm:-top-15 md:-top-20 left-1/3 w-48 sm:w-64 md:w-80 lg:w-96 h-48 sm:h-64 md:h-80 lg:h-96 bg-blue-500/5 rounded-full blur-2xl sm:blur-3xl"
             animate={{
               scale: [1, 1.2, 1],
               opacity: [0.3, 0.5, 0.3]
@@ -3177,12 +3298,12 @@ export default function BusinessIntegrationPage() {
               ease: "easeInOut"
             }}
           />
-          
-          <div className="text-center mb-16">
+
+          <div className="text-center mb-8 sm:mb-10 md:mb-12 lg:mb-16 px-4">
           <motion.h2
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-3xl md:text-4xl font-bold text-white mb-4"
+              className="text-2xl sm:text-3xl md:text-4xl font-bold text-white mb-3 sm:mb-4"
           >
               Premium AI Model Integrations
           </motion.h2>
@@ -3190,7 +3311,7 @@ export default function BusinessIntegrationPage() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-lg text-gray-300 max-w-2xl mx-auto"
+              className="text-sm sm:text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed"
             >
               Integrate with the world's most advanced AI models through our streamlined API documentation
           </motion.p>

@@ -32,7 +32,8 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
 
   useEffect(() => {
     setIsHomePage(pathname === '/');
-    setIsBusinessPage(pathname === '/ai-services/business-integration');
+    // Only show on business hero page, not the business integration page
+    setIsBusinessPage(false);
   }, [pathname]);
 
   // Add scroll detection for sticky behavior
@@ -76,23 +77,17 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
     const newHero = currentHero === 'original' ? 'business' : 'original';
     setCurrentHero(newHero);
 
-    // If we're on home page, dispatch event to sync with main toggle
+    // Only works on home page - dispatch event to sync with main toggle
     if (isHomePage) {
       const event = new CustomEvent('mobileHeroToggle', {
         detail: { hero: newHero }
       });
       window.dispatchEvent(event);
-    } else if (isBusinessPage) {
-      // If we're on business page, navigate to home with business hero
-      router.push(`/?hero=business`);
-    } else {
-      // If we're not on home page, navigate to home with the selected hero
-      router.push(`/?hero=${newHero}`);
     }
   };
 
-  // Only show on mobile, hide during welcome screen, and only show on home page or business integration page
-  if (!isMobile || showWelcome || (!isHomePage && !isBusinessPage)) return null;
+  // Only show on mobile, hide during welcome screen, and only show on home page
+  if (!isMobile || showWelcome || !isHomePage) return null;
 
   return (
     <motion.div

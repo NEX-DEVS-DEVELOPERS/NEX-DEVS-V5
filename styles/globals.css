@@ -137,23 +137,61 @@ body {
   will-change: transform;
 }
 
-/* Smooth animation transitions */
-.transition-smooth {
-  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+/* PERFORMANCE OPTIMIZATIONS - 60FPS SCROLLING */
+
+/* Disable all will-change by default - only enable when needed */
+* {
+  will-change: auto !important;
 }
 
-/* Prevent layout shifts */
+/* Optimize scrolling performance */
+html {
+  scroll-behavior: smooth;
+  scroll-snap-type: none !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  overflow-x: hidden;
+  /* Disable animations during scroll for better performance */
+}
+
+body.is-scrolling * {
+  animation-play-state: paused !important;
+  transition-duration: 0s !important;
+}
+
+/* Prevent layout shifts and optimize images */
 img, video {
   max-width: 100%;
   height: auto;
   display: block;
+  /* Remove loading effects that cause reload appearance */
+  transition: none !important;
+  animation: none !important;
 }
 
-/* Optimize scrolling */
-@media (prefers-reduced-motion: no-preference) {
-  :root {
-    scroll-behavior: smooth;
-  }
+/* Optimize image loading - no blur effects */
+.optimized-image {
+  transition: none !important;
+  animation: none !important;
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Remove excessive blur effects that cause lag */
+.backdrop-blur-sm,
+.backdrop-blur-md,
+.backdrop-blur-lg,
+.backdrop-blur-xl {
+  backdrop-filter: blur(8px) !important; /* Reduced blur for performance */
+}
+
+/* Optimize animations - reduce to essential only */
+.transition-smooth {
+  transition: opacity 0.2s ease !important;
 }
 
 /* Prevent CLS (Cumulative Layout Shift) */
@@ -161,10 +199,35 @@ img, video {
   contain: layout size;
 }
 
-/* Remove any excessive blur effects from components */
-.blur-reset {
-  filter: none !important;
-  backdrop-filter: none !important;
+/* GPU acceleration only for essential elements */
+.gpu-optimized {
+  will-change: transform;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Remove GPU acceleration when not needed */
+.gpu-optimized.idle {
+  will-change: auto;
+  transform: none;
+}
+
+/* Optimize hero section performance */
+.hero-optimized {
+  contain: layout style paint;
+  will-change: auto;
+  transform: none !important;
+  animation: none !important;
+}
+
+/* Disable complex animations during scroll */
+@media (prefers-reduced-motion: no-preference) {
+  body.is-scrolling .hero-optimized,
+  body.is-scrolling [class*="motion-"],
+  body.is-scrolling [class*="animate-"] {
+    animation-play-state: paused !important;
+    transition: none !important;
+  }
 }
 
 /* Nexious Chatbot Styles */

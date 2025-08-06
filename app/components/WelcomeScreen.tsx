@@ -216,7 +216,7 @@ const services = [
         {
           title: 'Cross-Platform Apps',
           description: 'One codebase, multiple platforms',
-          image: 'https://ik.imagekit.io/u7ipvwnqb/319shots_so.png'
+          image: 'https://ik.imagekit.io/u7ipvwnqb/898shots_so.png'
         }
       ]
     },
@@ -584,33 +584,34 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     setPreviewImage(null);
   };
 
-  // Initialize mobile check - Fixed for better mobile detection
+  // Enhanced mobile detection that works in browser dev tools
   useEffect(() => {
     const checkMobile = () => {
       const userAgent = navigator.userAgent;
       const isMobileDevice = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
-      const isSmallScreen = window.innerWidth <= 768; // Increased threshold for better detection
+      const isSmallScreen = window.innerWidth <= 768;
       const isTouchDevice = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
 
-      // Consider it mobile if it has small screen AND (is mobile device OR has touch)
-      // This ensures tablets and mobile devices are properly detected
-      const actuallyMobile = isSmallScreen && (isMobileDevice || isTouchDevice);
+      // Enhanced detection for browser dev tools mobile preview
+      const mediaQueryMobile = window.matchMedia('(max-width: 768px)').matches;
+      const isDevToolsMobile = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
+      // Consider mobile if small screen OR dev tools mobile preview
+      const actuallyMobile = isSmallScreen || mediaQueryMobile || isDevToolsMobile ||
+                            (isSmallScreen && (isMobileDevice || isTouchDevice));
       setIsMobile(actuallyMobile);
 
-      // Never show mobile preview popup for desktop users
-      if (!actuallyMobile) {
-        setHideMobilePreview(true); // Always hide for desktop
-      } else {
-        // For actual mobile devices, show after a delay
-        setTimeout(() => {
-          setHideMobilePreview(false);
-        }, 1500);
-      }
+      // Always hide mobile preview popup for better UX
+      setHideMobilePreview(true);
     };
 
     checkMobile();
     window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
+    window.addEventListener('orientationchange', checkMobile);
+    return () => {
+      window.removeEventListener('resize', checkMobile);
+      window.removeEventListener('orientationchange', checkMobile);
+    };
   }, []);
 
   // Enhanced scroll locking effect with immediate application
@@ -1379,12 +1380,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
 
 
-      <div className="absolute inset-0 flex items-center justify-center z-[9999]" 
-           style={{ 
-             display: 'flex', 
-             alignItems: 'center', 
+      <div className="absolute inset-0 flex items-center justify-center z-[9999]"
+           style={{
+             display: 'flex',
+             alignItems: 'center',
              justifyContent: 'center',
-             paddingBottom: '2vh' // Add slight bottom padding for better vertical alignment
+             paddingBottom: '2vh', // Add slight bottom padding for better vertical alignment
+             paddingTop: isMobile ? '80px' : '0px' // Add top padding for mobile to avoid navbar overlap
            }}>
         {/* Dynamic background elements - optimized for visibility and performance */}
         <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
@@ -1919,6 +1921,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <motion.button
                         onClick={handleNext}
+                        onTouchStart={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.style.transform = 'scale(0.95)';
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          setTimeout(() => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }, 100);
+                        }}
                         initial={{ opacity: 0, y: 30, scale: 0.8, rotateX: 20 }}
                         animate={{
                           opacity: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0,
@@ -1943,7 +1955,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           scale: 0.98,
                           transition: { duration: 0.1 }
                         }}
-                        className={`group ${isMobile ? 'px-6 py-4 text-base' : 'px-5 sm:px-8 py-3 sm:py-4'} bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
+                        className={`group ${isMobile ? 'px-6 py-4 text-base min-h-[56px] min-w-[56px]' : 'px-5 sm:px-8 py-3 sm:py-4'} bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
                                  hover:from-blue-600/80 hover:via-purple-600/80 hover:to-emerald-600/80 transition-all duration-300
                                  backdrop-blur-sm border border-white/10 relative overflow-hidden shadow-lg shadow-purple-500/20 transform-gpu
                                  ${isMobile ? 'touch-manipulation' : ''}`}
@@ -2418,23 +2430,39 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       <div className={`flex ${isMobile ? 'gap-2' : 'gap-4 sm:gap-6'} items-center justify-center ${isMobile ? '' : 'w-full sm:w-auto'}`}>
                         <motion.button
                           onClick={handleBack}
+                          onTouchStart={(e) => {
+                            e.preventDefault();
+                            e.currentTarget.style.transform = 'scale(0.95)';
+                          }}
+                          onTouchEnd={(e) => {
+                            e.preventDefault();
+                            setTimeout(() => {
+                              e.currentTarget.style.transform = 'scale(1)';
+                            }, 100);
+                          }}
                           initial={{ opacity: 0, x: -10 }}
                           animate={{ opacity: 1, x: 0 }}
-                          whileHover={{ 
+                          whileHover={{
                             scale: 1.02,
                             transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
                           }}
-                          whileTap={{ 
+                          whileTap={{
                             scale: 0.98,
                             transition: { duration: 0.1 }
                           }}
-                          transition={{ 
+                          transition={{
                             duration: 0.25,
                             ease: [0.22, 1, 0.36, 1]
                           }}
-                          className={`group relative ${isMobile ? 'px-2 py-1 text-[10px]' : 'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm'} bg-white/10 backdrop-blur-sm rounded-lg text-white/80 font-medium
+                          className={`group relative ${isMobile ? 'px-2 py-1 text-[10px] min-h-[44px] min-w-[44px]' : 'px-2 sm:px-3 py-1 sm:py-1.5 text-xs sm:text-sm'} bg-white/10 backdrop-blur-sm rounded-lg text-white/80 font-medium
                                    border border-white/10 hover:bg-white/20
                                    transition-all duration-250 flex items-center gap-1 sm:gap-2 ${isMobile ? '' : 'flex-1 sm:flex-none'} justify-center overflow-hidden will-change-transform`}
+                          style={{
+                            WebkitTapHighlightColor: 'transparent',
+                            touchAction: 'manipulation',
+                            pointerEvents: 'auto',
+                            cursor: 'pointer'
+                          }}
                         >
                           <motion.span
                             className="relative z-10 flex items-center gap-1 hardware-accelerated"
@@ -2481,7 +2509,17 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </div>
                       <button
                         onClick={handleNext}
-                        className={`group ${isMobile ? 'px-3 py-2 text-sm' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} backdrop-blur-sm rounded-lg text-white font-semibold
+                        onTouchStart={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.style.transform = 'scale(0.95)';
+                        }}
+                        onTouchEnd={(e) => {
+                          e.preventDefault();
+                          setTimeout(() => {
+                            e.currentTarget.style.transform = 'scale(1)';
+                          }, 100);
+                        }}
+                        className={`group ${isMobile ? 'px-3 py-2 text-sm min-h-[44px] min-w-[44px]' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} backdrop-blur-sm rounded-lg text-white font-semibold
                                  border hover:scale-105 ${isMobile ? 'touch-manipulation' : 'w-full sm:w-auto'} transition-all duration-150
                                  relative overflow-hidden ${isMobile ? '' : 'order-1 sm:order-2'}
                                  ${currentSlide === services.length - 1
@@ -2489,7 +2527,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                    : 'bg-white/10 border-white/20 hover:bg-white/20'}`}
                         style={{
                           WebkitTapHighlightColor: 'transparent',
-                          touchAction: 'manipulation'
+                          touchAction: 'manipulation',
+                          pointerEvents: 'auto',
+                          cursor: 'pointer'
                         }}
                       >
                         <span className="relative z-10 flex items-center justify-center gap-1 sm:gap-2">

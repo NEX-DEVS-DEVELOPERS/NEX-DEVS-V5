@@ -1,0 +1,28 @@
+# ads.txt file for nexdevs.com
+# This file is used to authorize digital advertising sellers
+# Format: <Field #1>, <Field #2>, <Field #3>, <Field #4>
+# Field #1: Domain name of the advertising system
+# Field #2: Publisher's Account ID
+# Field #3: Type of Account/Relationship
+# Field #4: Certification Authority ID (optional)
+
+# Google AdSense
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+
+# Google Ad Manager
+google.com, pub-0000000000000000, DIRECT, f08c47fec0942fa0
+
+# Example entries for other ad networks (replace with actual IDs when needed)
+# facebook.com, 000000000000000, DIRECT, c3e20eee3f780d68
+# amazon-adsystem.com, 0000-0000-0000-0000, DIRECT, 78b21b5b5a5c0000
+
+# Contact information for inquiries
+# Contact: advertising@nexdevs.com
+
+# Note: Replace the placeholder IDs above with actual publisher IDs
+# when setting up advertising partnerships. The current IDs are placeholders
+# and should be updated before going live with any advertising networks.
+
+# Last updated: 2025-08-05
+# Website: https://nexdevs.com
+# Owner: NEX-DEVS

@@ -117,34 +117,30 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
     }
   }, [showHint]);
   
-  // Handle drag events with optimized performance
+  // Handle drag events with ultra-smooth performance
   useEffect(() => {
-    if (isDragging) {
-      // Throttled event handling for better performance
-      let lastUpdate = 0;
-      const updateInterval = 1000 / 120; // Target 120fps for ultra-smooth
-      
-      const unsubscribe = progress.onChange(value => {
-        const now = performance.now();
-        if (now - lastUpdate < updateInterval) return;
-        lastUpdate = now;
-        
-        // Use requestAnimationFrame for smoother event dispatch
-        requestAnimationFrame(() => {
-        const event = new CustomEvent('heroToggleProgress', { 
-          detail: { 
-            progress: value,
-            isDragging: isDragging
-          } 
-        });
-        window.dispatchEvent(event);
-        });
+    // Always listen to progress changes for immediate border animation
+    let lastUpdate = 0;
+    const updateInterval = 1000 / 240; // Target 240fps for ultra-smooth response
+
+    const unsubscribe = progress.onChange(value => {
+      const now = performance.now();
+      if (now - lastUpdate < updateInterval) return;
+      lastUpdate = now;
+
+      // Immediate event dispatch without requestAnimationFrame for faster response
+      const event = new CustomEvent('heroToggleProgress', {
+        detail: {
+          progress: value,
+          isDragging: isDragging
+        }
       });
-      
-      return () => {
-        unsubscribe();
-      };
-    }
+      window.dispatchEvent(event);
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, [isDragging, progress]);
   
   // Handle mobile click toggle
@@ -155,14 +151,41 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
     setPrevHero(currentHero);
     onToggle(newHero);
 
-    // Update position immediately
-    springX.set(newHero === 'original' ? 0 : containerWidth - handleWidth);
+    // Calculate positions
+    const startPosition = springX.get();
+    const targetPosition = newHero === 'original' ? 0 : containerWidth - handleWidth;
+    const maxPosition = containerWidth - handleWidth;
 
-    // Dispatch event
-    const event = new CustomEvent('heroToggleFinished', {
-      detail: { hero: newHero }
+    // Dispatch immediate start progress event
+    const startProgress = maxPosition > 0 ? Math.max(0, Math.min(1, startPosition / maxPosition)) : 0;
+    const startProgressEvent = new CustomEvent('heroToggleProgress', {
+      detail: {
+        progress: startProgress,
+        isDragging: false
+      }
     });
-    window.dispatchEvent(event);
+    window.dispatchEvent(startProgressEvent);
+
+    // Use spring animation for smooth border animation
+    springX.set(targetPosition);
+
+    // Dispatch target progress event immediately for instant border response
+    const targetProgress = newHero === 'original' ? 0 : 1;
+    const targetProgressEvent = new CustomEvent('heroToggleProgress', {
+      detail: {
+        progress: targetProgress,
+        isDragging: false
+      }
+    });
+    window.dispatchEvent(targetProgressEvent);
+
+    // Dispatch finished event after a short delay to ensure animation completes
+    setTimeout(() => {
+      const finishedEvent = new CustomEvent('heroToggleFinished', {
+        detail: { hero: newHero }
+      });
+      window.dispatchEvent(finishedEvent);
+    }, 100);
   };
 
   // Handle drag end with optimized snap animation
@@ -303,7 +326,23 @@ export default function HeroToggle({ currentHero, onToggle, isHeroPage = false }
             dragConstraints={toggleContainerRef}
             dragElastic={0.03} // Less elasticity for more precise control
             dragMomentum={false}
-            onDragStart={() => !isMobile && setIsDragging(true)}
+            onDragStart={() => {
+              if (!isMobile) {
+                setIsDragging(true);
+                // Dispatch immediate progress event to start border animation
+                const currentPosition = springX.get();
+                const maxPosition = containerWidth - handleWidth;
+                const currentProgress = maxPosition > 0 ? Math.max(0, Math.min(1, currentPosition / maxPosition)) : 0;
+
+                const progressEvent = new CustomEvent('heroToggleProgress', {
+                  detail: {
+                    progress: currentProgress,
+                    isDragging: true
+                  }
+                });
+                window.dispatchEvent(progressEvent);
+              }
+            }}
             onDragEnd={handleDragEnd}
             onClick={handleMobileClick}
             style={{

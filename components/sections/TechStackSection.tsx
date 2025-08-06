@@ -1,9 +1,10 @@
 'use client'
 
-import { motion, Variants, cubicBezier } from 'framer-motion'
+import { motion, Variants } from 'framer-motion'
 import { IconCloud } from "@/components/ui/interactive-icon-cloud"
 import { useIsMobile } from '@/app/utils/deviceDetection'
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { audiowide, vt323 } from '@/app/utils/fonts'
+import { memo } from 'react';
 
 const techSlugs = [
   "typescript",
@@ -38,44 +39,41 @@ const techSlugs = [
   "openai"
 ]
 
-export default function TechStackSection() {
+// Memoized TechStackSection for better performance
+const TechStackSection = memo(function TechStackSection() {
   const isMobile = useIsMobile()
 
-  // Define custom easing
-  const customEase = cubicBezier(0.645, 0.045, 0.355, 1)
-
-  // Optimized animation variants for 60fps performance with proper easing
+  // Ultra-simplified animation variants for maximum performance
   const containerVariants: Variants = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.05,
-        duration: 0.4,
-        ease: customEase
+        staggerChildren: 0.03, // Reduced stagger
+        duration: 0.2, // Faster animation
+        ease: "easeOut"
       }
     }
   }
 
   const itemVariants: Variants = {
-    hidden: { opacity: 0, y: 10 },
+    hidden: { opacity: 0, y: 5 }, // Reduced movement
     visible: {
       opacity: 1,
       y: 0,
       transition: {
-        duration: 0.3,
-        ease: customEase
+        duration: 0.2, // Faster animation
+        ease: "easeOut"
       }
     }
   }
 
-  // Optimized floating animation with reduced complexity
+  // Simplified floating animation - only on desktop and reduced complexity
   const floatingVariants: Variants = {
     animate: {
-      y: [0, -8, 0],
-      rotate: [0, 3, 0],
+      y: [0, -4, 0], // Reduced movement
       transition: {
-        duration: 6,
+        duration: 4, // Faster cycle
         repeat: Infinity,
         ease: "easeInOut",
         repeatType: "reverse" as const
@@ -99,10 +97,7 @@ export default function TechStackSection() {
           className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 lg:gap-16 items-center"
         >
           {/* Left Column - Content */}
-          <motion.div
-            variants={itemVariants}
-            className="space-y-6 lg:space-y-8"
-          >
+          <div className="space-y-6 lg:space-y-8">
             <div className="space-y-4 sm:space-y-6">
               <motion.div
                 variants={itemVariants}
@@ -132,15 +127,9 @@ export default function TechStackSection() {
               </motion.p>
             </div>
 
-            <motion.div
-              variants={itemVariants}
-              className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-2 gap-4 sm:gap-6'}`}
-            >
-              {/* Technology category boxes */}
-              <motion.div
-                variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-purple-base"
-              >
+            <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-2 gap-4 sm:gap-6'}`}>
+              {/* Technology category boxes - removed motion for better performance */}
+              <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-purple-base">
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Frontend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">React & Next.js</div>
@@ -148,12 +137,9 @@ export default function TechStackSection() {
                   <div className="hover:text-purple-300 transition-colors duration-200">Tailwind CSS</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Framer Motion</div>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div
-                variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-blue-base"
-              >
+              <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-blue-base">
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Backend</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">Node.js & Express</div>
@@ -161,12 +147,9 @@ export default function TechStackSection() {
                   <div className="hover:text-purple-300 transition-colors duration-200">PostgreSQL & MongoDB</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Redis & Prisma</div>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div
-                variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-green-base"
-              >
+              <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-green-base">
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>Cloud & DevOps</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">AWS & Vercel</div>
@@ -174,12 +157,9 @@ export default function TechStackSection() {
                   <div className="hover:text-purple-300 transition-colors duration-200">CI/CD Pipelines</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Monitoring & Analytics</div>
                 </div>
-              </motion.div>
+              </div>
 
-              <motion.div
-                variants={itemVariants}
-                className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-pink-base"
-              >
+              <div className="space-y-2 sm:space-y-3 p-3 sm:p-4 rounded-lg bg-black neon-border-pink-base">
                 <h3 className={`text-white font-semibold text-sm sm:text-base ${audiowide.className}`}>AI & Tools</h3>
                 <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-400">
                   <div className="hover:text-purple-300 transition-colors duration-200">OpenAI Integration</div>
@@ -187,9 +167,9 @@ export default function TechStackSection() {
                   <div className="hover:text-purple-300 transition-colors duration-200">Design Systems</div>
                   <div className="hover:text-purple-300 transition-colors duration-200">Performance Optimization</div>
                 </div>
-              </motion.div>
-            </motion.div>
-          </motion.div>
+              </div>
+            </div>
+          </div>
 
           {/* Right Column - Interactive Icon Cloud */}
           <motion.div
@@ -206,14 +186,14 @@ export default function TechStackSection() {
                 <IconCloud iconSlugs={techSlugs} />
               </div>
 
-              {/* Floating elements with visible neon borders */}
+              {/* Simplified floating elements - only on desktop, reduced animation */}
               {!isMobile && (
                 <>
                   <motion.div
                     variants={floatingVariants}
                     animate="animate"
                     className="absolute -top-4 -right-4 w-12 h-12"
-                    style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+                    style={{ willChange: 'auto' }} // Removed transform will-change
                   >
                     <div className="absolute inset-0 rounded-full border-[3px] border-purple-500" />
                   </motion.div>
@@ -221,20 +201,19 @@ export default function TechStackSection() {
                   <motion.div
                     variants={{
                       animate: {
-                        y: [0, 8, 0],
-                        rotate: [0, -3, 0],
+                        y: [0, 4, 0], // Reduced movement
                         transition: {
-                          duration: 5,
+                          duration: 3, // Faster cycle
                           repeat: Infinity,
                           ease: "easeInOut",
-                          delay: 1,
+                          delay: 0.5, // Reduced delay
                           repeatType: "reverse" as const
                         }
                       }
                     }}
                     animate="animate"
                     className="absolute -bottom-4 -left-4 w-10 h-10"
-                    style={{ transform: 'translate3d(0, 0, 0)', willChange: 'transform' }}
+                    style={{ willChange: 'auto' }} // Removed transform will-change
                   >
                     <div className="absolute inset-0 rounded-full border-[3px] border-purple-500" />
                   </motion.div>
@@ -246,4 +225,6 @@ export default function TechStackSection() {
       </div>
     </div>
   )
-}
+})
+
+export default TechStackSection

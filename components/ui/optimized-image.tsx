@@ -18,13 +18,11 @@ export default function OptimizedImage({
   priority = false,
   ...props
 }: OptimizedImageProps) {
-  const [isLoading, setLoading] = useState(true);
   const [imgSrc, setImgSrc] = useState(src);
 
-  // Reset loading state when src changes
+  // Reset src when it changes
   useEffect(() => {
     setImgSrc(src);
-    setLoading(true);
   }, [src]);
 
   return (
@@ -33,11 +31,9 @@ export default function OptimizedImage({
         src={imgSrc}
         alt={alt}
         className={cn(
-          "transition-all duration-300",
-          isLoading ? "scale-110 blur-sm" : "scale-100 blur-0",
+          "optimized-image", // Use our performance-optimized class
           className
         )}
-        onLoad={() => setLoading(false)}
         onError={() => {
           setImgSrc(fallbackSrc);
         }}
@@ -46,4 +42,4 @@ export default function OptimizedImage({
       />
     </div>
   );
-} 
+}

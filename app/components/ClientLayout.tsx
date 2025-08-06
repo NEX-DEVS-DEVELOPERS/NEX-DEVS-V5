@@ -28,115 +28,38 @@ declare global {
  * This separates client from server components properly
  */
 export default function ClientLayout({ children }: ClientLayoutProps) {
-  // Add scroll optimization effect
-  useEffect(() => {
-    // Fix for any uplift effect during scroll
-    const handleScroll = () => {
-      document.body.classList.add('is-scrolling');
-      
-      // Remove class after scrolling stops
-      clearTimeout(window.scrollTimer);
-      window.scrollTimer = setTimeout(() => {
-        document.body.classList.remove('is-scrolling');
-      }, 150);
-    };
-    
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-    };
-  }, []);
+  // Removed duplicate scroll handler - handled in layout.tsx for better performance
 
-  // Add welcome screen optimization effect
+  // Minimal welcome screen preparation - moved heavy logic to CSS
   useEffect(() => {
-    // Apply initial styles for welcome screen elements to prepare for animations
-    const prepareWelcomeScreenAnimations = () => {
+    const prepareWelcomeElements = () => {
       const welcomeElements = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
       welcomeElements.forEach(el => {
-        if (el instanceof HTMLElement) {
-          // Set initial state for entrance animation
+        if (el instanceof HTMLElement && !el.dataset.prepared) {
           el.style.opacity = '0';
-          el.style.transform = 'translateY(20px) scale(0.98)';
+          el.style.transform = 'translateY(20px)';
+          el.dataset.prepared = 'true'; // Prevent re-processing
         }
       });
     };
 
-    // Execute immediately for first page load
-    prepareWelcomeScreenAnimations();
+    prepareWelcomeElements();
 
-    // Attach to Barba.js events
-    window.addEventListener('barba:before', prepareWelcomeScreenAnimations);
+    // Only listen for page transitions
+    const handleBarbaTransition = () => prepareWelcomeElements();
+    window.addEventListener('barba:before', handleBarbaTransition);
 
     return () => {
-      window.removeEventListener('barba:before', prepareWelcomeScreenAnimations);
+      window.removeEventListener('barba:before', handleBarbaTransition);
     };
   }, []);
 
-  // Add mobile touch interaction fixes
+  // Minimal touch setup - no complex handling
   useEffect(() => {
-    const fixMobileTouchInteractions = () => {
-      // Ensure all interactive elements have proper touch handling
-      const interactiveElements = document.querySelectorAll(
-        'button, a[href], [role="button"], input, textarea, select, [tabindex]:not([tabindex="-1"])'
-      );
-
-      interactiveElements.forEach(el => {
-        if (el instanceof HTMLElement) {
-          // Ensure proper touch action
-          if (!el.style.touchAction) {
-            el.style.touchAction = 'manipulation';
-          }
-
-          // Ensure pointer events are enabled
-          if (el.style.pointerEvents === 'none') {
-            el.style.pointerEvents = 'auto';
-          }
-
-          // Add webkit tap highlight removal
-          el.style.webkitTapHighlightColor = 'transparent';
-        }
-      });
-
-      // Special handling for mobile menu button
-      const mobileMenuButton = document.querySelector('button[aria-label*="Menu"]');
-      if (mobileMenuButton instanceof HTMLElement) {
-        mobileMenuButton.style.touchAction = 'manipulation';
-        mobileMenuButton.style.pointerEvents = 'auto';
-        mobileMenuButton.style.zIndex = '1002';
-        mobileMenuButton.style.position = 'relative';
-      }
-
-      // Special handling for close buttons
-      const closeButtons = document.querySelectorAll('button[title="Close"], button[aria-label*="Close"], .close-button');
-      closeButtons.forEach(btn => {
-        if (btn instanceof HTMLElement) {
-          btn.style.touchAction = 'manipulation';
-          btn.style.pointerEvents = 'auto';
-          btn.style.zIndex = '9999';
-          btn.style.position = 'relative';
-          btn.style.minHeight = '44px';
-          btn.style.minWidth = '44px';
-        }
-      });
-    };
-
-    // Run immediately
-    fixMobileTouchInteractions();
-
-    // Run after DOM changes
-    const observer = new MutationObserver(() => {
-      fixMobileTouchInteractions();
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-
-    return () => {
-      observer.disconnect();
-    };
+    // Just ensure basic mobile classes are set
+    const isMobile = window.innerWidth <= 768;
+    document.documentElement.classList.toggle('mobile-device', isMobile);
+    document.documentElement.classList.toggle('desktop-device', !isMobile);
   }, []);
   
   return (
@@ -154,38 +77,38 @@ export default function ClientLayout({ children }: ClientLayoutProps) {
         }}
         data-page-content="true"
       >
+        {/* Minimal inline styles - let CSS files handle the rest */}
         <style jsx global>{`
-          /* Welcome screen optimizations */
-          [class*="Welcome"], [class*="welcome"], [id*="welcome"] {
+          /* Only essential welcome screen positioning */
+          [class*="Welcome"], [class*="welcome"] {
             margin-top: 7rem !important;
             padding-top: 4rem !important;
-            transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1), 
-                        transform 0.6s cubic-bezier(0.22, 1, 0.36, 1) !important;
-            will-change: opacity, transform;
           }
-          
-          /* Better backdrop filter performance */
-          .backdrop-blur-sm, .backdrop-blur-md, .backdrop-blur-lg {
-            will-change: backdrop-filter;
-            backface-visibility: hidden;
+
+          /* Ensure chatbot button is always visible and clickable */
+          .nexious-chat-button {
+            position: relative !important;
+            z-index: 1000000 !important;
+            pointer-events: auto !important;
+            display: flex !important;
+            opacity: 1 !important;
+            visibility: visible !important;
           }
-          
-          /* Optimize animations */
-          @media (prefers-reduced-motion: no-preference) {
-            .transition-opacity, 
-            .transition-transform, 
-            .transition-all {
-              will-change: opacity, transform;
-            }
+
+          /* Prevent any layout interference with chatbot */
+          .nexious-chat-container * {
+            pointer-events: auto !important;
           }
         `}</style>
         {children}
       </main>
       <Footer />
       
-      {/* Use portal to render chatbot outside main layout */}
+      {/* Use portal to render chatbot outside main layout with enhanced initialization */}
       <FloatingPortal id="chatbot-portal">
-        <ChatbotClientWrapper />
+        <div className="chatbot-wrapper-enhanced">
+          <ChatbotClientWrapper />
+        </div>
       </FloatingPortal>
 
       <BarbaInitializer />

@@ -1,13 +1,19 @@
 "use client"
 
-import { motion, AnimatePresence, Variants, useScroll, useSpring, useTransform } from "framer-motion"
+import { motion, AnimatePresence, Variants } from "framer-motion"
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo, useCallback, useEffect, useRef } from "react"
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react"
 import { useIsMobile } from '@/app/utils/deviceDetection'
-import TechStackSection from "@/components/sections/TechStackSection"
 import NeuralNetwork from '@/components/animations/NeuralNetwork'
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { audiowide, vt323 } from '@/app/utils/fonts'
+import dynamic from 'next/dynamic'
+
+// Dynamically import heavy components
+const DynamicTechStackSection = dynamic(() => import("@/components/sections/TechStackSection"), {
+  loading: () => <div className="h-20 bg-transparent" />,
+  ssr: false // Skip SSR for better performance
+})
 
 // Type definitions
 interface Skill {
@@ -50,158 +56,116 @@ interface HeroClientProps {
     workProcess: WorkProcess[];
 }
 
-// Optimized Animation Variants - Reduced complexity for better performance
+// Ultra-optimized Animation Variants - Maximum performance
 const fadeInUpVariant: Variants = {
-  hidden: { opacity: 0, y: 10 },
+  hidden: { opacity: 0, y: 5 }, // Reduced movement
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.6,
+      duration: 0.3, // Faster animation
       ease: "easeOut",
-      staggerChildren: 0.08
+      staggerChildren: 0.05 // Reduced stagger
     }
   }
 }
 
 const staggeredFadeInVariant: Variants = {
-  hidden: { opacity: 0, y: 8 },
+  hidden: { opacity: 0, y: 3 }, // Minimal movement
   visible: {
     opacity: 1,
     y: 0,
     transition: {
-      duration: 0.4,
+      duration: 0.2, // Very fast
       ease: "easeOut"
     }
   }
 }
 
 const scaleInVariant: Variants = {
-  hidden: { opacity: 0, scale: 0.98 },
+  hidden: { opacity: 0, scale: 0.99 }, // Minimal scale
   visible: {
     opacity: 1,
     scale: 1,
     transition: {
-      duration: 0.5,
+      duration: 0.3, // Faster
       ease: "easeOut",
-      staggerChildren: 0.06
+      staggerChildren: 0.03 // Reduced stagger
     }
   }
 }
 
-// Simplified code animation - removed complex opacity array for better performance
+// Minimal code animation
 const leakyCodeVariants: Variants = {
-    hidden: { opacity: 0, y: -3 },
+    hidden: { opacity: 0 },
     visible: {
       opacity: 0.6,
-      y: 0,
       transition: {
-        duration: 1.5,
-        ease: [0.22, 1, 0.36, 1]
+        duration: 0.5, // Much faster
+        ease: "easeOut"
       }
     }
 }
 
-export default function HeroClient({ expertise, funFacts, aiSkills, workProcess }: HeroClientProps) {
+// Memoized HeroClient for better performance
+const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, workProcess }: HeroClientProps) {
   const [showSecretPanel, setShowSecretPanel] = useState(false)
   const isMobile = useIsMobile()
   const [funFactIndex, setFunFactIndex] = useState(0)
   const [activeSkillSet, setActiveSkillSet] = useState(0)
   const [isAutoAnimating, setIsAutoAnimating] = useState(true)
-  
+
   const heroSectionRef = useRef<HTMLDivElement>(null)
   const neuralLineRef = useRef<HTMLDivElement>(null)
   const pathRef = useRef<SVGPathElement>(null);
   const [pathLength, setPathLength] = useState(0);
   const [svgPath, setSvgPath] = useState('');
 
-  // Initialize Barba.js with optimized settings for hero section
+  // Minimal Barba.js initialization - removed heavy optimizations
   useEffect(() => {
-    // Only run on client
     if (typeof window !== 'undefined') {
-      // Import and initialize Barba with performance optimizations
       import('@/utils/barba-init').then(({ useBarba }) => {
         useBarba({
           optimizeWelcomeScreen: true,
-          transitionSpeed: 0.3, // Even faster transitions for hero
-          easing: [0.22, 1, 0.36, 1] // Custom cubic-bezier for smooth feel
+          transitionSpeed: 0.2, // Ultra-fast transitions
+          easing: [0.22, 1, 0.36, 1]
         });
+      }).catch(() => {
+        // Silent fail for better performance
       });
 
-      // Add hero-specific optimizations
+      // Minimal hero optimizations
       const heroContainer = heroSectionRef.current;
       if (heroContainer) {
         heroContainer.classList.add('hero-optimized');
-
-        // Optimize animations with will-change
-        heroContainer.style.willChange = 'transform, opacity';
-        heroContainer.style.transform = 'translateZ(0)';
-        heroContainer.style.backfaceVisibility = 'hidden';
+        // Removed heavy style modifications
       }
     }
   }, []);
 
-  // Optimized scroll animation references with better performance
-  const { scrollYProgress } = useScroll({
-    target: heroSectionRef,
-    offset: ["start start", "end start"],
-    layoutEffect: false // Disable layout effect for better performance
-  });
-
-  // Create optimized spring-based animations for scroll with reduced calculations
-  const smoothY = useSpring(scrollYProgress, {
-    stiffness: 100,
-    damping: 30,
-    restDelta: 0.001,
-    restSpeed: 0.001
-  });
-  const opacity = useTransform(smoothY, [0, 0.3], [1, 0.95]);
-  const scale = useTransform(smoothY, [0, 0.3], [1, 0.995]);
-  
-  // Optimized event handlers with debouncing for better performance
+  // Simplified event handlers - removed heavy scroll animations
   useEffect(() => {
-    let animationFrame: number;
-
     const handleToggleProgress = (event: CustomEvent) => {
       const { progress } = event.detail;
-      if (pathRef.current && neuralLineRef.current) {
-        // Use requestAnimationFrame for smooth animations
-        cancelAnimationFrame(animationFrame);
-        animationFrame = requestAnimationFrame(() => {
-          const offset = pathLength - (pathLength * progress);
-          pathRef.current!.style.strokeDashoffset = offset.toString();
-          const glowIntensity = 0.3 + (progress * 1.2);
-          neuralLineRef.current!.style.setProperty('--glow-intensity', glowIntensity.toString());
-        });
+      if (pathRef.current && pathLength > 0) {
+        const offset = pathLength - (pathLength * progress);
+        pathRef.current.style.strokeDashoffset = offset.toString();
       }
     };
 
     const handleToggleFinished = (event: CustomEvent) => {
       const { hero } = event.detail;
       const targetProgress = hero === 'business' ? 1 : 0;
-      if (pathRef.current && neuralLineRef.current) {
-        // Use requestAnimationFrame for smooth animations
-        cancelAnimationFrame(animationFrame);
-        animationFrame = requestAnimationFrame(() => {
-          const offset = pathLength - (pathLength * targetProgress);
-          pathRef.current!.style.strokeDashoffset = offset.toString();
-          const glowIntensity = 0.3 + (targetProgress * 1.2);
-          neuralLineRef.current!.style.setProperty('--glow-intensity', glowIntensity.toString());
-        });
+      if (pathRef.current && pathLength > 0) {
+        const offset = pathLength - (pathLength * targetProgress);
+        pathRef.current.style.strokeDashoffset = offset.toString();
       }
     };
 
-    // Optimized Barba event listeners with reduced overhead
-    const handleBarbaLeave = () => {
-      // Minimal cleanup to prevent memory leaks
-      if (isAutoAnimating) setIsAutoAnimating(false);
-    };
-
+    // Minimal Barba event listeners
+    const handleBarbaLeave = () => setIsAutoAnimating(false);
     const handleBarbaEnter = () => {
-      // Faster reinitialize with reduced delay
-      if (heroSectionRef.current) {
-        setTimeout(() => setIsAutoAnimating(true), 200);
-      }
+      setTimeout(() => setIsAutoAnimating(true), 100); // Faster reinit
     };
 
     window.addEventListener('heroToggleProgress', handleToggleProgress as EventListener);
@@ -210,7 +174,6 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
     window.addEventListener('barbaEnter', handleBarbaEnter);
 
     return () => {
-      cancelAnimationFrame(animationFrame);
       window.removeEventListener('heroToggleProgress', handleToggleProgress as EventListener);
       window.removeEventListener('heroToggleFinished', handleToggleFinished as EventListener);
       window.removeEventListener('barbaLeave', handleBarbaLeave);
@@ -218,6 +181,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
     };
   }, [pathLength, isAutoAnimating]);
 
+  // Optimized path calculation - reduced overhead
   useEffect(() => {
     const updatePath = () => {
       if (neuralLineRef.current) {
@@ -226,16 +190,27 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
         setSvgPath(d);
       }
     };
+
+    // Throttled resize observer for better performance
+    let resizeTimer: number;
+    const throttledUpdate = () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = window.setTimeout(updatePath, 100);
+    };
+
     updatePath();
-    const resizeObserver = new ResizeObserver(updatePath);
+    const resizeObserver = new ResizeObserver(throttledUpdate);
     if (neuralLineRef.current) {
       resizeObserver.observe(neuralLineRef.current);
     }
-    return () => resizeObserver.disconnect();
+    return () => {
+      resizeObserver.disconnect();
+      clearTimeout(resizeTimer);
+    };
   }, []);
 
   useEffect(() => {
-    if (pathRef.current) {
+    if (pathRef.current && svgPath) {
       const length = pathRef.current.getTotalLength();
       setPathLength(length);
       pathRef.current.style.strokeDasharray = `${length} ${length}`;
@@ -249,14 +224,14 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
   const prevSkillSet = useCallback(() => setActiveSkillSet((p) => (p - 1 + aiSkills.length) % aiSkills.length), [aiSkills.length])
   const toggleAutoAnimation = useCallback(() => setIsAutoAnimating(p => !p), [])
   
-  // Optimized auto-animation with better performance
+  // Simplified auto-animation
   useEffect(() => {
     if (!isAutoAnimating) return;
     const intervalId = setInterval(() => {
-        if (!document.hidden && document.visibilityState === 'visible') {
-          nextSkillSet();
-        }
-    }, 6000); // Reduced interval for smoother experience
+      if (document.visibilityState === 'visible') {
+        nextSkillSet();
+      }
+    }, 4000); // Faster interval
     return () => clearInterval(intervalId);
   }, [isAutoAnimating, nextSkillSet]);
 
@@ -268,52 +243,46 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
       ref={heroSectionRef}
       data-barba="container"
       data-barba-namespace="hero"
-      initial="hidden"
-      animate="visible"
-      variants={{
-        hidden: { opacity: 0 },
-        visible: { opacity: 1, transition: { duration: 0.8, ease: "easeOut", when: "beforeChildren", staggerChildren: 0.1 } }
-      }}
-      className="relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.3, ease: "easeOut" }}
+      className="relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black hero-optimized"
       style={{
-        backfaceVisibility: 'hidden',
-        contentVisibility: 'auto',
         contain: 'layout style paint',
-        willChange: 'transform',
-        transform: `scale(${scale}) translateZ(0)`,
-        opacity: opacity
+        willChange: 'auto'
       }}
     >
+      {/* Animated Neural Line Border */}
       {!isMobile && (
         <div
           ref={neuralLineRef}
           className="absolute inset-x-4 inset-y-4 sm:inset-x-8 sm:inset-y-8 pointer-events-none z-10"
           style={{ '--glow-intensity': '0.3' } as React.CSSProperties}
         >
-          <svg width="100%" height="100%" className="overflow-visible">
+          <svg className="absolute inset-0 w-full h-full" style={{ overflow: 'visible' }}>
             <defs>
-              <linearGradient id="line-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="rgba(168, 85, 247, 1)" />
-                <stop offset="20%" stopColor="rgba(168, 85, 247, 1)" />
-                <stop offset="100%" stopColor="rgba(139, 92, 246, 0.2)" />
+              <linearGradient id="purple-line-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stopColor="#c084fc" stopOpacity="1" />
+                <stop offset="50%" stopColor="#a855f7" stopOpacity="1" />
+                <stop offset="100%" stopColor="#8b5cf6" stopOpacity="1" />
               </linearGradient>
-              <filter id="glow">
-                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+              <filter id="purple-glow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                 <feMerge>
-                  <feMergeNode in="coloredBlur" />
-                  <feMergeNode in="SourceGraphic" />
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
                 </feMerge>
               </filter>
             </defs>
             <path
               ref={pathRef}
               d={svgPath}
-              stroke="url(#line-gradient)"
-              strokeWidth="2"
+              stroke="url(#purple-line-gradient)"
+              strokeWidth="3"
               fill="none"
               style={{
-                transition: 'stroke-dashoffset 0.2s linear',
-                filter: 'url(#glow)',
+                transition: 'none', // Remove transition for immediate response
+                filter: 'url(#purple-glow)',
                 opacity: 'var(--glow-intensity)',
               }}
             />
@@ -334,16 +303,19 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
         </div>
       </div>
 
-      <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
-        <NeuralNetwork
-          color="#a855f7"
-          lineColor="#8b5cf6"
-          pointCount={isMobile ? 40 : 60}
-          connectionRadius={isMobile ? 200 : 250}
-          speed={isMobile ? 0.15 : 0.5}
-          containerBounds={true}
-        />
-      </div>
+      {/* Conditional neural network - only on desktop for better mobile performance */}
+      {!isMobile && (
+        <div className="absolute inset-0 z-[1] pointer-events-none overflow-hidden">
+          <NeuralNetwork
+            color="#a855f7"
+            lineColor="#8b5cf6"
+            pointCount={40} // Reduced point count
+            connectionRadius={200} // Reduced radius
+            speed={0.3} // Reduced speed
+            containerBounds={true}
+          />
+        </div>
+      )}
 
       <div className="fixed inset-0 bg-[#050509]/85 z-[-2] gradient-bg" />
       <div className="absolute inset-0 bg-gradient-to-b from-[#050509]/60 via-[#07051a]/60 to-[#050509]/60 opacity-70 z-[-1] gradient-bg" />
@@ -356,18 +328,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
         <div className="absolute inset-0 bg-gradient-to-tr from-black/70 via-purple-950/5 to-black/70 opacity-80"></div>
       </div>
 
-      <motion.div 
-        className="max-w-7xl mx-auto px-6 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 relative z-[1] overflow-x-hidden content-stable"
-        variants={{
-          hidden: {},
-          visible: {
-            transition: {
-              staggerChildren: 0.15,
-              delayChildren: 0.2
-            }
-          }
-        }}
-      >
+      <div className="max-w-7xl mx-auto px-6 sm:px-8 grid grid-cols-1 lg:grid-cols-2 gap-10 sm:gap-16 relative z-[1] overflow-x-hidden content-stable">
         <motion.div 
           className="space-y-8 sm:space-y-10 mt-8 md:mt-0 px-2 sm:px-4"
           variants={fadeInUpVariant}
@@ -739,7 +700,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
             </div>
           </motion.div>
         </motion.div>
-      </motion.div>
+      </div>
 
       <motion.div
         initial="hidden"
@@ -748,7 +709,7 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
         variants={fadeInUpVariant}
         className="w-full mt-12 sm:mt-16 max-w-7xl mx-auto relative"
       >
-        <TechStackSection />
+        <DynamicTechStackSection />
       </motion.div>
 
       <AnimatePresence mode="wait">
@@ -791,4 +752,6 @@ export default function HeroClient({ expertise, funFacts, aiSkills, workProcess 
       </AnimatePresence>
     </motion.section>
   )
-} 
+})
+
+export default HeroClient

@@ -137,32 +137,32 @@ export default function BusinessHero() {
   const [pathLength, setPathLength] = useState(0);
   const [svgPath, setSvgPath] = useState('');
 
-  // Listen for toggle progress events
+  // Ultra-smooth toggle progress events with immediate response
   useEffect(() => {
     const handleToggleProgress = (event: CustomEvent) => {
       const { progress } = event.detail;
-      if (pathRef.current && neuralLineRef.current) {
-        // Invert the progress to draw from right-to-left when sliding to Primary
+      if (pathRef.current && neuralLineRef.current && pathLength > 0) {
+        // Immediate animation without delay - invert progress for right-to-left drawing
         const offset = pathLength * progress;
         pathRef.current.style.strokeDashoffset = offset.toString();
-        
-        // Invert glow intensity
-        const glowIntensity = 0.3 + ((1 - progress) * 1.2);
+
+        // Enhanced glow intensity for better visibility
+        const glowIntensity = 0.5 + ((1 - progress) * 1.5);
         neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
       }
     };
-    
+
     const handleToggleFinished = (event: CustomEvent) => {
       const { hero } = event.detail;
       const targetProgress = hero === 'business' ? 1 : 0;
-      
-      if (pathRef.current && neuralLineRef.current) {
-        // Invert the progress
+
+      if (pathRef.current && neuralLineRef.current && pathLength > 0) {
+        // Immediate animation without delay - invert progress for right-to-left drawing
         const offset = pathLength * targetProgress;
         pathRef.current.style.strokeDashoffset = offset.toString();
 
-        // Invert glow intensity
-        const glowIntensity = 0.3 + ((1 - targetProgress) * 1.2);
+        // Enhanced glow intensity for better visibility
+        const glowIntensity = 0.5 + ((1 - targetProgress) * 1.5);
         neuralLineRef.current.style.setProperty('--glow-intensity', glowIntensity.toString());
       }
     };
@@ -202,6 +202,11 @@ export default function BusinessHero() {
       setPathLength(length);
       pathRef.current.style.strokeDasharray = `${length} ${length}`;
       pathRef.current.style.strokeDashoffset = length.toString();
+
+      // Set initial glow intensity
+      if (neuralLineRef.current) {
+        neuralLineRef.current.style.setProperty('--glow-intensity', '0.5');
+      }
     }
   }, [svgPath]);
 
@@ -245,8 +250,8 @@ export default function BusinessHero() {
                 <stop offset="20%" stopColor="rgba(59, 130, 246, 1)" />
                 <stop offset="100%" stopColor="rgba(59, 130, 246, 0.2)" />
               </linearGradient>
-              <filter id="blue-glow">
-                <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
+              <filter id="blue-glow" x="-100%" y="-100%" width="300%" height="300%">
+                <feGaussianBlur stdDeviation="4" result="coloredBlur" />
                 <feMerge>
                   <feMergeNode in="coloredBlur" />
                   <feMergeNode in="SourceGraphic" />
@@ -257,10 +262,10 @@ export default function BusinessHero() {
               ref={pathRef}
               d={svgPath}
               stroke="url(#blue-line-gradient)"
-              strokeWidth="2"
+              strokeWidth="3"
               fill="none"
               style={{
-                transition: 'stroke-dashoffset 0.5s linear',
+                transition: 'none', // Remove transition for immediate response
                 filter: 'url(#blue-glow)',
                 opacity: 'var(--glow-intensity)',
               }}

@@ -50,24 +50,27 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [scrollY, setScrollY] = useState(0);
 
-  // Force floating behavior
+  // Force floating behavior - only for desktop
   useEffect(() => {
+    // Skip floating behavior on mobile - use fixed positioning instead
+    if (isMobile) return;
+
     const handleScroll = () => {
       const currentScroll = window.scrollY;
       setScrollY(currentScroll);
-      
+
       if (drawerRef.current && isOpen) {
         const windowHeight = window.innerHeight;
         const drawerHeight = drawerRef.current.offsetHeight || 0;
         const maxTop = windowHeight - drawerHeight - 20;
-        
-        // Apply styles directly to ensure floating behavior
+
+        // Apply styles directly to ensure floating behavior - desktop only
         const styles = {
           position: 'fixed',
           top: `${Math.max(20, Math.min(currentScroll + 20, maxTop))}px`,
           right: '20px',
           zIndex: '99999',
-          width: `${isMobile ? '280px' : '320px'}`,
+          width: '320px',
           maxHeight: 'calc(100vh - 40px)',
           transform: 'translateZ(0)',
           willChange: 'transform',
@@ -321,6 +324,12 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
 
   // Custom scrollbar styles
   const scrollbarStyles = `
+    .custom-scrollbar {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(216, 180, 254, 0.3) rgba(216, 180, 254, 0.05);
+    }
     .custom-scrollbar::-webkit-scrollbar {
       width: 5px;
       height: 5px;
@@ -335,6 +344,47 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
     }
     .custom-scrollbar::-webkit-scrollbar-thumb:hover {
       background: rgba(216, 180, 254, 0.5);
+    }
+
+    /* Enhanced smooth scrollbar for reviews drawer */
+    .custom-scrollbar-smooth {
+      scroll-behavior: smooth;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(147, 51, 234, 0.6) rgba(0, 0, 0, 0.1);
+      overscroll-behavior: contain;
+    }
+    .custom-scrollbar-smooth::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+    .custom-scrollbar-smooth::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+      margin: 4px;
+    }
+    .custom-scrollbar-smooth::-webkit-scrollbar-thumb {
+      background: linear-gradient(180deg, rgba(147, 51, 234, 0.8) 0%, rgba(147, 51, 234, 0.6) 100%);
+      border-radius: 6px;
+      border: 2px solid rgba(147, 51, 234, 0.2);
+      transition: all 0.3s ease;
+    }
+    .custom-scrollbar-smooth::-webkit-scrollbar-thumb:hover {
+      background: linear-gradient(180deg, rgba(147, 51, 234, 0.9) 0%, rgba(147, 51, 234, 0.7) 100%);
+      border-color: rgba(147, 51, 234, 0.4);
+      transform: scale(1.1);
+    }
+    .custom-scrollbar-smooth::-webkit-scrollbar-corner {
+      background: transparent;
+    }
+
+    /* Mobile-specific scrolling improvements */
+    @media (max-width: 768px) {
+      .custom-scrollbar {
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
+        scroll-behavior: smooth;
+      }
     }
     
     /* Force fixed positioning for ReviewsDrawer elements to prevent GSAP conflicts */
@@ -478,8 +528,33 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
       {/* Mobile Button */}
       {isMobile && (
         <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="fixed bottom-6 right-6 z-[99999] bg-gradient-to-r from-purple-600 to-purple-700 backdrop-blur-sm rounded-full p-4 shadow-2xl hover:from-purple-700 hover:to-purple-800 transition-all border-2 border-purple-400/50 hover:border-purple-300/70"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('Mobile reviews button clicked, current state:', isOpen);
+
+            // Force open the drawer with enhanced handling
+            if (!isOpen) {
+              setIsOpen(true);
+
+              // Timeout fallback to guarantee opening
+              setTimeout(() => {
+                setIsOpen(true);
+              }, 50);
+
+              // Additional fallback
+              setTimeout(() => {
+                setIsOpen(true);
+              }, 150);
+            } else {
+              setIsOpen(false);
+            }
+          }}
+          className={`fixed bottom-6 right-6 z-[99999] bg-gradient-to-r backdrop-blur-sm rounded-full p-4 shadow-2xl transition-all border-2 active:scale-95 ${
+            isOpen
+              ? 'from-red-600 to-red-700 border-red-400/70 hover:from-red-700 hover:to-red-800 hover:border-red-300/80 animate-pulse'
+              : 'from-purple-600 to-purple-700 border-purple-400/50 hover:from-purple-700 hover:to-purple-800 hover:border-purple-300/70 hover:shadow-purple-500/60 animate-bounce'
+          }`}
           style={{
             position: "fixed",
             bottom: "24px",
@@ -487,18 +562,29 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
             zIndex: 99999,
             minWidth: "64px",
             minHeight: "64px",
-            boxShadow: "0 0 20px rgba(147, 51, 234, 0.4)"
+            boxShadow: isOpen
+              ? "0 0 30px rgba(239, 68, 68, 0.6), 0 0 60px rgba(239, 68, 68, 0.3)"
+              : "0 0 30px rgba(147, 51, 234, 0.6), 0 0 60px rgba(147, 51, 234, 0.3)",
+            touchAction: "manipulation",
+            transform: isOpen ? 'scale(1.1)' : 'scale(1)'
           }}
           aria-label={isOpen ? "Close reviews" : "Open reviews"}
         >
-          <div className="flex items-center gap-2">
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
-            <span className="text-white text-sm font-medium hidden sm:inline">Reviews</span>
-            <div className="bg-white/30 text-white text-xs h-6 w-6 flex items-center justify-center rounded-full font-bold">
-              {displayedReviews.length}
-            </div>
+          <div className="flex items-center justify-center">
+            {isOpen ? (
+              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            ) : (
+              <div className="flex items-center gap-2">
+                <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                </svg>
+                <div className="bg-white/30 text-white text-xs h-5 w-5 flex items-center justify-center rounded-full font-bold">
+                  {displayedReviews.length}
+                </div>
+              </div>
+            )}
           </div>
         </button>
       )}
@@ -671,115 +757,344 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
           <motion.div
             ref={drawerRef}
             className="reviews-drawer"
-            initial={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : 100 }}
+            initial={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : '70vw' }}
             animate={{ opacity: 1, y: 0, x: 0 }}
-            exit={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : 100 }}
-            transition={{ type: "spring", damping: 30, stiffness: 200 }}
+            exit={{ opacity: 0, y: isMobile ? 100 : 0, x: isMobile ? 0 : '70vw' }}
+            transition={{ type: "spring", damping: 22, stiffness: 160, mass: 0.8 }}
             style={{
               position: 'fixed',
-              top: isMobile ? '80px' : '80px', // Below navigation bar for all screen sizes
-              right: isMobile ? '0' : '0', // Open from right side
+              top: '80px', // Below navigation bar
+              right: '0',
               left: isMobile ? '0' : 'auto',
-              bottom: isMobile ? '0' : '0',
-              zIndex: 99999,
-              width: isMobile ? '100vw' : '480px', // Full width on mobile, fixed width on desktop
-              height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 80px)',
-              maxHeight: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 80px)',
-              background: 'rgba(10, 5, 20, 0.98)',
-              backdropFilter: 'blur(20px)',
-              WebkitBackdropFilter: 'blur(20px)',
-              borderRadius: isMobile ? '0' : '16px 0 0 16px', // Rounded left edges for desktop
-              boxShadow: '0 0 40px rgba(147, 51, 234, 0.3), inset 0 0 0 2px rgba(147, 51, 234, 0.5)',
-              border: '2px solid rgba(147, 51, 234, 0.6)',
-              borderRight: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : 'none',
-              pointerEvents: 'auto'
+              bottom: '0',
+              zIndex: 99998, // Below mobile button
+              width: isMobile ? '100vw' : '70vw', // Increased to 70% viewport width for desktop
+              height: 'calc(100vh - 80px)',
+              maxHeight: 'calc(100vh - 80px)',
+              background: isMobile
+                ? 'rgba(10, 5, 20, 0.98)'
+                : 'linear-gradient(135deg, rgba(15, 10, 30, 0.88) 0%, rgba(25, 15, 45, 0.92) 50%, rgba(20, 10, 35, 0.90) 100%)',
+              backdropFilter: isMobile ? 'blur(20px)' : 'blur(30px)',
+              WebkitBackdropFilter: isMobile ? 'blur(20px)' : 'blur(30px)',
+              borderRadius: isMobile ? '0' : '0',
+              boxShadow: isMobile
+                ? '0 0 40px rgba(147, 51, 234, 0.3), inset 0 0 0 2px rgba(147, 51, 234, 0.5)'
+                : '0 0 80px rgba(147, 51, 234, 0.5), inset 0 0 0 3px rgba(147, 51, 234, 0.9)',
+              border: isMobile
+                ? '2px solid rgba(147, 51, 234, 0.6)'
+                : '3px solid rgba(147, 51, 234, 0.95)', // Enhanced neon purple border
+              borderRight: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : '3px solid rgba(147, 51, 234, 0.95)',
+              borderTop: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : '3px solid rgba(147, 51, 234, 0.95)',
+              borderLeft: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : '3px solid rgba(147, 51, 234, 0.95)',
+              borderBottom: isMobile ? '2px solid rgba(147, 51, 234, 0.6)' : '3px solid rgba(147, 51, 234, 0.95)',
+              pointerEvents: 'auto',
+              overflowY: 'hidden' // Prevent outer scroll
             }}
           >
             {/* Header Section - Fixed */}
-            <div className="sticky top-0 z-20 bg-gradient-to-b from-black/95 to-black/80 backdrop-blur-lg p-6 border-b border-purple-500/30">
-              {/* Close button */}
-              <button
-                onClick={closeWithAnimation}
-                className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-purple-700/50 rounded-full transition-all duration-200 z-30"
-                aria-label="Close reviews drawer"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+            <div className="sticky top-0 z-20 bg-gradient-to-b from-black/95 to-black/80 backdrop-blur-lg p-4 md:p-6 border-b border-purple-500/30">
+              {/* Close button - Only show on desktop, mobile uses floating button */}
+              {!isMobile && (
+                <button
+                  onClick={closeWithAnimation}
+                  className="absolute top-4 right-4 p-2 text-gray-400 hover:text-white hover:bg-purple-700/50 rounded-full transition-all duration-200 z-30"
+                  aria-label="Close reviews drawer"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
             </div>
 
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto custom-scrollbar" style={{ height: 'calc(100% - 80px)' }}>
-              <div className="p-6 pt-0 space-y-6">
+            <div
+              className="flex-1 overflow-y-auto custom-scrollbar-smooth"
+              style={{
+                height: 'calc(100% - 80px)',
+                scrollBehavior: 'smooth',
+                WebkitOverflowScrolling: 'touch',
+                scrollbarWidth: 'thin',
+                scrollbarColor: 'rgba(147, 51, 234, 0.6) rgba(0, 0, 0, 0.1)',
+                overscrollBehavior: 'contain'
+              }}
+            >
+              <div className={`${isMobile ? 'p-4 pb-20' : 'p-8'} pt-0 space-y-4`}>
 
-                {/* Main Header */}
-                <div className="flex justify-between items-center mb-8">
-                  <div>
-                    <h2 className="text-3xl font-bold text-white mb-2">Client Testimonials</h2>
-                    <p className="text-purple-300 text-sm">Discover what our clients say about our work</p>
+                {/* Main Header - Compact */}
+                <div className="flex justify-between items-center mb-4 pb-3 border-b border-purple-500/20">
+                  <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-purple-600/20 rounded-lg">
+                      <svg className="w-4 h-4 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">Client Testimonials</h2>
+                      <p className="text-purple-300 text-xs">What our clients say</p>
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 px-4 py-2 rounded-full border border-green-500/30">
-                    <FaStar className="text-yellow-400" />
-                    <span className="font-bold text-lg">{averageRating.toFixed(1)}</span>
+                  <div className="flex items-center gap-1 bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 px-3 py-1.5 rounded-lg border border-green-500/30">
+                    <div className="flex items-center gap-0.5">
+                      {[...Array(5)].map((_, i) => (
+                        <FaStar key={i} className="text-yellow-400 text-xs" />
+                      ))}
+                    </div>
+                    <span className="font-bold text-sm ml-1">5.0</span>
                   </div>
                 </div>
 
                 {/* Stats Section */}
-                <div className="grid grid-cols-3 gap-6 text-center mb-8 p-6 bg-gradient-to-br from-purple-900/30 to-purple-800/20 rounded-2xl border-2 border-purple-500/30 backdrop-blur-sm">
-                  <div className="group hover:scale-105 transition-transform duration-200">
-                    <FaCheckCircle className="mx-auto text-green-400 text-4xl mb-3 group-hover:text-green-300 transition-colors" />
-                    <p className="text-2xl font-bold text-white">{currentStats.satisfactionRate}%</p>
-                    <p className="text-sm text-purple-300 font-medium">Satisfaction</p>
+                <div className="grid grid-cols-3 gap-4 mb-6">
+                  <div className="bg-gradient-to-br from-green-500/10 to-emerald-600/10 border border-green-500/30 rounded-lg p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-green-400">100%</div>
+                    <div className="text-sm text-green-300">Satisfaction</div>
                   </div>
-                  <div className="group hover:scale-105 transition-transform duration-200">
-                    <FaBriefcase className="mx-auto text-blue-400 text-4xl mb-3 group-hover:text-blue-300 transition-colors" />
-                    <p className="text-2xl font-bold text-white">{currentStats.projectsDelivered}</p>
-                    <p className="text-sm text-purple-300 font-medium">Projects</p>
+
+                  <div className="bg-gradient-to-br from-blue-500/10 to-cyan-600/10 border border-blue-500/30 rounded-lg p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-400">248</div>
+                    <div className="text-sm text-blue-300">Projects</div>
                   </div>
-                  <div className="group hover:scale-105 transition-transform duration-200">
-                    <FaUsers className="mx-auto text-purple-400 text-4xl mb-3 group-hover:text-purple-300 transition-colors" />
-                    <p className="text-2xl font-bold text-white">{currentStats.clientsServed}</p>
-                    <p className="text-sm text-purple-300 font-medium">Clients</p>
+
+                  <div className="bg-gradient-to-br from-purple-500/10 to-violet-600/10 border border-purple-500/30 rounded-lg p-4 text-center">
+                    <div className="flex justify-center mb-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                        <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-400">183</div>
+                    <div className="text-sm text-purple-300">Clients</div>
+                  </div>
+                </div>
+
+                {/* Perfect Rating Section */}
+                <div className="bg-gradient-to-r from-yellow-500/10 to-orange-500/10 border border-yellow-500/30 rounded-lg p-4 mb-6">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1">
+                        {[...Array(5)].map((_, i) => (
+                          <FaStar key={i} className="text-yellow-400 text-lg" />
+                        ))}
+                      </div>
+                      <span className="text-2xl font-bold text-white">5.0</span>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-white">Perfect Rating</div>
+                      <div className="text-sm text-gray-300">Based on all reviews</div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Filter Section */}
-                <div className="mb-8 p-6 bg-gradient-to-r from-gray-900/60 to-gray-800/40 rounded-2xl border-2 border-purple-500/20 backdrop-blur-sm">
-                  <div className="flex justify-between items-center mb-6">
-                    <div>
-                      <h3 className="text-xl font-bold text-white mb-1">Filter Reviews</h3>
-                      <p className="text-purple-300 text-sm">Browse reviews by service category</p>
-                    </div>
-                    <div className="bg-purple-600/20 text-purple-300 px-4 py-2 rounded-full border border-purple-500/30">
-                      <span className="font-bold">{displayedReviewCount}</span>
-                      <span className="text-sm ml-1">reviews</span>
+                <div className="mb-6">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold text-white">Filter Reviews:</h3>
+                    <div className="text-purple-300 text-sm">
+                      <span className="font-bold">{displayedReviewCount}</span> reviews
                     </div>
                   </div>
-                  <div className="flex gap-3 overflow-x-auto pb-3 custom-scrollbar">
+                  <div className="grid grid-cols-2 gap-3">
                     <button
                       onClick={() => setFilteredPlan(null)}
-                      className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 whitespace-nowrap ${
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
                         !filteredPlan
-                          ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/30 border-2 border-purple-400'
-                          : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 border-2 border-gray-600/30 hover:border-purple-500/30'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
                       }`}
                     >
                       All Reviews
                     </button>
-                    {planCategories.map(category => (
-                      <button
-                        key={category}
-                        onClick={() => setFilteredPlan(category)}
-                        className={`px-6 py-3 text-sm font-medium rounded-xl transition-all duration-200 whitespace-nowrap ${
-                          filteredPlan === category
-                            ? 'bg-gradient-to-r from-purple-600 to-purple-700 text-white shadow-lg shadow-purple-500/30 border-2 border-purple-400'
-                            : 'bg-gray-800/60 text-gray-300 hover:bg-gray-700/60 border-2 border-gray-600/30 hover:border-purple-500/30'
-                        }`}
-                      >
-                        {category}
-                      </button>
-                    ))}
+                    <button
+                      onClick={() => setFilteredPlan('Full-Stack Professional')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'Full-Stack Professional'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      Full-Stack Professional
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('AI Agents/WebApps')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'AI Agents/WebApps'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      AI Agents/WebApps
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('WordPress Professional')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'WordPress Professional'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      WordPress Professional
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('Full-Stack Basic')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'Full-Stack Basic'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      Full-Stack Basic
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('SEO/Content Writing')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'SEO/Content Writing'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      SEO/Content Writing
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('WordPress Basic')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'WordPress Basic'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      WordPress Basic
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('WordPress Enterprise')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'WordPress Enterprise'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      WordPress Enterprise
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('Full-Stack Enterprise')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'Full-Stack Enterprise'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      Full-Stack Enterprise
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('UI/UX Design')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'UI/UX Design'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      UI/UX Design
+                    </button>
+                    <button
+                      onClick={() => setFilteredPlan('Mobile App Development')}
+                      className={`px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        filteredPlan === 'Mobile App Development'
+                          ? 'bg-purple-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/25'
+                          : 'bg-gray-800/50 text-gray-300 border border-gray-600 hover:bg-purple-600/20 hover:border-purple-500'
+                      }`}
+                    >
+                      Mobile App Development
+                    </button>
+                  </div>
+                </div>
+
+                {/* Client Satisfaction Chart */}
+                <div className="mb-6 p-4 bg-gradient-to-r from-gray-900/40 to-gray-800/30 rounded-lg border border-gray-600/30">
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                      <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                      </svg>
+                      Client Satisfaction
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-green-400">
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      100% recommend
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    {/* 5-star */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm text-white font-medium">5-star</span>
+                      </div>
+                      <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style={{ width: '98%' }}></div>
+                      </div>
+                      <span className="text-sm text-green-400 font-medium w-8">98%</span>
+                    </div>
+
+                    {/* 4-star */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm text-white font-medium">4-star</span>
+                      </div>
+                      <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style={{ width: '78%' }}></div>
+                      </div>
+                      <span className="text-sm text-green-400 font-medium w-8">78%</span>
+                    </div>
+
+                    {/* 3-star */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm text-white font-medium">3-star</span>
+                      </div>
+                      <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-green-500 to-green-400 rounded-full" style={{ width: '21%' }}></div>
+                      </div>
+                      <span className="text-sm text-green-400 font-medium w-8">21%</span>
+                    </div>
+
+                    {/* 2-star */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm text-white font-medium">2-star</span>
+                      </div>
+                      <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-gray-500 to-gray-400 rounded-full" style={{ width: '0%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-400 font-medium w-8">0%</span>
+                    </div>
+
+                    {/* 1-star */}
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1 w-16">
+                        <span className="text-sm text-white font-medium">1-star</span>
+                      </div>
+                      <div className="flex-1 bg-gray-700/50 rounded-full h-2 overflow-hidden">
+                        <div className="h-full bg-gradient-to-r from-gray-500 to-gray-400 rounded-full" style={{ width: '0%' }}></div>
+                      </div>
+                      <span className="text-sm text-gray-400 font-medium w-8">0%</span>
+                    </div>
                   </div>
                 </div>
 
@@ -819,7 +1134,7 @@ const ReviewsDrawer: React.FC<ReviewsDrawerProps> = ({
                               {review.planTitle}
                             </span>
                           </div>
-                          <p className="text-gray-200 leading-relaxed font-medium">{review.text}</p>
+                          <p className="text-gray-100 leading-relaxed font-medium text-base mt-3 whitespace-pre-wrap">{review.text}</p>
                         </div>
                       </div>
                     </motion.div>

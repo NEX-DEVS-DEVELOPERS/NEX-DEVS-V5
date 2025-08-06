@@ -120,7 +120,7 @@ export const initBarba = (options: BarbaOptions = {}): void => {
   
   const { updateProgress, showOverlay, hideOverlay, resetProgress } = initProgressBar();
   
-  // Enhanced smooth scrolling for all anchor links with GSAP
+  // OPTIMIZED: Simple smooth scrolling without GSAP for better performance
   if (typeof document !== 'undefined') {
     document.addEventListener('click', (e: Event) => {
       const target = e.target as HTMLElement;
@@ -130,15 +130,10 @@ export const initBarba = (options: BarbaOptions = {}): void => {
         const section = href ? document.querySelector(href) : null;
 
         if (section) {
-          // Use GSAP for ultra-smooth scrolling with easing
-          gsap.to(window, {
-            duration: 1.2,
-            scrollTo: {
-              y: section,
-              offsetY: 80, // Account for fixed header
-              autoKill: true
-            },
-            ease: "power2.inOut"
+          // Use native smooth scrolling for 60fps performance
+          section.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
           });
         }
       }
@@ -152,34 +147,23 @@ export const initBarba = (options: BarbaOptions = {}): void => {
       document.documentElement.style.scrollBehavior = 'smooth';
     }
 
-    // Add custom CSS for enhanced scrolling
+    // OPTIMIZED: Minimal CSS for performance
     const style = document.createElement('style');
     style.textContent = `
       html {
         scroll-behavior: smooth;
+        scroll-snap-type: none !important;
       }
 
-      /* Optimize scrolling performance */
-      * {
-        scroll-behavior: smooth;
-      }
-
-      /* Prevent scroll during Barba transitions */
-      .barba-prevent-scroll {
-        overflow: hidden;
-        height: 100vh;
-      }
-
-      /* Smooth transitions for all elements */
+      /* Minimal transitions for performance */
       .smooth-transition {
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        transition: opacity 0.2s ease;
       }
 
-      /* Enhanced hero animations */
+      /* Performance-optimized hero */
       .hero-optimized {
-        will-change: transform, opacity;
-        transform: translateZ(0);
-        backface-visibility: hidden;
+        will-change: auto;
+        contain: layout style paint;
       }
     `;
     if (document.head) {

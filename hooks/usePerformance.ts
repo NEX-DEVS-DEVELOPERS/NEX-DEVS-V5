@@ -113,37 +113,20 @@ export interface OptimizationOptions {
   preconnect?: boolean;
 }
 
+// SIMPLIFIED: Basic performance optimizations only
 export function applyPerformanceOptimizations(options: OptimizationOptions = {
   imageLazyLoading: true,
-  cssOptimization: true,
-  scriptOptimization: true,
-  fontOptimization: true,
+  cssOptimization: false, // Disabled for performance
+  scriptOptimization: false, // Disabled for performance
+  fontOptimization: false, // Disabled for performance
   preconnect: true,
 }) {
   if (typeof window === 'undefined') return;
 
-  const {
-    imageLazyLoading,
-    cssOptimization,
-    scriptOptimization,
-    fontOptimization,
-    preconnect,
-  } = options;
+  const { imageLazyLoading, preconnect } = options;
 
   if (imageLazyLoading) {
     optimizeImageLoading();
-  }
-
-  if (cssOptimization) {
-    optimizeCSSDelivery();
-  }
-
-  if (scriptOptimization) {
-    optimizeScriptLoading();
-  }
-
-  if (fontOptimization) {
-    optimizeFontLoading();
   }
 
   if (preconnect) {

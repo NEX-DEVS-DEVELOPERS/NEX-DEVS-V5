@@ -1,14 +1,13 @@
 'use client'
 
-import { Suspense, useEffect } from 'react'
+import { Suspense, useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
-import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import Image from 'next/image'
-import { useState, useCallback, useRef } from 'react'
+import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import dynamic from 'next/dynamic'
 import { audiowide, vt323 } from '@/app/utils/fonts'
-
-// Remove server-side Barba import - will be handled in client components
+import { generatePersonSchema, generateOrganizationSchema, generateWebSiteSchema, generateLocalBusinessSchema, injectStructuredData } from '@/app/lib/seo'
+import Head from 'next/head'
 
 // Dynamic imports for better code splitting and performance
 const Hero = dynamic(() => import("@/components/sections/Hero"), {
@@ -90,6 +89,12 @@ const PROGRAMMING_JOKES = [
 ]
 
 export default function Home() {
+  // Generate structured data for SEO
+  const personSchema = generatePersonSchema()
+  const organizationSchema = generateOrganizationSchema()
+  const websiteSchema = generateWebSiteSchema()
+  const localBusinessSchema = generateLocalBusinessSchema()
+
   const [konamiIndex, setKonamiIndex] = useState(0)
   const [showEasterEgg, setShowEasterEgg] = useState(false)
   const [showTerminal, setShowTerminal] = useState(false)
@@ -120,6 +125,40 @@ export default function Home() {
   
   // Refs for scroll animations
   const pageRef = useRef<HTMLDivElement>(null);
+
+  // Client-side SEO handling
+  useEffect(() => {
+    // Set document title and meta tags
+    document.title = "NEX-DEVS - AI-Powered Web Development & Automation Solutions"
+
+    // Set meta description
+    const metaDescription = document.querySelector('meta[name="description"]')
+    if (metaDescription) {
+      metaDescription.setAttribute('content', 'Transform your business with AI-powered web applications, intelligent automation, and cutting-edge development solutions. 950+ successful projects delivered.')
+    } else {
+      const meta = document.createElement('meta')
+      meta.name = 'description'
+      meta.content = 'Transform your business with AI-powered web applications, intelligent automation, and cutting-edge development solutions. 950+ successful projects delivered.'
+      document.head.appendChild(meta)
+    }
+
+    // Set Open Graph tags
+    const setMetaTag = (property: string, content: string) => {
+      let meta = document.querySelector(`meta[property="${property}"]`)
+      if (!meta) {
+        meta = document.createElement('meta')
+        meta.setAttribute('property', property)
+        document.head.appendChild(meta)
+      }
+      meta.setAttribute('content', content)
+    }
+
+    setMetaTag('og:title', 'NEX-DEVS - AI-Powered Web Development & Automation Solutions')
+    setMetaTag('og:description', 'Transform your business with AI-powered web applications, intelligent automation, and cutting-edge development solutions. 950+ successful projects delivered.')
+    setMetaTag('og:type', 'website')
+    setMetaTag('og:url', 'https://nexdevs.com')
+    setMetaTag('og:image', 'https://nexdevs.com/og-image.jpg')
+  }, [])
 
   const technologies = [
     { 
@@ -461,11 +500,38 @@ export default function Home() {
   if (!mounted) return null;
 
   return (
-    <main 
-      className="relative" 
-      ref={pageRef} 
-      data-barba="wrapper"
-    >
+    <>
+      {/* Inject structured data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: injectStructuredData(personSchema)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: injectStructuredData(organizationSchema)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: injectStructuredData(websiteSchema)
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: injectStructuredData(localBusinessSchema)
+        }}
+      />
+
+      <main
+        className="relative"
+        ref={pageRef}
+        data-barba="wrapper"
+      >
       <div data-barba="container" data-barba-namespace="home">
         <Suspense fallback={<div className="h-screen bg-black" />}>
           {showWelcome && <WelcomeScreen onComplete={handleWelcomeComplete} />}
@@ -478,40 +544,34 @@ export default function Home() {
           </Suspense>
         )}
         
-        {/* Hero Section Toggle */}
-        <AnimatePresence mode="wait" initial={false}>
-          {currentHero === 'original' ? (
-            <motion.div
-              key="original-hero"
-              exit={{ opacity: 0 }}
-              className="hero-section-container"
-              data-barba="container" 
-              data-barba-namespace="original-hero"
-            >
-              <HeroToggle
-                currentHero={currentHero}
-                onToggle={(hero) => setCurrentHero(hero)}
-                isHeroPage={true}
-              />
-              <Hero />
-            </motion.div>
-          ) : (
-            <motion.div
-              key="business-hero"
-              exit={{ opacity: 0 }}
-              className="hero-section-container"
-              data-barba="container" 
-              data-barba-namespace="business-hero"
-            >
-              <HeroToggle
-                currentHero={currentHero}
-                onToggle={(hero) => setCurrentHero(hero)}
-                isHeroPage={false}
-              />
-              <BusinessHero />
-            </motion.div>
-          )}
-        </AnimatePresence>
+        {/* Hero Section Toggle - OPTIMIZED for performance */}
+        {currentHero === 'original' ? (
+          <div
+            className="hero-section-container hero-optimized"
+            data-barba="container"
+            data-barba-namespace="original-hero"
+          >
+            <HeroToggle
+              currentHero={currentHero}
+              onToggle={(hero) => setCurrentHero(hero)}
+              isHeroPage={true}
+            />
+            <Hero />
+          </div>
+        ) : (
+          <div
+            className="hero-section-container hero-optimized"
+            data-barba="container"
+            data-barba-namespace="business-hero"
+          >
+            <HeroToggle
+              currentHero={currentHero}
+              onToggle={(hero) => setCurrentHero(hero)}
+              isHeroPage={false}
+            />
+            <BusinessHero />
+          </div>
+        )}
         
         {/* AI Integration Section - Modern Professional AI Section */}
         <section 
@@ -525,106 +585,24 @@ export default function Home() {
             <div className="absolute inset-0 opacity-[0.15] matrix-animation"></div>
           </div>
           
-          {/* Advanced Neural Network Visualization */}
-          <div className="absolute inset-0 pointer-events-none neural-network-visualization">
-            <div className="neural-connection absolute top-1/4 left-1/3 w-[300px] h-[1px] bg-gradient-to-r from-purple-500/0 via-purple-500/40 to-blue-500/0 neural-pulse"></div>
-            <div className="neural-connection absolute top-1/3 right-1/4 w-[200px] h-[1px] bg-gradient-to-r from-blue-500/0 via-blue-500/40 to-purple-500/0 neural-pulse-alt"></div>
-            <div className="neural-connection absolute bottom-1/3 left-1/4 w-[250px] h-[1px] bg-gradient-to-r from-indigo-500/0 via-indigo-500/40 to-purple-500/0 neural-pulse"></div>
+          {/* SIMPLIFIED: Static neural network for performance */}
+          <div className="absolute inset-0 pointer-events-none opacity-10">
+            <div className="absolute top-1/4 left-1/3 w-[300px] h-[1px] bg-gradient-to-r from-purple-500/0 via-purple-500/20 to-blue-500/0"></div>
+            <div className="absolute top-1/3 right-1/4 w-[200px] h-[1px] bg-gradient-to-r from-blue-500/0 via-blue-500/20 to-purple-500/0"></div>
+            <div className="absolute bottom-1/3 left-1/4 w-[250px] h-[1px] bg-gradient-to-r from-indigo-500/0 via-indigo-500/20 to-purple-500/0"></div>
           </div>
           
-          {/* Leaky Code Animation Containers - Enhanced */}
-          <div className="absolute inset-0 overflow-hidden pointer-events-none leaky-code-container">
-            <div className="leaky-code-left absolute left-0 top-0 bottom-0 w-32 sm:w-52 opacity-20"></div>
-            <div className="leaky-code-right absolute right-0 top-0 bottom-0 w-32 sm:w-52 opacity-20"></div>
+          {/* REMOVED: Heavy code animations for better performance */}
+          <div className="absolute inset-0 overflow-hidden pointer-events-none opacity-5">
+            <div className="absolute left-0 top-0 bottom-0 w-32 sm:w-52 bg-gradient-to-r from-purple-500/5 to-transparent"></div>
+            <div className="absolute right-0 top-0 bottom-0 w-32 sm:w-52 bg-gradient-to-l from-purple-500/5 to-transparent"></div>
             
-            {/* Code Snippets - AI Chatbot Related */}
-            <div className="code-snippet absolute left-[5%] top-[15%] p-2 rounded bg-black/80 border border-purple-500/20 font-mono text-[8px] sm:text-xs text-purple-400/70 opacity-70 transform rotate-2 shadow-lg backdrop-blur-sm">
-              <div className="text-blue-400/80">// AI Model Configuration</div>
-              <div>const proModeSettings = {'{'}</div>
-              <div>&nbsp;&nbsp;model: <span className="text-green-400/80">'deepseek/deepseek-r1-0528:free'</span>,</div>
-              <div>&nbsp;&nbsp;temperature: 0.6,</div>
-              <div>&nbsp;&nbsp;maxTokens: 6000,</div>
-              <div>&nbsp;&nbsp;topP: 0.8,</div>
-              <div>&nbsp;&nbsp;timeout: 15000,</div>
-              <div>&nbsp;&nbsp;thinkingTime: 800</div>
-              <div>{'}'}</div>
-            </div>
-            
-            <div className="code-snippet absolute right-[8%] top-[25%] p-2 rounded bg-black/80 border border-blue-500/20 font-mono text-[8px] sm:text-xs text-blue-400/70 opacity-70 transform -rotate-1 shadow-lg backdrop-blur-sm">
-              <div className="text-amber-400/80">// Advanced Fallback System</div>
-              <div>const FALLBACK_CONFIG = {'{'}</div>
-              <div>&nbsp;&nbsp;enabled: true,</div>
-              <div>&nbsp;&nbsp;primaryTimeout: 6500,</div>
-              <div>&nbsp;&nbsp;fallbackModels: [</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;{'{'} model: <span className="text-green-400/80">'qwen/qwen3-235b-a22b:free'</span> {'}'},</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;{'{'} model: <span className="text-green-400/80">'meta-llama/llama-3.1-8b'</span> {'}'}</div>
-              <div>&nbsp;&nbsp;]</div>
-              <div>{'}'}</div>
-            </div>
-            
-            <div className="code-snippet absolute left-[12%] bottom-[30%] p-2 rounded bg-black/80 border border-amber-500/20 font-mono text-[8px] sm:text-xs text-amber-400/70 opacity-70 transform rotate-1 shadow-lg backdrop-blur-sm">
-              <div className="text-purple-400/80">// AI Request Preparation</div>
-              <div>export const prepareAPIRequest = async (</div>
-              <div>&nbsp;&nbsp;mode: <span className="text-green-400/80">'standard'</span> | <span className="text-green-400/80">'pro'</span>,</div>
-              <div>&nbsp;&nbsp;messages: any[],</div>
-              <div>&nbsp;&nbsp;systemPrompt: string</div>
-              <div>) {`=>`} {`{`}</div>
-              <div>&nbsp;&nbsp;const settings = mode === <span className="text-green-400/80">'standard'</span> </div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;? standardSettings : proSettings;</div>
-              <div>{'}'}</div>
-            </div>
-            
-            <div className="code-snippet absolute right-[15%] bottom-[20%] p-2 rounded bg-black/80 border border-indigo-500/20 font-mono text-[8px] sm:text-xs text-indigo-400/70 opacity-70 transform -rotate-2 shadow-lg backdrop-blur-sm">
-              <div className="text-blue-400/80">// OpenAI Function Calling</div>
-              <div>const functions = [</div>
-              <div>&nbsp;&nbsp;{`{`}</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;name: <span className="text-green-400/80">"search_knowledge_base"</span>,</div>
-              <div>&nbsp;&nbsp;&nbsp;&nbsp;description: <span className="text-green-400/80">"Search for information"</span></div>
-              <div>&nbsp;&nbsp;{`}`}</div>
-              <div>];</div>
-              <div>const response = await openai.chat.completions.create({`{`}</div>
-              <div>&nbsp;&nbsp;functions</div>
-              <div>{`}`});</div>
-            </div>
-            
-            <div className="code-snippet absolute left-[25%] top-[65%] p-2 rounded bg-black/80 border border-green-500/20 font-mono text-[8px] sm:text-xs text-green-400/70 opacity-70 transform rotate-1 shadow-lg backdrop-blur-sm">
-              <div className="text-amber-400/80">// LangChain RAG Implementation</div>
-              <div>import RetrievalQAChain from <span className="text-purple-400/80">"langchain/chains"</span>;</div>
-              <div>import ChatOpenAI from <span className="text-purple-400/80">"langchain/chat_models"</span>;</div>
-              <div>const model = new ChatOpenAI({'{'}</div>
-              <div>&nbsp;&nbsp;modelName: <span className="text-green-400/80">"gpt-4"</span>,</div>
-              <div>&nbsp;&nbsp;temperature: 0.7</div>
-              <div>{'}'});</div>
-              <div>const chain = RetrievalQAChain.fromLLM(model, retriever);</div>
-            </div>
+            {/* REMOVED: Heavy floating code snippets for better performance */}
           </div>
 
-          {/* Enhanced Neural Network Nodes */}
-          <div className="absolute inset-0 pointer-events-none neural-network-overlay">
-            <div className="neural-node absolute top-[20%] left-[10%] w-3 h-3 bg-purple-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[30%] left-[25%] w-2 h-2 bg-blue-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[60%] left-[15%] w-3 h-3 bg-indigo-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[70%] left-[35%] w-2 h-2 bg-purple-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[40%] right-[20%] w-3 h-3 bg-blue-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[25%] right-[30%] w-2 h-2 bg-indigo-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[75%] right-[15%] w-3 h-3 bg-purple-500/40 rounded-full glow-effect"></div>
-            <div className="neural-node absolute top-[55%] right-[25%] w-2 h-2 bg-blue-500/40 rounded-full glow-effect"></div>
-            
-            {/* Binary Data Particles */}
-            <div className="binary-particles absolute inset-0 opacity-30"></div>
-          </div>
+          {/* REMOVED: Heavy neural network nodes for better performance */}
           
-          {/* AI Processor Animation */}
-          <div className="absolute bottom-10 left-10 w-24 h-24 opacity-20 pointer-events-none processor-animation">
-            <div className="absolute inset-2 border-2 border-purple-500/30 rounded"></div>
-            <div className="absolute inset-5 border border-blue-500/30 rounded-sm"></div>
-            <div className="absolute inset-8 border border-indigo-500/30 rounded-sm"></div>
-            <div className="absolute inset-0 grid grid-cols-4 grid-rows-4 gap-1">
-              {Array.from({length: 16}).map((_, i) => (
-                <div key={i} className="processor-cell"></div>
-              ))}
-            </div>
-          </div>
+          {/* REMOVED: Heavy processor animation for better performance */}
 
           <div className="max-w-7xl mx-auto px-6 sm:px-8 relative z-10">
             <div
@@ -790,129 +768,7 @@ export default function Home() {
             </div>
           </div>
 
-          <style jsx>{`
-            @keyframes matrix-fall {
-              0% { background-position: 0 0; }
-              100% { background-position: 0 1000px; }
-            }
-            
-            @keyframes neural-pulse {
-              0% { opacity: 0.2; transform: scaleX(0.95); }
-              50% { opacity: 0.5; transform: scaleX(1.05); }
-              100% { opacity: 0.2; transform: scaleX(0.95); }
-            }
-            
-            @keyframes neural-pulse-alt {
-              0% { opacity: 0.1; transform: scaleX(1.05); }
-              50% { opacity: 0.4; transform: scaleX(0.95); }
-              100% { opacity: 0.1; transform: scaleX(1.05); }
-            }
-            
-            @keyframes node-pulse {
-              0%, 100% { transform: scale(1); opacity: 0.4; }
-              50% { transform: scale(1.5); opacity: 0.8; }
-            }
-            
-            @keyframes code-fall {
-              0% { background-position: 0 0; }
-              100% { background-position: 0 1000px; }
-            }
-            
-            @keyframes float-particle {
-              0%, 100% { transform: translate(0, 0); }
-              25% { transform: translate(3px, -3px); }
-              50% { transform: translate(0, -5px); }
-              75% { transform: translate(-3px, -3px); }
-            }
-            
-            @keyframes processor-activity {
-              0%, 100% { opacity: 0.1; }
-              50% { opacity: 0.4; }
-            }
-            
-            .matrix-animation {
-              background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='10' y='20' fill='rgba(139, 92, 246, 0.3)' font-family='monospace' font-size='10'%3E10110%3C/text%3E%3Ctext x='10' y='40' fill='rgba(99, 102, 241, 0.3)' font-family='monospace' font-size='10'%3E01001%3C/text%3E%3C/svg%3E");
-              animation: matrix-fall 25s linear infinite;
-            }
-            
-            .neural-pulse {
-              animation: neural-pulse 4s infinite ease-in-out;
-            }
-            
-            .neural-pulse-alt {
-              animation: neural-pulse-alt 5s infinite ease-in-out;
-            }
-            
-            .leaky-code-left, .leaky-code-right {
-              background: linear-gradient(0deg, transparent, rgba(139, 92, 246, 0.1), transparent);
-              background-size: 40px 40px;
-              animation: code-fall 20s linear infinite;
-              background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='5' y='15' fill='rgba(139, 92, 246, 0.3)' font-family='monospace'%3E{%3C/text%3E%3Ctext x='5' y='30' fill='rgba(139, 92, 246, 0.3)' font-family='monospace'%3E}%3C/text%3E%3C/svg%3E");
-            }
-            
-            .code-snippet {
-              animation: float-particle 10s infinite ease-in-out;
-            }
-            
-            .glow-effect {
-              animation: node-pulse 4s infinite ease-in-out;
-              box-shadow: 0 0 10px currentColor;
-            }
-            
-            .glow-effect:nth-child(odd) {
-              animation-delay: 1s;
-            }
-            
-            .glow-effect:nth-child(3n) {
-              animation-delay: 2s;
-            }
-            
-            .glow-effect:nth-child(3n+1) {
-              animation-delay: 3s;
-            }
-            
-            .binary-particles {
-              background-image: url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Ctext x='2' y='10' fill='rgba(139, 92, 246, 0.3)' font-family='monospace' font-size='6'%3E01%3C/text%3E%3C/svg%3E");
-              background-repeat: repeat;
-            }
-            
-            .processor-animation {
-              animation: processor-activity 3s infinite ease-in-out;
-            }
-            
-            .processor-cell {
-              background: rgba(139, 92, 246, 0.1);
-              animation: processor-activity 2s infinite ease-in-out;
-            }
-            
-            .processor-cell:nth-child(odd) {
-              animation-delay: 0.5s;
-            }
-            
-            .processor-cell:nth-child(3n) {
-              animation-delay: 1s;
-            }
-            
-            .processor-cell:nth-child(4n+1) {
-              animation-delay: 1.5s;
-            }
-            
-            .bg-scanlines {
-              background: repeating-linear-gradient(
-                to bottom,
-                transparent,
-                transparent 2px,
-                rgba(139, 92, 246, 0.05) 2px,
-                rgba(139, 92, 246, 0.05) 4px
-              );
-              animation: scanline 8s linear infinite;
-            }
-            
-            @keyframes scanline {
-              0% { background-position: 0 0; }
-              100% { background-position: 0 100%; }
-            }
-          `}</style>
+          {/* REMOVED: Heavy CSS animations for 60fps performance */}
         </section>
         
         {/* Project Gallery Section */}
@@ -1206,5 +1062,6 @@ export default function Home() {
       )}
       </div>
     </main>
+    </>
   )
 }

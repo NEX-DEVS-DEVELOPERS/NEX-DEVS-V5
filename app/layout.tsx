@@ -1,11 +1,11 @@
 import { Inter } from "next/font/google"
 import "./globals.css"
+import "../styles/performance-optimizations.css" // CRITICAL: Performance optimizations for 60fps scrolling
 import "../styles/barba-transitions.css" // Import Barba.js transition styles
 import "../styles/color-consistency.css" // Import color consistency styles
 import "../styles/hero-and-scroll-fixes.css" // Import hero section and scrolling fixes
 import "../styles/neon-borders.css" // Import neon border styles
 import "../styles/smooth-scrolling.css" // Import smooth scrolling optimizations
-import "../styles/mobile-touch-fixes.css" // Import mobile touch interaction fixes
 import { cn } from "@/lib/utils"
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
@@ -77,7 +77,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={`${inter.variable} ${fontVariables}`}>
       <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
         <link rel="shortcut icon" href="/icons/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/icons/favicon.svg" />
@@ -88,18 +88,60 @@ export default function RootLayout({
           href="https://fonts.gstatic.com"
           crossOrigin="anonymous"
         />
+        {/* DevTools Mobile Preview Fix */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          // Simple mobile detection and DevTools fix
+          const isMobile = window.innerWidth <= 768;
+          document.documentElement.classList.toggle('mobile-device', isMobile);
+
+          // DevTools mobile preview fix - force all interactions to work
+          if (isMobile) {
+            console.log('Mobile preview detected - enabling all interactions');
+
+            // Remove any pointer-events: none from all elements except specific overlays
+            const style = document.createElement('style');
+            style.textContent = \`
+              .mobile-device * { pointer-events: auto !important; }
+              .mobile-device #chatbot-overlay,
+              .mobile-device #transition-overlay,
+              .mobile-device .barba-overlay { pointer-events: none !important; }
+            \`;
+            document.head.appendChild(style);
+          }
+        `}} />
       </head>
       <body className={cn(inter.className, "min-h-screen bg-background text-foreground flex flex-col optimized-scroll")} data-barba="wrapper">
-        <div className="transition-overlay" id="transition-overlay"></div>
-        <div className="progress-bar" id="progress-bar"></div>
+        {/* Progress bar - non-blocking */}
+        <div className="progress-bar" id="progress-bar" style={{pointerEvents: 'none'}}></div>
 
-        {/* Transition overlay for smooth page transitions */}
-        <div id="transition-overlay">
+        {/* Single transition overlay - non-blocking */}
+        <div
+          id="transition-overlay"
+          className="transition-overlay"
+          style={{
+            pointerEvents: 'none',
+            touchAction: 'none',
+            zIndex: '9999',
+            display: 'none'
+          }}
+        >
           <div className="transition-spinner"></div>
         </div>
 
-        {/* Add chatbot blur overlay - Fixed z-index to prevent mobile interaction blocking */}
-        <div id="chatbot-overlay" className="fixed inset-0 bg-black/30 backdrop-blur-md z-[9998] pointer-events-none opacity-0 transition-opacity duration-300 invisible"></div>
+        {/* Chatbot overlay - completely non-blocking */}
+        <div
+          id="chatbot-overlay"
+          className="fixed inset-0 bg-black/30 backdrop-blur-md opacity-0 transition-opacity duration-300 invisible"
+          style={{
+            zIndex: '9998',
+            pointerEvents: 'none',
+            display: 'none',
+            touchAction: 'none',
+            userSelect: 'none',
+            webkitUserSelect: 'none',
+            webkitTouchCallout: 'none'
+          }}
+        ></div>
         
         <ThemeProvider
           attribute="class"
@@ -121,183 +163,110 @@ export default function RootLayout({
           </CurrencyProvider>
         </ThemeProvider>
 
-        {/* Add script to detect scroll and optimize performance */}
+        {/* ULTRA-OPTIMIZED scroll detection and chatbot initialization - minimal overhead */}
         <script dangerouslySetInnerHTML={{ __html: `
-          // Detect scroll to optimize performance
+          // Minimal scroll handler with RAF throttling
+          let ticking = false;
           let scrollTimer;
-          document.addEventListener('scroll', function() {
-            document.body.classList.add('is-scrolling');
-            
-            // Remove class after scrolling stops
-            clearTimeout(scrollTimer);
-            scrollTimer = setTimeout(function() {
-              document.body.classList.remove('is-scrolling');
-            }, 150);
-          }, { passive: true });
-          
-          // Fix rounded edges and enhance welcome screen animations after DOM loads
+
+          function optimizedScrollHandler() {
+            if (!ticking) {
+              requestAnimationFrame(() => {
+                document.body.classList.add('is-scrolling');
+                clearTimeout(scrollTimer);
+                scrollTimer = setTimeout(() => {
+                  document.body.classList.remove('is-scrolling');
+                }, 150);
+                ticking = false;
+              });
+              ticking = true;
+            }
+          }
+
+          document.addEventListener('scroll', optimizedScrollHandler, { passive: true });
+
+          // Enhanced DOM initialization for robust chatbot functionality
           document.addEventListener('DOMContentLoaded', function() {
-            // Fix rounded edges for specific elements
-            const fixRoundedEdges = () => {
-              // Fix hero name elements
-              const nameElements = document.querySelectorAll('[id*="ali"], [id*="hasnaat"], .bg-white.text-black');
-              nameElements.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.borderRadius = '12px';
-                  el.style.overflow = 'hidden';
-                }
-              });
-              
-              // Fix buttons
-              const buttons = document.querySelectorAll('a[href="/contact"], a[href="/projects"], .button');
-              buttons.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.borderRadius = '10px';
-                  el.style.overflow = 'hidden';
-                }
-              });
-              
-              // Fix tech stack sections
-              const techSections = document.querySelectorAll('.space-y-2, .rounded-lg, .rounded-xl, .rounded-2xl');
-              techSections.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.borderRadius = '16px';
-                  el.style.overflow = 'hidden';
-                }
-              });
-              
-              // Optimize welcome screen animations
-              const welcomeScreens = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
-              welcomeScreens.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.marginTop = '7rem';
-                  el.style.paddingTop = '4rem';
-                  el.style.borderRadius = '16px';
-                  el.style.position = 'relative';
-                  
-                  // Add a more elegant glass effect
-                  const existingBefore = el.querySelector('.welcome-bg-effect');
-                  if (!existingBefore) {
-                    const bgEffect = document.createElement('div');
-                    bgEffect.className = 'welcome-bg-effect';
-                    bgEffect.style.position = 'absolute';
-                    bgEffect.style.inset = '0';
-                    bgEffect.style.background = 'rgba(10, 10, 30, 0.3)';
-                    bgEffect.style.backdropFilter = 'blur(24px)';
-                    bgEffect.style.webkitBackdropFilter = 'blur(24px)';
-                    bgEffect.style.border = '1px solid rgba(139, 92, 246, 0.2)';
-                    bgEffect.style.borderRadius = '16px';
-                    bgEffect.style.zIndex = '-1';
-                    bgEffect.style.transition = 'all 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-                    el.style.backgroundColor = 'transparent';
-                    el.style.transition = 'transform 0.6s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1)';
-                    el.insertBefore(bgEffect, el.firstChild);
-                    
-                    // Add entrance animation with slight delay
-                    setTimeout(() => {
-                      el.style.opacity = '1';
-                      el.style.transform = 'translateY(0) scale(1)';
-                    }, 100);
-                  }
-                }
-              });
-              
-              // Enhanced welcome screen buttons
-              const welcomeButtons = document.querySelectorAll('[class*="welcome"] button, [class*="welcome"] a, [id*="discover"], [id*="see-what"]');
-              welcomeButtons.forEach(el => {
-                if(el instanceof HTMLElement) {
-                  el.style.backdropFilter = 'blur(10px)';
-                  el.style.webkitBackdropFilter = 'blur(10px)';
-                  el.style.border = '1px solid rgba(255, 255, 255, 0.1)';
-                  el.style.boxShadow = '0 4px 12px rgba(0, 0, 0, 0.2)';
-                  el.style.transition = 'all 0.3s cubic-bezier(0.22, 1, 0.36, 1)';
+            // Minimal welcome screen activation
+            const activateWelcomeScreens = () => {
+              const welcomeElements = document.querySelectorAll('[class*="Welcome"], [class*="welcome"]');
+              welcomeElements.forEach(el => {
+                if(el instanceof HTMLElement && !el.classList.contains('loaded')) {
+                  el.classList.add('loaded');
                 }
               });
             };
-            
-            // Run on load and after any page transitions
-            fixRoundedEdges();
-            document.addEventListener('barba:after', fixRoundedEdges);
-            
-            // Run again after a short delay to catch any dynamically loaded content
-            setTimeout(fixRoundedEdges, 1000);
-            // Additional check after all content is fully loaded
-            window.addEventListener('load', fixRoundedEdges);
-            
-            // Try to load our enhancement script if it hasn't loaded already
-            if (typeof enhanceWelcomeScreen === 'undefined') {
-              try {
-                const script = document.createElement('script');
-                script.src = '/utils/welcome-screen-enhancements.js';
-                script.async = true;
-                document.head.appendChild(script);
-              } catch (err) {
-                console.log('Welcome screen enhancement script already loaded or failed to load.');
+
+            // Activate welcome screens with slight delay for smooth appearance
+            setTimeout(activateWelcomeScreens, 100);
+
+            // Re-activate on page transitions
+            document.addEventListener('barba:after', () => {
+              setTimeout(activateWelcomeScreens, 50);
+            });
+
+            // Simplified chatbot system for DevTools compatibility
+            const setupChatbotSystem = () => {
+              // Ensure chatbot container exists
+              let container = document.getElementById('nexious-chat-container');
+              if (!container) {
+                container = document.createElement('div');
+                container.id = 'nexious-chat-container';
+                container.className = 'fixed-bottom-right nexious-chat-container';
+                container.style.cssText = 'position: fixed !important; bottom: 20px !important; right: 24px !important; z-index: 999999 !important; pointer-events: auto !important; touch-action: manipulation !important;';
+                document.body.appendChild(container);
               }
-            }
 
-            // Setup chatbot overlay toggling - Fixed for mobile minimized state
-            const setupChatbotBlurEffect = () => {
-              // Monitor for the chat-open class on body
-              const observer = new MutationObserver(mutations => {
-                mutations.forEach(mutation => {
-                  if (mutation.attributeName === 'class') {
-                    const body = document.body;
-                    const overlay = document.getElementById('chatbot-overlay');
-                    if (!overlay) return;
+              // Ensure overlay never blocks interactions
+              const overlay = document.getElementById('chatbot-overlay');
+              if (overlay) {
+                overlay.style.pointerEvents = 'none';
+                overlay.style.touchAction = 'none';
+                overlay.style.display = 'none';
+              }
+            };
 
-                    // Check if we're on mobile
-                    const isMobile = window.innerWidth <= 768;
+              // Ensure chatbot remains functional on page transitions
+              document.addEventListener('barba:after', () => {
+                setTimeout(() => {
+                  ensureChatbotContainer();
+                }, 100);
+              });
+            };
 
-                    // Only show blur when chat is open AND not minimized
-                    // For mobile: completely hide overlay when minimized to prevent interaction blocking
-                    if (body.classList.contains('chat-open') && !body.classList.contains('chat-minimized')) {
-                      overlay.classList.remove('invisible');
-                      overlay.style.pointerEvents = 'none'; // Always ensure no interaction blocking
-                      overlay.style.display = '';
-                      overlay.style.zIndex = '9998'; // Lower z-index to prevent blocking
+            setupChatbotSystem();
 
-                      // Restore blur effects when maximizing
-                      overlay.style.backdropFilter = '';
-                      overlay.style.webkitBackdropFilter = '';
-                      overlay.style.backgroundColor = '';
-
-                      setTimeout(() => {
-                        overlay.classList.remove('opacity-0');
-                        overlay.classList.add('opacity-100');
-                      }, 10);
-                    } else {
-                      // When minimized or closed, completely remove overlay effects
-                      overlay.classList.remove('opacity-100');
-                      overlay.classList.add('opacity-0');
-                      overlay.style.pointerEvents = 'none';
-                      overlay.style.zIndex = '-1'; // Move completely behind content
-
-                      // Forcefully remove all blur effects when minimized
-                      overlay.style.backdropFilter = 'none';
-                      overlay.style.webkitBackdropFilter = 'none';
-                      overlay.style.backgroundColor = 'transparent';
-
-                      setTimeout(() => {
-                        overlay.classList.add('invisible');
-                        // Always hide overlay when minimized to ensure no background effects
-                        if (body.classList.contains('chat-minimized')) {
-                          overlay.style.display = 'none';
-                        } else {
-                          overlay.style.display = '';
-                        }
-                      }, 300); // Match transition duration
-                    }
+            // Pre-warm chatbot settings for instant availability
+            const preWarmChatbotSettings = async () => {
+              try {
+                const timestamp = Date.now();
+                const response = await fetch('/api/chatbot/settings/public?t=' + timestamp, {
+                  method: 'GET',
+                  headers: {
+                    'Cache-Control': 'no-cache, no-store, must-revalidate',
+                    'Pragma': 'no-cache'
                   }
                 });
-              });
 
-              observer.observe(document.body, { attributes: true });
+                if (response.ok) {
+                  const data = await response.json();
+                  localStorage.setItem('nexious-chatbot-settings', JSON.stringify({
+                    enabled: data.enabled,
+                    timestamp: Date.now()
+                  }));
+                  console.log('Chatbot settings pre-warmed:', data.enabled ? 'Enabled' : 'Disabled');
+                }
+              } catch (error) {
+                console.error('Error pre-warming chatbot settings:', error);
+              }
             };
 
-            setupChatbotBlurEffect();
+            // Pre-warm settings immediately
+            preWarmChatbotSettings();
           });
         `}} />
+
+
       </body>
     </html>
   )

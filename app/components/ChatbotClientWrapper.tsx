@@ -1,16 +1,54 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
-// Import NexiousChatbot dynamically with SSR disabled
+// Import NexiousChatbot dynamically with SSR disabled but with better loading handling
 const NexiousChatbot = dynamic(() => import('@/components/NexiousChatbot'), {
   ssr: false,
   loading: () => null
 });
 
 export default function ChatbotClientWrapper() {
-  // Add global animation classes
+  const [isInitialized, setIsInitialized] = useState(false);
+  const [chatbotReady, setChatbotReady] = useState(false);
+
+  // Pre-initialize chatbot settings to avoid delays
+  useEffect(() => {
+    const preInitializeChatbot = async () => {
+      try {
+        // Pre-warm the chatbot settings API to avoid delays
+        const timestamp = Date.now();
+        const response = await fetch(`/api/chatbot/settings/public?t=${timestamp}`, {
+          method: 'GET',
+          headers: {
+            'Cache-Control': 'no-cache, no-store, must-revalidate',
+            'Pragma': 'no-cache',
+            'X-Requested-With': 'fetch'
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // Cache the settings immediately for instant access
+          localStorage.setItem('nexious-chatbot-settings', JSON.stringify({
+            enabled: data.enabled,
+            timestamp: Date.now()
+          }));
+          console.log('Chatbot settings pre-loaded:', data.enabled ? 'Enabled' : 'Disabled');
+        }
+      } catch (error) {
+        console.error('Error pre-initializing chatbot:', error);
+      } finally {
+        setChatbotReady(true);
+      }
+    };
+
+    // Start pre-initialization immediately
+    preInitializeChatbot();
+  }, []);
+
+  // Add global animation classes and ensure chatbot container is ready
   useEffect(() => {
     // Create style element for global chatbot animations
     const style = document.createElement('style');
@@ -29,17 +67,58 @@ export default function ChatbotClientWrapper() {
         perspective: 1000px;
         transform-style: preserve-3d;
       }
+
+      /* Ensure chatbot is always visible and functional */
+      .nexious-chat-container {
+        position: fixed !important;
+        bottom: 20px !important;
+        right: 24px !important;
+        z-index: 999999 !important;
+        pointer-events: auto !important;
+      }
+
+      /* Prevent any interference from other elements */
+      .nexious-chat-container * {
+        pointer-events: auto !important;
+      }
     `;
     document.head.appendChild(style);
-    
+
+    // Ensure the chatbot container is properly positioned
+    const ensureChatbotContainer = () => {
+      const container = document.getElementById('nexious-chat-container');
+      if (container) {
+        container.style.position = 'fixed';
+        container.style.bottom = '20px';
+        container.style.right = '24px';
+        container.style.zIndex = '999999';
+        container.style.pointerEvents = 'auto';
+      }
+    };
+
+    // Set up container immediately and on DOM changes
+    ensureChatbotContainer();
+    const observer = new MutationObserver(ensureChatbotContainer);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    setIsInitialized(true);
+
     return () => {
-      document.head.removeChild(style);
+      if (document.head.contains(style)) {
+        document.head.removeChild(style);
+      }
+      observer.disconnect();
     };
   }, []);
+
+  // Don't render until both initialization and chatbot settings are ready
+  if (!isInitialized || !chatbotReady) {
+    return null;
+  }
 
   return (
     <div className="fixed-bottom-right nexious-chat-container" id="nexious-chat-container">
       <NexiousChatbot />
     </div>
   );
-} 
+}
