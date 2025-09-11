@@ -161,15 +161,35 @@ export class GeolocationService {
 
   private async getFromIPInfo(ip?: string): Promise<LocationInfo | null> {
     try {
+      // Skip IPInfo if no API key available or if it's a known failing scenario
+      if (!ip || ip === 'unknown' || ip === 'localhost' || ip.startsWith('127.') || ip.startsWith('192.168.')) {
+        console.log('Skipping IPInfo for local/unknown IP:', ip);
+        return null;
+      }
+      
       // Note: ipinfo.io requires an API key for production use
-      const url = ip ? `https://ipinfo.io/${ip}/json` : 'https://ipinfo.io/json';
-      const response = await fetch(url);
+      const url = `https://ipinfo.io/${ip}/json`;
+      const response = await fetch(url, {
+        headers: {
+          'Accept': 'application/json',
+          'User-Agent': 'Portfolio-App/1.0'
+        },
+        signal: AbortSignal.timeout(5000) // 5 second timeout
+      });
       
       if (!response.ok) {
-        throw new Error(`IPInfo request failed: ${response.status}`);
+        console.warn(`IPInfo request failed with status: ${response.status}`);
+        return null; // Return null instead of throwing
       }
 
       const data = await response.json();
+      
+      // Check if response contains error
+      if (data.error) {
+        console.warn('IPInfo returned error:', data.error);
+        return null;
+      }
+      
       const [lat, lon] = (data.loc || '0,0').split(',').map(Number);
 
       return {

@@ -324,11 +324,11 @@ export class SessionManager {
   }
 
   private startSessionTracking(): void {
-    // Update session data every second for real-time feel
+    // Update session data every 10 seconds for better performance
     this.cleanupInterval = setInterval(() => {
       this.notifyCallbacks();
       this.cleanupOldSessions();
-    }, 1000);
+    }, 10000);
   }
 
   private cleanupOldSessions(): void {

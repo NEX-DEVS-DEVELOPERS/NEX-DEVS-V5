@@ -5,6 +5,13 @@ import { Send, X, Minimize2, Bot, Code, Phone, ShoppingCart, Zap, Pause } from '
 import { usePathname } from 'next/navigation';
 import { audiowide, getAudiowideStyle } from '@/app/utils/fonts';
 
+// Type declaration for window object extensions
+declare global {
+  interface Window {
+    _nexiousScrollCheck?: ReturnType<typeof setTimeout>;
+  }
+}
+
 // Add CSS animations at the beginning of the component
 const cssAnimations = `
   @keyframes chatSlideIn {
@@ -55,6 +62,33 @@ const cssAnimations = `
     visibility: visible !important;
     display: flex !important;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  }
+
+  /* Desktop-specific button robustness rules */
+  @media (min-width: 769px) {
+    /* Only apply robustness when chat is closed */
+    body:not(.chat-open) .nexious-chat-button {
+      pointer-events: auto !important;
+      position: fixed !important;
+      bottom: 20px !important;
+      right: 20px !important;
+      z-index: 999999 !important;
+      cursor: pointer !important;
+      transform: translateZ(0) !important;
+      opacity: 1 !important;
+      visibility: visible !important;
+      display: flex !important;
+    }
+    
+    /* Ensure button container doesn't block when chat is closed */
+    body:not(.chat-open) #nexious-chat-container {
+      pointer-events: none !important;
+    }
+    
+    /* Allow button to receive events when chat is closed */
+    body:not(.chat-open) #nexious-chat-container .nexious-chat-button {
+      pointer-events: auto !important;
+    }
   }
 
   .nexious-chat-button:hover {
@@ -1166,7 +1200,7 @@ const isChatbotEnabled = async () => {
       }
     } catch (fetchError) {
       clearTimeout(timeoutId);
-      if (fetchError.name === 'AbortError') {
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
         console.warn('Chatbot settings request timed out');
       } else {
         console.error('Error fetching chatbot settings:', fetchError);
@@ -1374,8 +1408,11 @@ function MobilePopup({ onClose }: { onClose: () => void }) {
               if (navigator.vibrate) navigator.vibrate(20);
             }}
             onTouchEnd={(e) => {
+              const target = e.currentTarget; // Capture currentTarget before setTimeout
               setTimeout(() => {
-                e.currentTarget.style.transform = 'scale(1)';
+                if (target) { // Add null check
+                  target.style.transform = 'scale(1)';
+                }
               }, 100);
             }}
             className="w-full py-2.5 px-4 bg-gradient-to-r from-purple-500 to-blue-600 hover:from-purple-600 hover:to-blue-700 text-white rounded-xl font-medium shadow-lg transform-gpu active:scale-95"
@@ -1398,6 +1435,68 @@ export default function NexiousChatbot() {
 
   // Flag to control display of the decorative floating label above the chat button. Disabled to avoid duplicate labels.
   const showFloatingLabel = false;
+  
+  // Initialize state variables first before any useEffect hooks
+  const [isOpen, setIsOpen] = useState(false);
+  const [isMinimized, setIsMinimized] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const [showPromo, setShowPromo] = useState(true); // State to control promotional area visibility
+  
+  // Enhanced desktop button robustness - track path changes
+  const [lastPathname, setLastPathname] = useState(pathname);
+  
+  // Detect path changes for desktop users with comprehensive restoration
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 769 && pathname !== lastPathname) {
+      console.log('Desktop path change detected:', { from: lastPathname, to: pathname });
+      setLastPathname(pathname);
+      
+      // Multi-layer button restoration after path change - ONLY for main chat button
+      const restoreButtonFunctionality = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        if (button && !isOpen) { // Only restore when chat is closed
+          // Remove any disabled attributes or problematic states
+          button.removeAttribute('disabled');
+          button.removeAttribute('aria-disabled');
+          
+          // Force enable all visual and interaction properties
+          (button as HTMLElement).style.pointerEvents = 'auto';
+          (button as HTMLElement).style.opacity = '1';
+          (button as HTMLElement).style.visibility = 'visible';
+          (button as HTMLElement).style.display = 'flex';
+          (button as HTMLElement).style.cursor = 'pointer';
+          (button as HTMLElement).style.position = 'fixed';
+          (button as HTMLElement).style.zIndex = '999999';
+          
+          // Only add enhanced handler if chat is closed and doesn't already exist
+          if (!button.getAttribute('data-desktop-enhanced') && !isOpen) {
+            button.setAttribute('data-desktop-enhanced', 'true');
+            
+            // Add enhanced click handler for desktop - ONLY when chat is closed
+            const enhancedHandler = (e: Event) => {
+              if (!isOpen) { // Only trigger when chat is closed
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Desktop enhanced handler triggered');
+                setIsOpen(true);
+                setIsMinimized(false);
+              }
+            };
+            
+            button.addEventListener('click', enhancedHandler, { passive: false, capture: false });
+          }
+          
+          console.log('Desktop button functionality comprehensively restored after navigation');
+        }
+      };
+      
+      // Execute restoration immediately and with delays for different navigation types
+      restoreButtonFunctionality();
+      setTimeout(restoreButtonFunctionality, 50);
+      setTimeout(restoreButtonFunctionality, 150);
+      setTimeout(restoreButtonFunctionality, 300);
+    }
+  }, [pathname, lastPathname, isOpen]);
 
   // Inject global CSS animations once the component is mounted (valid hook usage)
   useEffect(() => {
@@ -1410,13 +1509,6 @@ export default function NexiousChatbot() {
       };
     }
   }, []);
-
-  // Initialize state to always closed on page load
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
-  const [inputValue, setInputValue] = useState('');
-  const [showPromo, setShowPromo] = useState(true); // State to control promotional area visibility
-  // Removed mobile popup - now using direct mobile chat experience
 
   // Add new states for adjustable chat size, text size, and PRO mode
   const [chatSize, setChatSize] = useState({ width: 380, height: 520 }); // Increased size for better mobile experience
@@ -2514,6 +2606,100 @@ export default function NexiousChatbot() {
     });
   }, [pathname, isProMode, pageContext]); // Re-run when pathname, PRO mode, or pageContext changes
 
+  // Enhanced effect to ensure button remains functional after navigation (DESKTOP ONLY)
+  useEffect(() => {
+    // Only apply robust button handling for desktop users when chat is closed
+    if (typeof window !== 'undefined' && window.innerWidth >= 769 && !isOpen) {
+      const ensureButtonFunctionality = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        if (button && !isOpen) { // Double check chat is closed
+          // Check and fix all possible button states that could break functionality
+          const currentPointerEvents = window.getComputedStyle(button as HTMLElement).pointerEvents;
+          const currentOpacity = window.getComputedStyle(button as HTMLElement).opacity;
+          const currentVisibility = window.getComputedStyle(button as HTMLElement).visibility;
+          const currentDisplay = window.getComputedStyle(button as HTMLElement).display;
+          
+          // Only add handlers if chat is closed and they don't exist
+          const hasMainClickHandler = button.getAttribute('data-has-main-click-handler');
+          
+          if (!hasMainClickHandler && !isOpen) {
+            // Mark button as having main click handler to prevent duplicate handlers
+            button.setAttribute('data-has-main-click-handler', 'true');
+            
+            // Add main click handler for desktop - ONLY when chat is closed
+            const mainClickHandler = (e: Event) => {
+              if (!isOpen) { // Only work when chat is closed
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('Desktop main handler: Button clicked', { isOpen, pathname });
+                setIsOpen(true);
+                setIsMinimized(false);
+              }
+            };
+            
+            button.addEventListener('click', mainClickHandler, { passive: false });
+          }
+          
+          // Force ensure button is always visible and clickable when chat is closed
+          if (!isOpen && (currentPointerEvents === 'none' || currentOpacity === '0' || 
+              currentVisibility === 'hidden' || currentDisplay === 'none')) {
+            console.log('Desktop button issue detected, fixing...', {
+              pointerEvents: currentPointerEvents,
+              opacity: currentOpacity,
+              visibility: currentVisibility,
+              display: currentDisplay
+            });
+          }
+          
+          // Always force proper styles when chat is closed
+          (button as HTMLElement).style.pointerEvents = 'auto';
+          (button as HTMLElement).style.opacity = '1';
+          (button as HTMLElement).style.visibility = 'visible';
+          (button as HTMLElement).style.display = 'flex';
+          (button as HTMLElement).style.cursor = 'pointer';
+          (button as HTMLElement).style.position = 'fixed';
+          (button as HTMLElement).style.bottom = '20px';
+          (button as HTMLElement).style.right = '20px';
+          (button as HTMLElement).style.zIndex = '999999';
+          button.removeAttribute('disabled');
+          button.removeAttribute('aria-disabled');
+        }
+      };
+
+      // Run immediately
+      ensureButtonFunctionality();
+      
+      // Run after small delays to catch different navigation timing
+      const timeouts = [100, 250, 500].map(delay => 
+        setTimeout(ensureButtonFunctionality, delay)
+      );
+      
+      // Also listen for various navigation events
+      const handleNavigation = () => {
+        if (!isOpen) { // Only handle navigation when chat is closed
+          setTimeout(ensureButtonFunctionality, 25);
+          setTimeout(ensureButtonFunctionality, 100);
+        }
+      };
+      
+      // Listen to navigation events only when chat is closed
+      const navigationEvents = ['popstate', 'pushstate', 'replacestate', 'hashchange'];
+      navigationEvents.forEach(event => {
+        window.addEventListener(event, handleNavigation);
+      });
+      
+      return () => {
+        // Clean up timeouts
+        timeouts.forEach(timeout => clearTimeout(timeout));
+        
+        // Clean up event listeners
+        navigationEvents.forEach(event => {
+          window.removeEventListener(event, handleNavigation);
+        });
+      };
+    }
+  }, [pathname, isOpen, isMinimized]); // Re-run when pathname, isOpen, or isMinimized changes
+
   // Add minimal professional touches to responses
   const addEmotionalCues = (content: string): string => {
     // Don't modify content in PRO mode - keep it professional and technical
@@ -2833,7 +3019,8 @@ export default function NexiousChatbot() {
                   console.warn(`⚠️ NEXIOUS FALLBACK: ${fallbackModel.model} returned status ${fallbackResponse.status}`);
                 }
               } catch (fallbackError) {
-                console.error(`❌ NEXIOUS FALLBACK: ${fallbackModel.model} failed:`, fallbackError);
+                const errorMsg = fallbackError instanceof Error ? fallbackError.message : 'Unknown error';
+                console.error(`❌ NEXIOUS FALLBACK: ${fallbackModel.model} failed:`, errorMsg);
                 continue; // Try next fallback model
               }
             }
@@ -3206,7 +3393,12 @@ export default function NexiousChatbot() {
     return false;
   }, []);
 
-  const toggleChat = () => {
+  const toggleChat = useCallback(() => {
+    // Enhanced logging for desktop debugging
+    if (typeof window !== 'undefined' && window.innerWidth >= 769) {
+      console.log('Desktop toggleChat called:', { isOpen, pathname, timestamp: Date.now() });
+    }
+    
     // For mobile users, open chat directly in fullscreen mode
     if (isMobileDevice || isMobile) {
       const newState = !isOpen;
@@ -3331,6 +3523,11 @@ export default function NexiousChatbot() {
           document.body.style.position = 'static';
           document.body.style.touchAction = 'auto';
         }
+        
+        // Stop all desktop robustness monitoring when chat opens
+        if (typeof window !== 'undefined' && window.innerWidth >= 769) {
+          console.log('🛑 Stopping desktop button robustness monitoring - chat is now open');
+        }
       }
 
       // Show the stop button notification if we haven't shown it before
@@ -3403,7 +3600,49 @@ export default function NexiousChatbot() {
 
       // Don't store chat state in localStorage to prevent auto-opening on reload
     console.log("Chat toggled:", newState ? "opened" : "closed");
-  };
+    
+    // For desktop users, ensure button remains functional after toggle with enhanced restoration
+    if (typeof window !== 'undefined' && window.innerWidth >= 769) {
+      const restoreButtonAfterToggle = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        if (button) {
+          // Comprehensive restoration of button functionality
+          (button as HTMLElement).style.pointerEvents = 'auto';
+          (button as HTMLElement).style.opacity = '1';
+          (button as HTMLElement).style.visibility = 'visible';
+          (button as HTMLElement).style.display = 'flex';
+          (button as HTMLElement).style.cursor = 'pointer';
+          (button as HTMLElement).style.position = 'fixed';
+          (button as HTMLElement).style.bottom = '20px';
+          (button as HTMLElement).style.right = '20px';
+          (button as HTMLElement).style.zIndex = '999999';
+          (button as HTMLElement).style.transform = 'translateZ(0)';
+          
+          // Remove any attributes that could disable the button
+          button.removeAttribute('disabled');
+          button.removeAttribute('aria-disabled');
+          
+          // Ensure proper CSS classes are maintained
+          if (!button.classList.contains('nexious-chat-button')) {
+            button.classList.add('nexious-chat-button');
+          }
+          
+          console.log('Desktop button functionality restored after toggle:', {
+            newState: newState ? 'opened' : 'closed',
+            pathname,
+            timestamp: Date.now()
+          });
+        } else {
+          console.warn('Desktop button not found after toggle, this might indicate a rendering issue');
+        }
+      };
+      
+      // Multiple restoration attempts with different timings
+      setTimeout(restoreButtonAfterToggle, 50);
+      setTimeout(restoreButtonAfterToggle, 150);
+      setTimeout(restoreButtonAfterToggle, 300);
+    }
+  }, [isMobileDevice, isMobile, isOpen, messages.length, isFullscreen, hasShownStopButtonNotification, isMinimized, websiteScrollPosition, showAIModelInfo]); // Add dependencies
 
   // Updated toggleMinimize function to use CSS animations
   const toggleMinimize = () => {
@@ -4629,24 +4868,80 @@ export default function NexiousChatbot() {
 
 
 
-  // Initialize chatbot fixed positioning
+  // Initialize chatbot fixed positioning and enhanced desktop button robustness
   useEffect(() => {
     const chatbotContainer = document.getElementById('nexious-chat-container');
     if (chatbotContainer) {
-      // Apply fixed positioning directly
+      // Apply fixed positioning directly and make container non-interactive
       chatbotContainer.style.position = 'fixed';
       chatbotContainer.style.bottom = '20px';
       chatbotContainer.style.right = '20px';
       chatbotContainer.style.zIndex = '999999';
-      chatbotContainer.style.transform = 'none'; // Reset any transforms
-      chatbotContainer.style.transition = 'none'; // Disable transitions
+      chatbotContainer.style.transform = 'none';
+      chatbotContainer.style.transition = 'none';
+      chatbotContainer.style.pointerEvents = 'none';
+      chatbotContainer.style.width = 'auto';
+      chatbotContainer.style.height = 'auto';
       // Move container out of any transformed ancestors so fixed positioning sticks to viewport
       if (chatbotContainer.parentElement !== document.body) {
         document.body.appendChild(chatbotContainer);
       }
     }
+    
+    // Enhanced button robustness for desktop users only - ONLY when chat is closed
+    if (typeof window !== 'undefined' && window.innerWidth >= 769 && !isOpen) {
+      const makeButtonRobust = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        if (button) {
+          // Force enable button functionality
+          (button as HTMLElement).style.pointerEvents = 'auto';
+          (button as HTMLElement).style.opacity = '1';
+          (button as HTMLElement).style.visibility = 'visible';
+          (button as HTMLElement).style.display = 'flex';
+          
+          // Remove any disabled state
+          button.removeAttribute('disabled');
+          
+          // Ensure button is clickable
+          if (!(button as HTMLElement).onclick && !button.getAttribute('data-has-enhanced-handler')) {
+            button.setAttribute('data-has-enhanced-handler', 'true');
+            
+            // Add enhanced click handler that always works
+            (button as HTMLElement).addEventListener('click', (e) => {
+              e.preventDefault();
+              e.stopImmediatePropagation();
+              
+              console.log('Enhanced desktop click handler triggered');
+              
+              // Direct state manipulation for guaranteed functionality
+              if (!isOpen) {
+                setIsOpen(true);
+                setIsMinimized(false);
+              } else {
+                setIsOpen(false);
+              }
+            }, { capture: true, passive: false });
+          }
+        }
+      };
+      
+      // Initial setup
+      makeButtonRobust();
+      
+      // Retry after DOM updates
+      const intervalId = setInterval(makeButtonRobust, 500);
+      
+      // Cleanup after 10 seconds
+      setTimeout(() => {
+        clearInterval(intervalId);
+      }, 10000);
+      
+      return () => {
+        clearInterval(intervalId);
+      };
+    }
 
-    // Add custom styles to document head
+    // Add custom styles to document head with enhanced button robustness
     if (typeof document !== 'undefined') {
       const fixedPositionStyles = document.createElement('style');
       fixedPositionStyles.textContent = `
@@ -4676,6 +4971,20 @@ export default function NexiousChatbot() {
           right: 20px !important;
           z-index: 999999 !important;
           transform: none !important;
+        }
+        
+        /* Enhanced desktop button robustness */
+        @media (min-width: 769px) {
+          .nexious-chat-button {
+            pointer-events: auto !important;
+            opacity: 1 !important;
+            visibility: visible !important;
+            display: flex !important;
+            position: fixed !important;
+            bottom: 20px !important;
+            right: 20px !important;
+            z-index: 999999 !important;
+          }
         }
 
         /* Prevent scrolling when chat is open - ONLY on mobile devices */
@@ -4755,6 +5064,75 @@ export default function NexiousChatbot() {
       };
     }
   }, []);
+  
+  // Additional desktop button monitoring effect with enhanced robustness - ONLY when chat is closed
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 769 && !isOpen) {
+      const comprehensiveButtonMonitor = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        if (button && !isOpen) { // Only monitor when chat is closed
+          const isDisabled = button.hasAttribute('disabled') || button.hasAttribute('aria-disabled');
+          const computedStyle = window.getComputedStyle(button as HTMLElement);
+          const pointerEvents = computedStyle.pointerEvents;
+          const opacity = computedStyle.opacity;
+          const visibility = computedStyle.visibility;
+          const display = computedStyle.display;
+          const position = computedStyle.position;
+          const zIndex = computedStyle.zIndex;
+          
+          // Check for any issues that would prevent button functionality
+          const hasIssues = isDisabled || 
+                           pointerEvents === 'none' || 
+                           opacity === '0' || 
+                           visibility === 'hidden' || 
+                           display === 'none' || 
+                           position !== 'fixed' ||
+                           parseInt(zIndex) < 999999;
+          
+          if (hasIssues) {
+            console.log('Desktop button comprehensive issue detected, fixing...', { 
+              isDisabled, 
+              pointerEvents, 
+              opacity, 
+              visibility, 
+              display, 
+              position, 
+              zIndex,
+              pathname: window.location.pathname 
+            });
+            
+            // Comprehensive fix for all potential issues
+            button.removeAttribute('disabled');
+            button.removeAttribute('aria-disabled');
+            (button as HTMLElement).style.pointerEvents = 'auto';
+            (button as HTMLElement).style.opacity = '1';
+            (button as HTMLElement).style.visibility = 'visible';
+            (button as HTMLElement).style.display = 'flex';
+            (button as HTMLElement).style.position = 'fixed';
+            (button as HTMLElement).style.bottom = '20px';
+            (button as HTMLElement).style.right = '20px';
+            (button as HTMLElement).style.zIndex = '999999';
+            (button as HTMLElement).style.cursor = 'pointer';
+            (button as HTMLElement).style.transform = 'translateZ(0)';
+          }
+        }
+      };
+      
+      // Run immediate check
+      comprehensiveButtonMonitor();
+      
+      // Monitor every 2 seconds only when chat is closed
+      const monitorInterval = setInterval(() => {
+        if (!isOpen) {
+          comprehensiveButtonMonitor();
+        }
+      }, 2000);
+      
+      return () => {
+        clearInterval(monitorInterval);
+      };
+    }
+  }, [pathname, isOpen, isChatbotDisabled, isChatbotInitializing]);
 
   // Global keyboard shortcuts handler for desktop users
   const handleGlobalKeyDown = useCallback((e: KeyboardEvent) => {
@@ -4928,6 +5306,150 @@ export default function NexiousChatbot() {
     }
   }, [isOpen, isMinimized, isMobile]);
 
+  // Additional effect to ensure input field focuses properly when chat opens and all elements work
+  useEffect(() => {
+    if (isOpen) {
+      // Comprehensive management when chat opens
+      const ensureAllElementsWork = () => {
+        const chatContainer = document.getElementById('nexious-chat-container');
+        if (chatContainer) {
+          // Enable the chat container
+          chatContainer.style.pointerEvents = 'auto';
+          
+          // Ensure input is focusable and interactive
+          if (inputRef.current) {
+            const input = inputRef.current;
+            input.style.pointerEvents = 'auto';
+            input.style.touchAction = 'manipulation';
+            input.removeAttribute('disabled');
+            
+            // Focus with a slight delay for desktop
+            if (!isMobile) {
+              setTimeout(() => {
+                if (input) {
+                  input.focus();
+                }
+              }, 300);
+            }
+          }
+          
+          // Ensure all buttons are interactive
+          const allButtons = chatContainer.querySelectorAll('button');
+          allButtons.forEach(button => {
+            (button as HTMLElement).style.pointerEvents = 'auto';
+            button.removeAttribute('disabled');
+          });
+          
+          // Ensure suggested questions work
+          const suggestedButtons = chatContainer.querySelectorAll('[class*="suggested"], button[onclick], .nexious-chat button');
+          suggestedButtons.forEach(button => {
+            (button as HTMLElement).style.pointerEvents = 'auto';
+            (button as HTMLElement).style.cursor = 'pointer';
+          });
+          
+          console.log('✅ All chat elements enabled and interactive');
+        }
+      };
+      
+      // Run immediately and with delays
+      ensureAllElementsWork();
+      setTimeout(ensureAllElementsWork, 100);
+      setTimeout(ensureAllElementsWork, 500);
+    }
+  }, [isOpen, isMobile]);
+
+  // Comprehensive interactive elements management - ensures all chat elements work when opened
+  useEffect(() => {
+    if (isOpen) {
+      // When chat is open, ensure ALL interactive elements work properly
+      const ensureInteractiveElements = () => {
+        const chatContainer = document.getElementById('nexious-chat-container');
+        if (chatContainer) {
+          // Enable pointer events for the entire chat when open
+          chatContainer.style.pointerEvents = 'auto';
+          
+          // Ensure all buttons inside chat are interactive
+          const buttons = chatContainer.querySelectorAll('button');
+          buttons.forEach(button => {
+            (button as HTMLElement).style.pointerEvents = 'auto';
+            button.removeAttribute('disabled');
+          });
+          
+          // Ensure all inputs are interactive
+          const inputs = chatContainer.querySelectorAll('input, textarea');
+          inputs.forEach(input => {
+            (input as HTMLElement).style.pointerEvents = 'auto';
+            input.removeAttribute('disabled');
+          });
+          
+          // Ensure suggested questions are interactive
+          const suggestedQuestions = chatContainer.querySelectorAll('[data-testid*="suggested"], .suggested-question, button[onClick]');
+          suggestedQuestions.forEach(element => {
+            (element as HTMLElement).style.pointerEvents = 'auto';
+            (element as HTMLElement).style.cursor = 'pointer';
+          });
+          
+          // Ensure sidebar elements are interactive
+          const sidebarElements = chatContainer.querySelectorAll('.sidebar-btn, .sidebar-panel button, .sidebar-panel input');
+          sidebarElements.forEach(element => {
+            (element as HTMLElement).style.pointerEvents = 'auto';
+          });
+          
+          console.log('✅ Chat interactive elements initialized successfully');
+        }
+      };
+      
+      // Run immediately and with delays to ensure all elements are rendered
+      ensureInteractiveElements();
+      setTimeout(ensureInteractiveElements, 100);
+      setTimeout(ensureInteractiveElements, 300);
+    }
+  }, [isOpen]);
+
+  // Final comprehensive desktop button initialization and robustness effect - ONLY when chat is closed
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.innerWidth >= 769 && !isOpen) {
+      const initializeDesktopButton = () => {
+        const button = document.querySelector('.nexious-chat-button');
+        const chatContainer = document.getElementById('nexious-chat-container');
+        
+        if (button && chatContainer && !isOpen) {
+          // Ensure container is properly positioned and non-blocking when closed
+          chatContainer.style.position = 'fixed';
+          chatContainer.style.bottom = '20px';
+          chatContainer.style.right = '20px';
+          chatContainer.style.zIndex = '999999';
+          chatContainer.style.pointerEvents = 'none'; // Only block when closed
+          chatContainer.style.width = 'auto';
+          chatContainer.style.height = 'auto';
+          
+          // Force button to be fully functional when chat is closed
+          (button as HTMLElement).style.pointerEvents = 'auto';
+          (button as HTMLElement).style.opacity = '1';
+          (button as HTMLElement).style.visibility = 'visible';
+          (button as HTMLElement).style.display = 'flex';
+          (button as HTMLElement).style.cursor = 'pointer';
+          (button as HTMLElement).style.position = 'fixed';
+          (button as HTMLElement).style.bottom = '20px';
+          (button as HTMLElement).style.right = '20px';
+          (button as HTMLElement).style.zIndex = '999999';
+          
+          console.log('Desktop button initialization completed for closed state');
+        }
+      };
+      
+      // Initialize immediately
+      initializeDesktopButton();
+      
+      // Re-initialize after a short delay to catch any late rendering
+      setTimeout(initializeDesktopButton, 100);
+      
+      return () => {
+        // No cleanup needed for this simplified version
+      };
+    }
+  }, [isOpen, isMinimized, isChatbotInitializing]); // Re-run when key states change
+
   return (
     <>
 
@@ -4937,37 +5459,59 @@ export default function NexiousChatbot() {
         className="nexious-chat-container"
         style={{
           position: 'fixed',
-          bottom: isMobile && isOpen ? '0' : '16px', // Slightly lower position
-          right: isMobile && isOpen ? '0' : '16px', // Adjusted right position
-          top: isMobile && isOpen ? '0' : 'auto',
-          left: isMobile && isOpen ? '0' : 'auto',
-          width: isMobile && isOpen ? '100vw' : 'auto',
-          height: isMobile && isOpen ? '100vh' : 'auto',
+          bottom: '16px',
+          right: '16px',
+          top: 'auto',
+          left: 'auto',
+          width: 'auto',
+          height: 'auto',
           zIndex: 999999,
           transform: 'none',
           maxHeight: isMobile ? '100vh' : 'calc(100vh - 80px)',
           overscrollBehavior: 'contain',
           WebkitOverflowScrolling: 'touch',
-          touchAction: isOpen ? 'none' : 'auto'
+          pointerEvents: 'none', // container ignores pointer events; children opt-in
+          touchAction: 'manipulation'
         }}>
 
       {/* Chat Button - Always visible during initialization, then based on enabled status */}
       {(!isOpen || (isMobile && isMinimized)) && (isChatbotInitializing || !isChatbotDisabled) && (
         <button
           onClick={isChatbotInitializing ? undefined : (isMobile && isMinimized ? toggleMinimize : toggleChat)}
+          onMouseDown={(e) => {
+            // Enhanced desktop click handling
+            if (typeof window !== 'undefined' && window.innerWidth >= 769) {
+              e.preventDefault();
+              e.stopPropagation();
+              // Add visual feedback for desktop
+              e.currentTarget.style.transform = 'scale(0.98)';
+            }
+          }}
+          onMouseUp={(e) => {
+            // Enhanced desktop click handling
+            if (typeof window !== 'undefined' && window.innerWidth >= 769) {
+              e.preventDefault();
+              e.stopPropagation();
+              e.currentTarget.style.transform = 'scale(1)';
+            }
+          }}
           onTouchStart={(e) => {
             e.preventDefault();
             e.currentTarget.style.transform = 'scale(0.95)';
           }}
           onTouchEnd={(e) => {
             e.preventDefault();
+            const target = e.currentTarget; // Capture currentTarget before setTimeout
             setTimeout(() => {
-              e.currentTarget.style.transform = 'scale(1)';
+              if (target) { // Add null check
+                target.style.transform = 'scale(1)';
+              }
             }, 100);
           }}
           className={`nexious-chat-button group fixed px-3 py-2 rounded-full bg-white backdrop-blur-sm border-2 transition-all duration-300 hover:bg-white/90 flex items-center gap-1 shadow-lg ${isChatbotInitializing ? 'cursor-wait opacity-75' : 'cursor-pointer pulse-effect'} ${isMobile ? 'min-h-[44px] min-w-[44px]' : ''}`}
           aria-label={isChatbotInitializing ? "AI Chat Loading..." : (isMobile && isMinimized ? "Restore AI Chat" : "Open AI Chat Assistant")}
           disabled={isChatbotInitializing}
+          data-testid="nexious-chat-button"
           style={{
             position: 'fixed',
             bottom: '20px',
@@ -4985,7 +5529,8 @@ export default function NexiousChatbot() {
             padding: (isMinimized || (isMobile && !isOpen)) ? '0px' : '12px 16px',
             boxShadow: '0 4px 20px rgba(0, 0, 0, 0.1), 0 2px 8px rgba(0, 0, 0, 0.06)', // Clean shadow without glow
             border: '3px solid #8b5cf6', // Bold neon purple border
-            willChange: 'transform'
+            willChange: 'transform',
+            pointerEvents: 'auto' // explicit opt-in to receive events
           }}
         >
           <div className="flex items-center justify-center bg-white rounded-full" style={{
@@ -5114,7 +5659,7 @@ export default function NexiousChatbot() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="absolute w-7 h-7 rounded-full bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl border border-red-400/50"
+              className="absolute w-6 h-6 rounded-xl bg-red-600 hover:bg-red-500 flex items-center justify-center transition-all duration-200 cursor-pointer shadow-lg hover:shadow-xl border border-red-400/50"
               aria-label="Close AI Model Info panel"
               title="Close AI Model Info"
               style={{
@@ -5127,7 +5672,7 @@ export default function NexiousChatbot() {
                 zIndex: 999
               }}
             >
-              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
               </svg>
             </button>
@@ -5618,13 +6163,13 @@ export default function NexiousChatbot() {
             <div className="flex items-center justify-between w-full relative z-10">
               {/* Logo and title section */}
               <div className="flex items-center">
-                {/* Mobile-optimized avatar container - Larger on mobile */}
-                <div className={`${isMobile ? 'w-10 h-10' : 'w-8 h-8'} rounded-full bg-white flex items-center justify-center ${isMobile ? 'mr-3' : 'mr-2'} overflow-hidden relative p-1`}>
+                {/* Mobile-optimized avatar container - More compact */}
+                <div className={`${isMobile ? 'w-8 h-8' : 'w-7 h-7'} rounded-full bg-white flex items-center justify-center ${isMobile ? 'mr-2.5' : 'mr-2'} overflow-hidden relative p-1`}>
                   {/* New AI Logo Image */}
                   <img
                     src="https://ik.imagekit.io/u7ipvwnqb/Beige%20and%20Black%20Classic%20Initial%20Wedding%20Logo.png?updatedAt=1752254056269"
                     alt="Nexious AI Logo"
-                    className={`${isMobile ? 'w-8 h-8' : 'w-6 h-6'} object-contain`}
+                    className={`${isMobile ? 'w-6 h-6' : 'w-5 h-5'} object-contain`}
                     style={{
                       background: 'white',
                       borderRadius: '50%',
@@ -5639,7 +6184,7 @@ export default function NexiousChatbot() {
                   />
                   {/* Fallback SVG (hidden by default) */}
                   <svg
-                    className={`${isMobile ? 'w-6 h-6' : 'w-4 h-4'} text-white`}
+                    className={`${isMobile ? 'w-4 h-4' : 'w-3 h-3'} text-white`}
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -5653,22 +6198,22 @@ export default function NexiousChatbot() {
 
                 {/* Mobile-optimized title and subtitle - Larger and clearer for mobile */}
                 <div className="flex flex-col">
-                  <h1 className={`font-bold text-white ${isMobile ? 'text-lg' : 'text-base'} flex items-center tracking-wide`}>
+                  <h1 className={`font-bold text-white ${isMobile ? 'text-base' : 'text-sm'} flex items-center tracking-wide`}>
                     <span className="nexious-title-modern nexious-title-animation">
                       NEXIOUS
                     </span>
-                    {/* BETA Label with Curly Brackets - Larger on mobile */}
-                    <span className={`ml-2 font-medium bg-gray-600/80 text-gray-300 px-2 py-1 rounded border border-gray-500/50 flex items-center justify-center ${isMobile ? 'text-xs' : 'text-2xs'}`} style={{ maxHeight: isMobile ? '20px' : '16px', fontSize: isMobile ? '10px' : '8px', lineHeight: '1' }}>
+                    {/* BETA Label with Curly Brackets - Smaller and more compact */}
+                    <span className={`ml-1.5 font-medium bg-gray-600/80 text-gray-300 px-1.5 py-0.5 rounded border border-gray-500/50 flex items-center justify-center ${isMobile ? 'text-xs' : 'text-xs'}`} style={{ maxHeight: isMobile ? '18px' : '14px', fontSize: isMobile ? '9px' : '7px', lineHeight: '1' }}>
                       {`{BETA}`}
                     </span>
                     {isProMode && (
-                      <span className={`ml-1.5 font-medium bg-blue-500 text-white px-2 py-1 rounded-full flex items-center justify-center ${isMobile ? 'text-xs' : 'text-2xs'}`} style={{ maxHeight: isMobile ? '20px' : '16px', fontSize: isMobile ? '10px' : '8px', lineHeight: '1' }}>
+                      <span className={`ml-1 font-medium bg-blue-500 text-white px-1.5 py-0.5 rounded-full flex items-center justify-center ${isMobile ? 'text-xs' : 'text-xs'}`} style={{ maxHeight: isMobile ? '18px' : '14px', fontSize: isMobile ? '9px' : '7px', lineHeight: '1' }}>
                         PRO
                       </span>
                     )}
                   </h1>
-                  <div className={`text-gray-300 ${isMobile ? 'text-sm' : 'text-xs'} font-normal flex items-center mt-1`}>
-                    <div className={`${isMobile ? 'w-2 h-2' : 'w-1 h-1'} rounded-full bg-green-400 mr-2`}></div>
+                  <div className={`text-gray-300 ${isMobile ? 'text-xs' : 'text-xs'} font-normal flex items-center mt-0.5`}>
+                    <div className={`${isMobile ? 'w-1.5 h-1.5' : 'w-1 h-1'} rounded-full bg-green-400 mr-1.5`}></div>
                     Active now
                   </div>
                 </div>
@@ -5679,7 +6224,7 @@ export default function NexiousChatbot() {
                 {/* PRO MODE button - Consistent size with other buttons */}
                 <button
                   onClick={toggleProMode}
-                  className={`flex items-center justify-center w-7 h-7 rounded-full transition-all duration-300 ${
+                  className={`flex items-center justify-center w-4 h-4 rounded-md transition-all duration-300 ${
                     isProModeUnderMaintenance()
                       ? 'bg-orange-500 hover:bg-orange-600 text-white cursor-pointer border border-orange-400'
                       : isProMode
@@ -5697,44 +6242,43 @@ export default function NexiousChatbot() {
                 >
                   <Zap size={isMobile ? 12 : 10} />
                   {isProModeUnderMaintenance() && (
-                    <span className={`absolute ${isMobile ? '-top-1 -right-1 w-2 h-2' : '-top-0.5 -right-0.5 w-1.5 h-1.5'} bg-orange-400 rounded-full animate-pulse`}></span>
+                    <span className={`absolute ${isMobile ? '-top-0.5 -right-0.5 w-1.5 h-1.5' : '-top-0.5 -right-0.5 w-1 h-1'} bg-orange-400 rounded-full animate-pulse`}></span>
                   )}
                 </button>
 
                 {/* For Desktop: Add close, minimize, and settings buttons */}
                 {!isMobile && (
                   <>
-                    {/* Close button with dash icon - White background with black icon */}
+                    {/* Close button with dash icon - Original gray styling, smaller size */}
                     <button
                       onClick={toggleChat}
-                      className="flex items-center justify-center h-7 w-7 rounded-full transition-all duration-300 bg-white hover:bg-gray-100 text-black border border-gray-300 shadow-sm font-semibold"
+                      className="flex items-center justify-center h-4 w-4 rounded-lg transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
                       title="Close Chatbot"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M5 12H19" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* Minimize button - matching settings gear styling */}
+                    {/* Minimize button - Original gray styling, smaller size */}
                     <button
                       onClick={toggleMinimize}
-                      className="flex items-center justify-center h-7 w-7 rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
+                      className="flex items-center justify-center h-4 w-4 rounded-lg transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
                       title="Minimize Chatbot"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                         <path d="M7 14L12 9L17 14" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                       </svg>
                     </button>
 
-                    {/* Settings/Sidebar toggle button */}
+                    {/* Settings/Sidebar toggle button - Original gray styling, smaller size */}
                     <button
                       onClick={toggleSidebar}
-                      className="flex items-center justify-center h-7 px-2 text-2xs rounded-full transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
+                      className="flex items-center justify-center h-4 w-4 rounded-lg transition-all duration-300 bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white font-semibold"
                       title="Settings & Controls"
                     >
-                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                        <path d="M12 15C13.6569 15 15 13.6569 15 12C15 10.3431 13.6569 9 12 9C10.3431 9 9 10.3431 9 12C9 13.6569 10.3431 15 12 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        <path d="M19.4 15C19.2669 15.3016 19.2272 15.6362 19.286 15.9606C19.3448 16.285 19.4995 16.5843 19.73 16.82L19.79 16.88C19.976 17.0657 20.1235 17.2863 20.2241 17.5291C20.3248 17.7719 20.3766 18.0322 20.3766 18.295C20.3766 18.5578 20.3248 18.8181 20.2241 19.0609C20.1235 19.3037 19.976 19.5243 19.79 19.71C19.6043 19.896 19.3837 20.0435 19.1409 20.1441C18.8981 20.2448 18.6378 20.2966 18.375 20.2966C18.1122 20.2966 17.8519 20.2448 17.6091 20.1441C17.3663 20.0435 17.1457 19.896 17.28 19.71L17.22 19.65C16.9843 19.4195 16.685 19.2648 16.3606 19.206C16.0362 19.1472 15.7016 19.1869 15.4 19.32C15.1042 19.4468 14.852 19.6572 14.6743 19.9255C14.4966 20.1938 14.4013 20.5082 14.4 20.83V21C14.4 21.5304 14.1893 22.0391 13.8142 22.4142C13.4391 22.7893 12.9304 23 12.4 23C11.8696 23 11.3609 22.7893 10.9858 22.4142C10.6107 22.0391 10.4 21.5304 10.4 21V20.91C10.3923 20.579 10.2851 20.258 10.0925 19.9887C9.8999 19.7194 9.63074 19.5143 9.32 19.4C9.01838 19.2669 8.68381 19.2272 8.35941 19.286C8.03502 19.3448 7.73568 19.4995 7.5 19.73L7.44 19.79C7.25425 19.976 7.03368 20.1235 6.79088 20.2241C6.54808 20.3248 6.28783 20.3766 6.025 20.3766C5.76217 20.3766 5.50192 20.3248 5.25912 20.2241C5.01632 20.1235 4.79575 19.976 4.61 19.79C4.42405 19.6043 4.27653 19.3837 4.17588 19.1409C4.07523 18.8981 4.02343 18.6378 4.02343 18.375C4.02343 18.1122 4.07523 17.8519 4.17588 17.6091C4.27653 17.3663 4.42405 17.1457 4.61 16.96L4.67 16.9C4.90054 16.6643 5.05519 16.365 5.114 16.0406C5.17282 15.7162 5.13312 15.3816 5 15.08C4.87324 14.7842 4.66276 14.532 4.39447 14.3543C4.12618 14.1766 3.81179 14.0813 3.49 14.08H3.32C2.78957 14.08 2.28086 13.8693 1.90579 13.4942C1.53071 13.1191 1.32 12.6104 1.32 12.08C1.32 11.5496 1.53071 11.0409 1.90579 10.6658C2.28086 10.2907 2.78957 10.08 3.32 10.08H3.41C3.74099 10.0723 4.062 9.96512 4.3313 9.77251C4.60059 9.5799 4.80572 9.31074 4.92 9C5.05312 8.69838 5.09282 8.36381 5.034 8.03941C4.97519 7.71502 4.82054 7.41568 4.59 7.18L4.53 7.12C4.34405 6.93425 4.19653 6.71368 4.09588 6.47088C3.99523 6.22808 3.94343 5.96783 3.94343 5.705C3.94343 5.44217 3.99523 5.18192 4.09588 4.93912C4.19653 4.69632 4.34405 4.47575 4.53 4.29C4.71575 4.10405 4.93632 3.95653 5.17912 3.85588C5.42192 3.75523 5.68217 3.70343 5.945 3.70343C6.20783 3.70343 6.46808 3.75523 6.71088 3.85588C6.95368 3.95653 7.17425 4.10405 7.36 4.29L7.42 4.35C7.65568 4.58054 7.95502 4.73519 8.27941 4.794C8.60381 4.85282 8.93838 4.81312 9.24 4.68H9.32C9.61577 4.55324 9.86802 4.34276 10.0457 4.07447C10.2234 3.80618 10.3187 3.49179 10.32 3.17V3C10.32 2.46957 10.5307 1.96086 10.9058 1.58579C11.2809 1.21071 11.7896 1 12.32 1C12.8504 1 13.3591 1.21071 13.7342 1.58579C14.1093 1.96086 14.32 2.46957 14.32 3V3.09C14.3213 3.41179 14.4166 3.72618 14.5943 3.99447C14.772 4.26276 15.0242 4.47324 15.32 4.6C15.6216 4.73312 15.9562 4.77282 16.2806 4.714C16.605 4.65519 16.9043 4.50054 17.14 4.27L17.2 4.21C17.3857 4.02405 17.6063 3.87653 17.8491 3.77588C18.0919 3.67523 18.3522 3.62343 18.615 3.62343C18.8778 3.62343 19.1381 3.67523 19.3809 3.77588C19.6237 3.87653 19.8443 4.02405 20.03 4.21C20.216 4.39575 20.3635 4.61632 20.4641 4.85912C20.5648 5.10192 20.6166 5.36217 20.6166 5.625C20.6166 5.88783 20.5648 6.14808 20.4641 6.39088C20.3635 6.63368 20.216 6.85425 20.03 7.04L19.97 7.1C19.7395 7.33568 19.5848 7.63502 19.526 7.95941C19.4672 8.28381 19.5069 8.61838 19.64 8.92V9C19.7668 9.29577 19.9772 9.54802 20.2455 9.72569C20.5138 9.90337 20.8282 9.99872 21.15 10H21.32C21.8504 10 22.3591 10.2107 22.7342 10.5858C23.1093 10.9609 23.32 11.4696 23.32 12C23.32 12.5304 23.1093 13.0391 22.7342 13.4142C22.3591 13.7893 21.8504 14 21.32 14H21.23C20.9082 14.0013 20.5938 14.0966 20.3255 14.2743C20.0572 14.452 19.8468 14.7042 19.72 15Z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
                       </svg>
                     </button>
                   </>
@@ -5743,14 +6287,32 @@ export default function NexiousChatbot() {
                 {/* For Mobile: Optimized buttons with proper touch targets */}
                 {isMobile && (
                   <>
-                    {/* Close button - Consistent styling */}
+                    {/* Close button - Smaller size, original colors */}
                     <button
                       onClick={toggleChat}
-                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
+                      className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="Close"
                       style={{
-                        minHeight: '36px',
-                        minWidth: '36px',
+                        minHeight: '28px',
+                        minWidth: '28px',
+                        WebkitTouchCallout: 'none',
+                        WebkitUserSelect: 'none',
+                        userSelect: 'none'
+                      }}
+                    >
+                      <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+                      </svg>
+                    </button>
+
+                    {/* New chat button - Smaller size, original colors */}
+                    <button
+                      onClick={resetChat}
+                      className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
+                      title="New Chat"
+                      style={{
+                        minHeight: '28px',
+                        minWidth: '28px',
                         WebkitTouchCallout: 'none',
                         WebkitUserSelect: 'none',
                         userSelect: 'none'
@@ -5761,14 +6323,14 @@ export default function NexiousChatbot() {
                       </svg>
                     </button>
 
-                    {/* New chat button - Consistent styling */}
+                    {/* New chat button - Smaller size, original colors */}
                     <button
                       onClick={resetChat}
-                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
+                      className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="New Chat"
                       style={{
-                        minHeight: '36px',
-                        minWidth: '36px',
+                        minHeight: '28px',
+                        minWidth: '28px',
                         WebkitTouchCallout: 'none',
                         WebkitUserSelect: 'none',
                         userSelect: 'none'
@@ -5779,14 +6341,14 @@ export default function NexiousChatbot() {
                       </svg>
                     </button>
 
-                    {/* Minimize button - Consistent styling */}
+                    {/* Minimize button - Smaller size, original colors */}
                     <button
                       onClick={toggleMinimize}
-                      className="flex items-center justify-center w-7 h-7 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
+                      className="flex items-center justify-center w-5 h-5 rounded-full bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-200 touch-manipulation"
                       title="Minimize"
                       style={{
-                        minHeight: '36px',
-                        minWidth: '36px',
+                        minHeight: '28px',
+                        minWidth: '28px',
                         WebkitTouchCallout: 'none',
                         WebkitUserSelect: 'none',
                         userSelect: 'none'
@@ -6168,6 +6730,9 @@ export default function NexiousChatbot() {
                           console.log('Input ref current:', inputRef.current);
                           console.log('Is mobile:', isMobile);
 
+                          // Ensure the button is interactive
+                          e.currentTarget.style.pointerEvents = 'auto';
+
                           // Set the input value
                           setInputValue(question);
 
@@ -6198,9 +6763,12 @@ export default function NexiousChatbot() {
                         }}
                         onTouchEnd={(e) => {
                           // Reset transform after touch
+                          const target = e.currentTarget; // Capture currentTarget before setTimeout
                           setTimeout(() => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                            e.currentTarget.style.backgroundColor = '';
+                            if (target) { // Add null check
+                              target.style.transform = 'scale(1)';
+                              target.style.backgroundColor = '';
+                            }
                           }, 150);
                         }}
                         className={`${isMobile ? 'text-sm px-5 py-4' : 'text-xs px-4 py-2'} bg-gray-700/60 text-gray-200 rounded-2xl hover:bg-gray-600/60 hover:text-white transition-all duration-200 active:scale-95 ${isMobile ? 'min-h-[52px] touch-manipulation font-medium' : ''} border border-gray-600/30 hover:border-purple-500/40 cursor-pointer relative z-50`}
@@ -6272,6 +6840,8 @@ export default function NexiousChatbot() {
                     border: 'none',
                     boxShadow: 'none',
                     lineHeight: isMobile ? '1.4' : '1.5',
+                    pointerEvents: 'auto', // Ensure input is always interactive
+                    touchAction: 'manipulation',
                     ...(isMobile ? {
                       WebkitTouchCallout: 'none',
                       WebkitUserSelect: 'text',
@@ -6333,8 +6903,11 @@ export default function NexiousChatbot() {
                       if (navigator.vibrate) navigator.vibrate(25);
                     }}
                     onTouchEnd={(e) => {
+                      const target = e.currentTarget; // Capture currentTarget before setTimeout
                       setTimeout(() => {
-                        e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                        if (target) { // Add null check
+                          target.style.transform = 'translateY(-50%) scale(1)';
+                        }
                       }, 100);
                     }}
                     className={`absolute ${isMobile ? 'right-3' : 'right-4'} ${isMobile ? 'p-2.5' : 'p-2'} rounded-full bg-gray-600 hover:bg-gray-700 active:bg-gray-800 text-white border border-gray-500/50 transition-all duration-300 flex items-center justify-center ${isMobile ? 'touch-manipulation' : ''} shadow-md`}
@@ -6366,8 +6939,11 @@ export default function NexiousChatbot() {
                     }
                   }}
                   onTouchEnd={(e) => {
+                    const target = e.currentTarget; // Capture currentTarget before setTimeout
                     setTimeout(() => {
-                      e.currentTarget.style.transform = 'translateY(-50%) scale(1)';
+                      if (target) { // Add null check
+                        target.style.transform = 'translateY(-50%) scale(1)';
+                      }
                     }, 100);
                   }}
                     disabled={!inputValue.trim() && (!isCodeMode || !codeSnippet.trim())}
@@ -6383,6 +6959,8 @@ export default function NexiousChatbot() {
                     height: isMobile ? '44px' : '42px',
                     top: '50%',
                     transform: 'translateY(-50%)',
+                    pointerEvents: 'auto', // Ensure send button is always interactive
+                    touchAction: 'manipulation',
                     ...(isMobile ? {
                       WebkitTouchCallout: 'none',
                       WebkitUserSelect: 'none',
@@ -6508,8 +7086,11 @@ export default function NexiousChatbot() {
                 }
               }}
               onTouchEnd={(e) => {
+                const target = e.currentTarget; // Capture currentTarget before setTimeout
                 setTimeout(() => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  if (target) { // Add null check
+                    target.style.transform = 'scale(1)';
+                  }
                 }, 100);
               }}
               className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gradient-to-r from-purple-500 to-purple-600 hover:from-purple-600 hover:to-purple-700 text-white transition-all duration-300 shadow-lg sidebar-btn active:scale-95`}
@@ -6537,8 +7118,11 @@ export default function NexiousChatbot() {
                 }
               }}
               onTouchEnd={(e) => {
+                const target = e.currentTarget; // Capture currentTarget before setTimeout
                 setTimeout(() => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  if (target) { // Add null check
+                    target.style.transform = 'scale(1)';
+                  }
                 }, 100);
               }}
               className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-300 shadow-md sidebar-btn active:scale-95`}
@@ -6566,8 +7150,11 @@ export default function NexiousChatbot() {
                 }
               }}
               onTouchEnd={(e) => {
+                const target = e.currentTarget; // Capture currentTarget before setTimeout
                 setTimeout(() => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  if (target) { // Add null check
+                    target.style.transform = 'scale(1)';
+                  }
                 }, 100);
               }}
               className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-300 shadow-md sidebar-btn active:scale-95`}
@@ -6596,8 +7183,11 @@ export default function NexiousChatbot() {
                 }
               }}
               onTouchEnd={(e) => {
+                const target = e.currentTarget; // Capture currentTarget before setTimeout
                 setTimeout(() => {
-                  e.currentTarget.style.transform = 'scale(1)';
+                  if (target) { // Add null check
+                    target.style.transform = 'scale(1)';
+                  }
                 }, 100);
               }}
               className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gray-700/60 hover:bg-gray-600/60 text-gray-300 hover:text-white transition-all duration-300 shadow-md sidebar-btn active:scale-95`}
@@ -6627,8 +7217,11 @@ export default function NexiousChatbot() {
                   }
                 }}
                 onTouchEnd={(e) => {
+                  const target = e.currentTarget; // Capture currentTarget before setTimeout
                   setTimeout(() => {
-                    e.currentTarget.style.transform = 'scale(1)';
+                    if (target) { // Add null check
+                      target.style.transform = 'scale(1)';
+                    }
                   }, 100);
                 }}
                 className={`flex items-center justify-center ${isMobile ? 'w-12 h-12' : 'w-11 h-11'} mb-4 rounded-2xl bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white transition-all duration-300 shadow-lg sidebar-btn active:scale-95`}

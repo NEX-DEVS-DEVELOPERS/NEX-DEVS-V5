@@ -33,6 +33,8 @@ interface FormState {
   secondImage?: string;
   showBothImagesInPriority?: boolean;
   visualEffects?: any;
+  showcase_location?: string;
+  display_type?: string;
 }
 
 interface NewlyAddedProject extends FormState {
@@ -70,6 +72,8 @@ interface NewlyAddedProject extends FormState {
   githubLink?: string;
   githubClientLink?: string;
   githubServerLink?: string;
+  showcase_location?: string;
+  display_type?: string;
 }
 
 const categories = [
@@ -166,10 +170,13 @@ export default function NewProjectPage() {
   const [uploadedImage, setUploadedImage] = useState<string | null>(null)
   const [isUploading, setIsUploading] = useState(false)
   const [isSecondImageUploading, setIsSecondImageUploading] = useState(false)
+  const [useMobileAppPlaceholder, setUseMobileAppPlaceholder] = useState(false) // Added missing state
   const fileInputRef = useRef<HTMLInputElement>(null)
   const secondFileInputRef = useRef<HTMLInputElement>(null)
   const [password, setPassword] = useState('alihasnaat919') // Default to the correct password
   const [passwordError, setPasswordError] = useState(false)
+  const [isInDevelopment, setIsInDevelopment] = useState(false)
+  const [newlyAddedIsInDevelopment, setNewlyAddedIsInDevelopment] = useState(false)
   
   // Set the password automatically when component loads
   useEffect(() => {
@@ -182,7 +189,7 @@ export default function NewProjectPage() {
 
   // Regular project form state
   const [project, setProject] = useState<FormState>({
-    id: 0,
+    id: 0, // This will be removed before submission
     title: '',
     description: '',
     image: '/projects/placeholder.jpg',
@@ -207,11 +214,13 @@ export default function NewProjectPage() {
     secondImage: '',
     showBothImagesInPriority: false,
     visualEffects: {},
+    showcase_location: 'regular_grid',
+    display_type: 'standard',
   })
 
   // Newly Added project form state
   const [newlyAddedProject, setNewlyAddedProject] = useState<NewlyAddedProject>({
-    id: 0,
+    id: 0, // This will be removed before submission
     title: 'NEWLY ADDED: ',
     description: '',
     image: '/projects/placeholder.jpg',
@@ -253,6 +262,8 @@ export default function NewProjectPage() {
     githubLink: '',
     githubClientLink: '',
     githubServerLink: '',
+    showcase_location: 'newly_added',
+    display_type: 'newly_added_special',
   })
 
   // Handle change for regular project form
@@ -590,18 +601,24 @@ export default function NewProjectPage() {
       let submissionData;
 
       if (formType === 'regularProject') {
+        const { id, ...projectDataWithoutId } = project; // Remove id field
         submissionData = {
-          ...project,
+          ...projectDataWithoutId,
           technologies: project.technologies.filter(tech => tech.trim() !== ''),
           // Handle code content for direct input
           codeContent: project.useDirectCodeInput ? project.codeContent : undefined,
+          // Handle optional project link
+          link: isInDevelopment ? '' : project.link,
           password: dbPassword
         };
       } else {
+        const { id, ...newlyAddedDataWithoutId } = newlyAddedProject; // Remove id field
         submissionData = {
-          ...newlyAddedProject,
+          ...newlyAddedDataWithoutId,
           technologies: newlyAddedProject.technologies.filter(tech => tech.trim() !== ''),
           exclusiveFeatures: newlyAddedProject.exclusiveFeatures.filter(feature => feature.trim() !== ''),
+          // Handle optional project link
+          link: newlyAddedIsInDevelopment ? '' : newlyAddedProject.link,
           password: dbPassword
         };
       }
@@ -637,7 +654,7 @@ export default function NewProjectPage() {
       // Reset form state
       if (formType === 'regularProject') {
         setProject({
-          id: 0,
+          id: 0, // This will be removed before submission
           title: '',
           description: '',
           image: '/projects/placeholder.jpg',
@@ -662,11 +679,14 @@ export default function NewProjectPage() {
           secondImage: '',
           showBothImagesInPriority: false,
           visualEffects: {},
+          showcase_location: 'regular_grid',
+          display_type: 'standard',
         });
         setUploadedImage(null);
+        setIsInDevelopment(false);
       } else {
         setNewlyAddedProject({
-          id: 0,
+          id: 0, // This will be removed before submission
           title: 'NEWLY ADDED: ',
           description: '',
           image: '/projects/placeholder.jpg',
@@ -708,9 +728,12 @@ export default function NewProjectPage() {
           githubLink: '',
           githubClientLink: '',
           githubServerLink: '',
+          showcase_location: 'newly_added',
+          display_type: 'newly_added_special',
         });
+        setNewlyAddedIsInDevelopment(false);
       }
-      
+
       // Navigate back to projects page
         router.push('/hasnaat/projects');
     } catch (error) {
@@ -831,74 +854,188 @@ export default function NewProjectPage() {
                   />
                 </div>
 
-                {/* Project Image Upload - Regular Project Form */}
-                <div className="mb-6">
-                  <label className="block text-sm font-medium text-gray-300 mb-2">Project Image*</label>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="flex flex-col space-y-2">
-                      <div className="bg-gray-900 border border-gray-700 rounded-lg overflow-hidden aspect-square relative">
-                        {project.image ? (
-                          <Image 
-                            src={project.image} 
-                            alt="Project preview"
-                            fill
-                            className="object-cover"
-                            unoptimized={project.image.startsWith('data:')}
-                          />
-                        ) : (
-                          <div className="absolute inset-0 flex items-center justify-center">
-                            <span className="text-gray-400">No image selected</span>
+                {/* Project Images Section */}
+                <div className="mt-8 border-t border-gray-800 pt-8">
+                  <h3 className="text-lg font-medium text-purple-300 mb-6">Project Images</h3>
+                  
+                  {/* Regular Project Image Upload */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                    {/* Main Image */}
+                    <div>
+                      <div className="flex items-center justify-between mb-3">
+                        <label htmlFor="image" className="block text-sm font-medium text-gray-300">
+                          Main Project Image*
+                        </label>
+                        {formType === 'regularProject' && project.category.includes('Mobile') && (
+                          <div className="flex items-center">
+                            <input
+                              type="checkbox"
+                              id="useMobileAppPlaceholder"
+                              name="useMobileAppPlaceholder"
+                              checked={useMobileAppPlaceholder}
+                              onChange={(e) => setUseMobileAppPlaceholder(e.target.checked)}
+                              className="h-4 w-4 rounded border-gray-600 text-purple-600 focus:ring-purple-500/20 bg-black/50"
+                            />
+                            <label htmlFor="useMobileAppPlaceholder" className="ml-2 text-xs text-gray-400">
+                              Use Mobile App Placeholder (16:9)
+                            </label>
                           </div>
                         )}
                       </div>
-                      <p className="text-xs text-gray-400">Recommended: 4:3 aspect ratio, minimum 1200x900px</p>
-                    </div>
-                    <div className="flex flex-col space-y-4">
-                      <div className="flex-1 flex flex-col justify-center">
-                        <input
-                          type="file"
-                          id="imageUpload"
-                          accept="image/*"
-                          ref={fileInputRef}
-                          onChange={handleImageUpload}
-                          className="hidden"
-                        />
-                        <div className="flex flex-col space-y-3">
-                          <button
-                            type="button"
+                      
+                      {useMobileAppPlaceholder && formType === 'regularProject' && project.category.includes('Mobile') ? (
+                        <div className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center">
+                          <div className="w-full" style={{ aspectRatio: '16/9' }}>
+                            <div className="w-full h-full bg-gradient-to-br from-blue-900/20 to-purple-900/20 border border-gray-700/50 rounded-xl flex items-center justify-center">
+                              <div className="text-center">
+                                <div className="w-12 h-12 mx-auto mb-3 bg-gradient-to-br from-blue-500 to-purple-500 rounded-xl flex items-center justify-center">
+                                  <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                                  </svg>
+                                </div>
+                                <p className="text-gray-400 text-sm font-medium">Mobile App Preview</p>
+                                <p className="text-gray-500 text-xs mt-1">16:9 Aspect Ratio</p>
+                              </div>
+                            </div>
+                          </div>
+                          <p className="text-xs text-gray-500 mt-3">
+                            This placeholder will be used for mobile app projects. Upload a 16:9 image for best results.
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div 
+                            className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center cursor-pointer hover:border-purple-500/50 transition-colors"
                             onClick={() => fileInputRef.current?.click()}
-                            disabled={isUploading}
-                            className="px-4 py-2 rounded-md bg-purple-600/40 border border-purple-600/40 text-white hover:bg-purple-600/60 transition-colors flex items-center justify-center gap-2"
                           >
-                            {isUploading ? (
-                              <>
-                                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Uploading...
-                              </>
+                            {uploadedImage ? (
+                              <div className="relative mx-auto" style={{ width: '100%', height: '200px' }}>
+                                <Image 
+                                  src={uploadedImage} 
+                                  alt="Uploaded preview" 
+                                  fill 
+                                  className="object-contain rounded-lg"
+                                />
+                              </div>
                             ) : (
                               <>
-                                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                                <svg className="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                                  <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
                                 </svg>
-                                Upload Image
+                                <p className="mt-2 text-sm text-gray-400">
+                                  <span className="font-medium text-purple-400">Click to upload</span> or drag and drop
+                                </p>
+                                <p className="text-xs text-gray-500 mt-1">
+                                  PNG, JPG, GIF up to 5MB
+                                </p>
                               </>
                             )}
-                          </button>
-                          <p className="text-xs text-gray-400">Recommended: 4:3 aspect ratio, minimum 1200x900px</p>
+                            {isUploading && (
+                              <div className="mt-4">
+                                <div className="w-full bg-gray-700 rounded-full h-2">
+                                  <div className="bg-purple-600 h-2 rounded-full animate-pulse"></div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                           <input
-                            type="text"
+                            ref={fileInputRef}
+                            type="file"
                             id="image"
                             name="image"
-                            value={project.image}
-                            onChange={handleChange}
-                            className="px-3 py-2 rounded-md bg-black/50 border border-gray-600 text-white text-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
-                            placeholder="/projects/your-image.jpg"
+                            accept="image/*"
+                            onChange={handleImageUpload}
+                            className="hidden"
+                            required
                           />
-                        </div>
+                        </>
+                      )}
+                    </div>
+
+                    {/* Second Image (Optional) */}
+                    <div>
+                      <label htmlFor="secondImage" className="block text-sm font-medium text-gray-300 mb-3">
+                        Second Image (Optional)
+                      </label>
+                      <div 
+                        className="border-2 border-dashed border-gray-700 rounded-xl p-6 text-center cursor-pointer hover:border-purple-500/50 transition-colors"
+                        onClick={() => secondFileInputRef.current?.click()}
+                      >
+                        {newlyAddedProject.secondImage && newlyAddedProject.secondImage !== '/projects/placeholder.jpg' ? (
+                          <div className="relative mx-auto" style={{ width: '100%', height: '200px' }}>
+                            <Image 
+                              src={newlyAddedProject.secondImage} 
+                              alt="Second image preview" 
+                              fill 
+                              className="object-contain rounded-lg"
+                            />
+                          </div>
+                        ) : (
+                          <>
+                            <svg className="mx-auto h-12 w-12 text-gray-500" stroke="currentColor" fill="none" viewBox="0 0 48 48">
+                              <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                            </svg>
+                            <p className="mt-2 text-sm text-gray-400">
+                              <span className="font-medium text-purple-400">Click to upload</span> or drag and drop
+                            </p>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Additional image for showcase
+                            </p>
+                          </>
+                        )}
+                        {isSecondImageUploading && (
+                          <div className="mt-4">
+                            <div className="w-full bg-gray-700 rounded-full h-2">
+                              <div className="bg-purple-600 h-2 rounded-full animate-pulse"></div>
+                            </div>
+                          </div>
+                        )}
                       </div>
+                      <input
+                        ref={secondFileInputRef}
+                        type="file"
+                        id="secondImage"
+                        name="secondImage"
+                        accept="image/*"
+                        onChange={handleSecondImageUpload}
+                        className="hidden"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Image Priority and Display Options */}
+                  <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label htmlFor="imagePriority" className="block text-sm font-medium text-gray-300 mb-2">
+                        Image Priority (Lower = Higher Priority)
+                      </label>
+                      <input
+                        type="number"
+                        id="imagePriority"
+                        name="imagePriority"
+                        min="1"
+                        max="10"
+                        value={formType === 'regularProject' ? project.imagePriority : newlyAddedProject.imagePriority}
+                        onChange={formType === 'regularProject' ? handleChange : handleNewlyAddedChange}
+                        className="block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                      />
+                      <p className="text-xs text-gray-500 mt-1">
+                        Priority for display order (1-10, where 1 is highest priority)
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center pt-6">
+                      <input
+                        type="checkbox"
+                        id="showBothImagesInPriority"
+                        name="showBothImagesInPriority"
+                        checked={formType === 'regularProject' ? project.showBothImagesInPriority : newlyAddedProject.showBothImagesInPriority}
+                        onChange={formType === 'regularProject' ? handleCheckboxChange : handleNewlyAddedCheckboxChange}
+                        className="h-4 w-4 text-purple-600 focus:ring-purple-500 bg-gray-700 border-gray-600 rounded"
+                      />
+                      <label htmlFor="showBothImagesInPriority" className="ml-2 text-sm text-gray-300">
+                        Show both images in priority display
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -960,17 +1097,37 @@ export default function NewProjectPage() {
                   </button>
                 </div>
 
+                {/* Project Development Status */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="inDevelopment"
+                    checked={isInDevelopment}
+                    onChange={(e) => setIsInDevelopment(e.target.checked)}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 bg-gray-700 border-gray-600 rounded"
+                  />
+                  <label htmlFor="inDevelopment" className="text-sm text-gray-300">
+                    Project is in development (no live link available yet)
+                  </label>
+                </div>
+
                 {/* Project Link */}
                 <div>
-                  <label htmlFor="link" className="block text-sm font-medium text-gray-300">Project Link*</label>
+                  <label htmlFor="link" className="block text-sm font-medium text-gray-300">
+                    Project Link{!isInDevelopment && '*'}
+                  </label>
                   <input
                     type="url"
                     id="link"
                     name="link"
-                    required
-                    value={project.link}
+                    required={!isInDevelopment}
+                    disabled={isInDevelopment}
+                    value={isInDevelopment ? '' : project.link}
                     onChange={handleChange}
-                    className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                    placeholder={isInDevelopment ? "Project is in development" : "https://example.com"}
+                    className={`mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20 ${
+                      isInDevelopment ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
 
@@ -987,6 +1144,88 @@ export default function NewProjectPage() {
                   <label htmlFor="featured" className="ml-2 text-sm text-gray-300">
                     Mark as Featured Project
                   </label>
+                </div>
+
+                {/* Project Showcase Location */}
+                <div className="mt-6 border-t border-gray-800 pt-6">
+                  <h3 className="text-lg font-medium text-purple-300 mb-4">Project Display Settings</h3>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* Showcase Location */}
+                    <div>
+                      <label htmlFor="showcase_location" className="block text-sm font-medium text-gray-300 mb-2">
+                        Showcase Location*
+                      </label>
+                      <select
+                        id="showcase_location"
+                        name="showcase_location"
+                        value={project.showcase_location}
+                        onChange={handleChange}
+                        className="block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                      >
+                        <option value="regular_grid">Regular Grid (All Projects)</option>
+                        <option value="ai_solutions">AI Solutions Showcase</option>
+                        <option value="mobile_showcase">Mobile Showcase</option>
+                        <option value="featured_hero">Featured Hero Section</option>
+                        <option value="project_gallery">Project Gallery Carousel</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Choose where this project will be prominently displayed
+                      </p>
+                    </div>
+                    
+                    {/* Display Type */}
+                    <div>
+                      <label htmlFor="display_type" className="block text-sm font-medium text-gray-300 mb-2">
+                        Display Type*
+                      </label>
+                      <select
+                        id="display_type"
+                        name="display_type"
+                        value={project.display_type}
+                        onChange={handleChange}
+                        className="block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                      >
+                        <option value="standard">Standard Project Card</option>
+                        <option value="ai_product">AI Product Showcase</option>
+                        <option value="mobile_app">Mobile App Display</option>
+                        <option value="web_application">Web Application</option>
+                        <option value="code_showcase">Code Showcase</option>
+                        <option value="design_portfolio">Design Portfolio</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Select the visual presentation style for this project
+                      </p>
+                    </div>
+                  </div>
+                  
+                  {/* Display Preview */}
+                  <div className="mt-6 p-4 bg-gray-900/50 rounded-lg border border-gray-700">
+                    <h4 className="text-sm font-medium text-purple-300 mb-3">Display Preview</h4>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <span className="text-gray-400">Location:</span>
+                        <span className="ml-2 text-white">
+                          {project.showcase_location === 'regular_grid' && 'Will appear in the main projects grid'}
+                          {project.showcase_location === 'ai_solutions' && 'Will be featured in AI Solutions section'}
+                          {project.showcase_location === 'mobile_showcase' && 'Will be displayed in Mobile Showcase with iPhone mockup'}
+                          {project.showcase_location === 'featured_hero' && 'Will be prominently displayed in hero section'}
+                          {project.showcase_location === 'project_gallery' && 'Will be included in the visual gallery carousel'}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Style:</span>
+                        <span className="ml-2 text-white">
+                          {project.display_type === 'standard' && 'Standard project card layout'}
+                          {project.display_type === 'ai_product' && 'AI-focused presentation with neural network graphics'}
+                          {project.display_type === 'mobile_app' && 'Mobile-optimized display with device mockup'}
+                          {project.display_type === 'web_application' && 'Web application browser-style frame'}
+                          {project.display_type === 'code_showcase' && 'Code editor interface presentation'}
+                          {project.display_type === 'design_portfolio' && 'Design-focused portfolio layout'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Code Screenshot Options */}
@@ -1056,7 +1295,7 @@ export default function NewProjectPage() {
                           <option value="scss">SCSS</option>
                           <option value="json">JSON</option>
                           <option value="yaml">YAML</option>
-                          <option value="markdown">Markdown</option>
+                          <option value="``">Code</option>
                           <option value="shell">Shell/Bash</option>
                         </select>
                         <p className="mt-1 text-xs text-gray-400">Used for syntax highlighting</p>
@@ -1400,6 +1639,92 @@ export default function NewProjectPage() {
                     {newlyAddedProject.showBothImagesInPriority && 
                      " When 'Show both images' is enabled, both images will be displayed in the priority section."}
                   </p>
+                </div>
+
+                {/* Project Showcase Location - Enhanced for Newly Added Projects */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-2">Enhanced Display Settings</label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-black/30 p-4 rounded-lg border border-gray-700">
+                    {/* Showcase Location */}
+                    <div>
+                      <label htmlFor="newlyAdded_showcase_location" className="block text-sm font-medium text-purple-300 mb-2">
+                        Primary Showcase Location*
+                      </label>
+                      <select
+                        id="newlyAdded_showcase_location"
+                        name="showcase_location"
+                        value={newlyAddedProject.showcase_location || 'newly_added'}
+                        onChange={handleNewlyAddedChange}
+                        className="block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                      >
+                        <option value="newly_added">Newly Added Section (Default)</option>
+                        <option value="ai_solutions">AI Solutions Showcase</option>
+                        <option value="mobile_showcase">Mobile Showcase</option>
+                        <option value="featured_hero">Featured Hero Section</option>
+                        <option value="project_gallery">Project Gallery Carousel</option>
+                        <option value="regular_grid">Also in Regular Grid</option>
+                      </select>
+                    </div>
+                    
+                    {/* Display Type */}
+                    <div>
+                      <label htmlFor="newlyAdded_display_type" className="block text-sm font-medium text-purple-300 mb-2">
+                        Enhanced Display Type*
+                      </label>
+                      <select
+                        id="newlyAdded_display_type"
+                        name="display_type"
+                        value={newlyAddedProject.display_type || 'newly_added_special'}
+                        onChange={handleNewlyAddedChange}
+                        className="block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                      >
+                        <option value="newly_added_special">Newly Added Special (Default)</option>
+                        <option value="ai_product_new">New AI Product Showcase</option>
+                        <option value="mobile_app_new">New Mobile App Display</option>
+                        <option value="web_application_new">New Web Application</option>
+                        <option value="innovative_solution">Innovative Solution</option>
+                        <option value="beta_preview">Beta Preview Display</option>
+                      </select>
+                    </div>
+                  </div>
+                  
+                  {/* Enhanced Display Preview */}
+                  <div className="mt-4 p-4 bg-gradient-to-r from-purple-900/20 to-blue-900/20 rounded-lg border border-purple-500/30">
+                    <h4 className="text-sm font-medium text-purple-300 mb-3 flex items-center">
+                      <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                      </svg>
+                      Enhanced Display Preview
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-start space-x-2">
+                        <span className="text-purple-400 font-medium">Location:</span>
+                        <span className="text-white flex-1">
+                          {(newlyAddedProject.showcase_location === 'newly_added' || !newlyAddedProject.showcase_location) && 'Will appear prominently in the "Newly Added Projects" section with special animations and effects'}
+                          {newlyAddedProject.showcase_location === 'ai_solutions' && 'Will be featured in AI Solutions section with neural network animations'}
+                          {newlyAddedProject.showcase_location === 'mobile_showcase' && 'Will be displayed in Mobile Showcase with iPhone 16 mockup'}
+                          {newlyAddedProject.showcase_location === 'featured_hero' && 'Will be prominently displayed in hero section with premium styling'}
+                          {newlyAddedProject.showcase_location === 'project_gallery' && 'Will be included in the visual gallery carousel'}
+                          {newlyAddedProject.showcase_location === 'regular_grid' && 'Will appear in both Newly Added section AND regular projects grid'}
+                        </span>
+                      </div>
+                      <div className="flex items-start space-x-2">
+                        <span className="text-blue-400 font-medium">Style:</span>
+                        <span className="text-white flex-1">
+                          {(newlyAddedProject.display_type === 'newly_added_special' || !newlyAddedProject.display_type) && 'Special "NEW" badges, progress bars, timeline, exclusive features list, and expandable details'}
+                          {newlyAddedProject.display_type === 'ai_product_new' && 'AI-focused presentation with neural network graphics, "AI Powered" badges, and technical showcase'}
+                          {newlyAddedProject.display_type === 'mobile_app_new' && 'Mobile-optimized display with device mockup and app store style presentation'}
+                          {newlyAddedProject.display_type === 'web_application_new' && 'Web application browser-style frame with live preview capabilities'}
+                          {newlyAddedProject.display_type === 'innovative_solution' && 'Innovation-focused layout with breakthrough technology highlights'}
+                          {newlyAddedProject.display_type === 'beta_preview' && 'Beta testing interface with feedback collection and preview access'}
+                        </span>
+                      </div>
+                      <div className="mt-3 p-2 bg-black/40 rounded border border-purple-500/20">
+                        <span className="text-xs text-purple-300">💡 Tip: Newly Added projects automatically get enhanced visibility, special effects, and priority positioning in the portfolio.</span>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
                 {/* Visual Effects Options */}
@@ -2237,17 +2562,37 @@ export default function NewProjectPage() {
                   )}
                 </div>
 
+                {/* Project Development Status */}
+                <div className="flex items-center space-x-3">
+                  <input
+                    type="checkbox"
+                    id="newInDevelopment"
+                    checked={newlyAddedIsInDevelopment}
+                    onChange={(e) => setNewlyAddedIsInDevelopment(e.target.checked)}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 bg-gray-700 border-gray-600 rounded"
+                  />
+                  <label htmlFor="newInDevelopment" className="text-sm text-gray-300">
+                    Project is in development (no live link available yet)
+                  </label>
+                </div>
+
                 {/* Project Link */}
                 <div>
-                  <label htmlFor="newLink" className="block text-sm font-medium text-gray-300">Project Link*</label>
+                  <label htmlFor="newLink" className="block text-sm font-medium text-gray-300">
+                    Project Link{!newlyAddedIsInDevelopment && '*'}
+                  </label>
                   <input
                     type="url"
                     id="newLink"
                     name="link"
-                    required
-                    value={newlyAddedProject.link}
+                    required={!newlyAddedIsInDevelopment}
+                    disabled={newlyAddedIsInDevelopment}
+                    value={newlyAddedIsInDevelopment ? '' : newlyAddedProject.link}
                     onChange={handleNewlyAddedChange}
-                    className="mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20"
+                    placeholder={newlyAddedIsInDevelopment ? "Project is in development" : "https://example.com"}
+                    className={`mt-1 block w-full rounded-md bg-black/50 border-gray-600 text-white shadow-sm focus:border-purple-500 focus:ring focus:ring-purple-500/20 ${
+                      newlyAddedIsInDevelopment ? 'opacity-50 cursor-not-allowed' : ''
+                    }`}
                   />
                 </div>
 

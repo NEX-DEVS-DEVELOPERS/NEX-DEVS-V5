@@ -120,24 +120,11 @@ export const initBarba = (options: BarbaOptions = {}): void => {
   
   const { updateProgress, showOverlay, hideOverlay, resetProgress } = initProgressBar();
   
-  // OPTIMIZED: Simple smooth scrolling without GSAP for better performance
+  // DISABLED: Click event listener to prevent button interaction conflicts
   if (typeof document !== 'undefined') {
-    document.addEventListener('click', (e: Event) => {
-      const target = e.target as HTMLElement;
-      if (target && target.tagName === 'A' && target.getAttribute('href')?.startsWith('#')) {
-        e.preventDefault();
-        const href = target.getAttribute('href');
-        const section = href ? document.querySelector(href) : null;
-
-        if (section) {
-          // Use native smooth scrolling for 60fps performance
-          section.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start'
-          });
-        }
-      }
-    });
+    // Removed global click event listener that was interfering with button interactions
+    // Only handle anchor links if specifically needed
+    console.log('Barba smooth scrolling disabled to prevent button conflicts');
   }
 
   // Add smooth scroll behavior to the entire page
@@ -425,6 +412,12 @@ export const initBarba = (options: BarbaOptions = {}): void => {
 // Export a hook to use Barba in React components
 export const useBarba = (options: BarbaOptions = {}): void => {
   if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+    // DISABLED: Barba initialization to prevent button interaction conflicts
+    console.log('🚫 Barba.js initialization disabled to prevent button conflicts');
+    return;
+
+    // Original code commented out to prevent conflicts
+    /*
     if (!window.__BARBA_INITIALIZED__) {
       // Ensure DOM is ready before initializing
       if (document.readyState === 'loading') {
@@ -439,6 +432,7 @@ export const useBarba = (options: BarbaOptions = {}): void => {
         console.log('🔄 Barba.js initialized');
       }
     }
+    */
   }
 };
 

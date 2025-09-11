@@ -2,20 +2,11 @@
 
 import { useEffect } from 'react'
 
-// ULTRA-OPTIMIZED: Minimal Barba initialization
+// DISABLED: Barba initialization moved to prevent conflicts
 const initializeBarba = async () => {
-  if (typeof window !== 'undefined') {
-    try {
-      const { useBarba } = await import('@/utils/barba-init')
-      useBarba({
-        optimizeWelcomeScreen: true,
-        transitionSpeed: 0.15, // Ultra-fast transitions
-        easing: [0.25, 0.1, 0.25, 1]
-      })
-    } catch (error) {
-      // Silent fail for better performance
-    }
-  }
+  // Barba initialization disabled to prevent button interaction conflicts
+  // Only initialize if specifically needed and not already initialized
+  return;
 }
 
 export default function SmoothScrollInitializer() {

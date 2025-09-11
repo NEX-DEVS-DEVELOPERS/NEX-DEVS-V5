@@ -1,18 +1,44 @@
 /* PERFORMANCE-OPTIMIZED Smooth Scrolling */
-/* Designed for 60fps scrolling with minimal lag */
+/* Designed for 60fps scrolling with minimal lag and hero section optimization */
 
-/* Global smooth scrolling - optimized */
+/* Global smooth scrolling - optimized for hero section performance */
 html {
   scroll-behavior: smooth;
   scroll-padding-top: 80px;
   scroll-snap-type: none !important; /* Disable scroll snap for performance */
 }
 
-/* Optimize scrolling performance */
+/* Immediate hero section loading optimization */
+html.layout-optimized [class*="hero"],
+html.layout-optimized [class*="Hero"] {
+  will-change: auto !important;
+  transform: translateZ(0) !important;
+  backface-visibility: hidden !important;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Optimize scrolling performance with hero section state tracking */
 body {
   -webkit-overflow-scrolling: touch;
   overflow-x: hidden;
   scroll-behavior: smooth;
+}
+
+/* Enhanced hero section optimization for scroll back prevention */
+body.at-top [class*="hero"],
+body.at-top [class*="Hero"] {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  opacity: 1 !important;
+}
+
+body.hero-refresh [class*="hero"],
+body.hero-refresh [class*="Hero"] {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  transition: transform 0.05s ease-out, opacity 0.05s ease-out !important;
 }
 
 /* Minimal transitions for performance */
@@ -20,12 +46,24 @@ body {
   transition: opacity 0.2s ease !important;
 }
 
-/* Enhanced hero animations */
+/* Enhanced hero animations with immediate loading */
 .hero-optimized {
-  will-change: transform, opacity;
+  will-change: auto !important;
   transform: translateZ(0);
   backface-visibility: hidden;
   perspective: 1000px;
+  opacity: 1 !important;
+  transition: none !important;
+}
+
+/* Enhanced TechStack optimization to prevent reload effects */
+.tech-optimized {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  contain: layout style;
+  opacity: 1 !important;
+  animation-fill-mode: both;
 }
 
 /* Optimize all animated elements */

@@ -5,7 +5,6 @@ import { motion, AnimatePresence, useWillChange, Variants } from 'framer-motion'
 import { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import confetti from 'canvas-confetti'; // Import the confetti library
-import NeuralNetwork from '@/components/animations/NeuralNetwork'; // Import NeuralNetwork component
 import { TypeAnimation } from 'react-type-animation'; // Import the typewriter animation component
 
 // Add barba.js imports
@@ -498,46 +497,48 @@ const techStack = [
   { name: 'Framer Motion', color: 'text-purple-500', importance: 'medium' }
 ];
 
-// Update the slideVariants with correct typing
+// Optimized easing curves for 60fps animations
+const SMOOTH_EASING = [0.23, 1, 0.32, 1] as const; // Optimized cubic-bezier for 60fps
+const SPRING_EASING = [0.25, 0.46, 0.45, 0.94] as const; // Smooth spring for 60fps
+const PERFORMANCE_EASING = [0.4, 0, 0.2, 1] as const; // Material design easing for optimal performance
+
+// Update the slideVariants with optimized GPU-friendly motion for 60fps
 const slideVariants: Variants = {
   enter: (direction: number) => ({
     x: direction > 0 ? '100%' : '-100%',
     opacity: 0,
-    scale: 0.95,
-    rotateY: direction > 0 ? '3deg' : '-3deg',
-    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
+    scale: 0.99,
+    rotateY: direction > 0 ? '1deg' : '-1deg',
+    transition: { duration: 0.3, ease: SMOOTH_EASING }
   }),
   center: {
     x: 0,
     opacity: 1,
     scale: 1,
     rotateY: '0deg',
-    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
+    transition: { duration: 0.3, ease: SMOOTH_EASING }
   },
   exit: (direction: number) => ({
     x: direction < 0 ? '100%' : '-100%',
     opacity: 0,
-    scale: 0.95,
-    rotateY: direction < 0 ? '3deg' : '-3deg',
-    transition: { duration: 0.2, ease: [0.32, 0.72, 0, 1] }
+    scale: 0.99,
+    rotateY: direction < 0 ? '1deg' : '-1deg',
+    transition: { duration: 0.3, ease: SMOOTH_EASING }
   })
 };
 
-// Optimized animation sequencing for smooth 60fps performance
+// Optimized animation sequencing for smooth 60fps performance with enhanced sequential delays
 const ANIMATION_SEQUENCE = {
   SCREEN_FADE_IN: 0,
-  BACKGROUND_ELEMENTS: 0.1,
-  TITLE_TEXT: 0.3,
-  SUBTITLE_TEXT: 0.6,
-  DESCRIPTION_TEXT: 0.9,
-  NEURAL_NETWORK: 1.1,
-  TECH_STACK: 1.3,
-  BUTTON: 1.5
+  BACKGROUND_ELEMENTS: 0.3,       // Welcome screen box appears faster
+  TITLE_TEXT: 0.8,               // Typewriter animation starts faster
+  SUBTITLE_TEXT: 2.2,             // Subtitle appears faster after typewriter
+  DESCRIPTION_TEXT: 3.5,          // Description appears faster
+  NEURAL_NETWORK: 4.5,            // Neural line animation starts faster
+  NEURAL_NETWORK_LINES: 5.0,      // Individual neural lines animate faster
+  TECH_STACK: 5.5,               // Icons pop up faster
+  BUTTON: 5.5                     // Button appears immediately with icons
 };
-
-// Optimized easing curves for 60fps animations
-const SMOOTH_EASING = [0.25, 0.46, 0.45, 0.94]; // Custom cubic-bezier for smooth motion
-const SPRING_EASING = [0.34, 1.56, 0.64, 1]; // Subtle spring effect
 
 // Add a modified version of the services data that contains shortened content for mobile
 function getServiceContent(isMobile: boolean) {
@@ -566,13 +567,17 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   const [hideMobilePreview, setHideMobilePreview] = useState(true);
   const barbaInitialized = useRef(false);
   
-  // Add state for animation sequence control
+  // Add state for closing animation
+  const [isClosing, setIsClosing] = useState(false);
+  
+  // Add state for animation sequence control with close button visibility
   const [animationComplete, setAnimationComplete] = useState({
     background: false,
     title: false,
     subtitle: false,
     neural: false,
-    techStack: false
+    techStack: false,
+    button: false  // New state to track when button appears
   });
 
   // Image preview functions
@@ -628,25 +633,49 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         html, body {
           overflow: hidden !important;
           height: 100vh !important;
-          touch-action: none !important;
           position: fixed !important;
           width: 100% !important;
           top: 0 !important;
           left: 0 !important;
         }
-        
+
+        /* Disable chatbot hit-testing while welcome overlay is visible */
+        #nexious-chat-container,
+        .nexious-chat-container,
+        .nexious-chatbot-wrapper {
+          pointer-events: none !important;
+        }
+
         #welcome-screen-overlay {
           position: fixed !important;
-          top: 0 !important;
+          top: 60px !important; /* Position just below navigation bar */
           left: 0 !important;
           right: 0 !important;
           bottom: 0 !important;
+          height: calc(100vh - 60px) !important; /* Adjust height for navbar */
           overflow: hidden !important;
-          touch-action: none !important;
           -webkit-overflow-scrolling: none !important;
           overscroll-behavior: none !important;
           pointer-events: all !important;
-          z-index: 9999 !important;
+          z-index: 999 !important; /* Lower z-index to stay below navbar */
+          touch-action: auto !important;
+        }
+
+        @media (max-width: 768px) {
+          #welcome-screen-overlay {
+            top: 40px !important; /* Mobile navbar - just below */
+            height: calc(100vh - 40px) !important;
+          }
+        }
+        .welcome-screen-container button,
+        .welcome-screen-container [role="button"],
+        .welcome-screen-container a {
+          touch-action: manipulation !important;
+          pointer-events: auto !important;
+          z-index: 10000 !important;
+          position: relative !important;
+          min-height: 44px !important;
+          min-width: 44px !important;
         }
       `;
       document.head.appendChild(styleTag);
@@ -690,12 +719,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     document.documentElement.style.setProperty('--initial-background-opacity', '0');
     document.documentElement.style.setProperty('--initial-blur', '0px');
     
-    // Sequence the animations
+    // Sequence the animations with smooth delays for sequential appearance
     const animationTimers = [
       setTimeout(() => {
         document.documentElement.style.setProperty('--initial-background-opacity', '1');
         document.documentElement.style.setProperty('--initial-blur', '2px');
-      }, 300),
+      }, 200), // Quick background fade-in
       
       setTimeout(() => {
         setAnimationComplete(prev => ({ ...prev, background: true }));
@@ -715,7 +744,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
       
       setTimeout(() => {
         setAnimationComplete(prev => ({ ...prev, techStack: true }));
-      }, ANIMATION_SEQUENCE.TECH_STACK * 1000)
+      }, ANIMATION_SEQUENCE.TECH_STACK * 1000),
+      
+      // Add button animation trigger
+      setTimeout(() => {
+        setAnimationComplete(prev => ({ ...prev, button: true }));
+      }, ANIMATION_SEQUENCE.BUTTON * 1000)
     ];
     
     // Create and append a style tag for global styles - apply instantly
@@ -725,25 +759,50 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
       html, body {
         overflow: hidden !important;
         height: 100vh !important;
-        touch-action: none !important;
         position: fixed !important;
         width: 100% !important;
         top: 0 !important;
         left: 0 !important;
       }
-      
+
+      /* Disable chatbot hit-testing while welcome overlay is visible */
+      #nexious-chat-container,
+      .nexious-chat-container,
+      .nexious-chatbot-wrapper {
+        pointer-events: none !important;
+      }
+
       #welcome-screen-overlay {
         position: fixed !important;
-        top: 0 !important;
+        top: 60px !important; /* Position just below navigation bar */
         left: 0 !important;
         right: 0 !important;
         bottom: 0 !important;
+        height: calc(100vh - 60px) !important; /* Adjust height for navbar */
         overflow: hidden !important;
-        touch-action: none !important;
         -webkit-overflow-scrolling: none !important;
         overscroll-behavior: none !important;
         pointer-events: all !important;
-        z-index: 9999 !important;
+        z-index: 999 !important; /* Lower z-index to stay below navbar */
+        touch-action: auto !important;
+      }
+
+      @media (max-width: 768px) {
+        #welcome-screen-overlay {
+          top: 40px !important; /* Mobile navbar - just below */
+          height: calc(100vh - 40px) !important;
+        }
+      }
+
+      #welcome-screen-overlay button,
+      #welcome-screen-overlay [role="button"],
+      #welcome-screen-overlay a {
+        touch-action: manipulation !important;
+        pointer-events: auto !important;
+        z-index: 10000 !important;
+        position: relative !important;
+        min-height: 44px !important;
+        min-width: 44px !important;
       }
     `;
     document.head.appendChild(styleTag);
@@ -797,33 +856,52 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     preloadAssets();
   }, []);
 
-  // Add close button handler
+  // Enhanced close button handler with ultra-smooth animation
   const handleClose = () => {
-    // Remove any lingering scroll lock styles
-    const existingStyleTag = document.querySelector('style[data-welcome-screen]');
-    if (existingStyleTag) {
-      existingStyleTag.remove();
+    console.log('handleClose called - starting ultra-smooth close animation');
+    
+    // Start closing animation
+    setIsClosing(true);
+    
+    // Add ultra-smooth fade out effect with multiple transform properties
+    const welcomeElement = document.getElementById('welcome-screen-overlay');
+    if (welcomeElement) {
+      welcomeElement.style.transition = 'all 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+      welcomeElement.style.opacity = '0';
+      welcomeElement.style.transform = 'scale(0.92) translateY(-30px) rotateX(2deg)';
+      welcomeElement.style.filter = 'blur(8px)';
     }
     
-    // Reset body styles
-    document.body.style.removeProperty('overflow');
-    document.body.style.removeProperty('position');
-    document.body.style.removeProperty('top');
-    document.body.style.removeProperty('width');
-    
-    // Reset html styles
-    document.documentElement.style.removeProperty('overflow');
-    document.documentElement.style.removeProperty('height');
-    
-    // Restore scroll position
-    window.scrollTo(0, scrollPosition);
-    
-    // Just call onComplete without any localStorage operations
-    onComplete();
+    // Wait for animation to complete before cleanup
+    setTimeout(() => {
+      // Remove any lingering scroll lock styles
+      const existingStyleTag = document.querySelector('style[data-welcome-screen]');
+      if (existingStyleTag) {
+        existingStyleTag.remove();
+      }
+      
+      // Reset body styles
+      document.body.style.removeProperty('overflow');
+      document.body.style.removeProperty('position');
+      document.body.style.removeProperty('top');
+      document.body.style.removeProperty('width');
+      
+      // Reset html styles
+      document.documentElement.style.removeProperty('overflow');
+      document.documentElement.style.removeProperty('height');
+      
+      // Restore scroll position
+      window.scrollTo(0, scrollPosition);
+      
+      // Call onComplete to trigger parent state changes
+      onComplete();
+    }, 800); // Match the CSS transition duration
   };
 
-  // Handle completion without localStorage
+  // Handle completion and call parent callback
   const handleCompletion = () => {
+    console.log('handleCompletion called - calling onComplete');
+    // Call onComplete to trigger parent state changes
     onComplete();
   };
 
@@ -847,9 +925,9 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   // Initialize Barba.js when component mounts
   useEffect(() => {
     if (typeof window !== 'undefined' && !barbaInitialized.current) {
-      // Custom Barba.js transition specific for the welcome screen
+      // DISABLED: Barba.js transition to prevent button interaction conflicts
       try {
-        initBarba();
+        // initBarba(); // Disabled to prevent conflicts
         
         // Add special welcome screen transition event listener
         window.addEventListener('welcomeTransitionComplete', () => {
@@ -883,7 +961,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         spread: 70,
         origin: { y: 0.6 },
       });
-      handleCompletion();
+      
+      // Call completion handler after confetti
+      setTimeout(() => {
+        console.log('Confetti completed - calling handleCompletion');
+        handleCompletion();
+      }, 800);
     } else {
       setCurrentSlide(prev => prev + 1);
     }
@@ -941,7 +1024,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         {[...Array(3)].map((_, i) => {
           const topPosition = 30 + i * 20;
           const isEven = i % 2 === 0;
-          const duration = 15 + i * 2;
+          const duration = 12 + i * 1.5; // Faster movement
           
           return (
             <motion.div
@@ -956,7 +1039,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 zIndex: 1,
                 width: "120%",
                 willChange: "transform",
-                transition: 'all 0.6s ease-out',
+                transition: 'all 0.4s ease-out', // Faster transition
                 transform: 'translate3d(0,0,0)'
               }}
               initial={{ 
@@ -973,7 +1056,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                 repeat: Infinity,
                 ease: "linear",
                 repeatType: "loop",
-                delay: i * 0.1
+                delay: i * 0.05 // Reduced delay
               }}
             />
           );
@@ -1012,10 +1095,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           
           const radius = 5 + Math.random() * 5;
           
-          // Calculate custom delay - ensures icons pop in sequence with proper timing
-          const baseDelay = position.delay + 0.2;
-          const appearanceDelay = baseDelay + (i * 0.15); // Increased spacing between icons
-          const movementDelay = appearanceDelay + 0.6; // Delay movement until after appearance animation completes
+          // Calculate custom delay - ensures icons pop in sequence after neural network completes
+          const baseDelay = position.delay + 0.2; // Faster neural network wait
+          const appearanceDelay = baseDelay + (i * 0.08); // Faster staggered icon appearance
+          const movementDelay = appearanceDelay + 0.4; // Faster floating movement
 
           return (
             <motion.div
@@ -1035,28 +1118,28 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
               }}
               transition={{
                 opacity: {
-                  duration: 0.5, // Faster for better performance
+                  duration: 0.7, // Smooth fade-in after neural network
                   delay: appearanceDelay,
-                  ease: SMOOTH_EASING
+                  ease: PERFORMANCE_EASING
                 },
                 scale: {
-                  duration: 0.8, // Optimized duration
+                  duration: 0.8, // Dramatic pop effect after delay
                   delay: appearanceDelay,
-                  ease: SPRING_EASING,
-                  times: [0, 0.25, 0.6, 0.85, 1] // Optimized keyframe timing
+                  ease: PERFORMANCE_EASING,
+                  times: [0, 0.4, 0.8, 1] // Smooth keyframe progression
                 },
                 x: {
                   duration: position.speed + Math.random() * 0.3,
                   delay: movementDelay,
                   repeat: Infinity,
-                  ease: SMOOTH_EASING,
+                  ease: "easeInOut",
                   repeatType: "reverse"
                 },
                 y: {
-                  duration: position.speed + Math.random() * 0.8,
+                  duration: position.speed + Math.random() * 0.6,
                   delay: movementDelay,
                   repeat: Infinity,
-                  ease: SMOOTH_EASING,
+                  ease: "easeInOut",
                   repeatType: "reverse"
                 }
               }}
@@ -1081,19 +1164,19 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   scale: [0, 0.8, 1.2, 0.9]
                 }}
                 transition={{
-                  duration: 0.6, // Optimized for 60fps
+                  duration: 0.5, // Smoother pulse appearance
                   delay: appearanceDelay + 0.1,
-                  ease: SPRING_EASING,
+                  ease: "easeOut",
                   opacity: {
                     repeat: Infinity,
                     repeatType: "reverse",
-                    duration: 2.5, // Optimized pulsing
+                    duration: 2.5, // Gentle pulsing after appearance
                     delay: movementDelay
                   },
                   scale: {
                     repeat: Infinity,
                     repeatType: "reverse",
-                    duration: 2.5, // Optimized pulsing
+                    duration: 2.5, // Synchronized gentle pulsing
                     delay: movementDelay
                   }
                 }}
@@ -1164,63 +1247,77 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
               height: '100%',
               zIndex: 2
             }}>
-              <motion.div 
+              <motion.div
+                key={`connection-${i}`}
                 className="absolute origin-left"
                 style={{
-                  height: '1px',
-                  backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
+                  height: '1px', // Further reduced for thinner lines
+                  backgroundColor: i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894', // Duller, muted colors
                   width: `${distance}%`,
-                  boxShadow: i % 3 === 0 ? '0 0 4px #60A5FA' : i % 3 === 1 ? '0 0 4px #A855F7' : '0 0 4px #34D399',
+                  boxShadow: i % 3 === 0 ? '0 0 0 0.25px #4A90E2, 0 0 3px rgba(74, 144, 226, 0.3)' : i % 3 === 1 ? '0 0 0 0.25px #8B7FB8, 0 0 3px rgba(139, 127, 184, 0.3)' : '0 0 0 0.25px #5FB894, 0 0 3px rgba(95, 184, 148, 0.3)', // Thinner ring + subtle glow
                   transformOrigin: 'left center',
                   transform: `rotate(${Math.atan2(dy, dx) * (180 / Math.PI)}deg)`,
-                  willChange: 'opacity, width'
+                  willChange: 'opacity, width',
+                  filter: `contrast(1.1) saturate(0.8) blur(0px)`, // Reduced contrast and saturation for duller appearance
+                  border: `0.25px solid ${i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894'}`, // Ultra-thin border
+                  borderRadius: '0px',
+                  imageRendering: 'crisp-edges',
+                  opacity: 0.7 // Reduced base opacity for less boldness
                 }}
                 initial={{ width: 0, opacity: 0 }}
-                animate={{ width: `${distance}%`, opacity: [0.2, 0.6, 1, 0.6] }}
+                animate={{ width: `${distance}%`, opacity: [0.4, 0.7, 0.7, 0.6] }} // Lower opacity values for subtlety
                 transition={{
                   width: { 
-                    duration: 0.6,
-                    delay: 0.05 + i * 0.08,
-                    ease: "easeOut" 
+                    duration: 0.8,
+                    delay: 0.2 + i * 0.15,
+                    ease: PERFORMANCE_EASING 
                   },
                   opacity: {
-                    duration: 3 + i % 3,
-                    delay: 0.05 + i * 0.08,
+                    duration: 2.5 + i % 2,
+                    delay: 0.2 + i * 0.15,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }
                 }}
               >
-                {/* Add static dot at the end of the line with delayed appearance */}
+                {/* Add static dot at the end of the line - Subtle and refined */}
                 <motion.div
-                  className="absolute w-1.5 h-1.5 rounded-full"
+                  className="absolute w-1 h-1 rounded-full" // Smaller for subtlety
                   style={{
-                    backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
-                    boxShadow: i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
+                    backgroundColor: i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894', // Duller colors
+                    boxShadow: i % 3 === 0 ? '0 0 0 0.25px #4A90E2, 0 0 2px rgba(74, 144, 226, 0.2)' : i % 3 === 1 ? '0 0 0 0.25px #8B7FB8, 0 0 2px rgba(139, 127, 184, 0.2)' : '0 0 0 0.25px #5FB894, 0 0 2px rgba(95, 184, 148, 0.2)', // Subtle glow
                     right: '-1px',
                     top: '-2px',
-                    transform: 'translate(50%, -50%)'
+                    transform: 'translate(50%, -50%)',
+                    filter: 'contrast(1.1) saturate(0.8) blur(0px)', // Duller appearance
+                    border: `0.25px solid ${i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894'}`,
+                    imageRendering: 'crisp-edges',
+                    opacity: 0.6 // Reduced opacity
                   }}
                   initial={{ scale: 0, opacity: 0 }}
-                  animate={{ scale: [0.8, 1.1, 0.8], opacity: [0.7, 1, 0.7] }}
+                  animate={{ scale: [0.8, 1.0, 0.8], opacity: [0.5, 0.6, 0.5] }} // Subtle animation
                   transition={{
-                    duration: 2 + i % 2,
-                    delay: 0.3 + i * 0.12,
+                    duration: 1.6 + i % 2,
+                    delay: 0.3 + i * 0.1,
                     repeat: Infinity,
                     ease: "easeInOut"
                   }}
                 />
-                {/* Moving dots along the lines with delayed appearance */}
+                {/* Moving dots along the lines - Subtle and refined */}
                 <motion.div
-                  className="absolute w-1.5 h-1.5 rounded-full"
+                  className="absolute w-1 h-1 rounded-full" // Smaller size
                   style={{
-                    backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
-                    boxShadow: i % 3 === 0 ? '0 0 6px #60A5FA' : i % 3 === 1 ? '0 0 6px #A855F7' : '0 0 6px #34D399',
+                    backgroundColor: i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894', // Duller colors
+                    boxShadow: i % 3 === 0 ? '0 0 0 0.25px #4A90E2, 0 0 2px rgba(74, 144, 226, 0.2)' : i % 3 === 1 ? '0 0 0 0.25px #8B7FB8, 0 0 2px rgba(139, 127, 184, 0.2)' : '0 0 0 0.25px #5FB894, 0 0 2px rgba(95, 184, 148, 0.2)', // Subtle glow
                     top: '-2px',
-                    willChange: 'transform, left, opacity'
+                    willChange: 'transform, left, opacity',
+                    filter: 'contrast(1.1) saturate(0.8) blur(0px)', // Duller appearance
+                    border: `0.25px solid ${i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894'}`,
+                    imageRendering: 'crisp-edges',
+                    opacity: 0.6 // Reduced opacity
                   }}
                   initial={{ opacity: 0, left: '0%' }}
-                  animate={{ left: ['0%', '100%'], scale: [0.8, 1.2, 0.8], opacity: [0.7, 1, 0.7] }}
+                  animate={{ left: ['0%', '100%'], scale: [0.8, 1.0, 0.8], opacity: [0.5, 0.6, 0.5] }} // Subtle values
                   transition={{
                     left: {
                       duration: animationDuration,
@@ -1230,14 +1327,14 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       repeatDelay: 0
                     },
                     scale: {
-                      duration: 1.5,
+                      duration: 2.0,
                       delay: 0.6 + i * 0.15,
                       repeat: Infinity,
                       ease: "easeInOut",
                       repeatDelay: 0
                     },
                     opacity: {
-                      duration: 1.5,
+                      duration: 2.0,
                       delay: 0.6 + i * 0.15,
                       repeat: Infinity,
                       ease: "easeInOut",
@@ -1250,34 +1347,38 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           );
         })}
         
-        {/* Render neural network nodes with staggered appearance */}
+        {/* Render neural network nodes - Subtle and refined */}
         {nodes.map((node, i) => (
           <motion.div
             key={`node-${i}`}
-            className="absolute w-2.5 h-2.5 rounded-full"
+            className="absolute w-2 h-2 rounded-full" // Smaller for subtlety
             style={{
               left: node.x,
               top: node.y,
-              backgroundColor: i % 3 === 0 ? '#60A5FA' : i % 3 === 1 ? '#A855F7' : '#34D399',
-              boxShadow: i % 3 === 0 ? '0 0 8px #60A5FA' : i % 3 === 1 ? '0 0 8px #A855F7' : '0 0 8px #34D399',
+              backgroundColor: i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894', // Duller colors
+              boxShadow: i % 3 === 0 ? '0 0 0 0.25px #4A90E2, 0 0 3px rgba(74, 144, 226, 0.25)' : i % 3 === 1 ? '0 0 0 0.25px #8B7FB8, 0 0 3px rgba(139, 127, 184, 0.25)' : '0 0 0 0.25px #5FB894, 0 0 3px rgba(95, 184, 148, 0.25)', // Subtle glow
               transform: 'translate(-50%, -50%)',
-              zIndex: 3
+              zIndex: 3,
+              filter: 'contrast(1.1) saturate(0.8) blur(0px)', // Duller appearance
+              border: `0.25px solid ${i % 3 === 0 ? '#4A90E2' : i % 3 === 1 ? '#8B7FB8' : '#5FB894'}`,
+              imageRendering: 'crisp-edges',
+              opacity: 0.65 // Reduced opacity for less boldness
             }}
             initial={{ scale: 0, opacity: 0 }}
             animate={{ 
-              scale: [0, 1, 1.3, 1], 
-              opacity: [0, 1, 1, 0.7]
+              scale: [0, 1, 1.1, 1], // Subtle scale animation
+              opacity: [0, 0.65, 0.65, 0.6] // Lower opacity values
             }}
             transition={{
               scale: {
-                duration: 0.5, 
-                delay: 0.1 + i * 0.07,
-                ease: "easeOut"
+                duration: 0.6,
+                delay: 0.4 + i * 0.12,
+                ease: PERFORMANCE_EASING
               },
               opacity: {
-                duration: 0.5,
-                delay: 0.1 + i * 0.07,
-                ease: "easeOut"
+                duration: 0.6,
+                delay: 0.4 + i * 0.12,
+                ease: PERFORMANCE_EASING
               }
             }}
           />
@@ -1295,16 +1396,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
       data-barba-prevent="all"
       style={{
         position: 'fixed',
-        top: 0,
+        top: isMobile ? '80px' : '100px', // Adjusted to be just below navbar
         left: 0,
         right: 0,
         bottom: 0,
-        height: '100vh',
+        height: isMobile ? 'calc(100vh - 80px)' : 'calc(100vh - 100px)', // Proper height calculation
         width: '100vw',
         margin: 0,
         padding: 0,
         overscrollBehavior: 'none',
-        touchAction: 'none',
+        touchAction: 'auto',
         userSelect: 'none',
         WebkitOverflowScrolling: 'touch',
         WebkitUserSelect: 'none',
@@ -1314,9 +1415,17 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         backdropFilter: 'blur(12px)',
         WebkitBackdropFilter: 'blur(12px)',
         backgroundColor: 'rgba(0, 0, 0, 0.3)',
-        zIndex: 9999
+        zIndex: 998, // Just below navbar
+        transform: 'translate3d(0, 0, 0)',
+        willChange: 'auto'
       }}
-      onTouchMove={(e) => e.preventDefault()}
+      onTouchMove={(e) => {
+        // Only prevent default for non-interactive elements
+        const target = e.target as HTMLElement;
+        if (!target.closest('button, a, [role="button"], input, textarea, select')) {
+          e.preventDefault();
+        }
+      }}
       onWheel={(e) => e.preventDefault()}
       onScroll={(e) => e.preventDefault()}
       onKeyDown={(e) => {
@@ -1325,58 +1434,8 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         }
       }}
     >
-      {/* Neural Network effect for first three slides */}
-      {(currentSlide === -1 || currentSlide <= 2) && (
-        <>
-          {/* Left side neural network */}
-          <div className="absolute top-0 bottom-0 left-0 w-[35%] z-[2] pointer-events-none opacity-75" style={{ overflow: 'hidden' }}>
-            <NeuralNetwork
-              color={
-                currentSlide === -1 ? '#a855f7' : 
-                currentSlide === 0 ? '#3b82f6' :
-                currentSlide === 1 ? '#10b981' :
-                currentSlide === 2 ? '#8b5cf6' : 
-                '#a855f7'
-              }
-              lineColor={
-                currentSlide === -1 ? '#8b5cf6' : 
-                currentSlide === 0 ? '#60a5fa' :
-                currentSlide === 1 ? '#34d399' :
-                currentSlide === 2 ? '#93c5fd' : 
-                '#8b5cf6'
-              }
-              pointCount={12} 
-              connectionRadius={150}
-              speed={0.18}
-              containerBounds={true}
-            />
-          </div>
-
-          {/* Right side neural network */}
-          <div className="absolute top-0 bottom-0 right-0 w-[35%] z-[2] pointer-events-none opacity-75" style={{ overflow: 'hidden' }}>
-            <NeuralNetwork
-              color={
-                currentSlide === -1 ? '#a855f7' : 
-                currentSlide === 0 ? '#3b82f6' :
-                currentSlide === 1 ? '#10b981' :
-                currentSlide === 2 ? '#a855f7' : 
-                '#a855f7'
-              }
-              lineColor={
-                currentSlide === -1 ? '#8b5cf6' : 
-                currentSlide === 0 ? '#60a5fa' :
-                currentSlide === 1 ? '#34d399' :
-                currentSlide === 2 ? '#60a5fa' : 
-                '#8b5cf6'
-              }
-              pointCount={12}
-              connectionRadius={150}
-              speed={0.18}
-              containerBounds={true}
-            />
-          </div>
-        </>
-      )}
+      {/* Neural Network effect for first three slides - REMOVED */}
+      {/* Keeping only static background elements for better performance */}
 
 
 
@@ -1386,7 +1445,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
              alignItems: 'center',
              justifyContent: 'center',
              paddingBottom: '2vh', // Add slight bottom padding for better vertical alignment
-             paddingTop: isMobile ? '80px' : '0px' // Add top padding for mobile to avoid navbar overlap
+             paddingTop: isMobile ? '60px' : '0px' // Add top padding for mobile to avoid navbar overlap
            }}>
         {/* Dynamic background elements - optimized for visibility and performance */}
         <div className="absolute inset-0 overflow-hidden flex items-center justify-center">
@@ -1442,7 +1501,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           {!isMobile && (
             <div className="absolute inset-0 z-[1]">
               {/* Fewer stars with staggered animation for better performance */}
-              {[...Array(24)].map((_, i) => (
+              {[...Array(18)].map((_, i) => ( // Reduced number for better performance
                 <motion.div
                   key={`star-${i}`}
                   className="absolute w-1 h-1 bg-white rounded-full transform-gpu"
@@ -1452,8 +1511,8 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     scale: [0, 1, 0.8]
                   }}
                   transition={{
-                    duration: Math.random() * 2 + 1,
-                    delay: i * 0.04, // Slightly faster appearance
+                    duration: Math.random() * 1.5 + 0.8, // Faster animation
+                    delay: i * 0.03, // Slightly faster appearance
                     repeat: Infinity,
                     repeatType: "reverse",
                   }}
@@ -1470,7 +1529,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           {/* Add new floating particles effect with performance optimizations - Hidden on mobile */}
           {!isMobile && (
             <motion.div className="absolute inset-0 overflow-hidden pointer-events-none z-[1]"> {/* Added z-index */}
-              {[...Array(12)].map((_, i) => ( // Reduced number of particles
+              {[...Array(8)].map((_, i) => ( // Further reduced number of particles
               <motion.div
                 key={`particle-${i}`}
                 className="absolute w-1 h-1 bg-white/10 rounded-full"
@@ -1480,17 +1539,17 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   scale: 0
                 }}
                 animate={{
-                  y: [null, -15, 15],
-                  x: [null, -15, 15],
+                  y: [null, -10, 10], // Smaller movement range
+                  x: [null, -10, 10], // Smaller movement range
                   scale: [0, 1, 0],
                   opacity: [0, 0.5, 0]
                 }}
                 transition={{
-                  duration: 2.5 + Math.random() * 1.5, // Reduced duration
+                  duration: 2.0 + Math.random() * 1.0, // Reduced duration
                   repeat: Infinity,
                   repeatType: "loop",
                   ease: "easeInOut",
-                  delay: i * 0.15,
+                  delay: i * 0.1, // Reduced delay
                 }}
                 style={{
                   willChange: "transform, opacity" // Performance optimization
@@ -1517,13 +1576,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                  maxWidth: '95vw'
                }}>
             {currentSlide === -1 ? (
-              // Welcome Screen with enhanced animations
+              // Welcome Screen with enhanced closing animations
               <motion.div
                 key="welcome"
                 custom={direction}
                 variants={slideVariants}
                 initial="enter"
-                animate="center"
+                animate={isClosing ? "exit" : "center"}
                 exit="exit"
                 className="relative max-w-3xl w-full mx-auto will-change-transform perspective-1000 z-10 transform-gpu"
                 style={{ 
@@ -1535,36 +1594,120 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   margin: '0 auto',
                   backfaceVisibility: 'hidden'
                 }}
+                transition={{
+                  duration: isClosing ? 0.8 : 0.3, // Longer, smoother closing
+                  ease: isClosing ? [0.25, 0.46, 0.45, 0.94] : SMOOTH_EASING,
+                  opacity: { duration: isClosing ? 0.8 : 0.3 },
+                  scale: { duration: isClosing ? 0.8 : 0.3 },
+                  rotateX: { duration: isClosing ? 0.8 : 0.3 }
+                }}
               >
-                {/* Close button with immediate animation - Enhanced for mobile */}
-                <motion.button
-                  initial={{ opacity: 0.8, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.2 }}
-                  whileHover={{ scale: 1.1 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleClose}
-                  className={`absolute top-3 right-3 z-[9999] ${isMobile ? 'w-12 h-12' : 'w-8 h-8'} flex items-center justify-center
-                           bg-white/15 hover:bg-white/25 rounded-full backdrop-blur-sm
-                           border border-white/20 hover:border-white/50 transition-all duration-300 transform-gpu
-                           touch-manipulation cursor-pointer`}
-                  style={{
-                    WebkitTapHighlightColor: 'transparent',
-                    touchAction: 'manipulation',
-                    pointerEvents: 'auto',
-                    position: 'absolute',
-                    zIndex: 9999
+                {/* Close button - Moved outside welcome screen with neon blue border and connecting line */}
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8, x: -50, y: -50 }}
+                  animate={{ 
+                    opacity: animationComplete.button ? 1 : 0,
+                    scale: animationComplete.button ? 1 : 0.8,
+                    x: animationComplete.button ? 0 : -50,
+                    y: animationComplete.button ? 0 : -50
                   }}
+                  transition={{
+                    duration: 1.0,
+                    ease: [0.16, 1, 0.3, 1],
+                    type: "spring",
+                    stiffness: 120,
+                    damping: 25
+                  }}
+                  className="absolute -top-16 -left-16 z-30"
                 >
-                  <span className={`text-white/90 ${isMobile ? 'text-xl' : 'text-base'} font-bold leading-none`}>×</span>
-                </motion.button>
+                  {/* Connecting line from X bottom-right corner to welcome screen top-left corner */}
+                  <motion.div
+                    initial={{ scale: 0, opacity: 0 }}
+                    animate={{ 
+                      scale: animationComplete.button ? 1 : 0,
+                      opacity: animationComplete.button ? 1 : 0
+                    }}
+                    transition={{ duration: 0.8, delay: 0.3 }}
+                    className="absolute pointer-events-none"
+                  >
+                    <svg width="100" height="100" className="absolute" style={{ top: '-12px', left: '-12px' }}>
+                      <motion.line
+                        x1="60" y1="60" x2="100" y2="100"
+                        stroke="rgba(59, 130, 246, 0.8)"
+                        strokeWidth="2"
+                        strokeDasharray="6,6"
+                        initial={{ pathLength: 0, opacity: 0 }}
+                        animate={{ 
+                          pathLength: animationComplete.button ? 1 : 0,
+                          opacity: animationComplete.button ? 0.9 : 0
+                        }}
+                        transition={{ duration: 1.2, delay: 0.5 }}
+                        style={{
+                          filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))'
+                        }}
+                      />
+                    </svg>
+                  </motion.div>
+                  
+                  {/* Enhanced close button with smooth animations */}
+                  <motion.button
+                    whileHover={{ 
+                      scale: 1.08, 
+                      rotate: 90,
+                      transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
+                    }}
+                    whileTap={{ scale: 0.92 }}
+                    onMouseDown={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleClose();
+                    }}
+                    onTouchStart={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      handleClose();
+                    }}
+                    onClick={handleClose}
+                    className="w-12 h-12 flex items-center justify-center bg-white rounded-full transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl group"
+                    style={{
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation',
+                      userSelect: 'none',
+                      transform: 'translate3d(0, 0, 0)' // Hardware acceleration
+                    }}
+                  >
+                    <motion.span 
+                      className="text-black text-xl font-bold leading-none pointer-events-none transition-all duration-300"
+                      whileHover={{ scale: 1.1 }}
+                      transition={{ duration: 0.2 }}
+                      style={{
+                        fontWeight: '700',
+                        willChange: 'transform'
+                      }}
+                    >
+                      ×
+                    </motion.span>
+                    
+                    {/* Smooth ripple effect on click */}
+                    <motion.div
+                      className="absolute inset-0 rounded-full bg-gray-200/30"
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileTap={{ 
+                        scale: [0, 1.5, 0],
+                        opacity: [0, 0.3, 0],
+                        transition: { duration: 0.4, ease: "easeOut" }
+                      }}
+                    />
+                  </motion.button>
+                </motion.div>
 
                 <motion.div
-                  initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                  initial={{ opacity: 0, y: 30, scale: 0.9 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   transition={{
-                    duration: 0.4,
-                    ease: [0.22, 1, 0.36, 1],
+                    duration: 0.6,
+                    ease: SMOOTH_EASING,
+                    delay: ANIMATION_SEQUENCE.BACKGROUND_ELEMENTS
                   }}
                   className="bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl transform-gpu"
                   style={{
@@ -1588,56 +1731,59 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     {!isMobile && (
                       <>
                         <motion.div 
-                          className="absolute h-[3px] w-full bg-gradient-to-r from-transparent via-blue-500/20 to-transparent transform-gpu will-change-transform hardware-accelerated" 
+                          className="absolute h-[1px] w-full bg-gradient-to-r from-transparent via-blue-400/12 to-transparent transform-gpu will-change-transform hardware-accelerated" 
                           style={{ 
                             top: '40%',
-                            filter: 'drop-shadow(0 0 3px rgba(59, 130, 246, 0.25))',
-                            boxShadow: '0 0 8px rgba(59, 130, 246, 0.25)',
+                            filter: 'drop-shadow(0 0 1px rgba(59, 130, 246, 0.15))',
+                            boxShadow: '0 0 4px rgba(59, 130, 246, 0.15)',
                             zIndex: 2,
-                            transform: 'translate3d(0, 0, 0)'
+                            transform: 'translate3d(0, 0, 0)',
+                            opacity: 0.4
                           }}
                           initial={{ left: '-100%' }}
                           animate={{ 
                             left: ['-100%', '100%']
                           }}
                           transition={{
-                            duration: 25,
+                            duration: 20, // Faster movement for more dynamic effect
                             repeat: Infinity,
                             ease: "linear"
                           }}
                         />
                         <motion.div 
-                          className="absolute h-[3px] w-full bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" 
+                          className="absolute h-[1px] bg-gradient-to-r from-transparent via-purple-400/12 to-transparent" 
                           style={{ 
                             top: '60%',
-                            filter: 'drop-shadow(0 0 3px rgba(168, 85, 247, 0.25))',
-                            boxShadow: '0 0 8px rgba(168, 85, 247, 0.25)',
-                            zIndex: 2
+                            filter: 'drop-shadow(0 0 1px rgba(168, 85, 247, 0.15))',
+                            boxShadow: '0 0 4px rgba(168, 85, 247, 0.15)',
+                            zIndex: 2,
+                            opacity: 0.4
                           }}
                           initial={{ left: '100%' }}
                           animate={{ 
                             left: ['100%', '-100%']
                           }}
                           transition={{
-                            duration: 30,
+                            duration: 22, // Slightly faster for variation
                             repeat: Infinity,
                             ease: "linear"
                           }}
                         />
                         <motion.div 
-                          className="absolute h-[3px] w-full bg-gradient-to-r from-transparent via-cyan-500/20 to-transparent" 
+                          className="absolute h-[1px] bg-gradient-to-r from-transparent via-cyan-400/12 to-transparent" 
                           style={{ 
                             top: '75%',
-                            filter: 'drop-shadow(0 0 3px rgba(34, 211, 238, 0.25))',
-                            boxShadow: '0 0 8px rgba(34, 211, 238, 0.25)',
-                            zIndex: 2
+                            filter: 'drop-shadow(0 0 1px rgba(34, 211, 238, 0.15))',
+                            boxShadow: '0 0 4px rgba(34, 211, 238, 0.15)',
+                            zIndex: 2,
+                            opacity: 0.4
                           }}
                           initial={{ left: '-100%' }}
                           animate={{ 
                             left: ['-100%', '100%']
                           }}
                           transition={{
-                            duration: 32,
+                            duration: 24, // Varied speed for organic feel
                             repeat: Infinity,
                             ease: "linear"
                           }}
@@ -1669,20 +1815,19 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         />
                         <motion.h1
                           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold py-3 flex flex-col items-center gap-1 sm:gap-2 z-50"
-                          initial={{ opacity: 0, y: 30, scale: 0.9, rotateX: 15 }}
+                          initial={{ opacity: 0, y: 20, scale: 0.95, rotateX: 8 }}
                           animate={{
                             opacity: animationComplete.title ? 1 : 0,
-                            y: animationComplete.title ? 0 : 30,
-                            scale: animationComplete.title ? 1 : 0.9,
-                            rotateX: animationComplete.title ? 0 : 15
+                            y: animationComplete.title ? 0 : 20,
+                            scale: animationComplete.title ? 1 : 0.95,
+                            rotateX: animationComplete.title ? 0 : 8
                           }}
                           transition={{
-                            duration: 0.8,
-                            ease: SMOOTH_EASING,
-                            delay: ANIMATION_SEQUENCE.TITLE_TEXT,
                             type: "spring",
-                            stiffness: 100,
-                            damping: 20
+                            stiffness: 150, // Optimized responsiveness for 60fps
+                            damping: 25,    // Smooth settling without overshooting
+                            duration: 0.6,  // Faster, more immediate entrance
+                            delay: ANIMATION_SEQUENCE.TITLE_TEXT
                           }}
                           style={{
                             visibility: 'visible',
@@ -1703,11 +1848,15 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             <>
                               <TypeAnimation
                                 sequence={[
+                                  '',
+                                  200, // Faster start
+                                  'Welcome',
+                                  150, // Word by word delay
                                   'Welcome to',
-                                  100
+                                  400  // Pause between phrases
                                 ]}
                                 wrapper="span"
-                                speed={60}
+                                speed={75} // Faster typing speed for smoother animation
                                 style={{
                                   color: '#b4a7f5',
                                   opacity: 1,
@@ -1720,19 +1869,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                                   WebkitFontSmoothing: 'antialiased',
                                   MozOsxFontSmoothing: 'grayscale',
-                                  textRendering: 'optimizeLegibility'
+                                  textRendering: 'optimizeLegibility',
+                                  willChange: 'contents' // Performance hint for text changes
                                 }}
                                 cursor={false}
                               />
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  200,
+                                  800, // Wait for first line to complete
                                   'NEX-DEVS',
-                                  100
+                                  400   // Faster pause before next animation
                                 ]}
                                 wrapper="span"
-                                speed={70}
+                                speed={70} // Even faster for company name
                                 style={{
                                   color: '#b4a7f5',
                                   opacity: 1,
@@ -1746,7 +1896,8 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                   textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)',
                                   WebkitFontSmoothing: 'antialiased',
                                   MozOsxFontSmoothing: 'grayscale',
-                                  textRendering: 'optimizeLegibility'
+                                  textRendering: 'optimizeLegibility',
+                                  willChange: 'contents' // Performance hint for text changes
                                 }}
                                 cursor={false}
                               />
@@ -1785,19 +1936,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </motion.div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
                         animate={{
                           opacity: animationComplete.subtitle ? 1 : 0,
-                          y: animationComplete.subtitle ? 0 : 20,
-                          scale: animationComplete.subtitle ? 1 : 0.95
+                          y: animationComplete.subtitle ? 0 : 15,
+                          scale: animationComplete.subtitle ? 1 : 0.98
                         }}
                         transition={{
-                          duration: 0.6,
-                          delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT,
-                          ease: SMOOTH_EASING,
                           type: "spring",
-                          stiffness: 120,
-                          damping: 25
+                          stiffness: 140, // Higher stiffness for faster response
+                          damping: 28,    // Optimized damping for smooth motion
+                          duration: 0.5,  // Faster entrance for immediate impact
+                          delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT
                         }}
                         className={`${vt323.className} text-blue-300/90 text-lg uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center`}
                         style={{
@@ -1809,12 +1959,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         {animationComplete.subtitle && (
                           <TypeAnimation
                             sequence={[
+                              '',
+                              200, // Faster start
                               'FullStack/Frameworks',
-                              100
+                              400  // Faster transition
                             ]}
                             wrapper="span"
-                            speed={50}
-                            style={{ display: 'inline-block', fontFamily: vt323.style.fontFamily }}
+                            speed={70} // Faster typing for better flow
+                            style={{ 
+                              display: 'inline-block', 
+                              fontFamily: vt323.style.fontFamily,
+                              willChange: 'contents' // Performance hint
+                            }}
                             cursor={false}
                           />
                         )}
@@ -1822,19 +1978,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <div className="relative">
                         <motion.div
-                          initial={{ opacity: 0, y: 25, scale: 0.9 }}
+                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
                           animate={{
                             opacity: animationComplete.subtitle ? 1 : 0,
-                            y: animationComplete.subtitle ? 0 : 25,
-                            scale: animationComplete.subtitle ? 1 : 0.9
+                            y: animationComplete.subtitle ? 0 : 18,
+                            scale: animationComplete.subtitle ? 1 : 0.96
                           }}
                           transition={{
-                            duration: 0.7,
-                            delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.2,
-                            ease: SMOOTH_EASING,
                             type: "spring",
-                            stiffness: 100,
-                            damping: 22
+                            stiffness: 130, // Optimized responsiveness for 60fps
+                            damping: 26,    // Smooth settling
+                            duration: 0.5,  // Faster entrance for immediate feedback
+                            delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.1 // Reduced delay for tighter sequencing
                           }}
                           className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-3 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
                           style={{ willChange: 'transform, opacity' }}
@@ -1843,24 +1998,46 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             <>
                               <TypeAnimation
                                 sequence={[
+                                  '',
+                                  200, // Faster start
+                                  'AI',
+                                  100,
+                                  'AI is',
+                                  100,
+                                  'AI is the',
+                                  100,
                                   'AI is the Future',
-                                  100
+                                  500  // Shorter pause
                                 ]}
                                 wrapper="span"
-                                speed={60}
+                                speed={70} // Faster word-by-word animation
                                 className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300"
+                                style={{ willChange: 'contents' }} // Performance hint
                                 cursor={false}
                               />
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  150,
+                                  800, // Wait for first line
+                                  'and',
+                                  100,
+                                  'and We\'re',
+                                  100,
+                                  'and We\'re Here',
+                                  100,
+                                  'and We\'re Here to',
+                                  100,
+                                  'and We\'re Here to Build',
+                                  100,
+                                  'and We\'re Here to Build It',
+                                  100,
                                   'and We\'re Here to Build It Together',
-                                  100
+                                  400   // Faster completion
                                 ]}
                                 wrapper="span"
-                                speed={60}
+                                speed={70} // Consistent faster speed
                                 className="text-sm xs:text-base sm:text-xl md:text-2xl text-gray-300 font-normal"
+                                style={{ willChange: 'contents' }} // Performance hint
                                 cursor={false}
                               />
                             </>
@@ -1869,19 +2046,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
                         animate={{
                           opacity: animationComplete.subtitle ? 1 : 0,
-                          y: animationComplete.subtitle ? 0 : 20,
-                          scale: animationComplete.subtitle ? 1 : 0.95
+                          y: animationComplete.subtitle ? 0 : 15,
+                          scale: animationComplete.subtitle ? 1 : 0.98
                         }}
                         transition={{
-                          duration: 0.6,
-                          delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT,
-                          ease: SMOOTH_EASING,
                           type: "spring",
-                          stiffness: 110,
-                          damping: 24
+                          stiffness: 160, // Higher stiffness for faster response
+                          damping: 24,    // Optimized damping for clean motion
+                          duration: 0.35, // Faster duration for immediate impact
+                          delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT
                         }}
                         style={{ willChange: 'transform, opacity' }}
                       >
@@ -1901,17 +2077,34 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             <motion.span
                               initial={{ opacity: 0, scale: 0.9 }}
                               animate={{ opacity: 1, scale: 1 }}
-                              transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT + 0.3 }}
+                              transition={{ duration: 0.5, delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT + 0.4 }} // Wait for description to complete
                               className="inline-block bg-gradient-to-r from-purple-500/20 to-blue-500/20 rounded-lg px-3 py-1.5 border border-purple-500/30"
                             >
                               <TypeAnimation
                                 sequence={[
+                                  '',
+                                  300, // Faster start
+                                  'Discover',
+                                  100,
+                                  'Discover How',
+                                  100, 
+                                  'Discover How AI',
+                                  100,
+                                  'Discover How AI Elevates',
+                                  100,
+                                  'Discover How AI Elevates Your',
+                                  100,
+                                  'Discover How AI Elevates Your Business',
+                                  100,
                                   'Discover How AI Elevates Your Business Success',
-                                  100
+                                  500  // Faster completion
                                 ]}
                                 wrapper="span"
-                                speed={70}
-                                style={{ fontFamily: vt323.style.fontFamily }}
+                                speed={70} // Consistent faster speed
+                                style={{ 
+                                  fontFamily: vt323.style.fontFamily,
+                                  willChange: 'contents' // Performance hint
+                                }}
                                 cursor={false}
                               />
                             </motion.span>
@@ -1926,34 +2119,39 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           e.currentTarget.style.transform = 'scale(0.95)';
                         }}
                         onTouchEnd={(e) => {
+                          // Ensure tap triggers the action on mobile
                           e.preventDefault();
+                          e.stopPropagation();
+                          const target = e.currentTarget; // Capture currentTarget before setTimeout
                           setTimeout(() => {
-                            e.currentTarget.style.transform = 'scale(1)';
-                          }, 100);
+                            if (target) { // Add null check
+                              target.style.transform = 'scale(1)';
+                            }
+                            // Don't call handleNext here since onClick already handles it
+                          }, 80);
                         }}
-                        initial={{ opacity: 0, y: 30, scale: 0.8, rotateX: 20 }}
+                        initial={{ opacity: 0, y: 25, scale: 0.85, rotateX: 15 }}
                         animate={{
-                          opacity: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0,
-                          y: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 30,
-                          scale: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 1 : 0.8,
-                          rotateX: (animationComplete.subtitle && animationComplete.neural && animationComplete.techStack) ? 0 : 20
+                          opacity: animationComplete.button ? 1 : 0,
+                          y: animationComplete.button ? 0 : 25,
+                          scale: animationComplete.button ? 1 : 0.85,
+                          rotateX: animationComplete.button ? 0 : 15
                         }}
                         transition={{
-                          duration: 0.8,
-                          ease: SPRING_EASING,
-                          delay: ANIMATION_SEQUENCE.BUTTON,
                           type: "spring",
-                          stiffness: 120,
-                          damping: 20
+                          stiffness: 120, // Higher stiffness for faster response
+                          damping: 20,    // Lower damping for more responsive animation
+                          duration: 0.8,  // Faster animation
+                          delay: 0.1      // Minimal delay for immediate appearance
                         }}
                         whileHover={{
                           scale: 1.05,
                           y: -2,
-                          transition: { duration: 0.2, ease: [0.22, 1, 0.36, 1] }
+                          transition: { duration: 0.15, ease: "easeOut" }
                         }}
                         whileTap={{
                           scale: 0.98,
-                          transition: { duration: 0.1 }
+                          transition: { duration: 0.08 }
                         }}
                         className={`group ${isMobile ? 'px-6 py-4 text-base min-h-[56px] min-w-[56px]' : 'px-5 sm:px-8 py-3 sm:py-4'} bg-gradient-to-r from-blue-500/80 via-purple-500/80 to-emerald-500/80 rounded-xl text-white font-semibold
                                  hover:from-blue-600/80 hover:via-purple-600/80 hover:to-emerald-600/80 transition-all duration-300
@@ -1972,7 +2170,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         }}
                       >
                         <span className="relative z-10 flex items-center gap-2">
-                          {animationComplete.subtitle ? 'See What We Offer' : ''}
+                          {animationComplete.button ? 'See What We Offer' : 'Loading...'}
                           <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
                           </svg>
@@ -2436,8 +2634,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           }}
                           onTouchEnd={(e) => {
                             e.preventDefault();
+                            const target = e.currentTarget; // Capture currentTarget before setTimeout
                             setTimeout(() => {
-                              e.currentTarget.style.transform = 'scale(1)';
+                              if (target) { // Add null check
+                                target.style.transform = 'scale(1)';
+                              }
                             }, 100);
                           }}
                           initial={{ opacity: 0, x: -10 }}
@@ -2515,8 +2716,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         }}
                         onTouchEnd={(e) => {
                           e.preventDefault();
+                          const target = e.currentTarget; // Capture currentTarget before setTimeout
                           setTimeout(() => {
-                            e.currentTarget.style.transform = 'scale(1)';
+                            if (target) { // Add null check
+                              target.style.transform = 'scale(1)';
+                            }
                           }, 100);
                         }}
                         className={`group ${isMobile ? 'px-3 py-2 text-sm min-h-[44px] min-w-[44px]' : 'px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm'} backdrop-blur-sm rounded-lg text-white font-semibold

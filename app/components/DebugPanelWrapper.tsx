@@ -120,7 +120,7 @@ export default function DebugPanelWrapper({ projects }: { projects: Project[] })
     <>
       <DebugPanel 
         projects={projects} 
-        autoExpand={true}
+        autoExpand={false}
       />
     </>
   );

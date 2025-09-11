@@ -396,10 +396,10 @@ export default function HomeProjectGallery() {
           </div>
           
           {/* Navigation buttons */}
-          <div className="absolute top-1/2 -translate-y-1/2 left-2 z-10">
+          <div className="absolute top-1/2 -translate-y-1/2 left-2 z-10 pointer-events-auto">
             <button
               onClick={goToPrevious}
-              className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors border border-white/10 hover:border-purple-500/30"
+              className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors border border-white/10 hover:border-purple-500/30 touch-manipulation"
               aria-label="Previous project"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -407,11 +407,11 @@ export default function HomeProjectGallery() {
               </svg>
             </button>
           </div>
-          
-          <div className="absolute top-1/2 -translate-y-1/2 right-2 z-10">
+
+          <div className="absolute top-1/2 -translate-y-1/2 right-2 z-10 pointer-events-auto">
             <button
               onClick={goToNext}
-              className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors border border-white/10 hover:border-purple-500/30"
+              className="p-2 rounded-full bg-black/50 text-white hover:bg-black/70 transition-colors border border-white/10 hover:border-purple-500/30 touch-manipulation"
               aria-label="Next project"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -421,19 +421,21 @@ export default function HomeProjectGallery() {
           </div>
         </div>
         
-        {/* Pagination dots */}
+        {/* Pagination with numbered buttons */}
         <div className="flex justify-center mt-4 gap-2">
           {sampleProjects.map((_, index) => (
             <button
               key={index}
               onClick={() => goToSlide(index)}
-              className={`w-2 h-2 rounded-full transition-all ${
-                index === currentIndex 
-                  ? 'w-6 bg-purple-500' 
-                  : 'bg-white/30 hover:bg-white/50'
+              className={`h-8 min-w-8 px-2 rounded-lg border-2 transition-all flex items-center justify-center text-xs font-semibold tracking-wide ${
+                index === currentIndex
+                  ? 'bg-purple-600 text-white border-purple-500'
+                  : 'bg-black/50 text-purple-200 border-purple-500/40 hover:bg-black/70'
               }`}
               aria-label={`Go to slide ${index + 1}`}
-            />
+            >
+              {index + 1}
+            </button>
           ))}
         </div>
         

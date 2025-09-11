@@ -30,6 +30,7 @@ export async function GET(request: NextRequest) {
     const category = url.searchParams.get('category');
     const featured = url.searchParams.get('featured');
     const newlyAdded = url.searchParams.get('newlyAdded');
+    const showcase_location = url.searchParams.get('showcase_location');
     
     // Check if we need to return database status (admin only)
     if (action === 'status') {
@@ -77,7 +78,11 @@ export async function GET(request: NextRequest) {
     let projects;
     
     // Get the appropriate projects based on query parameters
-    if (newlyAdded === 'true') {
+    if (showcase_location) {
+      console.log(`Fetching projects with showcase_location: ${showcase_location}`);
+      projects = await db.getProjectsByShowcaseLocation(showcase_location);
+      console.log(`Retrieved ${projects.length} projects with showcase_location: ${showcase_location}`);
+    } else if (newlyAdded === 'true') {
       projects = await db.getNewlyAddedProjects();
       console.log(`Retrieved ${projects.length} newly added projects`);
     } else if (featured === 'true') {
@@ -144,8 +149,11 @@ export async function POST(request: NextRequest) {
     
     // Check all required fields - support both camelCase and snake_case field names
     const requiredFields = ['title', 'description', 'category'];
-    // Check for either 'link', 'project_link', or 'projectLink'
-    if (!project.link && !project.project_link && !project.projectLink) {
+    // Check for either 'link', 'project_link', or 'projectLink' only if project is not in development
+    const hasLink = project.link || project.project_link || project.projectLink;
+    const isInDevelopment = project.status === 'In Development' || project.link === '' || project.project_link === '' || project.projectLink === '';
+
+    if (!hasLink && !isInDevelopment) {
       requiredFields.push('link');
     }
     

@@ -86,10 +86,69 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
     }
   };
 
+  // Ensure component maintains interactivity
+  useEffect(() => {
+    const ensureInteractivity = () => {
+      const mobileToggles = document.querySelectorAll('[class*="MobileHero"], [class*="mobile-hero"], .mobile-hero-toggle');
+      mobileToggles.forEach(toggle => {
+        if (toggle instanceof HTMLElement) {
+          toggle.style.pointerEvents = 'auto';
+          toggle.style.touchAction = 'manipulation';
+          toggle.style.zIndex = '1000';
+          toggle.style.position = 'relative';
+          
+          const buttons = toggle.querySelectorAll('button');
+          buttons.forEach(btn => {
+            if (btn instanceof HTMLElement) {
+              btn.style.pointerEvents = 'auto';
+              btn.style.touchAction = 'manipulation';
+              btn.style.minHeight = '44px';
+              btn.style.minWidth = '44px';
+            }
+          });
+        }
+      });
+    };
+
+    ensureInteractivity();
+    
+    // Re-run on any DOM mutations
+    const observer = new MutationObserver(ensureInteractivity);
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    return () => observer.disconnect();
+  }, []);
+
   // Only show on mobile, hide during welcome screen, and only show on home page
   if (!isMobile || showWelcome || !isHomePage) return null;
 
   return (
+    <>
+      {/* Defensive CSS to ensure this component always works */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          .mobile-hero-toggle {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            z-index: 1000 !important;
+            position: relative !important;
+          }
+          
+          .mobile-hero-toggle button {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            min-height: 44px !important;
+            min-width: 44px !important;
+            z-index: 1001 !important;
+          }
+          
+          /* Ensure this component is never blocked by chatbot */
+          #nexious-chat-container ~ .mobile-hero-toggle,
+          .mobile-hero-toggle {
+            pointer-events: auto !important;
+          }
+        `
+      }} />
     <motion.div
       initial={{ opacity: 0, y: -10 }}
       animate={{
@@ -98,7 +157,7 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
         scale: isScrolled ? 0.9 : 1
       }}
       transition={{ duration: 0.3 }}
-      className={`fixed left-0 right-0 w-full flex justify-center px-4 ${className}`}
+      className={`mobile-hero-toggle fixed left-0 right-0 w-full flex justify-center px-4 ${className}`}
       style={{
         transform: 'translate3d(0, 0, 0)',
         willChange: 'transform',
@@ -112,13 +171,28 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
         {/* Simple touch button for mobile */}
         <motion.button
           onClick={handleToggle}
+          onTouchStart={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('MobileHeroToggle: Touch start detected');
+          }}
+          onTouchEnd={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('MobileHeroToggle: Touch end detected, triggering toggle');
+            // Call handleToggle on touch end for better mobile experience
+            handleToggle();
+          }}
           whileTap={{ scale: 0.95 }}
           className="relative backdrop-blur-xl rounded-full overflow-hidden px-6 py-3 flex items-center gap-3 mt-2"
           style={{
             background: 'rgba(0, 0, 0, 0.85)',
             boxShadow: '0 2px 8px rgba(0, 0, 0, 0.2), inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
             touchAction: 'manipulation',
-            minHeight: '44px' // Ensure proper touch target size
+            minHeight: '44px', // Ensure proper touch target size
+            WebkitTapHighlightColor: 'transparent',
+            pointerEvents: 'auto', // Explicit pointer events
+            zIndex: 1001
           }}
         >
           {/* Current mode indicator */}
@@ -164,5 +238,6 @@ export default function MobileHeroToggle({ className = '' }: MobileHeroTogglePro
         />
       </div>
     </motion.div>
+    </>
   );
 }

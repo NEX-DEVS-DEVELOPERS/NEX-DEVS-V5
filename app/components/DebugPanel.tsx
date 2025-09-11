@@ -184,10 +184,11 @@ export default function DebugPanel({
   const [isRealTimeConnected, setIsRealTimeConnected] = useState(false)
   const [eventSource, setEventSource] = useState<EventSource | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [updateInterval, setUpdateInterval] = useState<number>(3000) // 3 seconds for real-time feel
+  const [updateInterval, setUpdateInterval] = useState<number>(30000) // 30 seconds to reduce load
   const [lastUpdated, setLastUpdated] = useState<Date>(new Date())
   const [autoReconnect, setAutoReconnect] = useState<boolean>(true) // Auto-reconnect enabled by default
   const [useEnhancedAPI, setUseEnhancedAPI] = useState<boolean>(true) // Use enhanced API by default
+  const [isTabActive, setIsTabActive] = useState<boolean>(true) // Track if browser tab is active
 
   const fetchSystemInfo = useCallback(async () => {
     try {
@@ -197,7 +198,10 @@ export default function DebugPanel({
       // Get admin password from session storage
       const adminPassword = sessionStorage.getItem('adminPassword') || 'nex-devs.org889123';
 
-      console.log('Fetching enhanced system info...');
+      // Reduced logging frequency
+      if (Math.random() < 0.1) {
+        console.log('Fetching enhanced system info...');
+      }
 
       // Choose API endpoint based on setting
       const apiEndpoint = useEnhancedAPI ? '/api/debug-enhanced' : '/api/debug';
@@ -222,7 +226,10 @@ export default function DebugPanel({
             const data = await response.json();
             const responseTime = performance.now() - startTime;
 
-            console.log('Enhanced debug data received:', data);
+            // Reduced logging frequency
+            if (Math.random() < 0.1) {
+              console.log('Enhanced debug data received:', data);
+            }
             setSystemInfo(data);
             setLastUpdated(new Date());
 
@@ -351,14 +358,29 @@ export default function DebugPanel({
     }
   }, [isExpanded, useEnhancedAPI]);
 
-  // Initial fetch and setup interval for system info
+  // Initial fetch and setup interval for system info with smart polling
   useEffect(() => {
-    if (isExpanded) {
+    if (isExpanded && isTabActive) {
       fetchSystemInfo();
-      const interval = setInterval(fetchSystemInfo, updateInterval);
+      const interval = setInterval(() => {
+        // Only fetch if tab is active and panel is expanded
+        if (isTabActive && isExpanded) {
+          fetchSystemInfo();
+        }
+      }, updateInterval);
       return () => clearInterval(interval);
     }
-  }, [isExpanded, updateInterval, fetchSystemInfo]);
+  }, [isExpanded, updateInterval, fetchSystemInfo, isTabActive]);
+
+  // Tab visibility detection
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      setIsTabActive(!document.hidden);
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, []);
 
   // Auto-reconnect effect
   useEffect(() => {
@@ -1259,10 +1281,10 @@ export default function DebugPanel({
                         onChange={(e) => setUpdateInterval(Number(e.target.value))}
                         className="bg-transparent text-purple-300 border-none outline-none"
                       >
-                        <option value={1000}>1s</option>
-                        <option value={5000}>5s</option>
                         <option value={10000}>10s</option>
                         <option value={30000}>30s</option>
+                        <option value={60000}>1m</option>
+                        <option value={300000}>5m</option>
                       </select>
                     </div>
                   </div>

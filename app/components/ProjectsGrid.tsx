@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useMemo, useRef } from 'react'
+import { useState, useEffect, useMemo, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 
@@ -96,79 +96,79 @@ export default function ProjectsGrid() {
   const sliderRef = useRef<HTMLDivElement>(null)
 
   // Fetch projects
-  useEffect(() => {
-    const fetchProjects = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const timestamp = new Date().getTime();
-        const randomValue = Math.floor(Math.random() * 10000000);
-        const cache = `nocache=${timestamp}-${randomValue}`;
-        
-        const categoryParam = selectedCategory !== 'All' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
-        const apiUrl = `/api/projects?t=${timestamp}&r=${randomValue}${categoryParam}&${cache}`;
-        
-        console.log(`Fetching projects from: ${apiUrl}`);
-        
-        const response = await fetch(apiUrl, {
-          method: 'GET',
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'X-Force-Refresh': 'true',
-            'X-Random-Value': randomValue.toString()
-          }
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text().catch(() => 'Could not read error response');
-          throw new Error(`Server returned ${response.status}: ${response.statusText}. Details: ${errorText}`);
+  const fetchProjects = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+      
+      const timestamp = new Date().getTime();
+      const randomValue = Math.floor(Math.random() * 10000000);
+      const cache = `nocache=${timestamp}-${randomValue}`;
+      
+      const categoryParam = selectedCategory !== 'All' ? `&category=${encodeURIComponent(selectedCategory)}` : '';
+      const apiUrl = `/api/projects?t=${timestamp}&r=${randomValue}${categoryParam}&${cache}`;
+      
+      console.log(`Fetching projects from: ${apiUrl}`);
+      
+      const response = await fetch(apiUrl, {
+        method: 'GET',
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
+          'Pragma': 'no-cache',
+          'Expires': '0',
+          'X-Force-Refresh': 'true',
+          'X-Random-Value': randomValue.toString()
         }
-        
-        const data = await response.json();
-        
-        if (!Array.isArray(data)) {
-          throw new Error('API did not return an array of projects');
-        }
-        
-        console.log(`Received ${data.length} projects from API`);
-        
-        const normalizedData = data.map(normalizeProjectForRender);
-        
-        const regularProjects = normalizedData.filter((project: Project) => 
-          !project.title.startsWith('NEWLY ADDED:')
-        );
-        
-        setProjects(regularProjects);
-        
-        const projectCategories = ['All', ...Array.from(new Set(normalizedData.map((project: Project) => project.category)) as Set<string>)];
-        setCategories(projectCategories);
-        
-        setIsLoading(false);
-      } catch (error) {
-        console.error('Error fetching projects:', error);
-        setError((error as Error).message);
-        setProjects([]);
-        setIsLoading(false);
-        
-        // Fetch debug info when there's an error
-        fetchDebugInfo();
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text().catch(() => 'Could not read error response');
+        throw new Error(`Server returned ${response.status}: ${response.statusText}. Details: ${errorText}`);
       }
-    };
+      
+      const data = await response.json();
+      
+      if (!Array.isArray(data)) {
+        throw new Error('API did not return an array of projects');
+      }
+      
+      console.log(`Received ${data.length} projects from API`);
+      
+      const normalizedData = data.map(normalizeProjectForRender);
+      
+      const regularProjects = normalizedData.filter((project: Project) => 
+        !project.title.startsWith('NEWLY ADDED:')
+      );
+      
+      setProjects(regularProjects);
+      
+      const projectCategories = ['All', ...Array.from(new Set(normalizedData.map((project: Project) => project.category)) as Set<string>)];
+      setCategories(projectCategories);
+      
+      setIsLoading(false);
+    } catch (error) {
+      console.error('Error fetching projects:', error);
+      setError((error as Error).message);
+      setProjects([]);
+      setIsLoading(false);
+      
+      // Fetch debug info when there's an error
+      fetchDebugInfo();
+    }
+  }, [selectedCategory]);
 
+  useEffect(() => {
     fetchProjects();
     
     const refreshInterval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchProjects();
       }
-    }, 30000);
+    }, 300000); // 5 minutes instead of 30 seconds
     
     return () => clearInterval(refreshInterval);
-  }, [selectedCategory]);
+  }, [fetchProjects]);
 
   // Function to fetch debug information
   const fetchDebugInfo = async () => {
@@ -196,7 +196,7 @@ export default function ProjectsGrid() {
 
       // Show success message
       console.log('Projects data refreshed successfully');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error revalidating:', error);
       setError('Failed to revalidate: ' + error.message);
       fetchDebugInfo();
@@ -560,22 +560,45 @@ export default function ProjectsGrid() {
                     >
                       View Details
                     </Link>
-                    <a
-                      href={project.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex-1 text-center text-sm px-4 py-2 rounded-md bg-black text-white border border-white/50 hover:bg-black/80 transition-colors"
-                    >
-                      Live Link
-                    </a>
+                    {project.link && project.link !== '#' && project.link !== '' ? (
+                      <a
+                        href={project.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex-1 text-center text-sm px-4 py-2 rounded-md bg-black text-white border border-white/50 hover:bg-black/80 transition-colors"
+                      >
+                        Live Link
+                      </a>
+                    ) : (
+                      <div
+                        className="flex-1 text-center text-sm px-4 py-2 rounded-md bg-yellow-900/50 text-yellow-300 border border-yellow-500/30 cursor-not-allowed"
+                      >
+                        In Development
+                      </div>
+                    )}
+                  </div>
+
+                  {project.featured && (
+                    <div className="absolute top-3 right-3 bg-white text-black text-xs px-3 py-1 rounded-full border border-purple-500/20 z-30 font-medium">
+                      Featured
+                    </div>
+                  )}
+                  
+                  {/* Project Status Indicator */}
+                  <div className="absolute top-3 left-3 z-30">
+                    {project.link && project.link !== '#' && project.link !== '' ? (
+                      <div className="flex items-center gap-1.5 bg-green-900/50 text-green-400 text-xs px-3 py-1 rounded-full border border-green-500/30 font-medium">
+                        <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                        <span>Live Project</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 bg-yellow-900/50 text-yellow-400 text-xs px-3 py-1 rounded-full border border-yellow-500/30 font-medium">
+                        <div className="w-2 h-2 rounded-full bg-yellow-500 animate-pulse"></div>
+                        <span>In Development</span>
+                      </div>
+                    )}
                   </div>
                 </div>
-
-                {project.featured && (
-                  <div className="absolute top-3 right-3 bg-white text-black text-xs px-3 py-1 rounded-full border border-purple-500/20 z-30 font-medium">
-                    Featured
-                  </div>
-                )}
               </div>
             </div>
           ))}

@@ -1,12 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { motion, useScroll, useSpring } from 'framer-motion'
+import { useState, useEffect, useRef } from 'react'
+import { motion, useScroll, useSpring, useMotionValueEvent } from 'framer-motion'
 import Link from 'next/link'
-import FeaturedProject from '../components/FeaturedProject'
 import NewlyAddedProjects from '../components/NewlyAddedProjects'
 import ProjectsGrid from '../components/ProjectsGrid'
 import ProjectImageGallery from '../components/ProjectImageGallery'
+import AISolutionsShowcase from '../components/AISolutionsShowcase'
+import MobileShowcase from '../components/MobileShowcase'
+import AutomationWorkflowsShowcase from '../components/AutomationWorkflowsShowcase'
+import VisionDrawer from '../components/VisionDrawer'
+import FloatingProjectsIndicator from '../../components/FloatingProjectsIndicator'
 import { audiowide, vt323 } from '@/app/utils/fonts'
 
 interface ProjectCategory {
@@ -129,6 +133,10 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
   const [isLoading, setIsLoading] = useState(true)
   const [hasProjects, setHasProjects] = useState(false)
   const [randomFact, setRandomFact] = useState<string>('')
+  const [scrollProgress, setScrollProgress] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+
   
   // Select a random fun fact on load
   useEffect(() => {
@@ -163,10 +171,38 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
     
     checkProjectsData()
   }, [])
+  
+
+  
+  // Track scroll progress for smooth animations
+  useMotionValueEvent(scrollYProgress, "change", (latest) => {
+    setScrollProgress(latest)
+  })
+  
+  useEffect(() => {
+    // Initialize component
+  }, [])
+  
+  // Auto-hide timer - removed
+  // Component handles itself
 
   return (
     <>
       <style jsx global>{scrollStyles}</style>
+      
+      {/* Vision Drawer */}
+      <VisionDrawer />
+      
+      {/* Floating Projects Indicator - Independent Component */}
+      <FloatingProjectsIndicator 
+        position="right"
+        offset={{ x: 20, y: 0 }}
+        showOnLoad={!isLoading && hasProjects}
+        hideOnMobile={false}
+        autoHide={false}
+        theme="purple"
+        className="transition-all duration-300"
+      />
       
       {/* Progress Bar */}
       <motion.div
@@ -174,7 +210,26 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
         style={{ scaleX, transformOrigin: '0%' }}
       />
       
-      <div className="min-h-screen pt-12 px-2 sm:px-4 md:px-6 bg-[#0a0a0a] content-wrapper">
+      <div ref={containerRef} className="min-h-screen pt-12 px-2 sm:px-4 md:px-6 bg-[#0a0a0a] content-wrapper relative">
+        
+
+        
+        {/* Floating Action Button - Scroll to Top */}
+        <motion.button
+          className="fixed bottom-8 right-8 z-50 bg-purple-600 hover:bg-purple-500 text-white p-4 rounded-full shadow-lg transition-all duration-300"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ 
+            opacity: scrollProgress > 0.1 ? 1 : 0,
+            scale: scrollProgress > 0.1 ? 1 : 0
+          }}
+          whileHover={{ scale: 1.1 }}
+          whileTap={{ scale: 0.9 }}
+          onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        >
+          <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
+          </svg>
+        </motion.button>
         {/* Fun Fact Section */}
         <motion.div 
           className="max-w-7xl mx-auto mb-8 md:mb-12 scroll-optimize"
@@ -207,81 +262,48 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
           >
-            {/* Featured Projects Section */}
-            <motion.div
-              className="scroll-optimize transform-gpu will-change-transform"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.2, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-            >
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>Featured Projects</h2>
-                <FeaturedProject />
-              </div>
-            </motion.div>
+
 
             {/* Project Gallery Carousel */}
             <motion.div
               className="scroll-optimize"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
+              transition={{ delay: 0.1, duration: 0.5 }}
             >
-              <ProjectImageGallery />
+              <div id="nex-webs-specialty" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20 bg-black rounded-2xl py-12">
+                <div className="text-center mb-12">
+                  <div className="inline-flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-teal-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                    <span className="px-4 py-1 bg-green-600/20 text-green-300 rounded-full text-sm font-medium">
+                      Visual Gallery
+                    </span>
+                  </div>
+                  
+                  <h2 className={`text-3xl md:text-4xl font-bold text-white mb-4 ${audiowide.className}`}>NEX-WEBS SPECIALITY</h2>
+                  <p className="text-gray-400 text-lg max-w-2xl mx-auto">
+                    A visual journey through our web development projects and general portfolio work
+                  </p>
+                </div>
+                <ProjectImageGallery />
+              </div>
             </motion.div>
 
-            {/* Cutting-Edge Technologies Section */}
+            {/* Mobile Applications Showcase */}
             <motion.div
-              className="scroll-optimize"
+              className="scroll-optimize transform-gpu will-change-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
+              transition={{ delay: 0.12, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>Cutting-Edge Technologies</h2>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {/* Frontend Technologies */}
-                  <div className="space-y-4">
-                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Frontend</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>React & Next.js</li>
-                      <li>TypeScript</li>
-                      <li>Tailwind CSS</li>
-                      <li>Framer Motion</li>
-                    </ul>
-                  </div>
-                  {/* Backend Technologies */}
-                  <div className="space-y-4">
-                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Backend</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>Node.js & Express</li>
-                      <li>Python & Django</li>
-                      <li>PostgreSQL & MongoDB</li>
-                      <li>Redis & Prisma</li>
-                    </ul>
-                  </div>
-                  {/* Cloud & DevOps */}
-                  <div className="space-y-4">
-                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>Cloud & DevOps</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>AWS & Vercel</li>
-                      <li>Docker & Kubernetes</li>
-                      <li>CI/CD Pipelines</li>
-                      <li>Monitoring & Analytics</li>
-                    </ul>
-                  </div>
-                  {/* AI & Tools */}
-                  <div className="space-y-4">
-                    <h3 className={`text-xl font-semibold text-purple-400 ${audiowide.className}`}>AI & Tools</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>OpenAI Integration</li>
-                      <li>Machine Learning</li>
-                      <li>Design Systems</li>
-                      <li>Performance Optimization</li>
-                    </ul>
-                  </div>
-                </div>
-              </section>
+              {/* Add ID for scroll targeting */}
+              <div id="mobile-showcase" className="bg-black rounded-2xl py-12 mx-4 sm:mx-6 lg:mx-8">
+                <MobileShowcase />
+              </div>
             </motion.div>
 
             {/* AI Integration Section */}
@@ -289,42 +311,146 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
               className="scroll-optimize"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
+              transition={{ delay: 0.15, duration: 0.5 }}
             >
-              <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16">
-                <h2 className={`text-3xl font-bold text-white mb-8 ${audiowide.className}`}>AI Integration & AI Controlled Websites</h2>
+              <section id="advanced-ai" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20 bg-black rounded-2xl py-12">
+                <div className="text-center mb-12">
+                  <div className="inline-flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-br from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                      </svg>
+                    </div>
+                    <span className="px-4 py-1 bg-purple-600/20 text-purple-300 rounded-full text-sm font-medium">
+                      AI Intelligence
+                    </span>
+                  </div>
+                  
+                  <h2 className={`text-3xl md:text-4xl font-bold text-white mb-4 ${audiowide.className}`}>AI Integration & Controlled Websites</h2>
+                  <p className="text-gray-400 text-lg max-w-3xl mx-auto">
+                    Advanced artificial intelligence integration services for websites, applications, and automated business processes
+                  </p>
+                </div>
+                
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                    <h3 className={`text-xl font-semibold text-purple-300 mb-4 ${audiowide.className}`}>AI-Powered Features</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>• Intelligent chatbots with natural language processing</li>
-                      <li>• Automated content generation and optimization</li>
-                      <li>• Smart recommendation systems</li>
-                      <li>• Predictive analytics and insights</li>
+                  <div className="bg-gradient-to-br from-purple-900/20 to-blue-900/20 backdrop-blur-sm border border-purple-500/30 rounded-xl p-8">
+                    <h3 className={`text-xl font-semibold text-purple-300 mb-6 ${audiowide.className}`}>AI-Powered Features</h3>
+                    <ul className={`space-y-3 text-gray-300 ${vt323.className}`}>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                        <span>Intelligent chatbots with natural language processing</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                        <span>Automated content generation and optimization</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                        <span>Smart recommendation systems</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                        <span>Predictive analytics and insights</span>
+                      </li>
                     </ul>
                   </div>
-                  <div className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6">
-                    <h3 className={`text-xl font-semibold text-purple-300 mb-4 ${audiowide.className}`}>AI Integration Services</h3>
-                    <ul className={`space-y-2 text-gray-300 ${vt323.className}`}>
-                      <li>• Custom AI model training and deployment</li>
-                      <li>• API integration with leading AI platforms</li>
-                      <li>• Workflow automation with AI decision making</li>
-                      <li>• Real-time data processing and analysis</li>
+                  <div className="bg-gradient-to-br from-blue-900/20 to-purple-900/20 backdrop-blur-sm border border-blue-500/30 rounded-xl p-8">
+                    <h3 className={`text-xl font-semibold text-blue-300 mb-6 ${audiowide.className}`}>AI Integration Services</h3>
+                    <ul className={`space-y-3 text-gray-300 ${vt323.className}`}>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span>Custom AI model training and deployment</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span>API integration with leading AI platforms</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span>Workflow automation with AI decision making</span>
+                      </li>
+                      <li className="flex items-center gap-3">
+                        <div className="w-2 h-2 bg-blue-500 rounded-full" />
+                        <span>Real-time data processing and analysis</span>
+                      </li>
                     </ul>
                   </div>
                 </div>
               </section>
             </motion.div>
 
-            {/* Projects Grid */}
+            {/* Newly Added Projects Section */}
             <motion.div
-              className="scroll-optimize"
+              className="scroll-optimize transform-gpu will-change-transform"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
+              transition={{ delay: 0.22, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              <ProjectsGrid />
+              <div id="newly-added" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 bg-black rounded-2xl py-12">
+                <NewlyAddedProjects />
+              </div>
             </motion.div>
+
+            {/* AI Solutions Showcase */}
+            <motion.div
+              className="scroll-optimize transform-gpu will-change-transform"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.26, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div id="ai-solutions">
+                <AISolutionsShowcase />
+              </div>
+            </motion.div>
+
+
+
+
+
+
+
+            {/* AI Automation & Workflows Showcase */}
+            <motion.div
+              className="scroll-optimize transform-gpu will-change-transform"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.38, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div id="automation-workflows" className="bg-black rounded-2xl py-12 mx-4 sm:mx-6 lg:mx-8">
+                <AutomationWorkflowsShowcase />
+              </div>
+            </motion.div>
+            
+            {/* Featured Automations Section */}
+            <motion.div
+              className="scroll-optimize transform-gpu will-change-transform"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div id="featured-automations" className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-20 bg-black rounded-2xl py-12">
+                <div className="text-center">
+                  <div className="inline-flex items-center gap-3 mb-6">
+                    <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-blue-600 rounded-lg flex items-center justify-center">
+                      <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                      </svg>
+                    </div>
+                    <span className="px-4 py-1 bg-green-600/20 text-green-300 rounded-full text-sm font-medium">
+                      Featured Automations
+                    </span>
+                  </div>
+                  
+                  <h2 className={`text-3xl md:text-4xl font-bold text-white mb-4 ${audiowide.className}`}>Automation Excellence</h2>
+                  <p className="text-gray-400 text-lg max-w-3xl mx-auto">
+                    Showcasing our most successful automation implementations and workflow optimizations
+                  </p>
+                </div>
+              </div>
+            </motion.div>
+            
+            {/* End Section */}
+            <div id="end" className="h-20"></div>
           </motion.div>
         ) : (
           <motion.section 

@@ -33,6 +33,9 @@ const GraphsSection = dynamic(() => import("@/components/sections/GraphsSection"
 const WelcomeScreen = dynamic(() => import('@/app/components/WelcomeScreen'), {
   ssr: false
 })
+const AIFirstAgencyPopup = dynamic(() => import('@/app/components/AIFirstAgencyPopup'), {
+  ssr: false
+})
 const FloatingActionButton = dynamic(() => import('@/app/components/FloatingActionButton'), {
   ssr: false
 })
@@ -122,6 +125,8 @@ export default function Home() {
   const [currentHero, setCurrentHero] = useState<'original' | 'business'>('original')
   // State for mobile popup
   const [showMobilePopup, setShowMobilePopup] = useState(false)
+  // State for AI First Agency popup - managed at parent level
+  const [showAIPopup, setShowAIPopup] = useState(false)
   
   // Refs for scroll animations
   const pageRef = useRef<HTMLDivElement>(null);
@@ -474,21 +479,29 @@ export default function Home() {
 
   // Handle welcome screen completion
   const handleWelcomeComplete = () => {
-    setShowWelcome(false);
-    localStorage.setItem('welcomeScreenShown', 'true');
+    console.log('handleWelcomeComplete called - setting up AI popup');
+    
+    // Show AI First Agency popup immediately with no delay
+    setShowAIPopup(true);
+    
+    // Hide welcome screen with ultra-minimal delay for instant transition
+    setTimeout(() => {
+      setShowWelcome(false);
+      localStorage.setItem('welcomeScreenShown', 'true');
 
-    // Dispatch event to notify other components
-    window.dispatchEvent(new CustomEvent('welcomeScreenStateChange', {
-      detail: { showWelcome: false }
-    }));
+      // Dispatch event to notify other components
+      window.dispatchEvent(new CustomEvent('welcomeScreenStateChange', {
+        detail: { showWelcome: false }
+      }));
 
-    // Show mobile popup for mobile users after welcome screen completion
-    if (isMobile) {
-      // Small delay to ensure smooth transition
-      setTimeout(() => {
-        setShowMobilePopup(true);
-      }, 500);
-    }
+      // Show mobile popup for mobile users after AI popup is closed
+      if (isMobile) {
+        // Delay to show after AI popup interaction
+        setTimeout(() => {
+          setShowMobilePopup(true);
+        }, 600); // Further reduced delay for even faster mobile experience
+      }
+    }, 20); // Reduced delay from 50ms to 20ms for ultra-fast transition
   };
 
   // Add function to reset welcome screen (for testing)
@@ -536,6 +549,19 @@ export default function Home() {
         <Suspense fallback={<div className="h-screen bg-black" />}>
           {showWelcome && <WelcomeScreen onComplete={handleWelcomeComplete} />}
         </Suspense>
+
+        {/* AI First Agency Popup - Independent from WelcomeScreen */}
+        {showAIPopup && (
+          <Suspense fallback={null}>
+            <AIFirstAgencyPopup 
+              isVisible={showAIPopup} 
+              onClose={() => {
+                console.log('AI popup closed from parent component');
+                setShowAIPopup(false);
+              }} 
+            />
+          </Suspense>
+        )}
 
         {/* Mobile Popup - Show after welcome screen completion for mobile users */}
         {showMobilePopup && isMobile && (

@@ -1,6 +1,44 @@
 /* PERFORMANCE OPTIMIZATIONS FOR 60FPS SCROLLING */
 /* This file contains critical performance optimizations to eliminate lag and reload effects */
 
+/* ===== IMMEDIATE HERO SECTION OPTIMIZATION ===== */
+
+/* Instant hero section loading without delays */
+html.layout-optimized {
+  --hero-optimized: 1;
+}
+
+[class*="hero-section"].hero-optimized,
+[class*="Hero"].hero-optimized {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  will-change: auto !important;
+  contain: layout style paint;
+  backface-visibility: hidden;
+  transition: none !important;
+  animation: none !important;
+}
+
+/* Fix TechStack reload effects */
+[class*="TechStack"].tech-optimized,
+[class*="tech-stack"].tech-optimized {
+  contain: layout style;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: auto;
+  opacity: 1 !important;
+  animation-fill-mode: both;
+}
+
+/* Prevent "How I Work" section late loading */
+[class*="work"].loaded,
+[class*="Work"].loaded,
+.work-section.loaded {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  transition: none !important;
+}
+
 /* ===== SCROLL PERFORMANCE ===== */
 
 /* Optimize scroll behavior */
@@ -16,23 +54,41 @@ body {
   overflow-x: hidden;
 }
 
-/* Disable heavy animations during scroll */
+/* Enhanced scroll optimization with state tracking */
 body.is-scrolling {
-  /* Pause all animations during scroll for 60fps performance */
+  /* Enhanced 60fps scrolling performance */
+  pointer-events: auto;
 }
 
 body.is-scrolling * {
   animation-play-state: paused !important;
-  transition-duration: 0.1s !important;
+  transition-duration: 0.05s !important;
   will-change: auto !important;
+}
+
+/* Optimize hero section during scroll back */
+body.at-top [class*="hero"],
+body.at-top [class*="Hero"] {
+  will-change: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+body.hero-refresh [class*="hero"],
+body.hero-refresh [class*="Hero"] {
+  transform: translateY(0) !important;
+  opacity: 1 !important;
+  transition: none !important;
 }
 
 body.is-scrolling .hero-section,
 body.is-scrolling [data-barba="container"],
-body.is-scrolling .motion-div {
-  transform: none !important;
+body.is-scrolling .motion-div,
+body.is-scrolling [class*="TechStack"] {
+  transform: translateZ(0) !important;
   animation: none !important;
   transition: none !important;
+  will-change: auto !important;
 }
 
 /* ===== IMAGE OPTIMIZATION ===== */
@@ -190,13 +246,49 @@ a[href="/contact"], a[href="/projects"], .button {
 
 /* ===== ANIMATION OPTIMIZATIONS ===== */
 
-/* Disable complex animations */
-@keyframes matrix-fall,
-@keyframes neural-pulse,
-@keyframes neural-pulse-alt,
-@keyframes node-pulse,
-@keyframes code-fall,
-@keyframes float-particle,
+/* Disable complex animations by overriding existing keyframes */
+@keyframes matrix-fall {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@keyframes neural-pulse {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@keyframes neural-pulse-alt {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@keyframes node-pulse {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@keyframes code-fall {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
+@keyframes float-particle {
+  from, to { 
+    transform: none !important;
+    opacity: 0.3 !important;
+  }
+}
+
 @keyframes processor-activity {
   from, to { 
     transform: none !important;

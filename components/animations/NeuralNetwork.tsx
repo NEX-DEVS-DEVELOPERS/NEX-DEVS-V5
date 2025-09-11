@@ -9,6 +9,7 @@ interface Point {
   vy: number;
   connections: number;
   pulse: number;
+  baseSize?: number; // Individual base size for visual variety
 }
 
 interface NeuralNetworkProps {
@@ -21,11 +22,11 @@ interface NeuralNetworkProps {
 }
 
 export default function NeuralNetwork({
-  color = '#00ffff', // Bright cyan neon
-  lineColor = '#00ff88', // Bright green neon
-  pointCount = 25, // Optimized default
-  connectionRadius = 120, // Optimized default
-  speed = 0.3, // Optimized default
+  color = '#00D4FF', // Professional cyan with better visibility
+  lineColor = '#00FF9F', // Enhanced green with professional look
+  pointCount = 35, // Increased for more richness while maintaining performance
+  connectionRadius = 140, // Slightly increased for better connectivity
+  speed = 0.25, // Slightly reduced for smoother, more professional movement
   containerBounds = true // Default to contained within parent
 }: NeuralNetworkProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -83,32 +84,33 @@ export default function NeuralNetwork({
     handleResize();
     window.addEventListener('resize', handleResize, { passive: true });
 
-    // Initialize points with strategic distribution for top, left, right areas
+    // Initialize points with strategic distribution for better visual coverage
     const { width, height } = getCanvasDimensions();
     pointsRef.current = Array.from({ length: pointCount }, (_, i) => {
       let x, y;
 
-      if (i < pointCount * 0.4) {
-        // Top area points (40%)
+      if (i < pointCount * 0.35) {
+        // Top area points (35%) - reduced slightly for better balance
         x = Math.random() * width;
-        y = Math.random() * (height * 0.4);
-      } else if (i < pointCount * 0.7) {
-        // Left side points (30%)
-        x = Math.random() * (width * 0.3);
-        y = Math.random() * height;
+        y = Math.random() * (height * 0.35);
+      } else if (i < pointCount * 0.65) {
+        // Center and sides points (30%) - better distributed
+        x = Math.random() * width;
+        y = height * 0.2 + Math.random() * (height * 0.6);
       } else {
-        // Right side points (30%)
-        x = width * 0.7 + Math.random() * (width * 0.3);
+        // Scattered points for depth (35%)
+        x = Math.random() * width;
         y = Math.random() * height;
       }
 
       return {
         x,
         y,
-        vx: (Math.random() - 0.5) * speed,
-        vy: (Math.random() - 0.5) * speed,
+        vx: (Math.random() - 0.5) * speed * (0.8 + Math.random() * 0.4), // Varied speed for natural movement
+        vy: (Math.random() - 0.5) * speed * (0.8 + Math.random() * 0.4),
         connections: 0,
-        pulse: Math.random() * Math.PI * 2
+        pulse: Math.random() * Math.PI * 2,
+        baseSize: 2.5 + Math.random() * 1.5 // Individual base sizes for variety
       };
     });
 
@@ -133,7 +135,7 @@ export default function NeuralNetwork({
       pointsRef.current.forEach(point => point.connections = 0);
 
       // Draw connections with optimized algorithm
-      const connections: Array<{x1: number, y1: number, x2: number, y2: number, opacity: number}> = [];
+      const connections: Array<{x1: number, y1: number, x2: number, y2: number, opacity: number, distance: number}> = [];
 
       for (let i = 0; i < pointsRef.current.length; i++) {
         const point = pointsRef.current[i];
@@ -149,13 +151,14 @@ export default function NeuralNetwork({
           const distance = Math.sqrt(dx * dx + dy * dy);
 
           if (distance < connectionRadius) {
-            const opacity = (1 - (distance / connectionRadius)) * 0.9; // More vibrant lines
+            const opacity = Math.pow(1 - (distance / connectionRadius), 1.5) * 0.95; // Enhanced opacity curve for better visibility
             connections.push({
               x1: point.x,
               y1: point.y,
               x2: otherPoint.x,
               y2: otherPoint.y,
-              opacity
+              opacity,
+              distance // Store distance for line width calculation
             });
             point.connections++;
             otherPoint.connections++;
@@ -163,13 +166,25 @@ export default function NeuralNetwork({
         }
       }
 
-      // Batch draw connections
+      // Batch draw connections with enhanced visual effects
       connections.forEach(conn => {
+        const lineWidth = Math.max(1.5, conn.opacity * 3); // Slightly thicker for better visibility
+        const glowIntensity = conn.opacity * 0.3;
+        
+        // Draw glow effect for lines
+        ctx.beginPath();
+        ctx.moveTo(conn.x1, conn.y1);
+        ctx.lineTo(conn.x2, conn.y2);
+        ctx.strokeStyle = `${lineColor}${Math.floor(glowIntensity * 255).toString(16).padStart(2, '0')}`;
+        ctx.lineWidth = lineWidth + 2;
+        ctx.stroke();
+        
+        // Draw main line
         ctx.beginPath();
         ctx.moveTo(conn.x1, conn.y1);
         ctx.lineTo(conn.x2, conn.y2);
         ctx.strokeStyle = `${lineColor}${Math.floor(conn.opacity * 255).toString(16).padStart(2, '0')}`;
-        ctx.lineWidth = Math.max(1.2, conn.opacity * 2.5); // Thicker, more vibrant lines
+        ctx.lineWidth = lineWidth;
         ctx.stroke();
       });
 
@@ -192,24 +207,37 @@ export default function NeuralNetwork({
           point.y = Math.max(padding, Math.min(height - padding, point.y));
         }
 
-        // Draw point with enhanced glow effect for visibility
-        const pulseSize = 3 + Math.sin(point.pulse) * 0.8; // Larger, more visible points
-        const connectionIntensity = Math.min(point.connections / 3, 1);
+        // Draw point with professional glow effect
+        const baseSize = point.baseSize || 3;
+        const pulseSize = baseSize + Math.sin(point.pulse) * 0.6; // Smoother, more professional pulse
+        const connectionIntensity = Math.min(point.connections / 4, 1);
+        const dynamicOpacity = 0.85 + connectionIntensity * 0.15;
 
-        // Outer glow
-        const outerGradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pulseSize + 4);
-        outerGradient.addColorStop(0, `${color}${Math.floor((0.8 + connectionIntensity * 0.2) * 255).toString(16).padStart(2, '0')}`);
-        outerGradient.addColorStop(1, `${color}20`);
+        // Outer glow - more subtle but visible
+        const outerGradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pulseSize + 3);
+        outerGradient.addColorStop(0, `${color}${Math.floor(dynamicOpacity * 255).toString(16).padStart(2, '0')}`);
+        outerGradient.addColorStop(0.7, `${color}${Math.floor(dynamicOpacity * 0.4 * 255).toString(16).padStart(2, '0')}`);
+        outerGradient.addColorStop(1, `${color}10`);
 
         ctx.beginPath();
         ctx.arc(point.x, point.y, pulseSize + 2, 0, Math.PI * 2);
         ctx.fillStyle = outerGradient;
         ctx.fill();
 
-        // Inner core
+        // Middle glow layer
+        const middleGradient = ctx.createRadialGradient(point.x, point.y, 0, point.x, point.y, pulseSize + 1);
+        middleGradient.addColorStop(0, `${color}${Math.floor((dynamicOpacity * 0.9) * 255).toString(16).padStart(2, '0')}`);
+        middleGradient.addColorStop(1, `${color}40`);
+
         ctx.beginPath();
-        ctx.arc(point.x, point.y, pulseSize, 0, Math.PI * 2);
-        ctx.fillStyle = `${color}${Math.floor((0.9 + connectionIntensity * 0.1) * 255).toString(16).padStart(2, '0')}`; // Very visible core
+        ctx.arc(point.x, point.y, pulseSize + 1, 0, Math.PI * 2);
+        ctx.fillStyle = middleGradient;
+        ctx.fill();
+
+        // Inner core - bright and visible
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, pulseSize * 0.7, 0, Math.PI * 2);
+        ctx.fillStyle = `${color}${Math.floor((0.95 + connectionIntensity * 0.05) * 255).toString(16).padStart(2, '0')}`;
         ctx.fill();
       });
 
@@ -289,7 +317,7 @@ export default function NeuralNetwork({
           transform: 'translate3d(0, 0, 0)',
           backfaceVisibility: 'hidden',
           willChange: 'auto',
-          opacity: 0.7, // More visible neon effect
+          opacity: 0.85, // Enhanced visibility for professional look
         }}
       />
       {/* Fallback CSS-based neural network for browsers that struggle with canvas */}

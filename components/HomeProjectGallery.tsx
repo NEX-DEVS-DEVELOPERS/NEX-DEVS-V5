@@ -29,6 +29,7 @@ export default function HomeProjectGallery() {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isAutoplayEnabled, setIsAutoplayEnabled] = useState(true)
   const [hoveredProject, setHoveredProject] = useState<string | null>(null)
+  const [showExpandedPagination, setShowExpandedPagination] = useState(false)
   const autoplayRef = useRef<NodeJS.Timeout | null>(null)
   const touchStartXRef = useRef<number | null>(null)
   const [imgLoadError, setImgLoadError] = useState<Record<string, boolean>>({})
@@ -38,17 +39,13 @@ export default function HomeProjectGallery() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        // Add timestamp to force fresh data and prevent browser caching
+        // Reduced cache busting for better performance
         const timestamp = new Date().getTime()
-        const randomValue = Math.floor(Math.random() * 10000000)
-        const cache = `nocache=${timestamp}-${randomValue}`
         
-        const response = await fetch(`/api/projects?featured=true&t=${timestamp}&r=${randomValue}&${cache}`, {
-          cache: 'no-store',
+        const response = await fetch(`/api/projects?featured=true&t=${timestamp}`, {
+          cache: 'default', // Allow some caching
           headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate',
-            'Pragma': 'no-cache',
-            'Expires': '0'
+            'Cache-Control': 'max-age=300' // Allow 5 minute cache
           }
         })
         
@@ -61,7 +58,7 @@ export default function HomeProjectGallery() {
         // Filter and process the data to ensure it has all required fields
         const processedData = data
           .filter((project: Project) => project && project.image && project.title) // Only include projects with required fields
-          .slice(0, 4) // Limit to 4 projects max for better performance
+          // Remove project limit to show all featured projects
         
         setProjects(processedData)
         setIsLoading(false)
@@ -73,12 +70,12 @@ export default function HomeProjectGallery() {
     
     fetchProjects()
     
-    // Refresh data less frequently (every 2 minutes) when tab is visible to reduce API calls
+    // Refresh data less frequently (every 10 minutes) when tab is visible to reduce API calls
     const interval = setInterval(() => {
       if (document.visibilityState === 'visible') {
         fetchProjects()
       }
-    }, 120000)
+    }, 600000) // 10 minutes instead of 2 minutes
     
     return () => clearInterval(interval)
   }, [])
@@ -163,13 +160,55 @@ export default function HomeProjectGallery() {
   // Previous/Next navigation
   const goToPrevious = useCallback(() => {
     if (projects.length <= 1) return
+
+    // Clear autoplay when user manually navigates
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current)
+      autoplayRef.current = null
+    }
+
     setCurrentIndex(prevIndex => prevIndex === 0 ? projects.length - 1 : prevIndex - 1)
-  }, [projects.length])
-  
+
+    // Restart autoplay after user inactivity
+    if (isAutoplayEnabled) {
+      autoplayRef.current = setTimeout(() => {
+        if (autoplayRef.current) {
+          clearTimeout(autoplayRef.current)
+          autoplayRef.current = setInterval(() => {
+            setCurrentIndex(prevIndex =>
+              prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+            )
+          }, 6000)
+        }
+      }, 8000)
+    }
+  }, [projects.length, isAutoplayEnabled])
+
   const goToNext = useCallback(() => {
     if (projects.length <= 1) return
+
+    // Clear autoplay when user manually navigates
+    if (autoplayRef.current) {
+      clearInterval(autoplayRef.current)
+      autoplayRef.current = null
+    }
+
     setCurrentIndex(prevIndex => prevIndex === projects.length - 1 ? 0 : prevIndex + 1)
-  }, [projects.length])
+
+    // Restart autoplay after user inactivity
+    if (isAutoplayEnabled) {
+      autoplayRef.current = setTimeout(() => {
+        if (autoplayRef.current) {
+          clearTimeout(autoplayRef.current)
+          autoplayRef.current = setInterval(() => {
+            setCurrentIndex(prevIndex =>
+              prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+            )
+          }, 6000)
+        }
+      }, 8000)
+    }
+  }, [projects.length, isAutoplayEnabled])
 
   // Add swipe functionality for mobile
   const handleTouchStart = useCallback((e: React.TouchEvent) => {
@@ -195,6 +234,69 @@ export default function HomeProjectGallery() {
     
     touchStartXRef.current = null
   }, [goToNext, goToPrevious])
+
+  // Function to determine project type and appropriate button display
+  const getProjectButton = (project: Project) => {
+    // Check if project has a valid live website link
+    const hasValidLink = project.link && 
+                        project.link.trim() !== '' && 
+                        project.link !== '#' && 
+                        !project.link.includes('placeholder') &&
+                        !project.link.includes('example.com') &&
+                        (project.link.startsWith('http://') || project.link.startsWith('https://'));
+    
+    // Check if it's a demonstration/showcase image (like SEO, tools, etc.)
+    const isDemoContent = project.title.toLowerCase().includes('seo') ||
+                         project.title.toLowerCase().includes('tool') ||
+                         project.title.toLowerCase().includes('showcase') ||
+                         project.description.toLowerCase().includes('demonstration') ||
+                         project.description.toLowerCase().includes('example') ||
+                         project.category.toLowerCase().includes('demo');
+    
+    if (hasValidLink) {
+      return {
+        type: 'live',
+        component: (
+          <a
+            href={project.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
+          >
+            <span>View Live Project</span>
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+            </svg>
+          </a>
+        )
+      };
+    } else if (isDemoContent) {
+      return {
+        type: 'demo',
+        component: (
+          <div className="inline-flex items-center space-x-2 bg-blue-600/80 text-white py-1.5 px-3 rounded-lg text-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+            <span>Demo Showcase</span>
+          </div>
+        )
+      };
+    } else {
+      return {
+        type: 'development',
+        component: (
+          <div className="inline-flex items-center space-x-2 bg-orange-600/80 text-white py-1.5 px-3 rounded-lg text-sm">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>In Development - Not Yet Launched</span>
+          </div>
+        )
+      };
+    }
+  };
 
   // Function to toggle between primary and secondary images
   const toggleSecondaryImage = (projectId: string) => {
@@ -224,14 +326,79 @@ export default function HomeProjectGallery() {
   }
 
   return (
-    <section className="max-w-7xl mx-auto mt-10 sm:mt-14 mb-12 px-2 sm:px-4 md:px-0 will-change-transform"
+    <>
+      {/* Defensive CSS to ensure touch events work regardless of other CSS */}
+      <style dangerouslySetInnerHTML={{
+        __html: `
+          /* Ensure this component always receives touch events */
+          .project-gallery-container {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            position: relative !important;
+            z-index: 50 !important;
+          }
+          
+          .project-carousel-container {
+            pointer-events: auto !important;
+            touch-action: pan-x !important;
+            position: relative !important;
+          }
+          
+          .project-gallery-container button,
+          .project-gallery-container [role="button"] {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            min-height: 44px !important;
+            min-width: 44px !important;
+            position: relative !important;
+            z-index: 10 !important;
+          }
+          
+          /* Ensure navigation buttons always work */
+          .project-nav-button {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            z-index: 100 !important;
+            min-width: 48px !important;
+            min-height: 48px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+          }
+          
+          /* Responsive navigation positioning */
+          @media (max-width: 768px) {
+            .project-nav-button {
+              min-width: 44px !important;
+              min-height: 44px !important;
+            }
+          }
+          
+          /* Ensure pagination works */
+          .project-pagination {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+          }
+          
+          .project-pagination button {
+            pointer-events: auto !important;
+            touch-action: manipulation !important;
+            min-height: 44px !important;
+            min-width: 44px !important;
+          }
+        `
+      }} />
+    <section className="project-gallery-container max-w-7xl mx-auto mt-10 sm:mt-14 mb-12 px-2 sm:px-4 md:px-0 will-change-transform"
              style={{
                transform: 'translate3d(0, 0, 0)',
                backfaceVisibility: 'hidden',
                perspective: '1000px'
              }}>
-      <div className="relative overflow-hidden rounded-xl bg-gradient-to-b from-black/40 to-black/20 border border-purple-500/20 p-2 sm:p-4 backdrop-blur-sm shadow-lg will-change-transform"
-           style={{ transform: 'translate3d(0, 0, 0)', backfaceVisibility: 'hidden' }}>
+      <div className="relative overflow-hidden rounded-xl bg-gradient-to-br from-black/40 via-black/30 to-black/20 p-2 sm:p-4 backdrop-blur-sm will-change-transform border border-white/20"
+           style={{ 
+             transform: 'translate3d(0, 0, 0)', 
+             backfaceVisibility: 'hidden' 
+           }}>
         {isLoading ? (
           <div className="h-[280px] flex items-center justify-center">
             <div className="flex space-x-3">
@@ -243,7 +410,10 @@ export default function HomeProjectGallery() {
         ) : (
           <>
             <div className="flex justify-between items-center mb-4">
-              <h2 className={`text-xl sm:text-2xl font-bold text-white ${audiowide.className}`}>Featured Projects</h2>
+              <div className="flex items-center space-x-3">
+                <div className="w-1 h-6 bg-gradient-to-b from-purple-500 to-purple-600 rounded-full"></div>
+                <h2 className={`text-xl sm:text-2xl font-bold text-white ${audiowide.className}`}>Featured Projects</h2>
+              </div>
               <div className="flex gap-2">
                 <button 
               onClick={toggleAutoplay}
@@ -267,7 +437,7 @@ export default function HomeProjectGallery() {
               </div>
         </div>
         
-            <div className="relative">
+            <div className="relative project-carousel-container">
         <div 
                 className="flex transition-transform duration-500 ease-in-out"
                 style={{ transform: `translateX(-${currentIndex * 100}%)` }}
@@ -284,9 +454,7 @@ export default function HomeProjectGallery() {
                       {/* Project Image */}
                       <div className="w-full md:w-1/2">
                         <div 
-                          className={`relative rounded-xl overflow-hidden aspect-video border ${
-                            project.visualEffects?.glow ? 'border-purple-500/40 shadow-glow' : 'border-gray-700/50'
-                          } transition-all duration-500`}
+                          className={`relative rounded-xl overflow-hidden aspect-video shadow-2xl shadow-purple-500/40 hover:shadow-purple-400/60 hover:shadow-2xl transition-all duration-500 ring-2 ring-purple-500/30 hover:ring-purple-400/50`}
                           onMouseEnter={() => setHoveredProject(project.id.toString())}
                           onMouseLeave={() => setHoveredProject(null)}
                         >
@@ -343,17 +511,7 @@ export default function HomeProjectGallery() {
                               <div className="text-white text-center p-4">
                                 <h3 className={`font-bold text-lg mb-1 ${audiowide.className}`}>{project.title}</h3>
                                 <p className={`text-sm text-gray-300 mb-3 line-clamp-2 ${vt323.className}`}>{project.description}</p>
-                                <a
-                                  href={project.link}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
-                                >
-                                  <span>View Project</span>
-                                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                                  </svg>
-                                </a>
+                                {getProjectButton(project).component}
                               </div>
                             </div>
                           </div>
@@ -392,19 +550,9 @@ export default function HomeProjectGallery() {
                       </div>
                     </div>
                     
-                        {/* Link Button */}
+                        {/* Action Buttons */}
                         <div className="flex gap-3">
-                          <a
-                            href={project.link}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-flex items-center space-x-2 bg-purple-600 hover:bg-purple-700 text-white py-1.5 px-3 rounded-lg transition-colors text-sm"
-                          >
-                            <span>View Project</span>
-                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-                            </svg>
-                          </a>
+                          {getProjectButton(project).component}
                           
                           {/* Toggle Image Button - Alternative location */}
                           {project.secondImage && (
@@ -430,41 +578,144 @@ export default function HomeProjectGallery() {
             <>
                 <button
                   onClick={goToPrevious}
-                    className="absolute left-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-10 transition-colors"
+                    className="project-nav-button absolute -left-4 md:-left-6 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full z-10 transition-colors shadow-lg"
                   aria-label="Previous project"
                 >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
                   </svg>
                 </button>
                   
                 <button
                   onClick={goToNext}
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-2 rounded-full z-10 transition-colors"
+                    className="project-nav-button absolute -right-4 md:-right-6 top-1/2 transform -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full z-10 transition-colors shadow-lg"
                   aria-label="Next project"
                 >
-                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
                 </button>
             </>
           )}
         
-              {/* Pagination dots */}
+              {/* Smart Collapsible Pagination */}
         {projects.length > 1 && (
-                <div className="flex justify-center mt-4 space-x-2">
-            {projects.map((_, index) => (
+          <div className="project-pagination flex justify-center mt-4 gap-2">
+            {(() => {
+              const totalProjects = projects.length;
+              
+              if (totalProjects <= 5) {
+                // Show all buttons if 5 or fewer projects
+                return projects.map((_, index) => (
+                  <button
+                    key={`dot-${index}`}
+                    onClick={() => {
+                      if (autoplayRef.current) {
+                        clearInterval(autoplayRef.current);
+                        autoplayRef.current = null;
+                      }
+                      setCurrentIndex(index);
+                      if (isAutoplayEnabled) {
+                        autoplayRef.current = setTimeout(() => {
+                          if (autoplayRef.current) {
+                            clearTimeout(autoplayRef.current);
+                            autoplayRef.current = setInterval(() => {
+                              setCurrentIndex(prevIndex =>
+                                prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+                              );
+                            }, 6000);
+                          }
+                        }, 8000);
+                      }
+                    }}
+                    className={`w-5 h-5 rounded-full transition-all text-xs font-semibold flex items-center justify-center border-2 ${
+                      currentIndex === index
+                        ? 'bg-black text-white border-purple-400'
+                        : 'bg-black/80 text-white/70 border-gray-600 hover:border-purple-300 hover:text-white'
+                    }`}
+                    aria-label={`Go to project ${index + 1}`}
+                  >
+                    {index + 1}
+                  </button>
+                ));
+              }
+              
+              // For more than 5 projects, show current group of 5
+              const currentGroup = Math.floor(currentIndex / 5);
+              const startIndex = currentGroup * 5;
+              const endIndex = Math.min(startIndex + 5, totalProjects);
+              const hasMoreGroups = totalProjects > endIndex;
+              const hasPrevGroups = startIndex > 0;
+              
+              return (
+                <>
+                  {/* Previous group button */}
+                  {hasPrevGroups && (
                     <button
-                      key={`dot-${index}`}
-                onClick={() => setCurrentIndex(index)}
-                      className={`w-2 h-2 rounded-full transition-all ${
-                        currentIndex === index
-                          ? 'bg-purple-500 w-4'
-                          : 'bg-gray-600 hover:bg-gray-500'
-                      }`}
-                      aria-label={`Go to project ${index + 1}`}
-              />
-            ))}
+                      onClick={() => {
+                        const prevGroupStart = (currentGroup - 1) * 5;
+                        setCurrentIndex(prevGroupStart);
+                      }}
+                      className="w-5 h-5 rounded-full transition-all text-xs font-semibold flex items-center justify-center border-2 bg-gray-700/80 text-gray-300 border-gray-500 hover:border-purple-300 hover:text-white"
+                      aria-label="Previous group"
+                    >
+                      ‹
+                    </button>
+                  )}
+                  
+                  {/* Show current group of 5 buttons */}
+                  {Array.from({ length: endIndex - startIndex }, (_, i) => {
+                    const index = startIndex + i;
+                    return (
+                      <button
+                        key={`dot-${index}`}
+                        onClick={() => {
+                          if (autoplayRef.current) {
+                            clearInterval(autoplayRef.current);
+                            autoplayRef.current = null;
+                          }
+                          setCurrentIndex(index);
+                          if (isAutoplayEnabled) {
+                            autoplayRef.current = setTimeout(() => {
+                              if (autoplayRef.current) {
+                                clearTimeout(autoplayRef.current);
+                                autoplayRef.current = setInterval(() => {
+                                  setCurrentIndex(prevIndex =>
+                                    prevIndex === projects.length - 1 ? 0 : prevIndex + 1
+                                  );
+                                }, 6000);
+                              }
+                            }, 8000);
+                          }
+                        }}
+                        className={`w-5 h-5 rounded-full transition-all text-xs font-semibold flex items-center justify-center border-2 ${
+                          currentIndex === index
+                            ? 'bg-black text-white border-purple-400'
+                            : 'bg-black/80 text-white/70 border-gray-600 hover:border-purple-300 hover:text-white'
+                        }`}
+                        aria-label={`Go to project ${index + 1}`}
+                      >
+                        {index + 1}
+                      </button>
+                    );
+                  })}
+                  
+                  {/* Next group button */}
+                  {hasMoreGroups && (
+                    <button
+                      onClick={() => {
+                        const nextGroupStart = (currentGroup + 1) * 5;
+                        setCurrentIndex(Math.min(nextGroupStart, totalProjects - 1));
+                      }}
+                      className="w-5 h-5 rounded-full transition-all text-xs font-semibold flex items-center justify-center border-2 bg-gray-700/80 text-gray-300 border-gray-500 hover:border-purple-300 hover:text-white"
+                      aria-label="Next group"
+                    >
+                      ›
+                    </button>
+                  )}
+                </>
+              );
+            })()} 
           </div>
         )}
         
@@ -485,5 +736,6 @@ export default function HomeProjectGallery() {
         )}
       </div>
     </section>
+    </>
   )
 }

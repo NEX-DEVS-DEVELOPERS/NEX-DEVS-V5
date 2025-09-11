@@ -1,0 +1,512 @@
+{
+  "metadata": {
+    "extracted_date": "2025-01-22",
+    "source": "Portfolio Website Database",
+    "total_projects": 11,
+    "total_team_members": 7,
+    "database_type": "Neon PostgreSQL"
+  },
+  "projects": [
+    {
+      "id": 1,
+      "title": "NEX-WEBS Tools",
+      "description": "A comprehensive suite of web tools including XML Sitemap Generator, Image Compressor, and SEO tools.(just need an API key for some tools to work)",
+      "detailed_description": "NEX-WEBS Tools is a powerful collection of utilities designed to help developers and businesses optimize their web presence. The suite includes tools for SEO analysis, performance optimization, and content management. With features like XML sitemap generation, image compression, and metadata analysis, users can significantly improve their website's performance and visibility.",
+      "image_url": "/projects/9289c8e1-3f27-48e0-afaf-1ad087bce119.png",
+      "category": "Web Development",
+      "technologies": ["Next.js", "Tailwind CSS", "TypeScript"],
+      "tech_details": {
+        "frontend": "Next.js with TypeScript for type safety",
+        "styling": "Tailwind CSS for responsive design",
+        "performance": "Optimized with code splitting and lazy loading"
+      },
+      "project_link": "https://1-project-nex-webs.netlify.app/",
+      "featured": true,
+      "completion_date": "2023-10-15",
+      "client_name": "Internal Project",
+      "duration": "8 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {
+        "morphTransition": false,
+        "rippleEffect": false,
+        "floatingElements": false,
+        "shimmering": false,
+        "animation": "none",
+        "shadows": "soft",
+        "border": "solid",
+        "glassmorphism": false,
+        "particles": false,
+        "animationTiming": "normal",
+        "animationIntensity": "normal"
+      }
+    },
+    {
+      "id": 2,
+      "title": "NEXTJS-WEBSITE",
+      "description": "A creative portfolio website with interactive elements and smooth animations, showcasing various projects and skills.",
+      "detailed_description": "This portfolio website demonstrates advanced Next.js capabilities with a focus on user experience and modern design principles. The site features custom animations, interactive components, and optimized performance metrics. The responsive design ensures a consistent experience across all devices.",
+      "image_url": "/projects/8836a47d-e499-472e-bce5-e5c9361b6a7c.png",
+      "category": "Web Development",
+      "technologies": ["React", "Framer Motion", "Tailwind CSS", "TypeScript"],
+      "tech_details": {
+        "frontend": "React with TypeScript for scalable components",
+        "animations": "Framer Motion for smooth transitions and effects",
+        "styling": "Tailwind CSS for utility-first styling"
+      },
+      "project_link": "https://nex-webs-project2.netlify.app/",
+      "featured": true,
+      "completion_date": "2023-12-05",
+      "client_name": "Self-branded",
+      "duration": "6 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {
+        "morphTransition": false,
+        "rippleEffect": false,
+        "floatingElements": false,
+        "shimmering": false,
+        "animation": "bounce",
+        "shadows": "neon",
+        "border": "animated",
+        "glassmorphism": true,
+        "particles": true,
+        "animationTiming": "normal",
+        "animationIntensity": "normal"
+      }
+    },
+    {
+      "id": 3,
+      "title": "CPU & GPU Bottleneck Calculator(AI-Agent)",
+      "description": "A modern and intuitive NFT marketplace design with dark theme and glass-morphism effects.",
+      "detailed_description": "The CPU & GPU Bottleneck Calculator is an advanced tool that helps users identify performance bottlenecks in their computer systems. Using AI-driven analysis, it compares CPU and GPU specifications, evaluates their compatibility, and provides detailed recommendations for optimizing performance. The tool includes visual representations of bottlenecks and personalized upgrade suggestions.",
+      "image_url": "/projects/1a58fe2c-191f-4164-8527-728b4f518c5f.png",
+      "category": "UI/UX Design",
+      "technologies": ["Figma", "Blender", "After Effects"],
+      "tech_details": {
+        "design": "Figma for UI/UX with custom component library",
+        "3D": "Blender for hardware visualization models",
+        "animation": "After Effects for performance demonstration animations",
+        "data": "Extensive hardware database with performance metrics"
+      },
+      "project_link": "https://project-4-updated.vercel.app/",
+      "featured": true,
+      "completion_date": "2023-11-30",
+      "client_name": "Hardware Benchmark Platform",
+      "duration": "12 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {}
+    },
+    {
+      "id": 4,
+      "title": "WEB-APP-(Gratuity Calculator 2025)",
+      "description": "This tool simplifies the complex process of gratuity calculation, ensuring you have a clear understanding of your entitlements.",
+      "detailed_description": "The Gratuity Calculator 2025 is a comprehensive tool that factors in the latest regulations and policies to provide accurate gratuity estimations. It includes features for different employment scenarios, various country regulations, and detailed breakdowns of calculations. The tool also provides downloadable reports and historical calculation tracking.",
+      "image_url": "/projects/1bba4cac-58bb-4fa0-9cf1-c7062bb94629.png",
+      "category": "Web Development",
+      "technologies": ["React", "TensorFlow.js", "Node.js"],
+      "tech_details": {
+        "frontend": "React with responsive forms and visualization",
+        "backend": "Node.js for calculation logic and data processing",
+        "ai": "TensorFlow.js for predictive analysis of financial trends"
+      },
+      "project_link": "https://nex-webs-project-9.netlify.app/",
+      "featured": true,
+      "completion_date": "2024-01-10",
+      "client_name": "Financial Services Company",
+      "duration": "10 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {}
+    },
+    {
+      "id": 5,
+      "title": "Invisible Character Generator(Web-App)",
+      "description": "This tool is designed to help you generate and copy invisible characters easily.",
+      "detailed_description": "The Invisible Character Generator is a specialized utility for digital content creators and developers. It generates various types of invisible Unicode characters that can be used for spacing, formatting, and special effects in digital content. The tool includes a preview feature to test the characters in different contexts and a quick-copy functionality for easy integration.",
+      "image_url": "/projects/4f615362-0f11-4cc2-baa3-b708c837be03.png",
+      "category": "Web Development",
+      "technologies": ["Vue.js", "Firebase", "TailwindCSS", "Python"],
+      "tech_details": {
+        "frontend": "Vue.js for reactive interface and state management",
+        "backend": "Python scripts for character generation algorithms",
+        "database": "Firebase for user preferences and history",
+        "styling": "TailwindCSS for clean, utility-first design"
+      },
+      "project_link": "https://nex-webs-project-4.netlify.app/",
+      "featured": false,
+      "completion_date": "2023-07-15",
+      "client_name": "Open Source Initiative",
+      "duration": "5 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {}
+    },
+    {
+      "id": 6,
+      "title": "Morse Code Translator(Web-App)",
+      "description": "Express yourself with unique Morse Code products—perfect for personalized gifts, home decor, and more. Speak in dots and dashes today!",
+      "detailed_description": "The Morse Code Translator is an interactive web application that converts text to Morse code and vice versa. It includes audio playback of the Morse code, visual representations, and customizable speed settings. The application also includes a learning mode for users unfamiliar with Morse code.",
+      "image_url": "/projects/806ed4b7-10b2-49bb-b8b3-c13a3ec6d597.png",
+      "category": "UI/UX Design",
+      "technologies": ["Figma", "Adobe XD", "Prototyping"],
+      "tech_details": {
+        "design": "Figma and Adobe XD for high-fidelity mockups",
+        "prototyping": "Interactive prototypes with animation",
+        "research": "User testing and feedback implementation"
+      },
+      "project_link": "https://nex-webs-project-6.netlify.app/",
+      "featured": false,
+      "completion_date": "2023-08-20",
+      "client_name": "Educational Project",
+      "duration": "4 weeks",
+      "image_priority": 1,
+      "exclusive_features": [],
+      "visual_effects": {}
+    }
+  ],
+  "newly_added_projects": [
+    {
+      "id": 14,
+      "title": "NEWLY ADDED: YT-VEDIO-ANALYZER",
+      "description": "ANALYZER",
+      "detailed_description": "Advanced YouTube video analysis tool powered by AI for comprehensive content insights and optimization recommendations.",
+      "image_url": "/projects/0c3e9b24-ffb3-4f2f-8afe-00ccdbbd05a9.png",
+      "category": "Web Development",
+      "technologies": ["AI MODEL FOR RESEARCH"],
+      "project_link": "https://nex-webs-project-6.netlify.app/",
+      "featured": true,
+      "status": "In Development",
+      "updated_days": 1,
+      "progress": 48,
+      "development_progress": 0,
+      "estimated_completion": "",
+      "features": [],
+      "exclusive_features": ["PREMIUM CONTENT", "Behind-the-scenes development insights"],
+      "image_priority": 1,
+      "visual_effects": {
+        "morphTransition": true,
+        "rippleEffect": true,
+        "floatingElements": false,
+        "shimmering": false,
+        "animation": "elastic",
+        "shadows": "neon",
+        "border": "double",
+        "glassmorphism": false,
+        "particles": true,
+        "animationTiming": "very-slow",
+        "animationIntensity": "subtle"
+      }
+    },
+    {
+      "id": 16,
+      "title": "NEWLY ADDED: PROJECT ARA BY (NEX-DEVS)",
+      "description": "YOULL BE AMAZED..!!",
+      "detailed_description": "Revolutionary project powered by advanced AI technology, featuring cutting-edge capabilities and innovative solutions.",
+      "image_url": "/projects/c0e3e4a3-58ba-4e27-a61e-7dad197af43d.png",
+      "category": "Web Development",
+      "technologies": ["GOOGLE DEEP THINK"],
+      "project_link": "https://3d-portfolio-showcase.vercel.app",
+      "featured": true,
+      "status": "In Development",
+      "updated_days": 1,
+      "progress": 59,
+      "development_progress": 0,
+      "estimated_completion": "",
+      "exclusive_features": [
+        "Experimental features not available in public release",
+        "Limited edition design elements",
+        "Special promotions for early adopters"
+      ],
+      "image_priority": 1,
+      "visual_effects": {
+        "glow": false,
+        "animation": "float",
+        "showBadge": true,
+        "spotlight": true,
+        "shadows": "soft",
+        "border": "dashed"
+      }
+    },
+    {
+      "id": 13,
+      "title": "NEWLY ADDED: PET-GPT (By NEX-DEVS)",
+      "description": "a vercitile PET query related chat bot",
+      "detailed_description": "Advanced AI-powered chatbot specializing in pet-related queries, providing comprehensive care advice and information.",
+      "image_url": "/projects/1aef2df5-ec63-42c1-9c05-f37a1a4d152e.png",
+      "second_image": "/projects/2859ce8c-65c3-4780-894a-7434a0cf7a78.png",
+      "show_both_images_in_priority": true,
+      "category": "Web Development with AI Integration",
+      "technologies": ["WEB SEARCH"],
+      "project_link": "https://3d-portfolio-showcase.vercel.app",
+      "featured": true,
+      "status": "Recently Launched",
+      "updated_days": 1,
+      "progress": 75,
+      "features": ["DEEP SEARCH"],
+      "exclusive_features": [
+        "Early access to premium content",
+        "Experimental features not available in public release",
+        "Limited edition design elements"
+      ],
+      "image_priority": 1,
+      "visual_effects": {
+        "morphTransition": true,
+        "rippleEffect": false,
+        "floatingElements": true,
+        "shimmering": false,
+        "animation": "pop",
+        "shadows": "3d",
+        "border": "animated",
+        "glassmorphism": true,
+        "particles": true,
+        "animationTiming": "very-slow",
+        "animationIntensity": "strong"
+      }
+    },
+    {
+      "id": 11,
+      "title": "NEWLY ADDED: 3D Portfolio Website",
+      "description": "A 3D website showcasing immersive experiences with interactive elements and stunning animations.",
+      "detailed_description": "This cutting-edge 3D portfolio website pushes the boundaries of web technology to create an immersive digital experience. It features interactive 3D models that respond to user input, custom shader effects that create unique visual atmospheres, and a seamless navigation system that guides visitors through different project environments.",
+      "image_url": "/projects/3d-portfolio.jpg",
+      "category": "UI/UX Design",
+      "technologies": ["Three.js", "React Three Fiber", "GSAP", "WebGL"],
+      "tech_details": {
+        "3D": "Three.js with custom WebGL shaders for visual effects",
+        "framework": "React Three Fiber for component-based 3D development",
+        "animation": "GSAP for timeline-based animations and transitions",
+        "performance": "Optimized asset loading and level-of-detail rendering"
+      },
+      "project_link": "https://3d-portfolio-showcase.vercel.app",
+      "featured": true,
+      "status": "In Development",
+      "updated_days": 2,
+      "progress": 99,
+      "features": [
+        "Interactive 3D models and animations",
+        "Custom shader effects",
+        "Responsive 3D environments"
+      ],
+      "completion_date": "Expected June 2024",
+      "client_name": "Personal Portfolio",
+      "duration": "3 months"
+    },
+    {
+      "id": 12,
+      "title": "NEWLY ADDED: Fullstack Dashboard",
+      "description": "A complete dashboard solution with authentication, analytics, and real-time data visualization.",
+      "detailed_description": "The Fullstack Dashboard is a comprehensive solution for business intelligence and data management. It provides a secure authentication system with role-based access control, real-time analytics that process and visualize data streams, and customizable reporting tools.",
+      "image_url": "/projects/dashboard.jpg",
+      "category": "Web Development",
+      "technologies": ["Next.js 14", "Tailwind CSS", "Prisma", "MongoDB"],
+      "tech_details": {
+        "frontend": "Next.js 14 with App Router and React Server Components",
+        "database": "MongoDB with Prisma ORM for type-safe queries",
+        "styling": "Tailwind CSS with custom design system",
+        "auth": "NextAuth.js with OAuth 2.0 and role-based permissions"
+      },
+      "project_link": "https://fullstack-dashboard.vercel.app",
+      "featured": true,
+      "status": "Beta Testing",
+      "updated_days": 5,
+      "progress": 50,
+      "features": [
+        "OAuth 2.0 Authentication",
+        "Real-time Analytics",
+        "Data Visualization"
+      ],
+      "completion_date": "Expected July 2024",
+      "client_name": "Enterprise SaaS Platform",
+      "duration": "4 months"
+    }
+  ],
+  "team_members": [
+    {
+      "id": 1,
+      "name": "Ali Hasnaat",
+      "title": "Founder & Lead Developer",
+      "bio": "Full-stack developer with expertise in AI integration and modern web technologies. Passionate about creating exceptional digital experiences and innovative solutions. Founded NEX-DEVS in 2018 and has led the development of 950+ successful projects.",
+      "image_url": "/team/ali.jpg",
+      "skills": [
+        "Full Stack Development",
+        "AI Integration",
+        "System Architecture",
+        "Cloud Infrastructure",
+        "Team Leadership",
+        "Project Management",
+        "Client Relations",
+        "Technical Strategy"
+      ],
+      "social_links": {
+        "github": "https://github.com/NEX-DEVS-DEVELOPERS",
+        "linkedin": "https://linkedin.com/in/alihasnaat",
+        "twitter": "https://twitter.com/alihasnaat",
+        "dribbble": "https://dribbble.com/alihasnaat"
+      },
+      "order_priority": 1,
+      "is_leader": true,
+      "active": true
+    },
+    {
+      "id": 2,
+      "name": "Mudassir Ahmad",
+      "title": "AI Workflows for Business Specialist",
+      "bio": "Senior frontend developer specializing in React/Next.js ecosystems and AI workflow automation for business processes.",
+      "image_url": "/team/mdassir.jpg",
+      "skills": [
+        "React Development",
+        "Next.js Applications",
+        "UI/UX Implementation",
+        "AI Workflow Automation",
+        "Business Process Optimization"
+      ],
+      "social_links": {
+        "github": "https://github.com/mdassirahmad",
+        "linkedin": "https://linkedin.com/in/mdassirahmad"
+      },
+      "order_priority": 2,
+      "is_leader": false,
+      "active": true
+    },
+    {
+      "id": 3,
+      "name": "Faizan Khan",
+      "title": "UI/UX Designer",
+      "bio": "Creative UI/UX designer with expertise in Figma, user research, and motion design. Specializes in creating intuitive, visually appealing interfaces.",
+      "image_url": "/team/faizan.jpg",
+      "skills": [
+        "UI/UX Design",
+        "Figma Mastery",
+        "User Research",
+        "Motion Design",
+        "Prototyping",
+        "Design Systems"
+      ],
+      "social_links": {
+        "dribbble": "https://dribbble.com/faizankhan",
+        "linkedin": "https://linkedin.com/in/faizankhan"
+      },
+      "order_priority": 3,
+      "is_leader": false,
+      "active": true
+    },
+    {
+      "id": 4,
+      "name": "Eman Ali",
+      "title": "Backend Developer",
+      "bio": "Experienced backend developer with expertise in Node.js, Python, and DevOps practices. Specializes in building scalable server-side applications.",
+      "image_url": "/team/eman.jpg",
+      "skills": [
+        "Backend Development",
+        "Node.js",
+        "Python",
+        "DevOps",
+        "Database Design",
+        "API Development"
+      ],
+      "social_links": {
+        "github": "https://github.com/emanali",
+        "linkedin": "https://linkedin.com/in/emanali"
+      },
+      "order_priority": 4,
+      "is_leader": false,
+      "active": true
+    },
+    {
+      "id": 5,
+      "name": "Anns Bashir",
+      "title": "AI Agent Developer",
+      "bio": "Specialized AI agent developer with expertise in N8N, Make.com, and workflow automation platforms. Creates intelligent automation solutions.",
+      "image_url": "/team/anns.jpg",
+      "skills": [
+        "AI Agent Development",
+        "N8N Workflows",
+        "Make.com Automation",
+        "Process Automation",
+        "Integration Development"
+      ],
+      "social_links": {
+        "github": "https://github.com/annsbashir",
+        "linkedin": "https://linkedin.com/in/annsbashir"
+      },
+      "order_priority": 5,
+      "is_leader": false,
+      "active": true
+    },
+    {
+      "id": 6,
+      "name": "Hassam Baloch",
+      "title": "AI Agent Developer",
+      "bio": "Specialized AI Agent Developer with comprehensive expertise in N8N, Make.com, and advanced workflow automation platforms.",
+      "image_url": "/team/hassam.jpg",
+      "skills": [
+        "AI Agent Development",
+        "N8N Advanced Workflows",
+        "Make.com Expert Integration",
+        "Business Process Automation",
+        "Intelligent Workflow Design"
+      ],
+      "social_links": {
+        "github": "https://github.com/hassambaloch",
+        "linkedin": "https://linkedin.com/in/hassambaloch"
+      },
+      "order_priority": 6,
+      "is_leader": false,
+      "active": true
+    },
+    {
+      "id": 7,
+      "name": "Usman Aftab",
+      "title": "AI Database & DevOps Specialist",
+      "bio": "Expert in AI database technologies, vector databases, and DevOps practices. Specializes in building intelligent data systems and managing scalable cloud infrastructure.",
+      "image_url": "/team/usman.jpg",
+      "skills": [
+        "Vector Databases",
+        "AI Database Design",
+        "DevOps Engineering",
+        "Cloud Infrastructure",
+        "Database Optimization",
+        "Machine Learning Ops"
+      ],
+      "social_links": {
+        "github": "https://github.com/usmanaftab",
+        "linkedin": "https://linkedin.com/in/usmanaftab"
+      },
+      "order_priority": 7,
+      "is_leader": false,
+      "active": true
+    }
+  ],
+  "project_categories": [
+    "Web Development",
+    "UI/UX Design",
+    "Web Development with AI Integration"
+  ],
+  "technologies_used": [
+    "Next.js",
+    "React",
+    "TypeScript",
+    "Tailwind CSS",
+    "Framer Motion",
+    "Figma",
+    "Blender",
+    "After Effects",
+    "TensorFlow.js",
+    "Node.js",
+    "Vue.js",
+    "Firebase",
+    "Python",
+    "Adobe XD",
+    "Three.js",
+    "React Three Fiber",
+    "GSAP",
+    "WebGL",
+    "Prisma",
+    "MongoDB",
+    "AI MODEL FOR RESEARCH",
+    "GOOGLE DEEP THINK",
+    "WEB SEARCH"
+  ]
+}

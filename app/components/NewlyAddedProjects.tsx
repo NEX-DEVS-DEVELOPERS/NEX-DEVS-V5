@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
+import { audiowide } from '@/app/utils/fonts'
 
 // Project type definition
 type Project = {
@@ -58,6 +59,7 @@ export default function NewlyAddedProjects() {
   const [expandedProject, setExpandedProject] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [debugInfo, setDebugInfo] = useState<any>(null)
+  const [enlargedImage, setEnlargedImage] = useState<{projectId: number, image: string} | null>(null)
   const projectRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
   // Fetch newly added projects with memoization
@@ -96,11 +98,24 @@ export default function NewlyAddedProjects() {
           throw new Error('API did not return an array of projects')
         }
         
-        // Filter projects with "NEWLY ADDED" in title or status is set
-        const filtered = data.filter((project: Project) => 
-          project.title.startsWith('NEWLY ADDED:') || 
-          (project.status && ['In Development', 'Beta Testing', 'Recently Launched'].includes(project.status))
-        )
+        // Filter projects with "NEWLY ADDED" in title or status is set, excluding mobile-related projects
+        const filtered = data.filter((project: Project) => {
+          const isMobileRelated = project.category?.toLowerCase().includes('mobile') || 
+                                 project.title.toLowerCase().includes('mobile') ||
+                                 project.description.toLowerCase().includes('mobile app') ||
+                                 project.technologies.some(tech => 
+                                   tech.toLowerCase().includes('react native') ||
+                                   tech.toLowerCase().includes('flutter') ||
+                                   tech.toLowerCase().includes('ionic') ||
+                                   tech.toLowerCase().includes('swift') ||
+                                   tech.toLowerCase().includes('kotlin')
+                                 )
+          
+          return !isMobileRelated && (
+            project.title.startsWith('NEWLY ADDED:') || 
+            (project.status && ['In Development', 'Beta Testing', 'Recently Launched'].includes(project.status))
+          )
+        })
         
         // Sort projects by updatedDays (newest first)
         const sorted = filtered.sort((a: Project, b: Project) => {
@@ -137,8 +152,7 @@ export default function NewlyAddedProjects() {
                       // Include a few fields in both camelCase and snake_case for compatibility
                       status: project.status,
                       updatedDays: project.updatedDays,
-                      updated_days: project.updatedDays,
-                      featured: true
+                      updated_days: project.updatedDays
                     })
                   });
                   
@@ -164,14 +178,14 @@ export default function NewlyAddedProjects() {
                 }
                 
                 // Add update results to debug info
-                setDebugInfo(prev => ({
+                setDebugInfo((prev: any) => ({
                   ...prev,
                   updateResults
                 }))
                 
               } catch (error) {
                 console.error('Error updating projects to featured:', error);
-                setDebugInfo(prev => ({
+                setDebugInfo((prev: any) => ({
                   ...prev,
                   updateError: error instanceof Error ? error.message : String(error)
                 }))
@@ -276,6 +290,34 @@ export default function NewlyAddedProjects() {
 
   return (
     <>
+      {/* Full-size Image Preview Modal */}
+      {enlargedImage && (
+        <div 
+          className="fixed inset-0 bg-black/90 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          onClick={() => setEnlargedImage(null)}
+        >
+          <div className="relative max-w-6xl max-h-full">
+            <button 
+              onClick={() => setEnlargedImage(null)}
+              className="absolute -top-12 right-0 text-white hover:text-gray-300 transition-colors"
+            >
+              <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+            <div className="relative">
+              <Image
+                src={enlargedImage.image}
+                alt="Full size preview"
+                width={1200}
+                height={800}
+                className="object-contain max-h-[80vh] rounded-lg"
+                quality={95}
+              />
+            </div>
+          </div>
+        </div>
+      )}
       <style jsx>{`
         .neon-ring-effect {
           box-shadow: 0 0 15px rgba(147, 51, 234, 0.3);
@@ -657,286 +699,261 @@ export default function NewlyAddedProjects() {
           background-color: rgba(255, 255, 255, 0.1);
         }
       `}</style>
-      <section className="max-w-7xl mx-auto mb-12 md:mb-16 px-4 md:px-4">
-      {/* Header */}
-        <div className="bg-gradient-to-r from-purple-900/30 to-blue-900/30 rounded-xl p-4 md:p-5 mb-4 md:mb-6 neon-border-cyan-base will-change-transform">
-          <div className="flex items-center gap-2 md:gap-3">
-          <div className="relative flex items-center">
-              <div className="absolute -left-1 md:-left-1.5 -top-1 md:-top-1.5 w-6 md:w-8 h-6 md:h-8 bg-purple-500/20 rounded-full animate-ping"></div>
-              <div className="relative w-4 md:w-5 h-4 md:h-5 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full mr-1.5 md:mr-2 flex items-center justify-center">
-                <svg className="w-2.5 md:w-3 h-2.5 md:h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-              </svg>
-            </div>
-              <h2 className="text-2xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-400 to-blue-400 bg-clip-text text-transparent">
-              New Projects
-            </h2>
-          </div>
-            <span className="px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium bg-green-500/20 text-green-300 border border-green-500/30">
-            Recently Added
-          </span>
+      <section className="relative py-20 px-4 bg-black">
+        {/* Professional Background Effects */}
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-black" />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-600/5 rounded-full blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-blue-600/5 rounded-full blur-3xl" />
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-950/5 to-transparent" />
         </div>
-      </div>
-      
-      {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5 will-change-transform">
-        {newlyAddedProjects.map((project) => {
-          // Get animation classes based on project's visualEffects but only apply when not expanded
-          const animationClasses = expandedProject === project.id ? '' : 
-            project.visualEffects?.animation === 'pulse' ? 'animate-slowPulse' : 
-            project.visualEffects?.animation === 'bounce' ? 'animate-bounce-slow' : 
-            project.visualEffects?.animation === 'fade' ? 'animate-fade' : 
-            project.visualEffects?.animation === 'reveal' ? 'animate-reveal' :
-            project.visualEffects?.animation === 'float' ? 'animate-float' : 
-            project.visualEffects?.animation === 'flip' ? 'hover:rotate-1 hover:scale-[1.02]' :
-            project.visualEffects?.animation === 'slide-right' ? 'animate-slide-right' :
-            project.visualEffects?.animation === 'glitch' ? 'animate-glitch' :
-            project.visualEffects?.animation === 'swing' ? 'animate-swing' :
-            project.visualEffects?.animation === 'spiral' ? 'animate-spiral' :
-            project.visualEffects?.animation === 'elastic' ? 'animate-elastic' :
-            project.visualEffects?.animation === 'jello' ? 'animate-jello' :
-            project.visualEffects?.animation === 'vibrate' ? 'animate-vibrate' :
-            project.visualEffects?.animation === 'pop' ? 'animate-pop' :
-            project.visualEffects?.animation === 'shimmer' ? 'animate-shimmer' :
-            project.visualEffects?.animation === 'morph' ? 
-              project.visualEffects?.animationIntensity === 'subtle' ? 'animate-morph-subtle' : 
-              project.visualEffects?.animationIntensity === 'medium' ? 'animate-morph-medium' : 
-              project.visualEffects?.animationIntensity === 'strong' ? 'animate-morph-strong' : 
-              'animate-morph' :
-            project.visualEffects?.animation === 'wave' ? 'animate-wave' :
-            project.visualEffects?.animation === 'float-smooth' ? 'animate-float-smooth' :
-            '';
-          
-          // Get shadow classes - apply based on expanded state
-          const shadowClasses = expandedProject === project.id ? 'shadow-md' :
-            project.visualEffects?.shadows === 'soft' ? 'shadow-lg' :
-            project.visualEffects?.shadows === 'hard' ? 'shadow-xl' :
-            project.visualEffects?.shadows === 'neon' ? 'shadow-[0_0_20px_5px_rgba(147,51,234,0.4)]' :
-            project.visualEffects?.shadows === 'gradient' ? 'shadow-[0_0_30px_5px_rgba(147,51,234,0.4),0_0_30px_10px_rgba(59,130,246,0.3)]' :
-            project.visualEffects?.shadows === '3d' ? 'shadow-3d' :
-            project.visualEffects?.shadows === 'layered' ? 'shadow-layered' :
-            project.visualEffects?.shadows === 'ambient' ? 'shadow-ambient' :
-            project.visualEffects?.shadows === 'highlight' ? 'shadow-highlight' :
-            'shadow-md';
-          
-          // Get border classes - apply simpler border when expanded
-          const borderClasses = expandedProject === project.id ? 'border border-purple-500/30' :
-            project.visualEffects?.border === 'solid' ? 'border-2 border-purple-500/50' :
-            project.visualEffects?.border === 'dashed' ? 'border-2 border-dashed border-purple-500/50' :
-            project.visualEffects?.border === 'gradient' ? 'bg-gradient-to-r from-purple-500/20 to-blue-500/20 p-[1px]' :
-            project.visualEffects?.border === 'glow' ? 'border-2 border-purple-500/50 shadow-[0_0_10px_1px_rgba(147,51,234,0.4)]' :
-            project.visualEffects?.border === 'animated' ? 'border-2 border-purple-500/50 animate-borderGlow' :
-            project.visualEffects?.border === 'glowing' ? 'border-glowing' :
-            project.visualEffects?.border === 'pulsating' ? 'border-pulsating' :
-            project.visualEffects?.border === 'double' ? 'border-double' :
-            project.visualEffects?.border === 'gradient-border' ? 'border-gradient' :
-            'border border-purple-600/20';
+        
+        <div className="max-w-7xl mx-auto relative z-10">
+          {/* Professional Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-3 mb-6">
+              <div className="w-10 h-10 bg-gradient-to-br from-purple-600 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+                <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+              </div>
+              <span className="px-4 py-2 bg-purple-600/10 text-purple-300 rounded-full text-sm font-semibold border border-purple-600/20">
+                Latest Releases
+              </span>
+            </div>
             
-          // Combined classes - only apply effect classes when not expanded
-            const cardClasses = `relative overflow-hidden rounded-xl
-            ${expandedProject === project.id ? '' : project.visualEffects?.morphTransition ? 'morph-transition' : ''}
-            ${expandedProject === project.id ? '' : project.visualEffects?.rippleEffect ? 'ripple-effect' : ''}
-            ${expandedProject === project.id ? '' : project.visualEffects?.floatingElements ? 'floating-elements' : ''}
-            ${expandedProject === project.id ? '' : project.visualEffects?.shimmering ? 'shimmering' : ''}
-              ${shadowClasses}
-              transition-all duration-300
-              ${expandedProject === project.id ? 'md:col-span-2 ring-2 ring-purple-500/50' : ''}
-              ${animationClasses}
-              backdrop-blur-md bg-gray-900/40
-              ${index % 10 === 0 ? 'neon-border-purple-base' :
-                index % 10 === 1 ? 'neon-border-blue-base' :
-                index % 10 === 2 ? 'neon-border-green-base' :
-                index % 10 === 3 ? 'neon-border-pink-base' :
-                index % 10 === 4 ? 'neon-border-cyan-base' :
-                index % 10 === 5 ? 'neon-border-orange-base' :
-                index % 10 === 6 ? 'neon-border-yellow-base' :
-                index % 10 === 7 ? 'neon-border-red-base' :
-                index % 10 === 8 ? 'neon-border-violet-base' :
-                'neon-border-lime-base'}`;
-          
-          // Animation timing classes based on intensity if provided, but only when not expanded
-          const animationTimingClass = expandedProject === project.id ? '' : 
-            project.visualEffects?.animationTiming === 'fast' ? 'animation-duration-500' :
-            project.visualEffects?.animationTiming === 'slow' ? 'animation-duration-3000' :
-            project.visualEffects?.animationTiming === 'very-slow' ? 'animation-duration-5000' : '';
-          
-          return (
-            <div 
-              key={project.id}
-              ref={(el) => {
-                projectRefs.current[project.id] = el;
-              }}
-              className={`${cardClasses} ${animationTimingClass}`}
-              style={{ 
-                willChange: 'transform, opacity, border-radius',
-                backdropFilter: project.visualEffects?.border === 'gradient' ? 'blur(12px)' : 'none',
-                transformStyle: 'preserve-3d',
-                perspective: '1000px'
-              }}
-            >
-              {/* Wrapper for border gradient if needed */}
-              <div 
-                className={`${
-                project.visualEffects?.border === 'gradient' 
-                  ? 'rounded-xl h-full bg-gray-900/40 backdrop-blur-md border border-purple-500/30' 
-                  : 'bg-gray-900/40 backdrop-blur-md'
-                }`}
-                data-expanded={expandedProject === project.id}
-              >
-
-                {/* New Badge - Only show if visualEffects.showBadge is true */}
-                {project.visualEffects?.showBadge && <NewBadge />}
-                
-                {/* Spotlight Effect - only when not expanded */}
-                {project.visualEffects?.spotlight && expandedProject !== project.id && (
-                  <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                    <div className="absolute -right-20 -top-20 w-56 h-56 bg-purple-500/20 rounded-full blur-3xl opacity-50 animate-slowPulse"></div>
-                    <div className="absolute -left-20 -bottom-20 w-56 h-56 bg-blue-500/20 rounded-full blur-3xl opacity-50 animate-slowPulse" style={{ animationDelay: '2s' }}></div>
-                  </div>
-                )}
-                
-                {/* Background Effects - only when not expanded */}
-                {expandedProject !== project.id && (
-                  <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 to-blue-500/5 opacity-0 hover:opacity-100 transition-opacity duration-500"></div>
-                )}
-                  
-                {/* Particle Effects - only when not expanded */}
-                {project.visualEffects?.particles && expandedProject !== project.id && (
-                    <div className="absolute inset-0 overflow-hidden">
-                      <div className="particle particle-1"></div>
-                      <div className="particle particle-2"></div>
-                      <div className="particle particle-3"></div>
-                      <div className="particle particle-4"></div>
-                    </div>
-                  )}
-                  
-                {/* Glassmorphism Effect - only when not expanded */}
-                {project.visualEffects?.glassmorphism && expandedProject !== project.id && (
-                    <div className="absolute inset-0 bg-white/10 backdrop-blur-md border border-white/20"></div>
-                  )}
-                
-                {/* Background Image */}
-                <div className="absolute inset-0 z-0">
-                  {project.showBothImagesInPriority && project.secondImage && project.secondImage !== '/projects/placeholder.jpg' ? (
-                    // Show both images side by side when showBothImagesInPriority is true
-                    <div className="w-full h-full flex">
-                      <div className="w-1/2 h-full relative">
-                        <Image
-                          src={project.image}
-                          alt={project.title}
-                          fill
-                          className={`object-cover transition-opacity duration-300 ${
-                            expandedProject === project.id ? 'opacity-8' : 'opacity-10'
-                          } ${project.visualEffects?.animationIntensity === 'subtle' ? 'filter-brightness-90' : ''}`}
-                          sizes="50vw"
-                          loading="lazy"
-                          quality={expandedProject === project.id ? 85 : 70}
-                          decoding="async"
-                          fetchPriority={expandedProject === project.id ? "high" : "low"}
-                        />
-                      </div>
-                      <div className="w-1/2 h-full relative">
-                        <Image
-                          src={project.secondImage}
-                          alt={`Second view of ${project.title}`}
-                          fill
-                          className={`object-cover transition-opacity duration-300 ${
-                            expandedProject === project.id ? 'opacity-8' : 'opacity-10'
-                          } ${project.visualEffects?.animationIntensity === 'subtle' ? 'filter-brightness-90' : ''}`}
-                          sizes="50vw"
-                          loading="lazy"
-                          quality={expandedProject === project.id ? 85 : 70}
-                          decoding="async"
-                          fetchPriority={expandedProject === project.id ? "high" : "low"}
-                        />
-                      </div>
-                    </div>
-                  ) : (
-                    // Show only the main image when showBothImagesInPriority is false
-                    project.image && (
-                      <Image
-                        src={project.image}
-                        alt={project.title}
-                        fill
-                        className={`object-cover transition-opacity duration-300 ${
-                          expandedProject === project.id ? 'opacity-8' : 'opacity-10'
-                        } ${project.visualEffects?.animationIntensity === 'subtle' ? 'filter-brightness-90' : ''}`}
-                        sizes={expandedProject === project.id 
-                          ? "(max-width: 768px) 100vw, 100vw" 
-                          : "(max-width: 768px) 100vw, 50vw"
-                        }
-                        loading="lazy"
-                        quality={expandedProject === project.id ? 85 : 70}
-                        decoding="async"
-                        fetchPriority={expandedProject === project.id ? "high" : "low"}
-                      />
-                    )
-                  )}
-                  <div className="absolute inset-0 bg-gradient-to-b from-black/80 via-gray-900/80 to-black/80" />
+            <h2 className={`text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight ${audiowide.className}`}>
+              Recently Launched
+            </h2>
+            <p className="text-gray-400 text-lg max-w-3xl mx-auto leading-relaxed mb-8">
+              Fresh from development - explore our newest additions featuring cutting-edge 
+              technology, innovative design, and exclusive features that push the boundaries of modern web development.
+            </p>
+            
+            {/* Professional Stats */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 max-w-2xl mx-auto">
+              {[
+                { label: 'New Projects', value: newlyAddedProjects.length, color: 'purple' },
+                { label: 'In Development', value: newlyAddedProjects.filter(p => p.status === 'In Development').length, color: 'blue' },
+                { label: 'Beta Testing', value: newlyAddedProjects.filter(p => p.status === 'Beta Testing').length, color: 'green' },
+                { label: 'Launched', value: newlyAddedProjects.filter(p => p.status === 'Recently Launched').length, color: 'yellow' }
+              ].map((stat, index) => (
+                <div key={index} className="text-center">
+                  <div className={`text-3xl font-bold mb-1 ${
+                    stat.color === 'purple' ? 'text-purple-400' :
+                    stat.color === 'blue' ? 'text-blue-400' :
+                    stat.color === 'green' ? 'text-green-400' :
+                    'text-yellow-400'
+                  }`}>{stat.value}</div>
+                  <div className="text-gray-500 text-sm font-medium">{stat.label}</div>
                 </div>
-                
-                {/* Content */}
-                  <div className="relative z-10 p-3 md:p-5">
-                  {/* Header with Status */}
-                    <div className={`flex flex-wrap items-center justify-between gap-2 mb-3 md:mb-4 ${expandedProject === project.id ? 'pb-2 border-b border-purple-500/20' : ''}`}>
-                    <div className="flex items-center gap-2">
-                        <span className={`inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 rounded-full text-[10px] md:text-xs font-medium ${
-                        project.status === 'In Development' 
-                          ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' 
-                          : project.status === 'Beta Testing'
-                            ? 'bg-blue-500/20 text-blue-300 border border-blue-500/30'
-                            : 'bg-green-500/20 text-green-300 border border-green-500/30'
-                      }`}>
-                          <span className="w-1.5 md:w-2 h-1.5 md:h-2 bg-current rounded-full mr-1 md:mr-1.5 animate-pulse"></span>
-                        {project.status || 'In Development'}
-                      </span>
-                        <span className={`text-[10px] md:text-xs text-gray-400 flex items-center ${expandedProject === project.id ? 'bg-gray-800/50 px-2 py-0.5 rounded-full' : ''}`}>
-                          <svg className="w-2.5 md:w-3 h-2.5 md:h-3 mr-0.5 md:mr-1 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        {project.updatedDays || 1} days ago
-                      </span>
+              ))}
+            </div>
+          </div>
+          {/* Professional Statistics Overview */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-12">
+            {[
+              { label: 'New Projects', value: newlyAddedProjects.length, color: 'text-purple-400', bg: 'bg-purple-500/10', border: 'border-purple-500/20' },
+              { label: 'In Development', value: newlyAddedProjects.filter(p => p.status === 'In Development').length, color: 'text-blue-400', bg: 'bg-blue-500/10', border: 'border-blue-500/20' },
+              { label: 'Beta Testing', value: newlyAddedProjects.filter(p => p.status === 'Beta Testing').length, color: 'text-green-400', bg: 'bg-green-500/10', border: 'border-green-500/20' },
+              { label: 'Launched', value: newlyAddedProjects.filter(p => p.status === 'Recently Launched').length, color: 'text-yellow-400', bg: 'bg-yellow-500/10', border: 'border-yellow-500/20' }
+            ].map((stat, index) => (
+              <div key={index} className={`${stat.bg} ${stat.border} border rounded-xl p-4 text-center transition-all duration-300 hover:scale-105`}>
+                <div className={`text-2xl md:text-3xl font-bold mb-1 ${stat.color}`}>{stat.value}</div>
+                <div className="text-gray-400 text-sm font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* Clean Projects List Layout */}
+          <div className="space-y-6">
+            {newlyAddedProjects.map((project, index) => {
+              const isExpanded = expandedProject === project.id;
+              
+              return (
+                <div 
+                  key={project.id}
+                  ref={(el) => {
+                    projectRefs.current[project.id] = el;
+                  }}
+                  className={`
+                    relative overflow-hidden rounded-xl transition-all duration-500 ease-out
+                    ${isExpanded 
+                      ? 'bg-black border border-purple-500/30 shadow-2xl shadow-purple-900/20' 
+                      : 'bg-black border border-gray-700/50 hover:border-purple-500/30'
+                    }
+                  `}
+                >
+                  {/* Professional New Badge */}
+                  {project.visualEffects?.showBadge && (
+                    <div className="absolute top-4 right-4 z-20">
+                      <div className="bg-black border border-purple-500/50 text-purple-300 text-xs font-semibold px-3 py-1 rounded-full">
+                        NEW
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Organized Content Layout */}
+                  <div className={`${isExpanded ? 'grid lg:grid-cols-5 gap-6' : 'grid md:grid-cols-4 gap-4'} p-6`}>
+                    
+                    {/* Project Image Section - Clean Layout */}
+                    <div className={`${isExpanded ? 'lg:col-span-2' : 'md:col-span-1'} relative`}>
+                      <div className={`relative ${isExpanded ? 'aspect-[4/3]' : 'aspect-square'} overflow-hidden rounded-lg border border-gray-600/50 cursor-pointer group`}
+                           onClick={() => setEnlargedImage({projectId: project.id, image: project.image})}>
+                        {project.showBothImagesInPriority && project.secondImage && project.secondImage !== '/projects/placeholder.jpg' ? (
+                          <div className="w-full h-full flex">
+                            <div className="w-1/2 h-full relative">
+                              <Image
+                                src={project.image}
+                                alt={project.title}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="25vw"
+                                loading="lazy"
+                                quality={75}
+                              />
+                            </div>
+                            <div className="w-1/2 h-full relative">
+                              <Image
+                                src={project.secondImage}
+                                alt={`Second view of ${project.title}`}
+                                fill
+                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                sizes="25vw"
+                                loading="lazy"
+                                quality={75}
+                              />
+                            </div>
+                          </div>
+                        ) : (
+                          project.image && (
+                            <Image
+                              src={project.image}
+                              alt={project.title}
+                              fill
+                              className="object-cover group-hover:scale-105 transition-transform duration-700"
+                              sizes={isExpanded ? "40vw" : "25vw"}
+                              loading="lazy"
+                              quality={isExpanded ? 85 : 75}
+                            />
+                          )
+                        )}
+                        
+                        {/* Zoom overlay icon */}
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                          <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 rounded-full p-2">
+                            <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Image Controls */}
+                      {isExpanded && project.secondImage && project.secondImage !== '/projects/placeholder.jpg' && (
+                        <div className="mt-3 flex justify-center gap-2">
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              const updatedProject = {...project};
+                              const temp = updatedProject.image;
+                              updatedProject.image = updatedProject.secondImage || '';
+                              updatedProject.secondImage = temp;
+                              setNewlyAddedProjects(newlyAddedProjects.map(p => 
+                                p.id === project.id ? updatedProject : p
+                              ));
+                            }}
+                            className="px-3 py-1.5 bg-purple-600/20 border border-purple-500/50 text-purple-300 text-xs rounded-lg hover:bg-purple-600/30 transition-colors flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                            </svg>
+                            Show Secondary Image
+                          </button>
+                          <button 
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setEnlargedImage({projectId: project.id, image: project.secondImage || project.image});
+                            }}
+                            className="px-3 py-1.5 bg-blue-600/20 border border-blue-500/50 text-blue-300 text-xs rounded-lg hover:bg-blue-600/30 transition-colors flex items-center gap-2"
+                          >
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                            </svg>
+                            Full Preview
+                          </button>
+                        </div>
+                      )}
                     </div>
                     
-                    {/* Expand/Collapse Button */}
-                    <button 
-                      onClick={() => handleProjectExpand(project.id)}
-                        className={`px-2 md:px-2.5 py-0.5 md:py-1 rounded text-[10px] md:text-xs font-medium ${
-                          expandedProject === project.id 
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-500' 
-                            : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border border-gray-700/50'
-                        } flex items-center gap-1 md:gap-1.5 transition`}
-                      aria-label={expandedProject === project.id ? "Collapse details" : "Expand details"}
-                    >
-                      {expandedProject === project.id ? (
-                        <>
-                            <svg className="w-3 md:w-3.5 h-3 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                          </svg>
-                          Collapse
-                        </>
-                      ) : (
-                        <>
-                            <svg className="w-3 md:w-3.5 h-3 md:h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                          </svg>
-                          Details
-                        </>
-                      )}
-                    </button>
-                  </div>
-                  
-                  {/* Title and Description */}
-                    <div className="mb-3 md:mb-4">
-                      <h3 className={`${expandedProject === project.id ? 'project-title' : 'text-xl md:text-2xl font-bold text-white mb-1 md:mb-2'} ${expandedProject === project.id ? '' : 'line-clamp-1'}`}>
-                      {project.title.startsWith('NEWLY ADDED:') 
-                        ? project.title.replace('NEWLY ADDED:', '') 
-                        : project.title}
-                    </h3>
-                      <p className={`${expandedProject === project.id ? 'project-description' : 'text-gray-300 text-xs md:text-sm'} ${expandedProject === project.id ? '' : 'line-clamp-2'}`}>
-                      {project.description}
-                    </p>
-                  </div>
+                    {/* Project Information Section - Organized */}
+                    <div className={`${isExpanded ? 'lg:col-span-3' : 'md:col-span-3'} space-y-4`}>
+                      
+                      {/* Header with Status and Controls */}
+                      <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                          {/* Status Badge */}
+                          <div className="flex items-center gap-3 mb-3">
+                            <span className={`inline-flex items-center px-3 py-1.5 rounded-full text-xs font-medium border ${
+                              project.status === 'In Development' 
+                                ? 'bg-purple-500/10 text-purple-300 border-purple-500/30' 
+                                : project.status === 'Beta Testing'
+                                  ? 'bg-blue-500/10 text-blue-300 border-blue-500/30'
+                                  : 'bg-green-500/10 text-green-300 border-green-500/30'
+                            }`}>
+                              <span className="w-2 h-2 bg-current rounded-full mr-2 animate-pulse"></span>
+                              {project.status || 'In Development'}
+                            </span>
+                            <span className="text-xs text-gray-400 flex items-center">
+                              <svg className="w-3 h-3 mr-1 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                              </svg>
+                              {project.updatedDays || 1} days ago
+                            </span>
+                          </div>
+                          
+                          {/* Title and Description */}
+                          <h3 className={`font-bold text-white mb-2 ${
+                            isExpanded ? 'text-2xl' : 'text-xl line-clamp-1'
+                          }`}>
+                            {project.title.startsWith('NEWLY ADDED:') 
+                              ? project.title.replace('NEWLY ADDED:', '') 
+                              : project.title}
+                          </h3>
+                          <p className={`text-gray-300 text-sm leading-relaxed ${
+                            isExpanded ? '' : 'line-clamp-2'
+                          }`}>
+                            {project.description}
+                          </p>
+                        </div>
+                        
+                        {/* Expand/Collapse Button */}
+                        <button 
+                          onClick={() => handleProjectExpand(project.id)}
+                          className={`px-3 py-2 rounded-lg text-xs font-medium transition-all flex items-center gap-2 ${
+                            isExpanded 
+                              ? 'bg-purple-600 hover:bg-purple-700 text-white border border-purple-500' 
+                              : 'bg-black hover:bg-gray-900 text-gray-300 border border-gray-600/50'
+                          }`}
+                          aria-label={isExpanded ? "Collapse details" : "Expand details"}
+                        >
+                          {isExpanded ? (
+                            <>
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                              </svg>
+                              Collapse
+                            </>
+                          ) : (
+                            <>
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                              </svg>
+                              Details
+                            </>
+                          )}
+                        </button>
+                      </div>
                   
                   {/* Progress Bar */}
                   {project.progress !== undefined && (
@@ -993,48 +1010,133 @@ export default function NewlyAddedProjects() {
                     </div>
                   )}
                   
+                  {/* Image Controls for Expanded View - Show Secondary Image Button */}
+                  {expandedProject === project.id && (
+                    <div className="mb-5">
+                      <h4 className="text-sm font-medium text-gray-300 mb-2">Image Options:</h4>
+                      <div className="flex flex-wrap gap-2">
+                        {/* Always show full size view button */}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setEnlargedImage({projectId: project.id, image: project.image});
+                          }}
+                          className="px-4 py-2 bg-gradient-to-r from-blue-600/20 to-green-600/20 border border-blue-500/50 text-blue-300 text-sm rounded-lg hover:from-blue-600/30 hover:to-green-600/30 transition-all flex items-center gap-2"
+                        >
+                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                          </svg>
+                          View Full Size
+                        </button>
+                        
+                        {/* Show secondary image controls if available */}
+                        {project.secondImage && project.secondImage !== '/projects/placeholder.jpg' ? (
+                          <>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updatedProject = {...project};
+                                const temp = updatedProject.image;
+                                updatedProject.image = updatedProject.secondImage || '';
+                                updatedProject.secondImage = temp;
+                                setNewlyAddedProjects(newlyAddedProjects.map(p => 
+                                  p.id === project.id ? updatedProject : p
+                                ));
+                              }}
+                              className="px-4 py-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 text-purple-300 text-sm rounded-lg hover:from-purple-600/30 hover:to-blue-600/30 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                              </svg>
+                              Show Secondary Image
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEnlargedImage({projectId: project.id, image: project.secondImage || project.image});
+                              }}
+                              className="px-4 py-2 bg-gradient-to-r from-green-600/20 to-yellow-600/20 border border-green-500/50 text-green-300 text-sm rounded-lg hover:from-green-600/30 hover:to-yellow-600/30 transition-all flex items-center gap-2"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                              </svg>
+                              View Secondary Full Size
+                            </button>
+                          </>
+                        ) : (
+                          <div className="px-4 py-2 bg-gray-800/50 border border-gray-600/50 text-gray-400 text-sm rounded-lg flex items-center gap-2">
+                            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            No secondary image available
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                  
                   {/* Expanded View Details */}
                   {expandedProject === project.id && (
                     <div className="mt-6 mb-5 grid grid-cols-1 md:grid-cols-3 gap-4 project-content">
                       {/* Left: Project Image Larger View */}
                       <div className="md:col-span-1">
-                        <div className="relative aspect-square overflow-hidden rounded-lg border border-purple-600/30">
+                        <div className="relative aspect-square overflow-hidden rounded-lg border border-purple-600/30 cursor-pointer group"
+                             onClick={() => setEnlargedImage({projectId: project.id, image: project.image})}>
                           {project.image && (
                             <Image
                               src={project.image}
                               alt={project.title}
                               fill
-                              className="object-cover"
+                              className="object-cover group-hover:scale-105 transition-transform duration-300"
                               loading="eager"
                               quality={85}
                               sizes="(max-width: 768px) 100vw, 33vw"
                             />
                           )}
+                          
+                          {/* Zoom overlay icon */}
+                          <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors duration-300 flex items-center justify-center">
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/60 rounded-full p-3">
+                              <svg className="w-8 h-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                              </svg>
+                            </div>
+                          </div>
                         </div>
                         
-                        {/* Second Image Toggle Button - Only show if there's a second image */}
+                        {/* Enhanced Second Image Controls - Only show if there's a second image */}
                         {project.secondImage && project.secondImage !== '/projects/placeholder.jpg' && (
-                          <div className="mt-2 flex justify-center">
+                          <div className="mt-3 flex flex-col gap-2">
                             <button 
-                              onClick={() => {
-                                // Create a temporary variable to hold the current project
+                              onClick={(e) => {
+                                e.stopPropagation();
                                 const updatedProject = {...project};
-                                // Swap the images
                                 const temp = updatedProject.image;
                                 updatedProject.image = updatedProject.secondImage || '';
                                 updatedProject.secondImage = temp;
                                 
-                                // Update the project in the state
                                 setNewlyAddedProjects(newlyAddedProjects.map(p => 
                                   p.id === project.id ? updatedProject : p
                                 ));
                               }}
-                              className="px-3 py-1.5 bg-blue-600/40 text-blue-300 text-xs rounded-lg border border-blue-600/40 hover:bg-blue-600/60 transition-colors flex items-center justify-center gap-1.5"
+                              className="w-full px-4 py-2 bg-gradient-to-r from-purple-600/20 to-blue-600/20 border border-purple-500/50 text-purple-300 text-sm rounded-lg hover:from-purple-600/30 hover:to-blue-600/30 transition-all flex items-center justify-center gap-2"
                             >
-                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
                               </svg>
-                              Switch Image
+                              Show Secondary Image
+                            </button>
+                            <button 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setEnlargedImage({projectId: project.id, image: project.secondImage || project.image});
+                              }}
+                              className="w-full px-4 py-2 bg-gradient-to-r from-blue-600/20 to-green-600/20 border border-blue-500/50 text-blue-300 text-sm rounded-lg hover:from-blue-600/30 hover:to-green-600/30 transition-all flex items-center justify-center gap-2"
+                            >
+                              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v3m0 0v3m0-3h3m-3 0H7" />
+                              </svg>
+                              View Secondary in Full Size
                             </button>
                           </div>
                         )}
@@ -1190,8 +1292,9 @@ export default function NewlyAddedProjects() {
             </div>
           )
         })}
-      </div>
-    </section>
+          </div>
+        </div>
+      </section>
     </>
   )
 } 

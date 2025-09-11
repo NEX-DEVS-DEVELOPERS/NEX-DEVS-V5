@@ -35,7 +35,7 @@ const LEGACY_ADMIN_PATHS = new Set([
   '/admin/command-room'
 ])
 
-// Clean cache periodically to prevent memory leaks
+// Clean cache periodically to prevent memory leaks - optimized frequency
 setInterval(() => {
   const now = Date.now();
   const keysToDelete: string[] = [];
@@ -49,7 +49,7 @@ setInterval(() => {
   
   // Delete collected keys
   keysToDelete.forEach(key => responseCache.delete(key));
-}, CACHE_DURATION);
+}, 300000); // Clean every 5 minutes instead of every 2 minutes
 
 // Security helper functions
 function isLegacyAdminPath(pathname: string): boolean {

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CodeHighlighter from './CodeHighlighter'
+import { audiowide } from '@/app/utils/fonts'
 
 // Project type definition
 type Project = {
@@ -25,6 +26,7 @@ type Project = {
   features?: string[]
   imagePriority?: boolean | number
   showBothImagesInPriority?: boolean
+  showcase_location?: string
   visualEffects?: {
     glow: boolean
     animation: string
@@ -96,11 +98,13 @@ export default function ProjectImageGallery() {
         const data = await response.json()
         console.log(`[ProjectImageGallery] Received ${data.length} projects`);
         
-        // Filter projects that have valid images and exclude code screenshots
+        // Filter projects that have valid images - now include AI projects
         const projectsWithImages = data.filter((project: Project) => 
           project.image && 
-          !project.image.includes('placeholder')
-          // Code screenshots are now included
+          !project.image.includes('placeholder') &&
+          // Include both web development and AI projects, exclude only mobile
+          project.category !== 'Mobile Applications & Experiences' &&
+          project.showcase_location !== 'mobile_showcase'
         )
         
         console.log(`[ProjectImageGallery] After filtering: ${projectsWithImages.length} projects with valid images`);
@@ -198,9 +202,16 @@ export default function ProjectImageGallery() {
         const data = await response.json();
         
         // Filter and sort projects
+        // Exclude projects that belong to dedicated showcase sections
         const projectsWithImages = data.filter((project: Project) => 
           project.image && 
-          !project.image.includes('placeholder')
+          !project.image.includes('placeholder') &&
+          // Exclude projects that belong to AI Solutions showcase
+          project.category !== 'Intelligent Systems & AI Solutions' &&
+          project.showcase_location !== 'ai_solutions' &&
+          // Exclude projects that belong to Mobile Applications showcase
+          project.category !== 'Mobile Applications & Experiences' &&
+          project.showcase_location !== 'mobile_showcase'
         );
         
         const sortedProjects = [...projectsWithImages].sort((a: Project, b: Project) => {
@@ -423,7 +434,7 @@ export default function ProjectImageGallery() {
   if (isLoading) {
     return (
       <section className="max-w-7xl mx-auto mb-16 px-2 sm:px-4 md:px-0">
-        <div className="relative overflow-hidden rounded-xl bg-black/20 border border-purple-500/20 p-4">
+        <div className="relative overflow-hidden rounded-xl bg-black border border-purple-500/20 p-4">
           <div className="h-60 md:h-80 flex justify-center items-center">
             <div className="flex space-x-2">
               <div className="w-3 h-3 bg-purple-500 rounded-full animate-bounce" style={{ animationDelay: '0s' }}></div>
@@ -445,20 +456,16 @@ export default function ProjectImageGallery() {
       {/* Gallery Header */}
       <div className="flex flex-col md:flex-row justify-between items-center mb-8">
           <div>
-          <h2 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-white via-purple-300 to-blue-400 bg-clip-text text-transparent mb-2">
-            Project Showcase
+          <h2 className={`text-3xl md:text-4xl font-bold bg-gradient-to-r from-purple-400 via-blue-400 to-cyan-400 bg-clip-text text-transparent mb-2 ${audiowide.className}`}>
+            NEX-WEBS SPECIALITY
           </h2>
-          <p className="text-gray-400 text-lg">Explore my latest work and innovations</p>
+          <p className="text-gray-400 text-lg">Explore web development projects and Intelligent Systems & AI Solutions</p>
         </div>
               </div>
               
       {/* Main Gallery */}
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-b from-black/40 to-black/20 border border-purple-500/20 p-4 md:p-6">
-        {/* Decorative elements */}
-        <div className="absolute inset-0 overflow-hidden">
-          <div className="absolute top-0 right-1/4 w-[400px] h-[400px] bg-purple-900/10 rounded-full blur-[120px]" />
-          <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] bg-indigo-900/10 rounded-full blur-[120px]" />
-                </div>
+      <div className="relative overflow-hidden rounded-2xl bg-black border border-purple-500/20 p-4 md:p-6">
+        {/* Decorative elements - Removed for consistency */}
                 
         {isLoading ? (
           <div className="h-[500px] flex items-center justify-center">
@@ -540,7 +547,7 @@ export default function ProjectImageGallery() {
 
                     {/* Project Details Section */}
                     <div className="max-w-4xl mx-auto w-full">
-                      <div className="bg-black/30 rounded-xl border border-purple-500/10 p-6 backdrop-blur-sm">
+                      <div className="bg-black rounded-xl border border-purple-500/10 p-6">
                         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
                           {/* Left Column - Status & Progress */}
                           <div className="lg:col-span-4 space-y-4">
@@ -636,7 +643,7 @@ export default function ProjectImageGallery() {
                   </div>
 
                       {/* Related Projects Section */}
-                      <div className="mt-6 bg-black/30 rounded-xl border border-purple-500/10 p-6 backdrop-blur-sm">
+                      <div className="mt-6 bg-black rounded-xl border border-purple-500/10 p-6">
                         <h4 className="text-lg font-semibold text-white mb-4 flex items-center">
                           <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
@@ -665,13 +672,13 @@ export default function ProjectImageGallery() {
                                     <h5 className="text-white font-medium text-sm mb-2">{relatedProject.title}</h5>
                                     {relatedProject.progress !== undefined && (
                                       <div className="flex items-center space-x-2">
-                                        <div className="flex-1 h-1.5 bg-gray-700/50 rounded-full overflow-hidden backdrop-blur-sm">
+                                        <div className="flex-1 h-1.5 bg-gray-800 rounded-full overflow-hidden">
                                           <div 
                                             className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full transition-all duration-500"
                                             style={{ width: `${typeof relatedProject.progress === 'number' ? relatedProject.progress : 0}%` }}
                                           />
                                         </div>
-                                        <span className="text-xs font-medium text-purple-300 bg-black/40 px-2 py-1 rounded-full backdrop-blur-sm">
+                                        <span className="text-xs font-medium text-purple-300 bg-black px-2 py-1 rounded-full">
                                           {typeof relatedProject.progress === 'number' ? `${Math.round(relatedProject.progress)}%` : '0%'}
                                         </span>
                                       </div>
@@ -694,7 +701,7 @@ export default function ProjectImageGallery() {
               <div className="absolute left-4 top-1/3 -translate-y-1/2 flex flex-col gap-2 z-10">
                 <button 
                   onClick={goToPrevious}
-                  className="bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
+                  className="bg-black hover:bg-black text-white p-3 rounded-full transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
                   aria-label="Previous project"
                 >
                   <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -704,7 +711,7 @@ export default function ProjectImageGallery() {
                 
                 <button
                   onClick={toggleAutoplay}
-                  className={`bg-black/60 hover:bg-black/80 text-white p-3 rounded-full transition-all duration-300 border ${
+                  className={`bg-black hover:bg-black text-white p-3 rounded-full transition-all duration-300 border ${
                     isAutoplayEnabled ? 'border-purple-500/40' : 'border-white/10'
                   } hover:border-purple-500/40 hover:scale-105`}
                   aria-label={isAutoplayEnabled ? 'Pause slideshow' : 'Play slideshow'}
@@ -724,7 +731,7 @@ export default function ProjectImageGallery() {
 
               <button 
                 onClick={goToNext}
-                className="absolute right-4 top-1/3 -translate-y-1/2 bg-black/60 hover:bg-black/80 text-white p-3 rounded-full z-10 transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
+                className="absolute right-4 top-1/3 -translate-y-1/2 bg-black hover:bg-black text-white p-3 rounded-full z-10 transition-all duration-300 border border-white/10 hover:border-purple-500/40 hover:scale-105"
                 aria-label="Next project"
               >
                 <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -734,21 +741,71 @@ export default function ProjectImageGallery() {
             </>
           )}
 
-            {/* Pagination Dots */}
+            {/* Enhanced Pagination with Numbers */}
             {projects.length > 1 && (
-              <div className="flex justify-center mt-6 space-x-2">
-                {projects.map((_, index) => (
-                  <button
-                    key={`dot-${index}`}
-                    onClick={() => setCurrentIndex(index)}
-                    className={`h-1.5 rounded-full transition-all duration-300 ${
-                      currentIndex === index 
-                        ? 'w-8 bg-purple-500' 
-                        : 'w-1.5 bg-white/30 hover:bg-white/50'
-                    }`}
-                    aria-label={`Go to project ${index + 1}`}
-                  />
-                ))}
+              <div className="flex justify-center items-center mt-6 space-x-3">
+                {/* Previous Button */}
+                <button
+                  onClick={() => setCurrentIndex(currentIndex === 0 ? projects.length - 1 : currentIndex - 1)}
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:text-white transition-all duration-200"
+                  aria-label="Previous project"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                  </svg>
+                </button>
+                
+                {/* Page Numbers */}
+                <div className="flex items-center space-x-2">
+                  {projects.map((_, index) => {
+                    const isActive = currentIndex === index;
+                    const showNumber = projects.length <= 8 || 
+                                     index === 0 || 
+                                     index === projects.length - 1 || 
+                                     Math.abs(index - currentIndex) <= 2;
+                    
+                    if (!showNumber && index !== 1 && index !== projects.length - 2) {
+                      // Show ellipsis for gaps
+                      if (index === Math.floor(projects.length / 2) && currentIndex < 3) {
+                        return (
+                          <span key={`ellipsis-${index}`} className="text-gray-500 px-1">...</span>
+                        );
+                      }
+                      return null;
+                    }
+                    
+                    return (
+                      <button
+                        key={`page-${index}`}
+                        onClick={() => setCurrentIndex(index)}
+                        className={`min-w-[2.5rem] h-10 rounded-lg font-medium transition-all duration-200 ${
+                          isActive 
+                            ? 'bg-purple-500 text-white shadow-lg shadow-purple-500/25' 
+                            : 'bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:text-white'
+                        }`}
+                        aria-label={`Go to project ${index + 1}`}
+                      >
+                        {index + 1}
+                      </button>
+                    );
+                  })}
+                </div>
+                
+                {/* Next Button */}
+                <button
+                  onClick={() => setCurrentIndex(currentIndex === projects.length - 1 ? 0 : currentIndex + 1)}
+                  className="p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 border border-gray-600/50 text-gray-300 hover:text-white transition-all duration-200"
+                  aria-label="Next project"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
+                </button>
+                
+                {/* Project Counter */}
+                <div className="ml-4 text-sm text-gray-400">
+                  {currentIndex + 1} of {projects.length}
+                </div>
               </div>
             )}
           </div>
@@ -758,7 +815,7 @@ export default function ProjectImageGallery() {
       {/* Enlarged Image Modal */}
       {enlargedImage && (
         <div 
-          className="fixed inset-0 bg-black/95 flex items-center justify-center z-50 p-4"
+          className="fixed inset-0 bg-black flex items-center justify-center z-50 p-4"
           onClick={() => setEnlargedImage(null)}
         >
           <div className="relative max-w-7xl max-h-[90vh] w-full">
@@ -767,7 +824,7 @@ export default function ProjectImageGallery() {
                 e.stopPropagation();
                 setEnlargedImage(null);
               }}
-              className="absolute -top-14 right-0 bg-gray-800 hover:bg-gray-700 text-white p-2.5 rounded-full z-10 transition-colors"
+              className="absolute -top-14 right-0 bg-black hover:bg-gray-900 text-white p-2.5 rounded-full z-10 transition-colors"
             >
               <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />

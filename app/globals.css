@@ -178,11 +178,17 @@ img {
   /* Ensure "See What We Offer" button is interactive */
   button:contains("See What We Offer"),
   [class*="welcome"] button,
-  [class*="Welcome"] button {
+  [class*="Welcome"] button,
+  #welcome-screen-overlay button,
+  #welcome-screen-overlay [role="button"],
+  #welcome-screen-overlay a {
     touch-action: manipulation !important;
     pointer-events: auto !important;
-    z-index: 100 !important;
+    z-index: 10000 !important;
     position: relative !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    cursor: pointer !important;
   }
 
   /* Smooth mobile animations */
@@ -467,10 +473,11 @@ body {
 
 /* CRITICAL: Mobile DevTools Preview Fix - Force All Interactions to Work */
 @media (max-width: 768px) {
-  /* Force all interactive elements to work */
-  *,
-  *::before,
-  *::after {
+  /* Only force interactive elements to work - NOT all elements */
+  body,
+  main,
+  section,
+  div:not([id*="overlay"]):not([class*="overlay"]):not([class*="transition"]) {
     pointer-events: auto !important;
   }
 
@@ -513,6 +520,41 @@ body {
   .mobile-device * {
     transform: none !important;
     will-change: auto !important;
+  }
+
+  /* Welcome screen mobile optimizations */
+  .mobile-device #welcome-screen-overlay {
+    top: 60px !important;
+    height: calc(100vh - 60px) !important;
+    z-index: 999 !important;
+    touch-action: auto !important;
+  }
+
+  .mobile-device #welcome-screen-overlay button,
+  .mobile-device #welcome-screen-overlay [role="button"],
+  .mobile-device #welcome-screen-overlay a {
+    touch-action: manipulation !important;
+    pointer-events: auto !important;
+    min-height: 44px !important;
+    min-width: 44px !important;
+    z-index: 10000 !important;
+  }
+
+  /* DEBUG: Add visual indicators for interactive elements */
+  .mobile-device button:hover,
+  .mobile-device [role="button"]:hover,
+  .mobile-device a:hover {
+    outline: 2px solid #ff0000 !important;
+    outline-offset: 2px !important;
+  }
+
+  /* Force all buttons to be clickable */
+  button,
+  [role="button"],
+  a[href] {
+    cursor: pointer !important;
+    pointer-events: auto !important;
+    touch-action: manipulation !important;
   }
 }
 

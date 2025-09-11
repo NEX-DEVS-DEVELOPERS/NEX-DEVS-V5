@@ -395,11 +395,11 @@ export class EnhancedSecurityMonitor {
   }
 
   private startRealTimeTracking(): void {
-    // Update stats every second for real-time feel
+    // Update stats every 10 seconds for better performance
     setInterval(() => {
       this.updateStats();
       this.notifyCallbacks();
-    }, 1000);
+    }, 10000);
   }
 
   private notifyCallbacks(): void {

@@ -68,17 +68,21 @@ export default function ChatbotClientWrapper() {
         transform-style: preserve-3d;
       }
 
-      /* Ensure chatbot is always visible and functional */
+      /* Ensure chatbot container does not capture events globally */
       .nexious-chat-container {
         position: fixed !important;
         bottom: 20px !important;
         right: 24px !important;
         z-index: 999999 !important;
-        pointer-events: auto !important;
+        pointer-events: none !important; /* container is transparent to touches */
       }
 
-      /* Prevent any interference from other elements */
-      .nexious-chat-container * {
+      /* Only allow events on the chat button and open chat window */
+      .nexious-chat-container .nexious-chat-button,
+      .nexious-chat-container #chat-window,
+      .nexious-chat-container .chatbot-sidebar,
+      .nexious-chat-container .pro-features-popup,
+      .nexious-chat-container .pro-maintenance-popup {
         pointer-events: auto !important;
       }
     `;

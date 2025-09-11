@@ -56,53 +56,57 @@ interface HeroClientProps {
     workProcess: WorkProcess[];
 }
 
-// Ultra-optimized Animation Variants - Maximum performance
+// Ultra-optimized 60fps Animation Variants
 const fadeInUpVariant: Variants = {
-  hidden: { opacity: 0, y: 5 }, // Reduced movement
+  hidden: { opacity: 0, y: 8, transform: 'translateZ(0)' },
   visible: {
     opacity: 1,
     y: 0,
+    transform: 'translateZ(0)',
     transition: {
-      duration: 0.3, // Faster animation
-      ease: "easeOut",
-      staggerChildren: 0.05 // Reduced stagger
+      duration: 0.2, // Ultra-fast for 60fps
+      ease: [0.25, 0.46, 0.45, 0.94], // Optimized easing
+      staggerChildren: 0.03
     }
   }
 }
 
 const staggeredFadeInVariant: Variants = {
-  hidden: { opacity: 0, y: 3 }, // Minimal movement
+  hidden: { opacity: 0, y: 4, transform: 'translateZ(0)' },
   visible: {
     opacity: 1,
     y: 0,
+    transform: 'translateZ(0)',
     transition: {
-      duration: 0.2, // Very fast
-      ease: "easeOut"
+      duration: 0.15, // Even faster
+      ease: [0.25, 0.46, 0.45, 0.94]
     }
   }
 }
 
 const scaleInVariant: Variants = {
-  hidden: { opacity: 0, scale: 0.99 }, // Minimal scale
+  hidden: { opacity: 0, scale: 0.98, transform: 'translateZ(0)' },
   visible: {
     opacity: 1,
     scale: 1,
+    transform: 'translateZ(0)',
     transition: {
-      duration: 0.3, // Faster
-      ease: "easeOut",
-      staggerChildren: 0.03 // Reduced stagger
+      duration: 0.2,
+      ease: [0.25, 0.46, 0.45, 0.94],
+      staggerChildren: 0.02
     }
   }
 }
 
-// Minimal code animation
+// Minimal code animation - 60fps optimized
 const leakyCodeVariants: Variants = {
-    hidden: { opacity: 0 },
+    hidden: { opacity: 0, transform: 'translateZ(0)' },
     visible: {
       opacity: 0.6,
+      transform: 'translateZ(0)',
       transition: {
-        duration: 0.5, // Much faster
-        ease: "easeOut"
+        duration: 0.3, // Faster for smooth performance
+        ease: [0.25, 0.46, 0.45, 0.94]
       }
     }
 }
@@ -121,34 +125,28 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
   const [pathLength, setPathLength] = useState(0);
   const [svgPath, setSvgPath] = useState('');
 
-  // Minimal Barba.js initialization - removed heavy optimizations
+  // Optimized effects initialization - no reload effects
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      import('@/utils/barba-init').then(({ useBarba }) => {
-        useBarba({
-          optimizeWelcomeScreen: true,
-          transitionSpeed: 0.2, // Ultra-fast transitions
-          easing: [0.22, 1, 0.36, 1]
-        });
-      }).catch(() => {
-        // Silent fail for better performance
-      });
-
-      // Minimal hero optimizations
+      // Static hero optimization - no reload effects
       const heroContainer = heroSectionRef.current;
       if (heroContainer) {
-        heroContainer.classList.add('hero-optimized');
-        // Removed heavy style modifications
+        heroContainer.classList.add('hero-optimized', 'smooth-60fps');
+        heroContainer.style.transform = 'translateZ(0)';
+        heroContainer.style.backfaceVisibility = 'hidden';
+        heroContainer.style.contain = 'layout style paint';
       }
     }
   }, []);
 
-  // Simplified event handlers - removed heavy scroll animations
+  // Simplified 60fps event handlers
   useEffect(() => {
     const handleToggleProgress = (event: CustomEvent) => {
       const { progress } = event.detail;
       if (pathRef.current && pathLength > 0) {
         const offset = pathLength - (pathLength * progress);
+        // Use transform for better performance
+        pathRef.current.style.transform = `translateZ(0)`;
         pathRef.current.style.strokeDashoffset = offset.toString();
       }
     };
@@ -158,14 +156,15 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
       const targetProgress = hero === 'business' ? 1 : 0;
       if (pathRef.current && pathLength > 0) {
         const offset = pathLength - (pathLength * targetProgress);
+        pathRef.current.style.transform = `translateZ(0)`;
         pathRef.current.style.strokeDashoffset = offset.toString();
       }
     };
 
-    // Minimal Barba event listeners
+    // Static animation state - no reload effects
     const handleBarbaLeave = () => setIsAutoAnimating(false);
     const handleBarbaEnter = () => {
-      setTimeout(() => setIsAutoAnimating(true), 100); // Faster reinit
+      requestAnimationFrame(() => setIsAutoAnimating(true));
     };
 
     window.addEventListener('heroToggleProgress', handleToggleProgress as EventListener);
@@ -181,7 +180,7 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
     };
   }, [pathLength, isAutoAnimating]);
 
-  // Optimized path calculation - reduced overhead
+  // 60fps optimized path calculation
   useEffect(() => {
     const updatePath = () => {
       if (neuralLineRef.current) {
@@ -191,11 +190,13 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
       }
     };
 
-    // Throttled resize observer for better performance
+    // 60fps throttled resize observer
     let resizeTimer: number;
     const throttledUpdate = () => {
       clearTimeout(resizeTimer);
-      resizeTimer = window.setTimeout(updatePath, 100);
+      resizeTimer = window.setTimeout(() => {
+        requestAnimationFrame(updatePath);
+      }, 16); // 60fps timing
     };
 
     updatePath();
@@ -224,14 +225,16 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
   const prevSkillSet = useCallback(() => setActiveSkillSet((p) => (p - 1 + aiSkills.length) % aiSkills.length), [aiSkills.length])
   const toggleAutoAnimation = useCallback(() => setIsAutoAnimating(p => !p), [])
   
-  // Simplified auto-animation
+  // Static auto-animation - no reload effects
   useEffect(() => {
     if (!isAutoAnimating) return;
     const intervalId = setInterval(() => {
       if (document.visibilityState === 'visible') {
-        nextSkillSet();
+        requestAnimationFrame(() => {
+          nextSkillSet();
+        });
       }
-    }, 4000); // Faster interval
+    }, 3500); // Slightly faster for smoother feel
     return () => clearInterval(intervalId);
   }, [isAutoAnimating, nextSkillSet]);
 
@@ -245,11 +248,13 @@ const HeroClient = memo(function HeroClient({ expertise, funFacts, aiSkills, wor
       data-barba-namespace="hero"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3, ease: "easeOut" }}
-      className="relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black hero-optimized"
+      transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
+      className="relative min-h-screen flex flex-col justify-start items-center py-8 px-6 mt-8 sm:mt-10 bg-black hero-optimized smooth-60fps"
       style={{
         contain: 'layout style paint',
-        willChange: 'auto'
+        willChange: 'auto',
+        transform: 'translateZ(0)',
+        backfaceVisibility: 'hidden'
       }}
     >
       {/* Animated Neural Line Border */}

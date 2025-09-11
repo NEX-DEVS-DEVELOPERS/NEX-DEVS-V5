@@ -4,6 +4,7 @@ import FeaturedProject from '../components/FeaturedProject'
 import NewlyAddedProjects from '../components/NewlyAddedProjects'
 import ProjectsGrid from '../components/ProjectsGrid'
 import ProjectImageGallery from '../components/ProjectImageGallery'
+import NeuralNetworkBackground from '../../components/NeuralNetworkBackground'
 import { audiowide, vt323 } from '@/app/utils/fonts'
 import { pageMetadata, generatePersonSchema, generateWebSiteSchema, injectStructuredData } from '@/app/lib/seo'
 import ProjectsPageClient from './ProjectsPageClient'
@@ -134,12 +135,32 @@ export default async function ProjectsPage() {
         {/* Hero Section - SEO optimized */}
         <section className="relative pt-24 pb-12 px-6">
           <div className="max-w-7xl mx-auto text-center">
-            <h1 className={`text-4xl md:text-6xl font-bold mb-6 ${audiowide.className}`}>
-              <span className="text-white">My </span>
-              <span className="bg-gradient-to-r from-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Projects
-              </span>
-            </h1>
+            {/* Title with Neural Network Background */}
+            <div className="relative mb-6">
+              {/* Neural Network Background - expanded to spread around frosted background */}
+              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[1000px] h-[300px] pointer-events-none">
+                <NeuralNetworkBackground 
+                  nodeCount={25}
+                  connectionDistance={120}
+                  nodeSize={3}
+                  className="opacity-90"
+                />
+              </div>
+              
+              {/* Frosted White Background - reduced blur intensity */}
+              <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[600px] h-[120px] 
+                           bg-white/8 backdrop-blur-sm rounded-2xl border border-white/15 
+                           shadow-[0_4px_16px_0_rgba(255,255,255,0.08)] z-[5] pointer-events-none">
+              </div>
+              
+              {/* Title with enhanced styling */}
+              <h1 className={`relative text-4xl md:text-6xl font-bold ${audiowide.className} z-10`}>
+                <span className="text-white drop-shadow-lg">My </span>
+                <span className="bg-gradient-to-r from-purple-400 via-cyan-400 to-pink-400 bg-clip-text text-transparent drop-shadow-lg">
+                  Projects
+                </span>
+              </h1>
+            </div>
             <p className={`text-xl text-gray-300 mb-8 max-w-3xl mx-auto ${vt323.className}`}>
               Explore my portfolio of AI-powered applications, web development projects, and innovative digital solutions.
               Each project represents a unique challenge solved with cutting-edge technology and creative problem-solving.

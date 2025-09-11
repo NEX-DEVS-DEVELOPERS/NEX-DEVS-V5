@@ -185,7 +185,7 @@ export async function initDatabase() {
         category VARCHAR(255) NOT NULL,
         technologies JSONB NOT NULL,
         tech_details JSONB,
-        project_link TEXT NOT NULL,
+        project_link TEXT,
         featured BOOLEAN DEFAULT FALSE,
         completion_date VARCHAR(255),
         client_name VARCHAR(255),
@@ -211,6 +211,17 @@ export async function initDatabase() {
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );
     `;
+
+    // Migration: Allow NULL values for project_link column (for projects in development)
+    try {
+      await sql`
+        ALTER TABLE projects ALTER COLUMN project_link DROP NOT NULL;
+      `;
+      console.log('Migration: project_link column updated to allow NULL values');
+    } catch (error) {
+      // This might fail if the column is already nullable or if there are other constraints
+      console.log('Migration note: project_link column may already allow NULL values or migration not needed');
+    }
 
     // Create team_members table if it doesn't exist
     await sql`
@@ -281,13 +292,15 @@ export async function getProjectById(id: number) {
 
 // Normalize project data for frontend consistency
 function normalizeProject(project: any) {
-  // Log the project data before normalization
-  console.log('Normalizing project data:', {
-    id: project.id,
-    title: project.title,
-    hasImageUrl: Boolean(project.image_url),
-    hasImage: Boolean(project.image),
-  });
+  // Reduced logging frequency for better performance
+  if (process.env.NODE_ENV === 'development' && Math.random() < 0.05) {
+    console.log('Normalizing project data:', {
+      id: project.id,
+      title: project.title,
+      hasImageUrl: Boolean(project.image_url),
+      hasImage: Boolean(project.image),
+    });
+  }
   
   const normalized = {
     ...project,
@@ -323,13 +336,13 @@ function normalizeProject(project: any) {
     github_server_link: project.github_server_link || project.githubServerLink || null
   };
   
-  // Log the normalized data
-  console.log('Normalized project data:', {
-    id: normalized.id,
-    title: normalized.title,
-    image: normalized.image,
-    image_url: normalized.image_url,
-  });
+  // Debug log only for few normalizations in development
+  if (process.env.NODE_ENV === 'development' && Math.random() < 0.03) {
+    console.log('Sample normalized project:', {
+      id: normalized.id,
+      title: normalized.title
+    });
+  }
   
   return normalized;
 }
@@ -1177,6 +1190,24 @@ export async function getProjectsByCategory(category: string) {
   }
 }
 
+// Get projects by showcase location
+export async function getProjectsByShowcaseLocation(showcaseLocation: string) {
+  try {
+    console.log(`Fetching projects with showcase_location = ${showcaseLocation}`);
+    const projects = await sql`
+      SELECT * FROM projects 
+      WHERE showcase_location = ${showcaseLocation}
+      ORDER BY featured DESC, image_priority ASC, id DESC
+    `;
+    
+    console.log(`Found ${projects.length} projects with showcase_location = ${showcaseLocation}`);
+    return projects.map(normalizeProject);
+  } catch (error) {
+    console.error(`Error fetching projects by showcase location ${showcaseLocation}:`, error);
+    return [];
+  }
+}
+
 // Get unique categories from all projects
 export async function getUniqueCategories() {
   try {
@@ -1296,6 +1327,7 @@ export default {
   getNewlyAddedProjects,
   getFeaturedProjects,
   getProjectsByCategory,
+  getProjectsByShowcaseLocation,
   getUniqueCategories,
   getDebugStatus
 }; 
