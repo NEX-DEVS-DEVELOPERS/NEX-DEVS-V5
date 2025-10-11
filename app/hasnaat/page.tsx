@@ -385,6 +385,19 @@ export default function AdminPage() {
             </Link>
 
             <Link
+              href="/hasnaat/roi-section"
+              className="flex items-center justify-between p-4 rounded-lg border border-blue-500/30 bg-gray-900/50 hover:bg-gray-800 transition-colors w-full"
+            >
+              <div>
+                <h2 className="text-xl font-semibold text-white">ROI Section</h2>
+                <p className="text-sm text-gray-400">Manage ROI metrics and performance data</p>
+              </div>
+              <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+
+            <Link
               href="/"
               className="flex items-center justify-between p-4 rounded-lg border border-gray-800 bg-gray-900/50 hover:bg-gray-800 transition-colors w-full"
             >

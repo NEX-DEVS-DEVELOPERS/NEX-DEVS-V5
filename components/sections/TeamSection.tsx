@@ -98,111 +98,43 @@ export default function TeamSection() {
 
   return (
     <section id="team" className="py-12 sm:py-16 relative overflow-hidden">
-      {/* Neural Network Background Animation */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 bg-gradient-to-b from-black via-purple-950/5 to-black"></div>
+      {/* Aurora Background Effect */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 select-none">
+        {/* Base Background */}
+        <div className="absolute inset-0 bg-black"></div>
 
-        {/* Floating Tech Stack Names */}
-        {[
-          { name: 'Next.js', color: 'text-blue-400' },
-          { name: 'React', color: 'text-cyan-400' },
-          { name: 'TypeScript', color: 'text-blue-500' },
-          { name: 'Node.js', color: 'text-green-400' },
-          { name: 'Python', color: 'text-yellow-400' },
-          { name: 'AWS', color: 'text-orange-400' },
-          { name: 'PostgreSQL', color: 'text-blue-300' },
-          { name: 'Flutter', color: 'text-cyan-300' },
-          { name: 'React Native', color: 'text-blue-400' }
-        ].map((tech, i) => (
-          <div
-            key={`tech-${i}`}
-            className={`absolute ${tech.color} text-sm font-mono opacity-40 transform-gpu`}
-            style={{
-              top: `${15 + Math.random() * 70}%`,
-              left: `${Math.random() > 0.5 ? 5 + Math.random() * 20 : 80 + Math.random() * 15}%`,
-              animation: `float-tech ${8 + Math.random() * 4}s ease-in-out infinite`,
-              animationDelay: `${Math.random() * 5}s`
-            }}
-          >
-            • {tech.name}
-          </div>
-        ))}
-
-        {/* Neural Network Nodes and Connections */}
-        <div className="absolute inset-0">
-          {[...Array(30)].map((_, i) => (
-            <div
-              key={`node-${i}`}
-              className="absolute w-1 h-1 rounded-full transform-gpu"
-              style={{
-                top: `${Math.random() * 100}%`,
-                left: `${Math.random() * 100}%`,
-                background: `rgba(${
-                  Math.random() > 0.5 
-                    ? '147, 51, 234' 
-                    : Math.random() > 0.5 
-                      ? '56, 189, 248'
-                      : '52, 211, 153'
-                }, ${0.4 + Math.random() * 0.3})`,
-                boxShadow: `0 0 6px rgba(147, 51, 234, 0.3)`,
-                animation: `float ${3 + Math.random() * 2}s ease-in-out infinite`,
-                animationDelay: `${Math.random() * 2}s`
-              }}
-            >
-              {/* Multiple Neural Connections per Node */}
-              {[...Array(3)].map((_, j) => (
-                <div
-                  key={`connection-${i}-${j}`}
-                  className="absolute w-48 h-px origin-left transform-gpu"
-                  style={{
-                    background: `linear-gradient(90deg, rgba(${
-                      Math.random() > 0.5 
-                        ? '147, 51, 234' 
-                        : Math.random() > 0.5 
-                          ? '56, 189, 248'
-                          : '52, 211, 153'
-                    }, 0.4) 0%, transparent 100%)`,
-                    transform: `rotate(${Math.random() * 360}deg)`,
-                    animation: `connection-pulse ${4 + Math.random() * 3}s cubic-bezier(0.4, 0, 0.2, 1) infinite`,
-                    animationDelay: `${Math.random() * 2}s`,
-                    height: '1px',
-                    filter: 'blur(0.2px)'
-                  }}
-                ></div>
-              ))}
-            </div>
-          ))}
-        </div>
+        {/* Aurora Orbs */}
+        <div className="absolute top-[-10%] left-[20%] w-[28rem] h-[28rem] bg-gradient-to-br from-purple-500/35 via-fuchsia-400/20 to-blue-500/25 rounded-full blur-[110px] mix-blend-screen animate-aurora-1"></div>
+        <div className="absolute top-1/3 right-[18%] w-[24rem] h-[24rem] bg-gradient-to-br from-blue-500/30 via-cyan-400/20 to-violet-500/20 rounded-full blur-[110px] mix-blend-screen animate-aurora-2"></div>
+        <div className="absolute bottom-[-12%] left-1/2 -translate-x-1/2 w-[22rem] h-[22rem] bg-gradient-to-br from-violet-500/25 via-purple-400/15 to-blue-400/20 rounded-full blur-[110px] mix-blend-screen animate-aurora-3"></div>
 
         {/* Animation Keyframes */}
         <style jsx global>{`
-          @keyframes float {
-            0%, 100% { transform: translate(0, 0) translateZ(0); }
-            50% { transform: translate(${Math.random() > 0.5 ? '' : '-'}8px, -8px) translateZ(0); }
+          @keyframes aurora-1 {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.35; }
+            33% { transform: translate3d(30px, -30px, 0) scale(1.08); opacity: 0.45; }
+            66% { transform: translate3d(-20px, 15px, 0) scale(0.95); opacity: 0.4; }
           }
 
-          @keyframes float-tech {
-            0%, 100% { transform: translate(0, 0) translateZ(0); opacity: 0.4; }
-            50% { transform: translate(${Math.random() > 0.5 ? '' : '-'}15px, -10px) translateZ(0); opacity: 0.6; }
+          @keyframes aurora-2 {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.28; }
+            33% { transform: translate3d(-40px, 30px, 0) scale(1.03); opacity: 0.35; }
+            66% { transform: translate3d(25px, -25px, 0) scale(0.98); opacity: 0.32; }
           }
 
-          @keyframes connection-pulse {
-            0% { transform: scaleX(0) rotate(var(--rotation)) translateZ(0); opacity: 0; }
-            50% { transform: scaleX(1) rotate(var(--rotation)) translateZ(0); opacity: 0.4; }
-            100% { transform: scaleX(0) rotate(var(--rotation)) translateZ(0); opacity: 0; }
+          @keyframes aurora-3 {
+            0%, 100% { transform: translate3d(0, 0, 0) scale(1); opacity: 0.22; }
+            33% { transform: translate3d(20px, 20px, 0) scale(1.05); opacity: 0.3; }
+            66% { transform: translate3d(-30px, -15px, 0) scale(0.96); opacity: 0.26; }
           }
 
-          .transform-gpu {
-            transform-style: preserve-3d;
-            backface-visibility: hidden;
-            perspective: 1000px;
-            will-change: transform;
-          }
+          .animate-aurora-1 { animation: aurora-1 18s ease-in-out infinite; }
+          .animate-aurora-2 { animation: aurora-2 22s ease-in-out infinite; }
+          .animate-aurora-3 { animation: aurora-3 26s ease-in-out infinite; }
         `}</style>
       </div>
 
-      <div className="relative max-w-6xl mx-auto px-4 sm:px-6">
+      <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
         {/* Compact Header */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-500/10 border border-purple-500/20 text-purple-400 text-sm font-medium mb-4">
@@ -220,7 +152,7 @@ export default function TeamSection() {
         {teamLeader && (
           <div className="mb-12">
             <div className="relative">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-black/40 rounded-2xl border border-purple-500/20 p-6 backdrop-blur-sm">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center bg-black/40 rounded-2xl border border-white/10 p-6 backdrop-blur-sm">
                 {/* Use TeamMemberCard for the leader */}
                 <TeamMemberCard member={teamLeader} />
 

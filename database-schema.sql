@@ -70,6 +70,35 @@ CREATE TABLE IF NOT EXISTS team_members (
 );
 
 -- =====================================================
+-- ROI SECTION TABLES
+-- =====================================================
+
+-- ROI Section main table
+CREATE TABLE IF NOT EXISTS roi_section (
+    id SERIAL PRIMARY KEY,
+    main_heading VARCHAR(255) NOT NULL,
+    sub_heading TEXT,
+    video_url VARCHAR(255),
+    image_one VARCHAR(255),
+    image_two VARCHAR(255),
+    is_published BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- ROI Cards table
+CREATE TABLE IF NOT EXISTS roi_cards (
+    id SERIAL PRIMARY KEY,
+    roi_section_id INT REFERENCES roi_section(id) ON DELETE CASCADE,
+    title VARCHAR(255) NOT NULL,
+    value VARCHAR(50) NOT NULL,
+    description TEXT,
+    icon_url VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- =====================================================
 -- INDEXES FOR PERFORMANCE
 -- =====================================================
 
@@ -84,6 +113,11 @@ CREATE INDEX IF NOT EXISTS idx_projects_created_at ON projects(created_at);
 CREATE INDEX IF NOT EXISTS idx_team_members_active ON team_members(active);
 CREATE INDEX IF NOT EXISTS idx_team_members_leader ON team_members(is_leader);
 CREATE INDEX IF NOT EXISTS idx_team_members_priority ON team_members(order_priority);
+
+-- ROI section indexes
+CREATE INDEX IF NOT EXISTS idx_roi_section_published ON roi_section(is_published);
+CREATE INDEX IF NOT EXISTS idx_roi_section_created ON roi_section(created_at);
+CREATE INDEX IF NOT EXISTS idx_roi_cards_section ON roi_cards(roi_section_id);
 
 -- =====================================================
 -- SAMPLE DATA INSERTION (OPTIONAL)

@@ -505,11 +505,11 @@ const PERFORMANCE_EASING = [0.4, 0, 0.2, 1] as const; // Material design easing 
 // Update the slideVariants with optimized GPU-friendly motion for 60fps
 const slideVariants: Variants = {
   enter: (direction: number) => ({
-    x: direction > 0 ? '100%' : '-100%',
+    x: direction > 0 ? '100%' : '100%', // Always slide in from right
     opacity: 0,
-    scale: 0.99,
-    rotateY: direction > 0 ? '1deg' : '-1deg',
-    transition: { duration: 0.3, ease: SMOOTH_EASING }
+    scale: 0.98,
+    rotateY: 0,
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] } // Smoother easing
   }),
   center: {
     x: 0,
@@ -566,6 +566,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   const [scrollPosition, setScrollPosition] = useState(0);
   const [hideMobilePreview, setHideMobilePreview] = useState(true);
   const barbaInitialized = useRef(false);
+  const onCompleteTriggered = useRef(false);
   
   // Add state for closing animation
   const [isClosing, setIsClosing] = useState(false);
@@ -673,7 +674,6 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           touch-action: manipulation !important;
           pointer-events: auto !important;
           z-index: 10000 !important;
-          position: relative !important;
           min-height: 44px !important;
           min-width: 44px !important;
         }
@@ -800,7 +800,6 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
         touch-action: manipulation !important;
         pointer-events: auto !important;
         z-index: 10000 !important;
-        position: relative !important;
         min-height: 44px !important;
         min-width: 44px !important;
       }
@@ -862,6 +861,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
     
     // Start closing animation
     setIsClosing(true);
+    // Trigger parent completion immediately so AI popup can appear right away
+    if (!onCompleteTriggered.current) {
+      onCompleteTriggered.current = true;
+      try { onComplete(); } catch (e) { /* no-op */ }
+    }
     
     // Add ultra-smooth fade out effect with multiple transform properties
     const welcomeElement = document.getElementById('welcome-screen-overlay');
@@ -893,8 +897,11 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
       // Restore scroll position
       window.scrollTo(0, scrollPosition);
       
-      // Call onComplete to trigger parent state changes
-      onComplete();
+      // Ensure onComplete was triggered
+      if (!onCompleteTriggered.current) {
+        onCompleteTriggered.current = true;
+        try { onComplete(); } catch (e) { /* no-op */ }
+      }
     }, 800); // Match the CSS transition duration
   };
 
@@ -1444,7 +1451,6 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
              display: 'flex',
              alignItems: 'center',
              justifyContent: 'center',
-             paddingBottom: '2vh', // Add slight bottom padding for better vertical alignment
              paddingTop: isMobile ? '60px' : '0px' // Add top padding for mobile to avoid navbar overlap
            }}>
         {/* Dynamic background elements - optimized for visibility and performance */}
@@ -1571,8 +1577,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
           <div className="flex items-center justify-center w-full h-full" 
                style={{ 
                  padding: '0', 
-                 margin: '0 auto', 
-                 paddingBottom: '5vh',
+                 margin: '0 auto',
                  maxWidth: '95vw'
                }}>
             {currentSlide === -1 ? (
@@ -1595,111 +1600,13 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                   backfaceVisibility: 'hidden'
                 }}
                 transition={{
-                  duration: isClosing ? 0.8 : 0.3, // Longer, smoother closing
-                  ease: isClosing ? [0.25, 0.46, 0.45, 0.94] : SMOOTH_EASING,
-                  opacity: { duration: isClosing ? 0.8 : 0.3 },
-                  scale: { duration: isClosing ? 0.8 : 0.3 },
-                  rotateX: { duration: isClosing ? 0.8 : 0.3 }
+                  duration: isClosing ? 0.7 : 0.5, // Smoother entry and exit
+                  ease: isClosing ? [0.22, 1, 0.36, 1] : [0.22, 1, 0.36, 1], // Smoother easing
+                  opacity: { duration: isClosing ? 0.7 : 0.5 },
+                  scale: { duration: isClosing ? 0.7 : 0.5 },
+                  x: { duration: isClosing ? 0.7 : 0.5 }
                 }}
               >
-                {/* Close button - Moved outside welcome screen with neon blue border and connecting line */}
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8, x: -50, y: -50 }}
-                  animate={{ 
-                    opacity: animationComplete.button ? 1 : 0,
-                    scale: animationComplete.button ? 1 : 0.8,
-                    x: animationComplete.button ? 0 : -50,
-                    y: animationComplete.button ? 0 : -50
-                  }}
-                  transition={{
-                    duration: 1.0,
-                    ease: [0.16, 1, 0.3, 1],
-                    type: "spring",
-                    stiffness: 120,
-                    damping: 25
-                  }}
-                  className="absolute -top-16 -left-16 z-30"
-                >
-                  {/* Connecting line from X bottom-right corner to welcome screen top-left corner */}
-                  <motion.div
-                    initial={{ scale: 0, opacity: 0 }}
-                    animate={{ 
-                      scale: animationComplete.button ? 1 : 0,
-                      opacity: animationComplete.button ? 1 : 0
-                    }}
-                    transition={{ duration: 0.8, delay: 0.3 }}
-                    className="absolute pointer-events-none"
-                  >
-                    <svg width="100" height="100" className="absolute" style={{ top: '-12px', left: '-12px' }}>
-                      <motion.line
-                        x1="60" y1="60" x2="100" y2="100"
-                        stroke="rgba(59, 130, 246, 0.8)"
-                        strokeWidth="2"
-                        strokeDasharray="6,6"
-                        initial={{ pathLength: 0, opacity: 0 }}
-                        animate={{ 
-                          pathLength: animationComplete.button ? 1 : 0,
-                          opacity: animationComplete.button ? 0.9 : 0
-                        }}
-                        transition={{ duration: 1.2, delay: 0.5 }}
-                        style={{
-                          filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))'
-                        }}
-                      />
-                    </svg>
-                  </motion.div>
-                  
-                  {/* Enhanced close button with smooth animations */}
-                  <motion.button
-                    whileHover={{ 
-                      scale: 1.08, 
-                      rotate: 90,
-                      transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
-                    }}
-                    whileTap={{ scale: 0.92 }}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleClose();
-                    }}
-                    onTouchStart={(e) => {
-                      e.preventDefault();
-                      e.stopPropagation();
-                      handleClose();
-                    }}
-                    onClick={handleClose}
-                    className="w-12 h-12 flex items-center justify-center bg-white rounded-full transition-all duration-300 cursor-pointer shadow-lg hover:shadow-xl group"
-                    style={{
-                      WebkitTapHighlightColor: 'transparent',
-                      touchAction: 'manipulation',
-                      userSelect: 'none',
-                      transform: 'translate3d(0, 0, 0)' // Hardware acceleration
-                    }}
-                  >
-                    <motion.span 
-                      className="text-black text-xl font-bold leading-none pointer-events-none transition-all duration-300"
-                      whileHover={{ scale: 1.1 }}
-                      transition={{ duration: 0.2 }}
-                      style={{
-                        fontWeight: '700',
-                        willChange: 'transform'
-                      }}
-                    >
-                      ×
-                    </motion.span>
-                    
-                    {/* Smooth ripple effect on click */}
-                    <motion.div
-                      className="absolute inset-0 rounded-full bg-gray-200/30"
-                      initial={{ scale: 0, opacity: 0 }}
-                      whileTap={{ 
-                        scale: [0, 1.5, 0],
-                        opacity: [0, 0.3, 0],
-                        transition: { duration: 0.4, ease: "easeOut" }
-                      }}
-                    />
-                  </motion.button>
-                </motion.div>
 
                 <motion.div
                   initial={{ opacity: 0, y: 30, scale: 0.9 }}
@@ -1709,14 +1616,29 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                     ease: SMOOTH_EASING,
                     delay: ANIMATION_SEQUENCE.BACKGROUND_ELEMENTS
                   }}
-                  className="bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl transform-gpu"
+                  className="relative bg-gradient-to-br from-black/30 to-black/50 backdrop-blur-xl rounded-2xl border border-white/10 p-4 sm:p-6 md:p-8 overflow-hidden shadow-2xl transform-gpu"
                   style={{
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
                     transformStyle: 'preserve-3d',
                     perspective: '1000px',
-                    transform: 'translate3d(0, 0, 0)'
+                    transform: 'translate3d(0, 0, 0)',
+                    minHeight: isMobile ? '500px' : '560px' // lock container height but reduce excess bottom space
                   }}
                 >
+                  {/* Close button - inside card, top-right, minimal styling */}
+                  <button
+                    onClick={handleClose}
+                    className="absolute top-3 right-3 z-50 w-11 h-11 flex items-center justify-center text-white/90 rounded-full bg-white/10 border border-white/20 backdrop-blur-sm shadow-sm"
+                    style={{
+                      WebkitTapHighlightColor: 'transparent',
+                      touchAction: 'manipulation',
+                      userSelect: 'none',
+                      background: 'rgba(255,255,255,0.1)'
+                    }}
+                    aria-label="Close welcome screen"
+                  >
+                    ×
+                  </button>
                   {/* Background elements */}
                   <motion.div 
                     initial={{ opacity: 0 }}
@@ -1803,7 +1725,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ duration: 0.3, delay: 0.15 }}
-                        className="relative mb-4 sm:mb-6"
+                        className="relative mb-2 sm:mb-3"
                         style={{ visibility: 'visible', display: 'block' }}
                       >
                         <motion.div
@@ -1815,18 +1737,15 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                         />
                         <motion.h1
                           className="text-2xl xs:text-3xl sm:text-4xl md:text-5xl font-extrabold py-3 flex flex-col items-center gap-1 sm:gap-2 z-50"
-                          initial={{ opacity: 0, y: 20, scale: 0.95, rotateX: 8 }}
+                          initial={{ opacity: 0, y: 12, scale: 0.97 }}
                           animate={{
                             opacity: animationComplete.title ? 1 : 0,
-                            y: animationComplete.title ? 0 : 20,
-                            scale: animationComplete.title ? 1 : 0.95,
-                            rotateX: animationComplete.title ? 0 : 8
+                            y: animationComplete.title ? 0 : 12,
+                            scale: animationComplete.title ? 1 : 0.97
                           }}
                           transition={{
-                            type: "spring",
-                            stiffness: 150, // Optimized responsiveness for 60fps
-                            damping: 25,    // Smooth settling without overshooting
-                            duration: 0.6,  // Faster, more immediate entrance
+                            duration: 0.7,
+                            ease: [0.22, 1, 0.36, 1], // Smooth cubic-bezier
                             delay: ANIMATION_SEQUENCE.TITLE_TEXT
                           }}
                           style={{
@@ -1849,14 +1768,14 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  200, // Faster start
+                                  50,
                                   'Welcome',
-                                  150, // Word by word delay
+                                  80,
                                   'Welcome to',
-                                  400  // Pause between phrases
+                                  150
                                 ]}
                                 wrapper="span"
-                                speed={75} // Faster typing speed for smoother animation
+                                speed={90}
                                 style={{
                                   color: '#b4a7f5',
                                   opacity: 1,
@@ -1877,12 +1796,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  800, // Wait for first line to complete
+                                  250,
                                   'NEX-DEVS',
-                                  400   // Faster pause before next animation
+                                  150
                                 ]}
                                 wrapper="span"
-                                speed={70} // Even faster for company name
+                                speed={95}
                                 style={{
                                   color: '#b4a7f5',
                                   opacity: 1,
@@ -1936,20 +1855,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </motion.div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{
                           opacity: animationComplete.subtitle ? 1 : 0,
-                          y: animationComplete.subtitle ? 0 : 15,
+                          y: animationComplete.subtitle ? 0 : 10,
                           scale: animationComplete.subtitle ? 1 : 0.98
                         }}
                         transition={{
-                          type: "spring",
-                          stiffness: 140, // Higher stiffness for faster response
-                          damping: 28,    // Optimized damping for smooth motion
-                          duration: 0.5,  // Faster entrance for immediate impact
+                          duration: 0.7,
+                          ease: [0.22, 1, 0.36, 1],
                           delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT
                         }}
-                        className={`${vt323.className} text-blue-300/90 text-lg uppercase tracking-widest font-semibold mb-1 sm:mb-2 text-center`}
+                        className={`${vt323.className} text-blue-300/90 text-lg uppercase tracking-widest font-semibold mb-0.5 sm:mb-1 text-center`}
                         style={{
                           textShadow: '0 1px 2px rgba(0, 0, 0, 0.5)',
                           fontSize: '20px',
@@ -1960,12 +1877,12 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           <TypeAnimation
                             sequence={[
                               '',
-                              200, // Faster start
+                              50,
                               'FullStack/Frameworks',
-                              400  // Faster transition
+                              120
                             ]}
                             wrapper="span"
-                            speed={70} // Faster typing for better flow
+                            speed={95}
                             style={{ 
                               display: 'inline-block', 
                               fontFamily: vt323.style.fontFamily,
@@ -1978,20 +1895,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
 
                       <div className="relative">
                         <motion.div
-                          initial={{ opacity: 0, y: 18, scale: 0.96 }}
+                          initial={{ opacity: 0, y: 12, scale: 0.97 }}
                           animate={{
                             opacity: animationComplete.subtitle ? 1 : 0,
-                            y: animationComplete.subtitle ? 0 : 18,
-                            scale: animationComplete.subtitle ? 1 : 0.96
+                            y: animationComplete.subtitle ? 0 : 12,
+                            scale: animationComplete.subtitle ? 1 : 0.97
                           }}
                           transition={{
-                            type: "spring",
-                            stiffness: 130, // Optimized responsiveness for 60fps
-                            damping: 26,    // Smooth settling
-                            duration: 0.5,  // Faster entrance for immediate feedback
-                            delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.1 // Reduced delay for tighter sequencing
+                            duration: 0.8,
+                            ease: [0.22, 1, 0.36, 1],
+                            delay: ANIMATION_SEQUENCE.SUBTITLE_TEXT + 0.1
                           }}
-                          className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-3 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
+                          className="text-xl xs:text-2xl sm:text-3xl md:text-4xl text-white mb-2 max-w-2xl mx-auto font-bold relative flex flex-col items-center gap-1 sm:gap-2"
                           style={{ willChange: 'transform, opacity' }}
                         >
                           {animationComplete.subtitle && (
@@ -1999,18 +1914,18 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  200, // Faster start
+                                  350,
                                   'AI',
-                                  100,
+                                  120,
                                   'AI is',
-                                  100,
+                                  120,
                                   'AI is the',
-                                  100,
+                                  120,
                                   'AI is the Future',
-                                  500  // Shorter pause
+                                  320
                                 ]}
                                 wrapper="span"
-                                speed={70} // Faster word-by-word animation
+                                speed={60}
                                 className="bg-clip-text text-transparent bg-gradient-to-r from-blue-300 to-purple-300"
                                 style={{ willChange: 'contents' }} // Performance hint
                                 cursor={false}
@@ -2018,7 +1933,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  800, // Wait for first line
+                                  350,
                                   'and',
                                   100,
                                   'and We\'re',
@@ -2032,10 +1947,10 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                                   'and We\'re Here to Build It',
                                   100,
                                   'and We\'re Here to Build It Together',
-                                  400   // Faster completion
+                                  280
                                 ]}
                                 wrapper="span"
-                                speed={70} // Consistent faster speed
+                                speed={55}
                                 className="text-sm xs:text-base sm:text-xl md:text-2xl text-gray-300 font-normal"
                                 style={{ willChange: 'contents' }} // Performance hint
                                 cursor={false}
@@ -2046,22 +1961,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                       </div>
 
                       <motion.div
-                        initial={{ opacity: 0, y: 15, scale: 0.98 }}
+                        initial={{ opacity: 0, y: 10, scale: 0.98 }}
                         animate={{
                           opacity: animationComplete.subtitle ? 1 : 0,
-                          y: animationComplete.subtitle ? 0 : 15,
+                          y: animationComplete.subtitle ? 0 : 10,
                           scale: animationComplete.subtitle ? 1 : 0.98
                         }}
                         transition={{
-                          type: "spring",
-                          stiffness: 160, // Higher stiffness for faster response
-                          damping: 24,    // Optimized damping for clean motion
-                          duration: 0.35, // Faster duration for immediate impact
+                          duration: 0.8,
+                          ease: [0.22, 1, 0.36, 1],
                           delay: ANIMATION_SEQUENCE.DESCRIPTION_TEXT
                         }}
                         style={{ willChange: 'transform, opacity' }}
                       >
-                        <p className={`${vt323.className} text-base xs:text-lg sm:text-xl text-gray-300 mb-4 sm:mb-6 max-w-3xl mx-auto`} style={{ fontSize: '18px' }}>
+                        <p className={`${vt323.className} text-base xs:text-lg sm:text-xl text-gray-300 mb-2 sm:mb-3 max-w-3xl mx-auto`} style={{ fontSize: '18px' }}>
                           {animationComplete.subtitle && (
                             <>
                               Transform your digital presence with our
@@ -2072,7 +1985,7 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                           )}
                         </p>
 
-                        <div className={`${vt323.className} text-base xs:text-lg sm:text-xl font-medium text-white/90 mb-4 sm:mb-6`} style={{ fontSize: '18px' }}>
+                        <div className={`${vt323.className} text-base xs:text-lg sm:text-xl font-medium text-white/90 mb-3 sm:mb-4`} style={{ fontSize: '18px' }}>
                           {animationComplete.subtitle && (
                             <motion.span
                               initial={{ opacity: 0, scale: 0.9 }}
@@ -2083,24 +1996,24 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                               <TypeAnimation
                                 sequence={[
                                   '',
-                                  300, // Faster start
+                                  400,
                                   'Discover',
-                                  100,
+                                  120,
                                   'Discover How',
-                                  100, 
+                                  120, 
                                   'Discover How AI',
-                                  100,
+                                  120,
                                   'Discover How AI Elevates',
-                                  100,
+                                  120,
                                   'Discover How AI Elevates Your',
-                                  100,
+                                  120,
                                   'Discover How AI Elevates Your Business',
-                                  100,
+                                  120,
                                   'Discover How AI Elevates Your Business Success',
-                                  500  // Faster completion
+                                  260
                                 ]}
                                 wrapper="span"
-                                speed={70} // Consistent faster speed
+                                speed={60}
                                 style={{ 
                                   fontFamily: vt323.style.fontFamily,
                                   willChange: 'contents' // Performance hint
@@ -2130,19 +2043,16 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
                             // Don't call handleNext here since onClick already handles it
                           }, 80);
                         }}
-                        initial={{ opacity: 0, y: 25, scale: 0.85, rotateX: 15 }}
+                        initial={{ opacity: 0, y: 15, scale: 0.92 }}
                         animate={{
                           opacity: animationComplete.button ? 1 : 0,
-                          y: animationComplete.button ? 0 : 25,
-                          scale: animationComplete.button ? 1 : 0.85,
-                          rotateX: animationComplete.button ? 0 : 15
+                          y: animationComplete.button ? 0 : 15,
+                          scale: animationComplete.button ? 1 : 0.92
                         }}
                         transition={{
-                          type: "spring",
-                          stiffness: 120, // Higher stiffness for faster response
-                          damping: 20,    // Lower damping for more responsive animation
-                          duration: 0.8,  // Faster animation
-                          delay: 0.1      // Minimal delay for immediate appearance
+                          duration: 0.8,
+                          ease: [0.22, 1, 0.36, 1],
+                          delay: 0.1
                         }}
                         whileHover={{
                           scale: 1.05,

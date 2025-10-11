@@ -33,11 +33,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 1.0, ease: [0.16, 1, 0.3, 1] }}
-          className="fixed inset-0 z-[998] flex items-center justify-center p-6"
+          transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1], delay: 0.2 }}
+          className="fixed inset-0 z-[10000] flex items-center justify-center p-4 md:p-6"
           style={{
-            top: '80px', // Start below navbar
-            height: 'calc(100vh - 80px)', // Adjust height to not cover navbar
+            top: '96px', // Slightly lower to avoid navbar overlap
+            height: 'calc(100vh - 96px)', // Reduce height accordingly
             background: `
                 linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(15, 15, 15, 0.3) 50%, rgba(0, 0, 0, 0.4) 100%)
               `,
@@ -48,16 +48,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
         >
           {/* Main popup container - Horizontal layout with advanced glassmorphism */}
           <motion.div
-            initial={{ opacity: 0, x: -300, scale: 0.8 }}
+            initial={{ opacity: 0, x: -80, scale: 0.96 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
-            exit={{ opacity: 0, x: -200, scale: 0.85 }}
-            transition={{
-              duration: 1.8,
-              ease: [0.08, 0.82, 0.17, 1],
-              x: { type: "spring", stiffness: 60, damping: 28 },
-              scale: { type: "spring", stiffness: 80, damping: 35 }
-            }}
-            className="relative max-w-5xl w-full mx-auto transform-gpu"
+            exit={{ opacity: 0, x: -40, scale: 0.98 }}
+            transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1], delay: 0.25 }}
+            className="relative max-w-5xl w-[94%] md:w-[92%] mx-auto transform-gpu"
             onClick={(e) => e.stopPropagation()}
             style={{
               background: `
@@ -73,7 +68,10 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                 0 0 0 1px rgba(255, 255, 255, 0.1) inset,
                 0 0 50px rgba(147, 51, 234, 0.1)
               `,
-              overflow: 'hidden'
+              overflow: 'hidden',
+              transform: 'translateZ(0)',
+              backfaceVisibility: 'hidden',
+              willChange: 'transform, opacity'
             }}
           >
             {/* Advanced glassmorphism overlay */}
@@ -94,18 +92,18 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
               {/* Neural network nodes */}
               <motion.div
                 initial={{ opacity: 0 }}
-                animate={{ opacity: 0.4 }}
-                transition={{ duration: 2.0, delay: 0.5 }}
+                animate={{ opacity: 0.35 }}
+                transition={{ duration: 0.6, delay: 0.2 }}
                 className="absolute inset-0"
               >
                 {/* Floating nodes with connections */}
-                <div className="absolute top-16 left-20 w-2 h-2 bg-purple-400/40 rounded-full animate-pulse"></div>
-                <div className="absolute top-32 left-40 w-1.5 h-1.5 bg-blue-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
-                <div className="absolute top-24 right-32 w-2 h-2 bg-cyan-400/40 rounded-full animate-pulse" style={{ animationDelay: '1s' }}></div>
-                <div className="absolute bottom-32 left-16 w-1.5 h-1.5 bg-indigo-400/40 rounded-full animate-pulse" style={{ animationDelay: '1.5s' }}></div>
-                <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/40 rounded-full animate-pulse" style={{ animationDelay: '2s' }}></div>
-                <div className="absolute top-1/2 left-1/3 w-1 h-1 bg-pink-400/40 rounded-full animate-pulse" style={{ animationDelay: '0.8s' }}></div>
-                <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-violet-400/40 rounded-full animate-pulse" style={{ animationDelay: '1.2s' }}></div>
+                <div className="absolute top-16 left-20 w-2 h-2 bg-purple-400/40 rounded-full"></div>
+                <div className="absolute top-32 left-40 w-1.5 h-1.5 bg-blue-400/40 rounded-full"></div>
+                <div className="absolute top-24 right-32 w-2 h-2 bg-cyan-400/40 rounded-full"></div>
+                <div className="absolute bottom-32 left-16 w-1.5 h-1.5 bg-indigo-400/40 rounded-full"></div>
+                <div className="absolute bottom-20 right-20 w-2 h-2 bg-purple-400/40 rounded-full"></div>
+                <div className="absolute top-1/2 left-1/3 w-1 h-1 bg-pink-400/40 rounded-full"></div>
+                <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-violet-400/40 rounded-full"></div>
                 
                 {/* Connection lines */}
                 <svg className="absolute inset-0 w-full h-full" style={{ mixBlendMode: 'screen' }}>
@@ -148,37 +146,15 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                 </svg>
                 
                 {/* Subtle data flow particles */}
-                <motion.div
-                  initial={{ opacity: 0, x: -100 }}
-                  animate={{ opacity: [0, 0.3, 0], x: 200 }}
-                  transition={{ duration: 4, delay: 3, repeat: Infinity, repeatDelay: 2 }}
-                  className="absolute top-20 left-0 w-1 h-1 bg-cyan-400/60 rounded-full"
-                ></motion.div>
-                <motion.div
-                  initial={{ opacity: 0, x: 100 }}
-                  animate={{ opacity: [0, 0.3, 0], x: -200 }}
-                  transition={{ duration: 4, delay: 4, repeat: Infinity, repeatDelay: 2 }}
-                  className="absolute bottom-32 right-0 w-1 h-1 bg-purple-400/60 rounded-full"
-                ></motion.div>
+                {/* Disabled flowing particles to prevent micro-jitter */}
               </motion.div>
             </div>
 
             {/* Close button - Moved to left side with smooth effects */}
             <motion.button
-              initial={{ opacity: 0, scale: 0.8, x: -20 }}
-              animate={{ opacity: 1, scale: 1, x: 0 }}
-              transition={{ 
-                duration: 1.2, 
-                delay: 0.8,
-                ease: [0.16, 1, 0.3, 1],
-                scale: { type: "spring", stiffness: 200, damping: 20 }
-              }}
-              whileHover={{ 
-                scale: 1.08, 
-                rotate: 90,
-                transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] }
-              }}
-              whileTap={{ scale: 0.92 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
               onMouseDown={onClose} // Immediate response on mouse down
               onTouchStart={(e) => {
                 e.preventDefault();
@@ -186,28 +162,17 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                 onClose(); // Immediate response on touch start
               }}
               onClick={onClose} // Fallback for accessibility
-              className="absolute top-6 left-6 z-20 w-12 h-12 flex items-center justify-center bg-white/25 hover:bg-white/35 rounded-full backdrop-blur-md border border-white/40 transition-all duration-300 cursor-pointer group"
+              className="absolute top-6 left-6 z-20 w-10 h-10 flex items-center justify-center bg-white/20 rounded-full backdrop-blur-md border border-white/30 transition-all duration-150 cursor-pointer"
               style={{
                 WebkitTapHighlightColor: 'transparent',
                 touchAction: 'manipulation',
                 userSelect: 'none',
-                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(255, 255, 255, 0.2) inset, 0 0 20px rgba(147, 51, 234, 0.1)'
+                boxShadow: '0 8px 16px rgba(0, 0, 0, 0.12), 0 0 0 1px rgba(255, 255, 255, 0.18) inset'
               }}
             >
-              <motion.span 
-                className="text-white text-xl font-bold leading-none pointer-events-none group-hover:text-white transition-colors duration-300"
-                whileHover={{ scale: 1.1 }}
-                transition={{ duration: 0.2 }}
-              >
+              <span className="text-white text-lg font-bold leading-none pointer-events-none">
                 ×
-              </motion.span>
-              
-              {/* Subtle glow effect on hover */}
-              <motion.div
-                className="absolute inset-0 rounded-full bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                whileHover={{ scale: 1.2 }}
-                transition={{ duration: 0.3 }}
-              />
+              </span>
             </motion.button>
 
             {/* Top Neon Lines - Professional Enhancement */}
@@ -216,7 +181,7 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "60%", opacity: 0.8 }}
-                transition={{ duration: 2.0, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.8, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute top-2 left-4 h-0.5 bg-gradient-to-r from-purple-400 to-purple-600 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 8px rgba(147, 51, 234, 0.8))',
@@ -226,7 +191,7 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "40%", opacity: 0.9 }}
-                transition={{ duration: 2.2, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.8, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute top-4 right-6 h-0.5 bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))',
@@ -236,7 +201,7 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "25%", opacity: 0.7 }}
-                transition={{ duration: 1.8, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.6, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute top-6 left-1/3 h-0.5 bg-gradient-to-r from-indigo-400 to-violet-500 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 4px rgba(99, 102, 241, 0.8))',
@@ -251,29 +216,31 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                 
                 {/* Left Section - Logo and Branding */}
                 <motion.div
-                  initial={{ opacity: 0, x: -80 }}
+                  initial={{ opacity: 0, x: -60 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 1.4, delay: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 1.0, delay: 0.6, ease: [0.22, 1, 0.36, 1] }}
                   className="text-center md:text-left space-y-6"
                 >
                   {/* AI Stats Box */}
                   <motion.div
-                    initial={{ opacity: 0, y: -30, scale: 0.9 }}
+                    initial={{ opacity: 0, y: -15, scale: 0.96 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 1.3, delay: 0.9, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.8, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
                     className="bg-white/10 backdrop-blur-sm rounded-xl p-3 border border-white/20 shadow-lg mb-6 mt-4"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.06) 100%)',
-                      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.08) inset'
+                      boxShadow: '0 6px 12px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.08) inset',
+                      willChange: 'transform, opacity'
                     }}
                   >
                     <div className="grid grid-cols-2 gap-2 text-center">
                       <div>
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 1.0, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.6, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
                           className="text-base font-bold text-white"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           500+
                         </motion.div>
@@ -281,10 +248,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                       </div>
                       <div>
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 1.0, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.6, delay: 0.92, ease: [0.22, 1, 0.36, 1] }}
                           className="text-base font-bold text-white"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           99.9%
                         </motion.div>
@@ -292,10 +260,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                       </div>
                       <div>
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 1.0, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.6, delay: 0.99, ease: [0.22, 1, 0.36, 1] }}
                           className="text-base font-bold text-white"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           24/7
                         </motion.div>
@@ -303,10 +272,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                       </div>
                       <div>
                         <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
+                          initial={{ opacity: 0, scale: 0.95 }}
                           animate={{ opacity: 1, scale: 1 }}
-                          transition={{ duration: 1.0, delay: 1.5, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.6, delay: 1.06, ease: [0.22, 1, 0.36, 1] }}
                           className="text-base font-bold text-white"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           ISO
                         </motion.div>
@@ -317,10 +287,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
 
                   {/* Logo */}
                   <motion.div
-                    initial={{ opacity: 0, scale: 0.8, x: -50 }}
+                    initial={{ opacity: 0, scale: 0.94, x: -20 }}
                     animate={{ opacity: 1, scale: 1, x: 0 }}
-                    transition={{ duration: 1.2, delay: 1.0, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                     className="inline-block"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     <div className="w-24 h-24 mx-auto md:mx-0 rounded-full bg-white/20 backdrop-blur-sm border-2 border-white/30 flex items-center justify-center p-3 shadow-xl">
                       <img
@@ -333,42 +304,46 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                   
                   {/* Brand Text */}
                   <motion.div
-                    initial={{ opacity: 0, x: -60 }}
+                    initial={{ opacity: 0, x: -20 }}
                     animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 1.3, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.7, delay: 0.85, ease: [0.22, 1, 0.36, 1] }}
                     className="space-y-2"
+                    style={{ willChange: 'transform, opacity' }}
                   >
                     <motion.h1
-                      initial={{ opacity: 0, x: -50 }}
+                      initial={{ opacity: 0, x: -15 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 1.1, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
                       className={`${audiowide.className} text-3xl md:text-4xl font-bold text-white`}
                       style={{
                         textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                        letterSpacing: '1.5px'
+                        letterSpacing: '1.5px',
+                        willChange: 'transform, opacity'
                       }}
                     >
                       AI FIRST
                     </motion.h1>
                     <motion.h1
-                      initial={{ opacity: 0, x: -50 }}
+                      initial={{ opacity: 0, x: -15 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 1.1, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 0.97, ease: [0.22, 1, 0.36, 1] }}
                       className={`${audiowide.className} text-3xl md:text-4xl font-bold text-white`}
                       style={{
                         textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                        letterSpacing: '1.5px'
+                        letterSpacing: '1.5px',
+                        willChange: 'transform, opacity'
                       }}
                     >
                       AGENCY
                     </motion.h1>
                     <motion.p
-                      initial={{ opacity: 0, x: -45 }}
+                      initial={{ opacity: 0, x: -12 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 1.0, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 1.04, ease: [0.22, 1, 0.36, 1] }}
                       className={`${audiowide.className} text-lg text-white/90`}
                       style={{
                         textShadow: '0 2px 4px rgba(0, 0, 0, 0.4)',
+                        willChange: 'transform, opacity'
                       }}
                     >
                       Powered by NEX-DEVS
@@ -378,18 +353,19 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
 
                 {/* Center Section - Main Description */}
                 <motion.div
-                  initial={{ opacity: 0, y: 50 }}
+                  initial={{ opacity: 0, y: 30 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 1.4, delay: 1.1, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 1.0, delay: 0.7, ease: [0.22, 1, 0.36, 1] }}
                   className="text-center space-y-6"
                 >
                   <motion.p
-                    initial={{ opacity: 0, y: 30 }}
+                    initial={{ opacity: 0, y: 15 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.3, delay: 1.2, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.7, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                     className="text-white/90 text-lg leading-relaxed"
                     style={{
                       textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+                      willChange: 'transform, opacity'
                     }}
                   >
                     We specialize in cutting-edge AI solutions that transform businesses through intelligent automation, 
@@ -398,11 +374,11 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                   
                   {/* Call to action button */}
                   <motion.button
-                    initial={{ opacity: 0, y: 30, scale: 0.9 }}
+                    initial={{ opacity: 0, y: 15, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
-                    transition={{ duration: 1.3, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
-                    whileHover={{ scale: 1.02, y: -2 }}
-                    whileTap={{ scale: 0.98 }}
+                    transition={{ duration: 0.7, delay: 0.95, ease: [0.22, 1, 0.36, 1] }}
+                    whileHover={{ scale: 1.02, y: -2, transition: { duration: 0.2 } }}
+                    whileTap={{ scale: 0.98, transition: { duration: 0.1 } }}
                     onClick={onClose}
                     className="bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-xl border border-gray-200 hover:border-gray-300 transition-all duration-300 font-medium shadow-lg"
                     style={{
@@ -414,12 +390,13 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                   
                   {/* Bottom tagline */}
                   <motion.p
-                    initial={{ opacity: 0, y: 25 }}
+                    initial={{ opacity: 0, y: 12 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 1.1, delay: 1.9, ease: [0.16, 1, 0.3, 1] }}
+                    transition={{ duration: 0.7, delay: 1.05, ease: [0.22, 1, 0.36, 1] }}
                     className="text-white/70 text-sm italic"
                     style={{
                       textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
+                      willChange: 'transform, opacity'
                     }}
                   >
                     Where Artificial Intelligence Meets Human Innovation
@@ -428,43 +405,47 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
                 
                 {/* Right Section - Features */}
                 <motion.div
-                  initial={{ opacity: 0, x: 80 }}
+                  initial={{ opacity: 0, x: 60 }}
                   animate={{ opacity: 1, x: 0 }}
-                  transition={{ duration: 1.4, delay: 1.3, ease: [0.16, 1, 0.3, 1] }}
+                  transition={{ duration: 1.0, delay: 0.8, ease: [0.22, 1, 0.36, 1] }}
                   className="space-y-6"
                 >
                   {/* AI Expertise */}
                   <motion.div
-                    initial={{ opacity: 0, x: 60, rotateY: 20 }}
-                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                    transition={{ duration: 1.3, delay: 1.4, ease: [0.16, 1, 0.3, 1] }}
+                    initial={{ opacity: 0, x: 25, scale: 0.97 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ duration: 0.7, delay: 0.9, ease: [0.22, 1, 0.36, 1] }}
                     className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/25 shadow-lg"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)',
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                      willChange: 'transform, opacity'
                     }}
                   >
                     <motion.h3
-                      initial={{ opacity: 0, x: 40 }}
+                      initial={{ opacity: 0, x: 15 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 1.1, delay: 1.6, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
                       className={`${audiowide.className} text-white text-base font-semibold mb-3`}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       AI EXPERTISE
                     </motion.h3>
                     <motion.ul
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 1.1, delay: 1.8, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
                       className="text-white/85 text-sm space-y-2"
+                      style={{ willChange: 'opacity' }}
                     >
                       {['RAG Agent Development', 'NLP & Text Processing', 'Vector Embeddings', 'API Integration', 'ML Model Training', 'AI Dashboard Analytics'].map((item, index) => (
                         <motion.li
                           key={index}
-                          initial={{ opacity: 0, x: 15 }}
+                          initial={{ opacity: 0, x: 8 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.8, delay: 1.9 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.5, delay: 1.15 + index * 0.05, ease: [0.22, 1, 0.36, 1] }}
                           className="flex items-center"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           <span className="w-1.5 h-1.5 bg-purple-400 rounded-full mr-2 flex-shrink-0"></span>
                           {item}
@@ -475,36 +456,40 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
 
                   {/* Compliance & Security */}
                   <motion.div
-                    initial={{ opacity: 0, x: 60, rotateY: 20 }}
-                    animate={{ opacity: 1, x: 0, rotateY: 0 }}
-                    transition={{ duration: 1.3, delay: 1.7, ease: [0.16, 1, 0.3, 1] }}
+                    initial={{ opacity: 0, x: 25, scale: 0.97 }}
+                    animate={{ opacity: 1, x: 0, scale: 1 }}
+                    transition={{ duration: 0.7, delay: 1.0, ease: [0.22, 1, 0.36, 1] }}
                     className="bg-white/15 backdrop-blur-sm rounded-2xl p-6 border border-white/25 shadow-lg"
                     style={{
                       background: 'linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.08) 100%)',
-                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset'
+                      boxShadow: '0 8px 16px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(255, 255, 255, 0.1) inset',
+                      willChange: 'transform, opacity'
                     }}
                   >
                     <motion.h3
-                      initial={{ opacity: 0, x: 40 }}
+                      initial={{ opacity: 0, x: 15 }}
                       animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 1.1, delay: 1.9, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 1.1, ease: [0.22, 1, 0.36, 1] }}
                       className={`${audiowide.className} text-white text-base font-semibold mb-3`}
+                      style={{ willChange: 'transform, opacity' }}
                     >
                       ENTERPRISE READY
                     </motion.h3>
                     <motion.ul
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ duration: 1.1, delay: 2.1, ease: [0.16, 1, 0.3, 1] }}
+                      transition={{ duration: 0.6, delay: 1.2, ease: [0.22, 1, 0.36, 1] }}
                       className="text-white/85 text-sm space-y-2"
+                      style={{ willChange: 'opacity' }}
                     >
                       {['SOC 2 Type II Compliant', 'Enterprise API Security', 'Custom AI Dashboards', 'Multi-Model Integration'].map((item, index) => (
                         <motion.li
                           key={index}
-                          initial={{ opacity: 0, x: 15 }}
+                          initial={{ opacity: 0, x: 8 }}
                           animate={{ opacity: 1, x: 0 }}
-                          transition={{ duration: 0.8, delay: 2.2 + index * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                          transition={{ duration: 0.5, delay: 1.25 + index * 0.05, ease: [0.22, 1, 0.36, 1] }}
                           className="flex items-center"
+                          style={{ willChange: 'transform, opacity' }}
                         >
                           <span className="w-1.5 h-1.5 bg-green-400 rounded-full mr-2 flex-shrink-0"></span>
                           {item}
@@ -522,31 +507,34 @@ const AIFirstAgencyPopup: React.FC<AIFirstAgencyPopupProps> = ({ isVisible, onCl
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "45%", opacity: 0.8 }}
-                transition={{ duration: 2.0, delay: 2.5, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.6, delay: 1.3, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute bottom-6 right-4 h-0.5 bg-gradient-to-r from-purple-400 to-purple-600 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 8px rgba(147, 51, 234, 0.8))',
-                  boxShadow: '0 0 10px rgba(147, 51, 234, 0.6)'
+                  boxShadow: '0 0 10px rgba(147, 51, 234, 0.6)',
+                  willChange: 'width, opacity'
                 }}
               />
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "30%", opacity: 0.9 }}
-                transition={{ duration: 2.2, delay: 2.7, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.6, delay: 1.4, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute bottom-4 left-6 h-0.5 bg-gradient-to-r from-blue-400 to-cyan-500 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 6px rgba(59, 130, 246, 0.8))',
-                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)'
+                  boxShadow: '0 0 8px rgba(59, 130, 246, 0.6)',
+                  willChange: 'width, opacity'
                 }}
               />
               <motion.div
                 initial={{ width: 0, opacity: 0 }}
                 animate={{ width: "35%", opacity: 0.7 }}
-                transition={{ duration: 1.8, delay: 2.9, ease: [0.16, 1, 0.3, 1] }}
+                transition={{ duration: 1.4, delay: 1.5, ease: [0.22, 1, 0.36, 1] }}
                 className="absolute bottom-2 right-1/3 h-0.5 bg-gradient-to-r from-indigo-400 to-violet-500 shadow-lg"
                 style={{
                   filter: 'drop-shadow(0 0 4px rgba(99, 102, 241, 0.8))',
-                  boxShadow: '0 0 6px rgba(99, 102, 241, 0.6)'
+                  boxShadow: '0 0 6px rgba(99, 102, 241, 0.6)',
+                  willChange: 'width, opacity'
                 }}
               />
             </div>

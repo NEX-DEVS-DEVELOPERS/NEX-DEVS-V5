@@ -25,16 +25,6 @@ interface TeamMember {
 
 const TeamMemberCard = ({ member }: { member: TeamMember }) => {
   const [setRef, isIntersecting] = useAdvancedIntersectionObserver({ threshold: 0.5 });
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    const checkMobile = () => setIsMobile(window.innerWidth < 768);
-    checkMobile();
-    window.addEventListener('resize', checkMobile);
-    return () => window.removeEventListener('resize', checkMobile);
-  }, []);
-
-  const shouldBlur = isMobile ? !isIntersecting : true;
 
   return (
     <>
@@ -50,9 +40,9 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
                     {member.is_leader ? 'NEX-DEVS' : 'NEX-DEVS Teammate'}
                 </span>
             </div>
-            <div ref={setRef} className="relative group overflow-hidden rounded-xl aspect-[4/3] border border-purple-500/20">
-                {/* Blurred background element */}
-                <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl blur-lg opacity-25 group-hover:opacity-50 transition duration-500 z-0"></div>
+            <div ref={setRef} className="relative group overflow-hidden rounded-xl aspect-[4/3] border border-white/10 bg-black/30 shadow-xl">
+                {/* Subtle neutral glow on hover (no purple) */}
+                <div className="pointer-events-none absolute -inset-1 rounded-xl bg-white/0 group-hover:bg-white/[0.03] transition-colors duration-500"></div>
                 
                 {/* Image */}
                 <Image
@@ -60,7 +50,7 @@ const TeamMemberCard = ({ member }: { member: TeamMember }) => {
                     alt={member.name}
                     width={1920}
                     height={1080}
-                    className={`absolute inset-0 object-cover w-full h-full transition-all duration-700 ease-in-out ${shouldBlur ? 'blur-md group-hover:blur-0' : 'blur-0'}`}
+                    className="absolute inset-0 object-cover w-full h-full filter blur-[10px] group-hover:blur-0 transition-[filter,transform,opacity] duration-700 ease-out will-change-transform"
                     placeholder="blur"
                     blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDAwIiBoZWlnaHQ9IjMwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjMjAyMDMwIi8+PC9zdmc+"
                     priority

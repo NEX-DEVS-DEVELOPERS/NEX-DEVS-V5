@@ -34,8 +34,14 @@ const dbDebugStatus = {
 };
 
 // Initialize Neon SQL connection with environment variable
-const NEON_CONNECTION_STRING = process.env.DATABASE_URL || 'postgresql://NEX-DEVS%20DATABSE_owner:npg_Av9imV5KFXhy@ep-nameless-frog-a1x6ujuj-pooler.ap-southeast-1.aws.neon.tech/NEX-DEVS%20DATABSE?sslmode=require';
-const sql = neon(NEON_CONNECTION_STRING);
+const NEON_CONNECTION_STRING = process.env.DATABASE_URL || 'postgresql://postgresby%20neon_owner:npg_rC8EwcA6IXPj@ep-steep-bar-a1qrxdqr-pooler.ap-southeast-1.aws.neon.tech/postgresby%20neon?sslmode=require';
+
+// Configure Neon with increased timeout and connection pooling
+const sql = neon(NEON_CONNECTION_STRING, {
+  fetchOptions: {
+    cache: 'no-store',
+  },
+});
 
 // Log operations with timestamp
 function logOperation(operation: string, status: string, details: any = null) {
@@ -52,6 +58,352 @@ function logOperation(operation: string, status: string, details: any = null) {
     { operation, timestamp } : dbDebugStatus.lastSuccessfulOperation;
 
   return logEntry;
+}
+
+// Get ROI section with associated cards, metrics, and case studies
+export async function getROISection() {
+  const startTime = Date.now();
+  
+  // Retry logic for connection issues
+  const maxRetries = 3;
+  let lastError: any = null;
+  
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    try {
+      console.log(`[getROISection] Attempt ${attempt}/${maxRetries}...`);
+      
+      // Get the published ROI section with timeout
+      const roiSectionResult = await Promise.race([
+        sql`
+          SELECT * FROM roi_section 
+          WHERE is_published = true 
+          ORDER BY display_order ASC, id DESC 
+          LIMIT 1
+        `,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Query timeout')), 15000)
+        )
+      ]) as any[];
+      
+      if (!roiSectionResult || roiSectionResult.length === 0) {
+        console.log('[getROISection] No published section found');
+        return null;
+      }
+      
+      const roiSection = roiSectionResult[0];
+      console.log(`[getROISection] Found section ID: ${roiSection.id}`);
+      
+      // Get associated cards - simpler query without metrics for better performance
+      const cardsResult = await Promise.race([
+        sql`
+          SELECT * FROM roi_cards 
+          WHERE roi_section_id = ${roiSection.id} 
+          ORDER BY display_order ASC, is_featured DESC, id ASC
+        `,
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Cards query timeout')), 10000)
+        )
+      ]) as any[];
+      
+      console.log(`[getROISection] Found ${cardsResult.length} cards`);
+      
+      // Fetch metrics for each card
+      const cardsWithMetrics = await Promise.all(
+        cardsResult.map(async (card) => {
+          try {
+            const metrics = await sql`
+              SELECT * FROM roi_metrics 
+              WHERE roi_card_id = ${card.id}
+              ORDER BY id ASC
+            `;
+            return {
+              ...card,
+              metrics: metrics || []
+            };
+          } catch (error) {
+            console.error(`Failed to fetch metrics for card ${card.id}:`, error);
+            return {
+              ...card,
+              metrics: []
+            };
+          }
+        })
+      );
+      
+      // Fetch case studies for the section
+      let caseStudies: any[] = [];
+      try {
+        const caseStudiesResult = await sql`
+          SELECT * FROM roi_case_studies 
+          WHERE roi_section_id = ${roiSection.id}
+          AND is_published = true
+          ORDER BY display_order ASC, is_featured DESC
+        `;
+        caseStudies = caseStudiesResult || [];
+      } catch (error) {
+        console.error('Failed to fetch case studies:', error);
+      }
+      
+      // Combine all data
+      const result = {
+        ...roiSection,
+        cards: cardsWithMetrics || [],
+        caseStudies: caseStudies || []
+      };
+      
+      // Log success
+      trackQueryPerformance('getROISection', startTime, true);
+      logOperation('getROISection', 'success', {
+        id: roiSection.id,
+        cardsCount: cardsWithMetrics.length,
+        attempt
+      });
+      
+      console.log('[getROISection] Success!');
+      return result;
+      
+    } catch (error: any) {
+      lastError = error;
+      console.error(`[getROISection] Attempt ${attempt} failed:`, error.message);
+      
+      // If not the last attempt, wait before retrying
+      if (attempt < maxRetries) {
+        const waitTime = attempt * 1000; // Progressive backoff
+        console.log(`[getROISection] Waiting ${waitTime}ms before retry...`);
+        await new Promise(resolve => setTimeout(resolve, waitTime));
+      }
+    }
+  }
+  
+  // All retries failed
+  console.error('[getROISection] All attempts failed:', lastError?.message);
+  trackQueryPerformance('getROISection', startTime, false, lastError);
+  logOperation('getROISection', 'failed', {
+    error: lastError?.message,
+    attempts: maxRetries
+  });
+  
+  return null;
+}
+
+// Get all ROI sections for admin (including unpublished)
+export async function getAllROISections() {
+  const startTime = Date.now();
+  try {
+    const roiSections = await sql`
+      SELECT * FROM roi_section 
+      ORDER BY display_order ASC, id DESC
+    `;
+    
+    const sectionsWithData = await Promise.all(
+      roiSections.map(async (section) => {
+        const cards = await sql`
+          SELECT * FROM roi_cards 
+          WHERE roi_section_id = ${section.id} 
+          ORDER BY display_order ASC, id ASC
+        `;
+        
+        const caseStudies = await sql`
+          SELECT * FROM roi_case_studies 
+          WHERE roi_section_id = ${section.id} 
+          ORDER BY display_order ASC, id DESC
+        `;
+        
+        return {
+          ...section,
+          cards: cards || [],
+          caseStudies: caseStudies || []
+        };
+      })
+    );
+    
+    trackQueryPerformance('getAllROISections', startTime, true);
+    return sectionsWithData;
+  } catch (error: any) {
+    console.error('Error fetching all ROI sections:', error);
+    trackQueryPerformance('getAllROISections', startTime, false, error);
+    return [];
+  }
+}
+
+// Create ROI section
+export async function createROISection(data: any) {
+  const startTime = Date.now();
+  try {
+    const result = await sql`
+      INSERT INTO roi_section (
+        main_heading, 
+        sub_heading, 
+        video_url, 
+        image_one, 
+        image_two,
+        image_three,
+        background_pattern,
+        theme_color,
+        is_published,
+        display_order
+      ) 
+      VALUES (
+        ${data.main_heading},
+        ${data.sub_heading || null},
+        ${data.video_url || null},
+        ${data.image_one || null},
+        ${data.image_two || null},
+        ${data.image_three || null},
+        ${data.background_pattern || 'gradient'},
+        ${data.theme_color || 'purple'},
+        ${data.is_published || false},
+        ${data.display_order || 0}
+      )
+      RETURNING *
+    `;
+    
+    trackQueryPerformance('createROISection', startTime, true);
+    logOperation('createROISection', 'success', { id: result[0].id });
+    
+    return { success: true, data: result[0] };
+  } catch (error: any) {
+    console.error('Error creating ROI section:', error);
+    trackQueryPerformance('createROISection', startTime, false, error);
+    return { success: false, message: error.message };
+  }
+}
+
+// Update ROI section
+export async function updateROISection(id: number, data: any) {
+  const startTime = Date.now();
+  try {
+    const result = await sql`
+      UPDATE roi_section
+      SET 
+        main_heading = ${data.main_heading},
+        sub_heading = ${data.sub_heading || null},
+        video_url = ${data.video_url || null},
+        image_one = ${data.image_one || null},
+        image_two = ${data.image_two || null},
+        image_three = ${data.image_three || null},
+        background_pattern = ${data.background_pattern || 'gradient'},
+        theme_color = ${data.theme_color || 'purple'},
+        is_published = ${data.is_published !== undefined ? data.is_published : false},
+        display_order = ${data.display_order || 0},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    
+    trackQueryPerformance('updateROISection', startTime, true);
+    logOperation('updateROISection', 'success', { id });
+    
+    return { success: true, data: result[0] };
+  } catch (error: any) {
+    console.error('Error updating ROI section:', error);
+    trackQueryPerformance('updateROISection', startTime, false, error);
+    return { success: false, message: error.message };
+  }
+}
+
+// Create ROI card
+export async function createROICard(data: any) {
+  const startTime = Date.now();
+  try {
+    const result = await sql`
+      INSERT INTO roi_cards (
+        roi_section_id,
+        title,
+        value,
+        description,
+        icon_url,
+        metric_type,
+        trend,
+        trend_percentage,
+        previous_value,
+        time_period,
+        category,
+        display_order,
+        is_featured,
+        background_color,
+        border_style,
+        animation_type
+      )
+      VALUES (
+        ${data.roi_section_id},
+        ${data.title},
+        ${data.value},
+        ${data.description},
+        ${data.icon_url || null},
+        ${data.metric_type || 'percentage'},
+        ${data.trend || 'up'},
+        ${data.trend_percentage || null},
+        ${data.previous_value || null},
+        ${data.time_period || null},
+        ${data.category || null},
+        ${data.display_order || 0},
+        ${data.is_featured || false},
+        ${data.background_color || null},
+        ${data.border_style || null},
+        ${data.animation_type || 'fade'}
+      )
+      RETURNING *
+    `;
+    
+    trackQueryPerformance('createROICard', startTime, true);
+    return { success: true, data: result[0] };
+  } catch (error: any) {
+    console.error('Error creating ROI card:', error);
+    trackQueryPerformance('createROICard', startTime, false, error);
+    return { success: false, message: error.message };
+  }
+}
+
+// Update ROI card
+export async function updateROICard(id: number, data: any) {
+  const startTime = Date.now();
+  try {
+    const result = await sql`
+      UPDATE roi_cards
+      SET 
+        title = ${data.title},
+        value = ${data.value},
+        description = ${data.description},
+        icon_url = ${data.icon_url || null},
+        metric_type = ${data.metric_type || 'percentage'},
+        trend = ${data.trend || 'up'},
+        trend_percentage = ${data.trend_percentage || null},
+        previous_value = ${data.previous_value || null},
+        time_period = ${data.time_period || null},
+        category = ${data.category || null},
+        display_order = ${data.display_order || 0},
+        is_featured = ${data.is_featured || false},
+        background_color = ${data.background_color || null},
+        border_style = ${data.border_style || null},
+        animation_type = ${data.animation_type || 'fade'},
+        updated_at = NOW()
+      WHERE id = ${id}
+      RETURNING *
+    `;
+    
+    trackQueryPerformance('updateROICard', startTime, true);
+    return { success: true, data: result[0] };
+  } catch (error: any) {
+    console.error('Error updating ROI card:', error);
+    trackQueryPerformance('updateROICard', startTime, false, error);
+    return { success: false, message: error.message };
+  }
+}
+
+// Delete ROI card
+export async function deleteROICard(id: number) {
+  const startTime = Date.now();
+  try {
+    await sql`DELETE FROM roi_cards WHERE id = ${id}`;
+    
+    trackQueryPerformance('deleteROICard', startTime, true);
+    return { success: true, message: 'ROI card deleted successfully' };
+  } catch (error: any) {
+    console.error('Error deleting ROI card:', error);
+    trackQueryPerformance('deleteROICard', startTime, false, error);
+    return { success: false, message: error.message };
+  }
 }
 
 // Helper function to track query performance
@@ -1330,4 +1682,4 @@ export default {
   getProjectsByShowcaseLocation,
   getUniqueCategories,
   getDebugStatus
-}; 
+};

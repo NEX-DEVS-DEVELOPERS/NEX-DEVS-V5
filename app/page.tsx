@@ -36,6 +36,11 @@ const WelcomeScreen = dynamic(() => import('@/app/components/WelcomeScreen'), {
 const AIFirstAgencyPopup = dynamic(() => import('@/app/components/AIFirstAgencyPopup'), {
   ssr: false
 })
+
+// Preload AI First Agency popup for instant display after welcome screen
+if (typeof window !== 'undefined') {
+  import('@/app/components/AIFirstAgencyPopup');
+}
 const FloatingActionButton = dynamic(() => import('@/app/components/FloatingActionButton'), {
   ssr: false
 })
@@ -46,6 +51,9 @@ const ClientTestimonials = dynamic(() => import('@/components/TestimonialsSectio
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
 const AIFeatures = dynamic(() => import('@/components/sections/AIFeatures'), {
+  loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
+})
+const ROISection = dynamic(() => import('./components/ROISection'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
 
@@ -501,7 +509,7 @@ export default function Home() {
           setShowMobilePopup(true);
         }, 600); // Further reduced delay for even faster mobile experience
       }
-    }, 20); // Reduced delay from 50ms to 20ms for ultra-fast transition
+    }, 0); // Show instantly
   };
 
   // Add function to reset welcome screen (for testing)
@@ -812,6 +820,11 @@ export default function Home() {
       {/* Team Section */}
       <div data-barba="container" data-barba-namespace="team">
         <TeamSection />
+      </div>
+      
+      {/* ROI Section */}
+      <div data-barba="container" data-barba-namespace="roi">
+        <ROISection />
       </div>
       
       {/* Graphs Section */}
