@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { useRouter } from 'next/navigation'
 import Head from 'next/head'
-import { useInView } from "react-intersection-observer";
+import { useInView } from 'react-intersection-observer';
 
 // Declare the Calendly type for TypeScript
 declare global {

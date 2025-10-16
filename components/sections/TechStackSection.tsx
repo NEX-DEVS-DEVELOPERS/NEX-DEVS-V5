@@ -1,7 +1,7 @@
 'use client'
 
 import { motion, Variants } from 'framer-motion'
-import { IconCloud } from "@/components/ui/interactive-icon-cloud"
+import { IconCloud } from '@/components/ui/interactive-icon-cloud'
 import { useIsMobile } from '@/app/utils/deviceDetection'
 import { audiowide, vt323 } from '@/app/utils/fonts'
 import { memo } from 'react';

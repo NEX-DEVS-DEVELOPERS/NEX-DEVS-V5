@@ -1,7 +1,7 @@
 import React from 'react';
-import { useTimeline } from '../contexts/TimelineContext';
-import { useCurrency } from '../contexts/CurrencyContext';
-import { formatPrice } from '../utils/pricing';
+import { useTimeline } from '@/frontend/contexts/TimelineContext';
+import { useCurrency } from '@/frontend/contexts/CurrencyContext';
+import { formatPrice } from '@/frontend/utils/pricing';
 
 interface InvoiceCalculatorProps {
   basePrice: number;
@@ -38,3 +38,4 @@ const InvoiceCalculator: React.FC<InvoiceCalculatorProps> = ({ basePrice }) => {
 };
 
 export default InvoiceCalculator;
+

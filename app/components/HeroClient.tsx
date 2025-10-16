@@ -1,16 +1,16 @@
 "use client"
 
-import { motion, AnimatePresence, Variants } from "framer-motion"
+import { motion, AnimatePresence, Variants } from 'framer-motion'
 import Image from 'next/image'
 import Link from 'next/link'
-import { useState, useMemo, useCallback, useEffect, useRef, memo } from "react"
-import { useIsMobile } from '@/app/utils/deviceDetection'
-import NeuralNetwork from '@/components/animations/NeuralNetwork'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { useState, useMemo, useCallback, useEffect, useRef, memo } from 'react'
+import { useIsMobile } from '@/frontend/utils/deviceDetection'
+import NeuralNetwork from '@/frontend/components/animations/NeuralNetwork'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 import dynamic from 'next/dynamic'
 
 // Dynamically import heavy components
-const DynamicTechStackSection = dynamic(() => import("@/components/sections/TechStackSection"), {
+const DynamicTechStackSection = dynamic(() => import('@/frontend/components/sections/TechStackSection'), {
   loading: () => <div className="h-20 bg-transparent" />,
   ssr: false // Skip SSR for better performance
 })

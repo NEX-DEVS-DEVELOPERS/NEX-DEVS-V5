@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ENV_CONFIG, validateEnvironmentVariables } from '@/lib/env-config';
+import { ENV_CONFIG, validateEnvironmentVariables } from '@/backend/lib/env-config';
 
 export async function GET() {
   try {
@@ -25,3 +25,4 @@ export async function GET() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

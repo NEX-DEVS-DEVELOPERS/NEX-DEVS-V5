@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
-import { useAdvancedIntersectionObserver } from '@/hooks/useAdvancedIntersectionObserver'
+import { useAdvancedIntersectionObserver } from '@/frontend/hooks/useAdvancedIntersectionObserver'
 import Head from 'next/head';
 import { audiowide, vt323 } from '@/app/utils/fonts';
 

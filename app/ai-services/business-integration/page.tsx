@@ -5,8 +5,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Check, Star, ArrowRight, Zap, Bot, Mic, Building2, Info, X, Brain, Cpu, Database, ChevronLeft, Flag, ExternalLink, Calendar, TrendingUp, Sparkles, Cloud, ImageIcon, Wind } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
-import NeuralNetwork from '@/components/animations/NeuralNetwork';
-import { audiowide, vt323, getVT323Style, getAudiowideStyle } from '@/app/utils/fonts';
+import NeuralNetwork from '@/frontend/components/animations/NeuralNetwork';
+import { audiowide, vt323, getVT323Style, getAudiowideStyle } from '@/frontend/utils/fonts';
 
 // Types for Neural Network
 interface NetworkNode {

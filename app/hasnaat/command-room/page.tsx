@@ -2,11 +2,11 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
-import { type KnowledgeEntry } from '@/lib/nexious-knowledge'
-import ProModeManager from '@/components/ProModeManager'
-import ProModeErrorBoundary from '@/components/ProModeErrorBoundary'
+import { type KnowledgeEntry } from '@/backend/lib/nexious-knowledge'
+import ProModeManager from '@/frontend/components/ProModeManager'
+import ProModeErrorBoundary from '@/frontend/components/ProModeErrorBoundary'
 
 export default function CommandRoomPage() {
   const [apiKey, setApiKey] = useState('')

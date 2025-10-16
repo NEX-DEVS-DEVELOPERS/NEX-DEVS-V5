@@ -73,3 +73,4 @@ export default function SecurityNotFound({ reason = 'not_found', pathname }: Sec
     </div>
   )
 }
+

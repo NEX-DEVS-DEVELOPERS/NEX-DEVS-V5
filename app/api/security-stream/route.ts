@@ -1,6 +1,6 @@
 import { NextRequest } from 'next/server';
-import { enhancedSecurityMonitor } from '@/utils/enhancedSecurityMonitor';
-import { sessionManager } from '@/utils/sessionManager';
+import { enhancedSecurityMonitor } from '@/backend/utils/enhancedSecurityMonitor';
+import { sessionManager } from '@/backend/utils/sessionManager';
 
 // Admin password from environment
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
@@ -138,3 +138,4 @@ export async function OPTIONS() {
     },
   });
 }
+

@@ -1,5 +1,5 @@
-import { cn } from "@/lib/utils"
-import { Avatar, AvatarImage } from "@/components/ui/avatar"
+import { cn } from '@/backend/lib/utils'
+import { Avatar, AvatarImage } from '@/components/ui/avatar'
 
 export interface TestimonialAuthor {
   name: string

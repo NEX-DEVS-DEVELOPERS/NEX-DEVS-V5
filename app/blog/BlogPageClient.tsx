@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
-import BlogCard from '../components/BlogCard'
-import BlogTestimonial from '../components/BlogTestimonial'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import BlogCard from '@/frontend/components/BlogCard'
+import BlogTestimonial from '@/frontend/components/BlogTestimonial'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 interface BlogPost {
   id: number
@@ -281,3 +281,4 @@ export default function BlogPageClient({ blogPosts, testimonials, loading }: Blo
     </motion.div>
   )
 }
+

@@ -4,7 +4,7 @@ import dynamic from 'next/dynamic';
 import { useEffect, useState } from 'react';
 
 // Import NexiousChatbot dynamically with SSR disabled but with better loading handling
-const NexiousChatbot = dynamic(() => import('@/components/NexiousChatbot'), {
+const NexiousChatbot = dynamic(() => import('@/frontend/components/NexiousChatbot'), {
   ssr: false,
   loading: () => null
 });

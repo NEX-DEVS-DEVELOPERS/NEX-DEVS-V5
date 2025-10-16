@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useCurrency } from '@/app/contexts/CurrencyContext';
-import { SupportedCurrency, currencySymbols, getPriceBreakdown, getLocationData } from '@/app/utils/pricing';
+import { useCurrency } from '@/frontend/contexts/CurrencyContext';
+import { SupportedCurrency, currencySymbols, getPriceBreakdown, getLocationData } from '@/frontend/utils/pricing';
 
 // Currency flag icons mapping
 const currencyFlags: Record<SupportedCurrency, string> = {

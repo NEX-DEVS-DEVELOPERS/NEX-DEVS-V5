@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useCallback, useMemo, memo } from 'react';
 import { Send, X, Minimize2, Bot, Code, Phone, ShoppingCart, Zap, Pause } from 'lucide-react';
 import { usePathname } from 'next/navigation';
-import { audiowide, getAudiowideStyle } from '@/app/utils/fonts';
+import { audiowide, getAudiowideStyle } from '@/frontend/utils/fonts';
 
 // Type declaration for window object extensions
 declare global {
@@ -240,7 +240,7 @@ import {
   nexShftMethodology,
   technicalCapabilities,
   projectExamples
-} from '@/lib/nexious-knowledge';
+} from '@/backend/lib/nexious-knowledge';
 
 // Import AI settings - SINGLE SOURCE OF TRUTH
 import aiSettings, {
@@ -272,15 +272,15 @@ import aiSettings, {
   getEffectiveModelSettings,
   AIModelSettings,
   FallbackModelConfig
-} from '@/utils/nexiousAISettings';
+} from '@/backend/utils/nexiousAISettings';
 
 // Import NLP and conversation memory systems for human-like responses
-import nlpProcessor, { generateNLPContext, humanizeResponse, addHumanTouches } from '@/utils/nlpProcessor';
-import conversationMemory, { generateUserID, updateUserProfile, generateConversationContext, generateContextualGreeting, generateContextualReferences } from '@/utils/conversationMemory';
-import responseTraining, { generateContextualResponse, trainingExamples } from '@/utils/responseTraining';
+import nlpProcessor, { generateNLPContext, humanizeResponse, addHumanTouches } from '@/backend/utils/nlpProcessor';
+import conversationMemory, { generateUserID, updateUserProfile, generateConversationContext, generateContextualGreeting, generateContextualReferences } from '@/backend/utils/conversationMemory';
+import responseTraining, { generateContextualResponse, trainingExamples } from '@/frontend/utils/responseTraining';
 
 // Import performance monitoring for smooth 60fps experience
-import performanceMonitor, { PerformanceMetrics } from '@/utils/performanceMonitor';
+import performanceMonitor, { PerformanceMetrics } from '@/backend/utils/performanceMonitor';
 
 // Import model status indicator component
 import ModelStatusIndicator from './ModelStatusIndicator';

@@ -4,11 +4,11 @@ import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react'
 import { motion, AnimatePresence, useScroll, useSpring } from 'framer-motion';
 import { Info, Check, X, Bot, Cpu, Brain, Sparkles, Code, Database, Globe, Shield, Cloud, Zap, Settings, Users, Lock, Clock, Book, FileText, Mic, Volume2, ChevronRight, ArrowRight, CheckCircle } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import RequirementsModal from '@/app/components/RequirementsModal';
-import { useRequirementsModal } from '@/app/hooks/useRequirementsModal';
+import RequirementsModal from '@/frontend/components/RequirementsModal';
+import { useRequirementsModal } from '@/frontend/hooks/useRequirementsModal';
 import Image from 'next/image';
-import NeuralNetwork from '@/components/animations/NeuralNetwork';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import NeuralNetwork from '@/frontend/components/animations/NeuralNetwork';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // AI Models and terms for background effect
 const AI_TERMS = [

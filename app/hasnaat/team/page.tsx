@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
 
 // Team member types

@@ -1,5 +1,5 @@
 import React from 'react';
-import { useTimeline } from '../contexts/TimelineContext';
+import { useTimeline } from '@/frontend/contexts/TimelineContext';
 
 const TimelineSelector: React.FC = () => {
   const { timeline, setTimeline } = useTimeline();
@@ -27,3 +27,4 @@ const TimelineSelector: React.FC = () => {
 };
 
 export default TimelineSelector;
+

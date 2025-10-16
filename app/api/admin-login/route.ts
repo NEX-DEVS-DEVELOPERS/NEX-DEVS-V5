@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { ENV_CONFIG, validateEnvironmentVariables, debugEnvironmentVariables, logSecurityEvent } from '@/lib/env-config';
-import { securityMonitor, SecurityMonitor } from '@/lib/security-monitor';
+import { ENV_CONFIG, validateEnvironmentVariables, debugEnvironmentVariables, logSecurityEvent } from '@/backend/lib/env-config';
+import { securityMonitor, SecurityMonitor } from '@/backend/lib/security-monitor';
 
 export async function POST(request: Request) {
   try {
@@ -129,3 +129,4 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

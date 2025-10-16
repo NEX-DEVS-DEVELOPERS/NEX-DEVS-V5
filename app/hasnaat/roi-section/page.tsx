@@ -6,7 +6,7 @@ import { toast, Toaster } from 'react-hot-toast'
 import Link from 'next/link'
 
 interface ROICard {
-  id: number
+  id?: number
   title: string
   value: string
   description: string
@@ -39,6 +39,12 @@ interface ROISection {
   cards: ROICard[]
 }
 
+interface FileUpload {
+  file: File | null
+  preview: string
+  uploading: boolean
+}
+
 export default function ROISectionDashboard() {
   const router = useRouter()
   const [roiSection, setROISection] = useState<ROISection | null>(null)
@@ -46,8 +52,22 @@ export default function ROISectionDashboard() {
   const [isPublishing, setIsPublishing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [adminPassword, setAdminPassword] = useState('')
+  
+  // File uploads state
+  const [videoFile, setVideoFile] = useState<FileUpload>({ file: null, preview: '', uploading: false })
+  const [imageOneFile, setImageOneFile] = useState<FileUpload>({ file: null, preview: '', uploading: false })
+  const [imageTwoFile, setImageTwoFile] = useState<FileUpload>({ file: null, preview: '', uploading: false })
+  const [imageThreeFile, setImageThreeFile] = useState<FileUpload>({ file: null, preview: '', uploading: false })
+  
+  // ROI Cards state - all 5 cards in one form
+  const [cards, setCards] = useState<ROICard[]>([
+    { title: '', value: '', description: '', category: 'conversion', trend: 'up', trend_percentage: 0, time_period: '', display_order: 1 },
+    { title: '', value: '', description: '', category: 'revenue', trend: 'up', trend_percentage: 0, time_period: '', display_order: 2 },
+    { title: '', value: '', description: '', category: 'efficiency', trend: 'up', trend_percentage: 0, time_period: '', display_order: 3 },
+    { title: '', value: '', description: '', category: 'engagement', trend: 'up', trend_percentage: 0, time_period: '', display_order: 4 },
+    { title: '', value: '', description: '', category: 'efficiency', trend: 'down', trend_percentage: 0, time_period: '', display_order: 5 },
+  ])
 
-  // Check authentication and get admin password
   useEffect(() => {
     const auth = sessionStorage.getItem('adminAuth')
     const password = sessionStorage.getItem('adminPassword')
@@ -78,9 +98,29 @@ export default function ROISectionDashboard() {
       const data = await response.json()
       
       if (data.success && data.data && data.data.length > 0) {
-        setROISection(data.data[0])
+        const section = data.data[0]
+        setROISection(section)
+        
+        // Load existing cards or use defaults
+        if (section.cards && section.cards.length > 0) {
+          const loadedCards = [...section.cards]
+          // Fill up to 5 cards
+          while (loadedCards.length < 5) {
+            loadedCards.push({
+              title: '',
+              value: '',
+              description: '',
+              category: 'conversion',
+              trend: 'up',
+              trend_percentage: 0,
+              time_period: '',
+              display_order: loadedCards.length + 1
+            })
+          }
+          setCards(loadedCards.slice(0, 5))
+        }
       } else {
-        // Create default ROI section if none exists
+        // Create default section
         const defaultSection: any = {
           main_heading: 'Maximize Your ROI with AI-Powered Solutions',
           sub_heading: 'See how our cutting-edge AI technologies deliver measurable results for your business',
@@ -117,6 +157,43 @@ export default function ROISectionDashboard() {
     }
   }
 
+  const handleFileUpload = async (file: File, type: 'video' | 'image_one' | 'image_two' | 'image_three') => {
+    const setterMap = {
+      video: setVideoFile,
+      image_one: setImageOneFile,
+      image_two: setImageTwoFile,
+      image_three: setImageThreeFile
+    }
+    
+    const setter = setterMap[type]
+    setter({ file, preview: URL.createObjectURL(file), uploading: true })
+
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      formData.append('password', adminPassword)
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData
+      })
+
+      const data = await response.json()
+      
+      if (data.url) {
+        setter(prev => ({ ...prev, uploading: false }))
+        toast.success(`${type.replace('_', ' ')} uploaded successfully!`)
+        return data.url
+      } else {
+        throw new Error('Upload failed')
+      }
+    } catch (error) {
+      setter(prev => ({ ...prev, uploading: false, file: null, preview: '' }))
+      toast.error(`Failed to upload ${type.replace('_', ' ')}`)
+      return null
+    }
+  }
+
   const handlePublishToggle = async () => {
     if (!roiSection) return
 
@@ -150,7 +227,7 @@ export default function ROISectionDashboard() {
     }
   }
 
-  const handleSaveSection = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSaveAll = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     if (!roiSection) return
 
@@ -158,21 +235,48 @@ export default function ROISectionDashboard() {
     try {
       const formData = new FormData(e.currentTarget)
       
+      // Handle file uploads first
+      let videoUrl = formData.get('video_url') as string
+      let imageOneUrl = formData.get('image_one') as string
+      let imageTwoUrl = formData.get('image_two') as string
+      let imageThreeUrl = formData.get('image_three') as string
+
+      if (videoFile.file) {
+        const uploadedUrl = await handleFileUpload(videoFile.file, 'video')
+        if (uploadedUrl) videoUrl = uploadedUrl
+      }
+      
+      if (imageOneFile.file) {
+        const uploadedUrl = await handleFileUpload(imageOneFile.file, 'image_one')
+        if (uploadedUrl) imageOneUrl = uploadedUrl
+      }
+      
+      if (imageTwoFile.file) {
+        const uploadedUrl = await handleFileUpload(imageTwoFile.file, 'image_two')
+        if (uploadedUrl) imageTwoUrl = uploadedUrl
+      }
+      
+      if (imageThreeFile.file) {
+        const uploadedUrl = await handleFileUpload(imageThreeFile.file, 'image_three')
+        if (uploadedUrl) imageThreeUrl = uploadedUrl
+      }
+
+      // Update section
       const sectionData = {
         id: roiSection.id,
         main_heading: formData.get('main_heading') as string,
         sub_heading: formData.get('sub_heading') as string,
-        video_url: formData.get('video_url') as string,
-        image_one: formData.get('image_one') as string,
-        image_two: formData.get('image_two') as string,
-        image_three: formData.get('image_three') as string,
+        video_url: videoUrl,
+        image_one: imageOneUrl,
+        image_two: imageTwoUrl,
+        image_three: imageThreeUrl,
         background_pattern: formData.get('background_pattern') as string,
         theme_color: formData.get('theme_color') as string,
         display_order: parseInt(formData.get('display_order') as string) || 0,
         is_published: roiSection.is_published
       }
 
-      const response = await fetch('/api/admin/roi-section', {
+      const sectionResponse = await fetch('/api/admin/roi-section', {
         method: 'PUT',
         headers: {
           'Authorization': `Bearer ${adminPassword}`,
@@ -181,46 +285,61 @@ export default function ROISectionDashboard() {
         body: JSON.stringify(sectionData)
       })
 
-      const data = await response.json()
+      const sectionResult = await sectionResponse.json()
       
-      if (data.success) {
-        setROISection(prev => prev ? {...prev, ...data.data} : null)
-        toast.success('ROI section updated successfully')
-      } else {
-        toast.error(data.message || 'Failed to update section')
+      if (!sectionResult.success) {
+        throw new Error('Failed to update section')
       }
+
+      // Save or update all 5 cards
+      const cardPromises = cards.filter(card => card.title && card.value).map(async (card, index) => {
+        const cardData = {
+          ...card,
+          roi_section_id: roiSection.id,
+          display_order: index + 1
+        }
+
+        if (card.id) {
+          // Update existing card
+          return fetch(`/api/admin/roi-cards/${card.id}`, {
+            method: 'PUT',
+            headers: {
+              'Authorization': `Bearer ${adminPassword}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cardData)
+          })
+        } else {
+          // Create new card
+          return fetch('/api/admin/roi-cards', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${adminPassword}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(cardData)
+          })
+        }
+      })
+
+      await Promise.all(cardPromises)
+
+      toast.success('ROI section and all cards saved successfully!')
+      fetchROISection(adminPassword)
     } catch (error) {
-      console.error('Error updating ROI section:', error)
-      toast.error('Failed to update ROI section')
+      console.error('Error saving ROI section:', error)
+      toast.error('Failed to save ROI section')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleDeleteCard = async (cardId: number) => {
-    if (!confirm('Are you sure you want to delete this ROI card? This action cannot be undone.')) return
-
-    try {
-      const response = await fetch(`/api/admin/roi-cards/${cardId}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${adminPassword}`,
-          'Content-Type': 'application/json'
-        }
-      })
-
-      const data = await response.json()
-      
-      if (data.success) {
-        fetchROISection(adminPassword)
-        toast.success('ROI card deleted successfully')
-      } else {
-        toast.error(data.message || 'Failed to delete card')
-      }
-    } catch (error) {
-      console.error('Error deleting ROI card:', error)
-      toast.error('Failed to delete ROI card')
-    }
+  const updateCard = (index: number, field: keyof ROICard, value: any) => {
+    setCards(prev => {
+      const updated = [...prev]
+      updated[index] = { ...updated[index], [field]: value }
+      return updated
+    })
   }
 
   if (loading) {
@@ -255,9 +374,9 @@ export default function ROISectionDashboard() {
               Back to Dashboard
             </Link>
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-2">
-              ROI Section Management
+              🎯 All-in-One ROI Manager
             </h1>
-            <p className="text-gray-400 text-sm">Manage ROI cards and section settings</p>
+            <p className="text-gray-400 text-sm">Configure section + all 5 ROI cards in one place</p>
           </div>
 
           <div className="flex items-center gap-3">
@@ -288,7 +407,7 @@ export default function ROISectionDashboard() {
                   </>
                 ) : (
                   <>
-                    {roiSection.is_published ? 'Unpublish' : 'Publish'}
+                    {roiSection.is_published ? '🔴 Unpublish' : '🟢 Publish'}
                   </>
                 )}
               </button>
@@ -307,24 +426,24 @@ export default function ROISectionDashboard() {
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-6 space-y-6">
-        {/* Section Settings */}
-        <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
-          <h2 className="text-xl font-semibold text-white mb-4 flex items-center">
-            <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      {roiSection && (
+        <form onSubmit={handleSaveAll} className="max-w-7xl mx-auto px-6 space-y-6">
+          {/* Section Settings */}
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
               </svg>
               Section Settings
             </h2>
 
-            {roiSection && (
-            <form onSubmit={handleSaveSection} className="space-y-6">
+            <div className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {/* Main Heading */}
                 <div className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Main Heading* <span className="text-purple-400">(Primary title shown to users)</span>
+                    Main Heading* <span className="text-purple-400">(Primary title)</span>
                   </label>
                   <input
                     type="text"
@@ -339,7 +458,7 @@ export default function ROISectionDashboard() {
                 {/* Sub Heading */}
                 <div className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Sub Heading <span className="text-gray-500">(Supporting text below main heading)</span>
+                    Sub Heading <span className="text-gray-500">(Supporting text)</span>
                   </label>
                   <textarea
                     name="sub_heading"
@@ -350,72 +469,136 @@ export default function ROISectionDashboard() {
                   />
                 </div>
 
-                {/* Video URL */}
-                <div>
+                {/* Video Upload */}
+                <div className="lg:col-span-2">
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Video URL <span className="text-gray-500">(Optional promotional video)</span>
+                    📹 Video <span className="text-gray-500">(Upload or use URL)</span>
                   </label>
-                  <input
-                    type="url"
-                    name="video_url"
-                    defaultValue={roiSection.video_url || ''}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                    placeholder="https://example.com/video.mp4"
-                  />
-                </div>
-
-                {/* Display Order */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Display Order <span className="text-gray-500">(Lower numbers appear first)</span>
-                  </label>
-                  <input
-                    type="number"
-                    name="display_order"
-                    defaultValue={roiSection.display_order || 0}
-                    min="0"
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                  />
-                </div>
-
-                {/* Image URLs */}
-                  <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image One URL <span className="text-gray-500">(First showcase image)</span>
-                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="file"
+                        accept="video/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            setVideoFile({
+                              file: e.target.files[0],
+                              preview: URL.createObjectURL(e.target.files[0]),
+                              uploading: false
+                            })
+                          }
+                        }}
+                        className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                      />
+                      {videoFile.preview && (
+                        <div className="mt-2">
+                          <video src={videoFile.preview} className="w-full h-32 object-cover rounded border border-gray-700" controls />
+                        </div>
+                      )}
+                    </div>
                     <input
                       type="url"
-                      name="image_one"
-                      defaultValue={roiSection.image_one || ''}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                      placeholder="https://example.com/image1.jpg"
+                      name="video_url"
+                      defaultValue={roiSection.video_url || ''}
+                      className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                      placeholder="Or paste video URL"
                     />
                   </div>
+                </div>
 
-                  <div>
+                {/* Image Uploads */}
+                <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image Two URL <span className="text-gray-500">(Second showcase image)</span>
+                    🖼️ Image One <span className="text-gray-500">(Upload or URL)</span>
                   </label>
-                    <input
-                      type="url"
-                      name="image_two"
-                      defaultValue={roiSection.image_two || ''}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                      placeholder="https://example.com/image2.jpg"
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setImageOneFile({
+                          file: e.target.files[0],
+                          preview: URL.createObjectURL(e.target.files[0]),
+                          uploading: false
+                        })
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                  />
+                  {imageOneFile.preview && (
+                    <img src={imageOneFile.preview} className="mt-2 w-full h-24 object-cover rounded border border-gray-700" alt="Preview" />
+                  )}
+                  <input
+                    type="url"
+                    name="image_one"
+                    defaultValue={roiSection.image_one || ''}
+                    className="mt-2 w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-purple-500"
+                    placeholder="Or paste URL"
                   />
                 </div>
 
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-2">
-                    Image Three URL <span className="text-gray-500">(Third showcase image)</span>
+                    🖼️ Image Two <span className="text-gray-500">(Upload or URL)</span>
                   </label>
                   <input
-                    type="url"
-                    name="image_three"
-                    defaultValue={roiSection.image_three || ''}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
-                    placeholder="https://example.com/image3.jpg"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      if (e.target.files?.[0]) {
+                        setImageTwoFile({
+                          file: e.target.files[0],
+                          preview: URL.createObjectURL(e.target.files[0]),
+                          uploading: false
+                        })
+                      }
+                    }}
+                    className="w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700"
                   />
+                  {imageTwoFile.preview && (
+                    <img src={imageTwoFile.preview} className="mt-2 w-full h-24 object-cover rounded border border-gray-700" alt="Preview" />
+                  )}
+                  <input
+                    type="url"
+                    name="image_two"
+                    defaultValue={roiSection.image_two || ''}
+                    className="mt-2 w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-purple-500"
+                    placeholder="Or paste URL"
+                  />
+                </div>
+
+                <div className="lg:col-span-2">
+                  <label className="block text-sm font-medium text-gray-300 mb-2">
+                    🖼️ Image Three <span className="text-gray-500">(Optional third image)</span>
+                  </label>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => {
+                          if (e.target.files?.[0]) {
+                            setImageThreeFile({
+                              file: e.target.files[0],
+                              preview: URL.createObjectURL(e.target.files[0]),
+                              uploading: false
+                            })
+                          }
+                        }}
+                        className="w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm file:mr-4 file:py-1.5 file:px-3 file:rounded file:border-0 file:bg-purple-600 file:text-white hover:file:bg-purple-700"
+                      />
+                      {imageThreeFile.preview && (
+                        <img src={imageThreeFile.preview} className="mt-2 w-full h-24 object-cover rounded border border-gray-700" alt="Preview" />
+                      )}
+                    </div>
+                    <input
+                      type="url"
+                      name="image_three"
+                      defaultValue={roiSection.image_three || ''}
+                      className="w-full px-4 py-2 bg-black/50 border border-gray-600 rounded-lg text-white text-sm focus:border-purple-500"
+                      placeholder="Or paste URL"
+                    />
+                  </div>
                 </div>
 
                 {/* Theme Settings */}
@@ -426,7 +609,7 @@ export default function ROISectionDashboard() {
                   <select
                     name="background_pattern"
                     defaultValue={roiSection.background_pattern || 'gradient'}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500"
                   >
                     <option value="gradient">Gradient</option>
                     <option value="dots">Dots</option>
@@ -442,7 +625,7 @@ export default function ROISectionDashboard() {
                   <select
                     name="theme_color"
                     defaultValue={roiSection.theme_color || 'purple'}
-                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 transition-all"
+                    className="w-full px-4 py-3 bg-black/50 border border-gray-600 rounded-lg text-white focus:border-purple-500"
                   >
                     <option value="purple">Purple</option>
                     <option value="blue">Blue</option>
@@ -451,151 +634,162 @@ export default function ROISectionDashboard() {
                     <option value="orange">Orange</option>
                   </select>
                 </div>
-                </div>
 
-                <button
-                  type="submit"
-                disabled={isSaving}
-                className="px-6 py-2.5 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-              >
-                {isSaving ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
-                    </svg>
-                    Save Settings
-                  </>
-                )}
-                </button>
-              </form>
-            )}
-          </div>
-
-        {/* ROI Cards Section */}
-        {roiSection && (
-          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-xl font-semibold text-white flex items-center">
-                <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                ROI Cards ({roiSection.cards?.length || 0})
-              </h2>
-              <Link
-                href="/hasnaat/roi-section/add"
-                className="px-5 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors flex items-center gap-2"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
-                </svg>
-                Add New Card
-              </Link>
-        </div>
-
-            {/* Cards List */}
-            {roiSection.cards && roiSection.cards.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b border-gray-800">
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Title</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Value</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Category</th>
-                      <th className="text-left py-3 px-4 text-sm font-medium text-gray-400">Trend</th>
-                      <th className="text-right py-3 px-4 text-sm font-medium text-gray-400">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-              {roiSection.cards.map((card) => (
-                      <tr key={card.id} className="border-b border-gray-800/50 hover:bg-gray-800/30 transition-colors">
-                        <td className="py-4 px-4">
-                          <div className="flex items-center gap-3">
-                            {card.icon_url && (
-                              <img src={card.icon_url} alt="" className="w-8 h-8 object-contain" />
-                            )}
-                            <div>
-                              <p className="text-white font-medium">{card.title}</p>
-                              <p className="text-gray-400 text-xs line-clamp-1">{card.description}</p>
-                    </div>
-                      </div>
-                        </td>
-                        <td className="py-4 px-4">
-                          <span className="text-purple-400 font-semibold">{card.value}</span>
-                        </td>
-                        <td className="py-4 px-4">
-                          {card.category && (
-                            <span className="inline-block px-2 py-1 bg-gray-800 border border-gray-700 rounded text-gray-300 text-xs capitalize">
-                              {card.category}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          {card.trend && (
-                            <span className={`inline-flex items-center gap-1 px-2 py-1 rounded text-xs font-medium ${
-                              card.trend === 'up' ? 'bg-green-500/10 text-green-400' :
-                              card.trend === 'down' ? 'bg-red-500/10 text-red-400' :
-                              'bg-blue-500/10 text-blue-400'
-                            }`}>
-                              {card.trend === 'up' && '↑'}
-                              {card.trend === 'down' && '↓'}
-                              {card.trend === 'stable' && '→'}
-                              {card.trend_percentage && `${card.trend_percentage}%`}
-                            </span>
-                          )}
-                        </td>
-                        <td className="py-4 px-4">
-                          <div className="flex items-center justify-end gap-2">
-                            <Link
-                              href={`/hasnaat/roi-section/edit/${card.id}`}
-                              className="px-3 py-1.5 bg-white/10 hover:bg-white/20 text-white rounded border border-white/20 text-sm transition-colors flex items-center gap-1"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                              </svg>
-                              Edit
-                            </Link>
-                    <button
-                      onClick={() => handleDeleteCard(card.id)}
-                              className="px-3 py-1.5 bg-red-600/10 hover:bg-red-600/20 text-red-400 rounded border border-red-500/30 text-sm transition-colors flex items-center gap-1"
-                    >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                              </svg>
-                      Delete
-                    </button>
-                  </div>
-                        </td>
-                      </tr>
-              ))}
-                  </tbody>
-                </table>
+                <input type="hidden" name="display_order" value={roiSection.display_order || 0} />
+              </div>
             </div>
-            ) : (
-              <div className="text-center py-12">
-                <svg className="w-16 h-16 text-gray-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-                </svg>
-                <h3 className="text-lg font-medium text-white mb-1">No ROI Cards</h3>
-                <p className="text-gray-400 text-sm mb-4">Get started by adding your first ROI card</p>
-                <Link
-                  href="/hasnaat/roi-section/add"
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors"
-                >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+          </div>
+
+          {/* All 5 ROI Cards in One Form */}
+          <div className="bg-gray-900/50 rounded-xl p-6 border border-gray-800">
+            <h2 className="text-xl font-semibold text-white mb-6 flex items-center">
+              <svg className="w-5 h-5 mr-2 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+              </svg>
+              All 5 ROI Cards - Fill Below
+            </h2>
+
+            <div className="space-y-8">
+              {cards.map((card, index) => (
+                <div key={index} className="bg-black/30 rounded-lg p-6 border border-gray-700">
+                  <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                    <span className="flex items-center justify-center w-8 h-8 rounded-full bg-purple-600 text-white text-sm font-bold">
+                      {index + 1}
+                    </span>
+                    ROI Card {index + 1}
+                    {card.title && <span className="text-sm text-gray-400">- {card.title}</span>}
+                  </h3>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <div className="lg:col-span-2">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Title* <span className="text-gray-500 text-xs">(e.g., "Revenue Growth")</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={card.title}
+                        onChange={(e) => updateCard(index, 'title', e.target.value)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                        placeholder="Enter ROI card title"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Value* <span className="text-gray-500 text-xs">(e.g., "+$2.4M")</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={card.value}
+                        onChange={(e) => updateCard(index, 'value', e.target.value)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                        placeholder="Value"
+                      />
+                    </div>
+
+                    <div className="lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Description* <span className="text-gray-500 text-xs">(Explain this metric)</span>
+                      </label>
+                      <textarea
+                        value={card.description}
+                        onChange={(e) => updateCard(index, 'description', e.target.value)}
+                        rows={2}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500 resize-none"
+                        placeholder="Describe this ROI metric..."
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Category</label>
+                      <select
+                        value={card.category}
+                        onChange={(e) => updateCard(index, 'category', e.target.value)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                      >
+                        <option value="conversion">Conversion</option>
+                        <option value="revenue">Revenue</option>
+                        <option value="efficiency">Efficiency</option>
+                        <option value="engagement">Engagement</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">Trend</label>
+                      <select
+                        value={card.trend}
+                        onChange={(e) => updateCard(index, 'trend', e.target.value)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                      >
+                        <option value="up">↑ Up (Positive)</option>
+                        <option value="down">↓ Down (Negative)</option>
+                        <option value="stable">→ Stable</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Trend % <span className="text-gray-500 text-xs">(e.g., 180 for 180%)</span>
+                      </label>
+                      <input
+                        type="number"
+                        value={card.trend_percentage}
+                        onChange={(e) => updateCard(index, 'trend_percentage', parseFloat(e.target.value) || 0)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                        placeholder="0"
+                        step="0.01"
+                      />
+                    </div>
+
+                    <div className="lg:col-span-3">
+                      <label className="block text-sm font-medium text-gray-300 mb-1">
+                        Time Period <span className="text-gray-500 text-xs">(e.g., "Past Year", "Last Quarter")</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={card.time_period}
+                        onChange={(e) => updateCard(index, 'time_period', e.target.value)}
+                        className="w-full px-3 py-2 bg-black/50 border border-gray-600 rounded text-white text-sm focus:border-purple-500"
+                        placeholder="Enter time period"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Save Button */}
+          <div className="flex justify-end gap-4">
+            <button
+              type="button"
+              onClick={() => router.push('/hasnaat')}
+              className="px-6 py-3 bg-gray-800 hover:bg-gray-700 text-white rounded-lg font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isSaving}
+              className="px-8 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isSaving ? (
+                <>
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                  Saving Everything...
+                </>
+              ) : (
+                <>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
                   </svg>
-                  Add First Card
-                </Link>
+                  💾 Save Section + All 5 Cards
+                </>
+              )}
+            </button>
           </div>
-        )}
-          </div>
-        )}
-      </div>
+        </form>
+      )}
     </div>
   )
 }

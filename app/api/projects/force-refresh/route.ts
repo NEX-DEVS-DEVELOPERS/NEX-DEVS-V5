@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import neonDb from '@/lib/neon';
+import neonDb from '@/backend/lib/neon';
 
 // Admin password for authentication
 const ADMIN_PASSWORD = 'nex-devs.org889123';

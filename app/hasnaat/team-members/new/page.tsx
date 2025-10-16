@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast, Toaster } from 'react-hot-toast'
-import AdminAuthCheck from '@/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 
 interface TeamMemberForm {
   name: string
@@ -485,3 +485,4 @@ export default function NewTeamMember() {
     </AdminAuthCheck>
   )
 }
+

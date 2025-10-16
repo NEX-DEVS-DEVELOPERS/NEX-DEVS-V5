@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { SupportedCurrency, baseExchangeRates, getRealTimeExchangeRates, getLocationData } from '@/app/utils/pricing';
+import { SupportedCurrency, baseExchangeRates, getRealTimeExchangeRates, getLocationData } from '@/frontend/utils/pricing';
 
 interface CurrencyContextType {
   currency: SupportedCurrency;

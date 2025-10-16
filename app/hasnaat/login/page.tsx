@@ -3,7 +3,7 @@
 import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
-import SecurityNotFound from '@/app/components/SecurityNotFound'
+import SecurityNotFound from '@/frontend/components/SecurityNotFound'
 
 function LoginForm() {
   const [username, setUsername] = useState('')

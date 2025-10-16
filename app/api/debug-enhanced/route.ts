@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import os from 'os';
-import neonDb from '@/lib/neon';
-import { geolocationService } from '@/utils/geolocation';
-import { enhancedSecurityMonitor } from '@/utils/enhancedSecurityMonitor';
-import { sessionManager } from '@/utils/sessionManager';
+import neonDb from '@/backend/lib/neon';
+import { geolocationService } from '@/backend/utils/geolocation';
+import { enhancedSecurityMonitor } from '@/backend/utils/enhancedSecurityMonitor';
+import { sessionManager } from '@/backend/utils/sessionManager';
 
 // Admin password from environment
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
@@ -237,3 +237,4 @@ function isValidIP(ip: string): boolean {
   const ipv6Regex = /^([0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/;
   return ipv6Regex.test(ip);
 }
+

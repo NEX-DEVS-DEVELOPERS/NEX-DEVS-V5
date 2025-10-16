@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/neon';
+import db from '@/backend/lib/neon';
 
 export async function GET() {
   try {

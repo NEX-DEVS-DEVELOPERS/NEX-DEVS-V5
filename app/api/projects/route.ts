@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Project } from './index';
-import neonDb from '@/lib/neon'; // Neon PostgreSQL database (primary)
+import neonDb from '@/backend/lib/neon'; // Neon PostgreSQL database (primary)
 import fs from 'fs';
 import path from 'path';
 

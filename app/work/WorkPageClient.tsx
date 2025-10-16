@@ -348,3 +348,4 @@ export default function WorkPageClient({ featuredProjects, staticData }: WorkPag
     </>
   )
 }
+

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { AutomationWorkflow } from '@/app/api/automation-workflows/route'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 export default function AutomationWorkflowsPage() {
   const [workflows, setWorkflows] = useState<AutomationWorkflow[]>([])

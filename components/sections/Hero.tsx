@@ -1,4 +1,4 @@
-import HeroClient from "@/app/components/HeroClient";
+import HeroClient from '@/app/components/HeroClient';
 
 // Static data that was previously in the client component
 const expertise = [

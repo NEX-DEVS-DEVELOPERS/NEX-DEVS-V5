@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import os from 'os';
 import fs from 'fs';
 import path from 'path';
-import neonDb from '@/lib/neon';
+import neonDb from '@/backend/lib/neon';
 
 // Check if we're in read-only mode on Vercel
 const isVercel = process.env.VERCEL === '1';

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import neonDb from '@/lib/neon';
+import neonDb from '@/backend/lib/neon';
 
 // Check if Neon PostgreSQL environment variables are set
 const isNeonConfigured = process.env.DATABASE_URL;

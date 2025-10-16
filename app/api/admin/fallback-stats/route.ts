@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getFallbackStats, getFallbackLogs, clearFallbackLogs } from '@/utils/nexiousAISettings'
+import { getFallbackStats, getFallbackLogs, clearFallbackLogs } from '@/backend/utils/nexiousAISettings'
 
 // Admin authentication check
 function checkAdminAuth(request: NextRequest): boolean {
@@ -60,3 +60,4 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+

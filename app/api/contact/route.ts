@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
-import { formatPrice, isBasicPackage, currencySymbols, SupportedCurrency } from '@/app/utils/pricing';
+import { formatPrice, isBasicPackage, currencySymbols, SupportedCurrency } from '@/frontend/utils/pricing';
 
 export async function POST(req: NextRequest) {
   console.log('Starting contact form submission process...');

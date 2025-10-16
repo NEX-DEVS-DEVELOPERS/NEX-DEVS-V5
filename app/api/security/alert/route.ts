@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { emailSecurityService } from '@/lib/email-security';
-import { logSecurityEvent } from '@/lib/env-config';
-import type { SecurityEvent } from '@/lib/security-monitor';
+import { emailSecurityService } from '@/backend/lib/email-security';
+import { logSecurityEvent } from '@/backend/lib/env-config';
+import type { SecurityEvent } from '@/backend/lib/security-monitor';
 
 export async function POST(request: NextRequest) {
   try {
@@ -84,3 +84,4 @@ export async function GET(request: NextRequest) {
     );
   }
 }
+

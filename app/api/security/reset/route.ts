@@ -39,3 +39,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Security reset failed' }, { status: 500 })
   }
 }
+

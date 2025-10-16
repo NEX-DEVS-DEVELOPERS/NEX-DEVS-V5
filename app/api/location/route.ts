@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getLocationData } from '@/app/utils/pricing';
+import { getLocationData } from '@/frontend/utils/pricing';
 
 export async function GET(request: NextRequest) {
   try {

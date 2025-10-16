@@ -2,8 +2,8 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import { toast } from 'react-hot-toast'
-import { enhancedSecurityMonitor } from '@/utils/enhancedSecurityMonitor'
-import { sessionManager } from '@/utils/sessionManager'
+import { enhancedSecurityMonitor } from '@/backend/utils/enhancedSecurityMonitor'
+import { sessionManager } from '@/backend/utils/sessionManager'
 
 // Enhanced types for comprehensive system info
 type EnhancedSystemInfo = {

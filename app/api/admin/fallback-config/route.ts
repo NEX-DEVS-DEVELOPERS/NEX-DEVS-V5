@@ -6,7 +6,7 @@ import {
   removeFallbackModel,
   testFallbackModel,
   getAdminConfiguration
-} from '@/utils/nexiousAISettings'
+} from '@/backend/utils/nexiousAISettings'
 
 // Admin authentication check
 function checkAdminAuth(request: NextRequest): boolean {
@@ -156,3 +156,4 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+

@@ -2,8 +2,8 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { fontStyles, getVT323Style, getAudiowideStyle } from '@/app/utils/fonts';
-import FontExample from '@/app/components/FontExample';
+import { fontStyles, getVT323Style, getAudiowideStyle } from '@/frontend/utils/fonts';
+import FontExample from '@/frontend/components/FontExample';
 
 export default function FontsDemoPage() {
   return (
@@ -38,7 +38,7 @@ export default function FontsDemoPage() {
               <div className="bg-zinc-800 p-6 rounded-lg">
                 <h3 className={fontStyles.headings.h3}>For Headings</h3>
                 <pre className="mt-4 bg-black/50 p-4 rounded-lg overflow-auto text-sm">
-                  {`import { fontStyles } from '@/app/utils/fonts';
+                  {`import { fontStyles } from '@/frontend/utils/fonts';
 
 // In your component:
 <h1 className={fontStyles.headings.h1}>
@@ -54,7 +54,7 @@ export default function FontsDemoPage() {
               <div className="bg-zinc-800 p-6 rounded-lg">
                 <h3 className={fontStyles.headings.h3}>For Text</h3>
                 <pre className="mt-4 bg-black/50 p-4 rounded-lg overflow-auto text-sm">
-                  {`import { getVT323Style } from '@/app/utils/fonts';
+                  {`import { getVT323Style } from '@/frontend/utils/fonts';
 
 // In your component:
 <p {...getVT323Style('text-gray-300')}>

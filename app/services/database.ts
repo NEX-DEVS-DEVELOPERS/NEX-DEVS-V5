@@ -1,4 +1,4 @@
-import { getProjects, getProjectById, createProject as createNeonProject, updateProject as updateNeonProject, deleteProject as deleteNeonProject, getFeaturedProjects as getNeonFeaturedProjects, getNewlyAddedProjects as getNeonNewlyAddedProjects, getProjectsByCategory as getNeonProjectsByCategory, getUniqueCategories as getNeonUniqueCategories } from '@/lib/neon';
+import { getProjects, getProjectById, createProject as createNeonProject, updateProject as updateNeonProject, deleteProject as deleteNeonProject, getFeaturedProjects as getNeonFeaturedProjects, getNewlyAddedProjects as getNeonNewlyAddedProjects, getProjectsByCategory as getNeonProjectsByCategory, getUniqueCategories as getNeonUniqueCategories } from '@/backend/lib/neon';
 import { Project } from '../api/projects/index';
 
 // Determine environment variables

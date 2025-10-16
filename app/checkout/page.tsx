@@ -4,10 +4,10 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { FaLock, FaCreditCard, FaPaypal, FaApplePay, FaGooglePay, FaUniversity, FaMobileAlt, FaDownload, FaFilePdf, FaRegCheckCircle, FaRocket, FaClipboardCheck } from 'react-icons/fa';
 import { motion } from 'framer-motion';
-import { useCurrency } from '@/app/contexts/CurrencyContext';
-import { formatPrice, convertPrice, baseExchangeRates } from '@/app/utils/pricing';
-import type { SupportedCurrency } from '@/app/utils/pricing';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { useCurrency } from '@/frontend/contexts/CurrencyContext';
+import { formatPrice, convertPrice, baseExchangeRates } from '@/frontend/utils/pricing';
+import type { SupportedCurrency } from '@/frontend/utils/pricing';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Add this keyframe animation for the modal
 const globalStyles = `

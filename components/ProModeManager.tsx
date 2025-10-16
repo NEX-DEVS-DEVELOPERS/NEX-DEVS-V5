@@ -11,7 +11,7 @@ import {
   formatValidationError,
   isProductionSafe,
   type ValidationResult
-} from '@/utils/proModeValidation'
+} from '@/frontend/utils/proModeValidation'
 import { proModeNotifications } from '@/components/ProModeNotifications'
 
 interface ProModeStatus {

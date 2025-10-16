@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { toast, Toaster } from 'react-hot-toast'
-import AdminAuthCheck from '@/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 
 interface TeamMember {
   id: number
@@ -269,3 +269,4 @@ export default function TeamMembersAdmin() {
     </AdminAuthCheck>
   )
 }
+

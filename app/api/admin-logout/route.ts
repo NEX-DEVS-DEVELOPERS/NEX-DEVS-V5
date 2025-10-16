@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { logSecurityEvent } from '@/lib/env-config';
+import { logSecurityEvent } from '@/backend/lib/env-config';
 
 export async function POST() {
   try {
@@ -28,3 +28,4 @@ export async function POST() {
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
+

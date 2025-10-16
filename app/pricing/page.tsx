@@ -4,22 +4,22 @@ import React, { useState, useEffect, useMemo, useCallback, memo, Suspense, useRe
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useCurrency } from '@/app/contexts/CurrencyContext';
-import { SupportedCurrency, getLocationData, formatPrice, currencySymbols } from '@/app/utils/pricing';
-import CurrencySelector from '@/app/components/CurrencySelector';
-import LoadingScreen from '@/app/components/LoadingScreen';
-import PricingPlans from '../components/PricingPlans';
-import TransitionEffect from '../components/TransitionEffect';
-import { useLocalStorage } from '@/app/hooks/useLocalStorage';
+import { useCurrency } from '@/frontend/contexts/CurrencyContext';
+import { SupportedCurrency, getLocationData, formatPrice, currencySymbols } from '@/frontend/utils/pricing';
+import CurrencySelector from '@/frontend/components/CurrencySelector';
+import LoadingScreen from '@/frontend/components/LoadingScreen';
+import PricingPlans from '@/frontend/components/PricingPlans';
+import TransitionEffect from '@/frontend/components/TransitionEffect';
+import { useLocalStorage } from '@/frontend/hooks/useLocalStorage';
 import { createRoot } from 'react-dom/client';
 import confetti from 'canvas-confetti';
 import { FaStore, FaWordpress } from 'react-icons/fa';
-import AiIntegrationSection from '@/app/components/AiIntegrationSection';
-import ReviewsDrawer from '@/app/components/ReviewsDrawer';
-import ReviewsCarousel from '@/app/components/ReviewsCarousel';
-import PlanReviews from '@/app/components/PlanReviews';
-import { PlanReview } from '@/app/components/ReviewsDrawer';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import AiIntegrationSection from '@/frontend/components/AiIntegrationSection';
+import ReviewsDrawer from '@/frontend/components/ReviewsDrawer';
+import ReviewsCarousel from '@/frontend/components/ReviewsCarousel';
+import PlanReviews from '@/frontend/components/PlanReviews';
+import { PlanReview } from '@/frontend/components/ReviewsDrawer';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Standalone loading screen component with fixed display time
 const StandaloneLoadingScreen = () => {

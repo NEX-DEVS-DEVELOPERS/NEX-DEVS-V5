@@ -12,7 +12,7 @@ import {
   type ProModeMaintenanceConfig,
   type StandardModeConfig,
   type AIModelSettings
-} from '@/utils/nexiousAISettings';
+} from '@/backend/utils/nexiousAISettings';
 
 // Admin authentication check
 function checkAdminAuth(request: NextRequest): boolean {
@@ -170,3 +170,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+

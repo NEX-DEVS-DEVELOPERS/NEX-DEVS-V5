@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import * as db from '@/lib/neon';
+import * as db from '@/backend/lib/neon';
 
 // Environment variables for authentication
 const DB_PASSWORD = process.env.DB_PASSWORD || 'alihasnaat919';
@@ -179,3 +179,4 @@ export async function DELETE(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

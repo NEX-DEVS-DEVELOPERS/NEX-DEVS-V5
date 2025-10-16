@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { FaLightbulb, FaRocket, FaClock, FaHandshake, FaHeart } from 'react-icons/fa'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 import Image from 'next/image'
 
 interface TeamMember {
@@ -475,3 +475,4 @@ export default function AboutPageClient({ teamMembers, loading, staticData }: Ab
     </motion.div>
   )
 }
+

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import fs from 'fs';
 import path from 'path';
-import { PlanReview } from '@/app/components/ReviewsDrawer';
+import { PlanReview } from '@/frontend/components/ReviewsDrawer';
 
 // Store reviews in a JSON file
 const REVIEWS_FILE_PATH = path.join(process.cwd(), 'data', 'reviews.json');

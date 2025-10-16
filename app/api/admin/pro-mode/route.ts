@@ -6,7 +6,7 @@ import {
   getProModeMaintenanceEndDate,
   getProModeTimeRemaining,
   type ProModeMaintenanceConfig
-} from '@/utils/nexiousAISettings';
+} from '@/backend/utils/nexiousAISettings';
 
 // Rate limiting for security
 const rateLimitMap = new Map<string, { count: number; resetTime: number }>();
@@ -375,3 +375,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllROISections, createROISection, updateROISection } from '@/lib/neon';
+import { getAllROISections, createROISection, updateROISection } from '@/backend/lib/neon';
 import crypto from 'crypto';
 
 // Security: Admin password from environment
@@ -201,3 +201,4 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+

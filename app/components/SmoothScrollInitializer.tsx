@@ -93,3 +93,4 @@ export default function SmoothScrollInitializer() {
 
   return null // This component doesn't render anything
 }
+

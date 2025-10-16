@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import neonDb from '@/lib/neon';
+import neonDb from '@/backend/lib/neon';
 
 // Define types for our featured projects
 interface FeaturedProject {

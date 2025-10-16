@@ -1,0 +1,131 @@
+{
+  "leader": {
+    "name": "Ali Hasnaat",
+    "role": "Founder & Lead Developer",
+    "image": "/team/ali.jpg",
+    "bio": "Full-stack developer with expertise in AI integration and modern web technologies. Passionate about creating exceptional digital experiences and innovative solutions. Founded NEX-DEVS in 2018 and has led the development of 950+ successful projects.",
+    "skills": [
+      "Full Stack Development",
+      "AI Integration",
+      "System Architecture",
+      "Cloud Infrastructure",
+      "Team Leadership",
+      "Project Management",
+      "Client Relations",
+      "Technical Strategy"
+    ],
+    "socialLinks": {
+      "github": "https://github.com/NEX-DEVS-DEVELOPERS",
+      "linkedin": "https://linkedin.com/in/alihasnaat",
+      "twitter": "https://twitter.com/alihasnaat",
+      "dribbble": "https://dribbble.com/alihasnaat"
+    }
+  },
+  "members": [
+    {
+      "name": "Mudassir Ahmad",
+      "role": "AI Workflows for Business Specialist",
+      "image": "/team/mdassir.jpg",
+      "bio": "Senior frontend developer specializing in React/Next.js ecosystems and AI workflow automation for business processes.",
+      "skills": [
+        "React Development",
+        "Next.js Applications",
+        "UI/UX Implementation",
+        "AI Workflow Automation",
+        "Business Process Optimization"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/mdassirahmad",
+        "linkedin": "https://linkedin.com/in/mdassirahmad"
+      }
+    },
+    {
+      "name": "Faizan Khan",
+      "role": "UI/UX Designer",
+      "image": "/team/faizan.jpg",
+      "bio": "Creative UI/UX designer with expertise in Figma, user research, and motion design. Specializes in creating intuitive, visually appealing interfaces.",
+      "skills": [
+        "UI/UX Design",
+        "Figma Mastery",
+        "User Research",
+        "Motion Design",
+        "Prototyping",
+        "Design Systems"
+      ],
+      "socialLinks": {
+        "dribbble": "https://dribbble.com/faizankhan",
+        "linkedin": "https://linkedin.com/in/faizankhan"
+      }
+    },
+    {
+      "name": "Eman Ali",
+      "role": "Backend Developer",
+      "image": "/team/eman.jpg",
+      "bio": "Experienced backend developer with expertise in Node.js, Python, and DevOps practices. Specializes in building scalable server-side applications.",
+      "skills": [
+        "Backend Development",
+        "Node.js",
+        "Python",
+        "DevOps",
+        "Database Design",
+        "API Development"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/emanali",
+        "linkedin": "https://linkedin.com/in/emanali"
+      }
+    },
+    {
+      "name": "Anns Bashir",
+      "role": "AI Agent Developer",
+      "image": "/team/anns.jpg",
+      "bio": "Specialized AI agent developer with expertise in N8N, Make.com, and workflow automation platforms. Creates intelligent automation solutions.",
+      "skills": [
+        "AI Agent Development",
+        "N8N Workflows",
+        "Make.com Automation",
+        "Process Automation",
+        "Integration Development"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/annsbashir",
+        "linkedin": "https://linkedin.com/in/annsbashir"
+      }
+    },
+    {
+      "name": "Hassam Baloch",
+      "role": "AI Agent Developer",
+      "image": "/team/hassam.jpg",
+      "bio": "Specialized AI Agent Developer with comprehensive expertise in N8N, Make.com, and advanced workflow automation platforms.",
+      "skills": [
+        "AI Agent Development",
+        "N8N Advanced Workflows",
+        "Make.com Expert Integration",
+        "Business Process Automation",
+        "Intelligent Workflow Design"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/hassambaloch",
+        "linkedin": "https://linkedin.com/in/hassambaloch"
+      }
+    },
+    {
+      "name": "Usman Aftab",
+      "role": "AI Database & DevOps Specialist",
+      "image": "/team/usman.jpg",
+      "bio": "Expert in AI database technologies, vector databases, and DevOps practices. Specializes in building intelligent data systems and managing scalable cloud infrastructure.",
+      "skills": [
+        "Vector Databases",
+        "AI Database Design",
+        "DevOps Engineering",
+        "Cloud Infrastructure",
+        "Database Optimization",
+        "Machine Learning Ops"
+      ],
+      "socialLinks": {
+        "github": "https://github.com/usmanaftab",
+        "linkedin": "https://linkedin.com/in/usmanaftab"
+      }
+    }
+  ]
+}

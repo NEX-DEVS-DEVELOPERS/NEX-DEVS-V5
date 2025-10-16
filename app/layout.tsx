@@ -1,4 +1,4 @@
-import { Inter } from "next/font/google"
+import { Inter } from 'next/font/google'
 import "./globals.css"
 import "../styles/performance-optimizations.css" // CRITICAL: Performance optimizations for 60fps scrolling
 import "../styles/barba-transitions.css" // Import Barba.js transition styles
@@ -6,24 +6,24 @@ import "../styles/color-consistency.css" // Import color consistency styles
 import "../styles/hero-and-scroll-fixes.css" // Import hero section and scrolling fixes
 import "../styles/neon-borders.css" // Import neon border styles
 import "../styles/smooth-scrolling.css" // Import smooth scrolling optimizations
-import { cn } from "@/lib/utils"
+import { cn } from '@/backend/lib/utils'
 import type { Metadata } from 'next'
 import dynamic from 'next/dynamic'
-import { fontVariables, audiowide, vt323 } from "@/app/utils/fonts"
+import { fontVariables, audiowide, vt323 } from '@/frontend/utils/fonts'
 
 // Import ClientLayout which wraps all client components
-import ClientLayout from './components/ClientLayout'
+import ClientLayout from '@/frontend/components/ClientLayout'
 
 // Import Navbar directly to ensure mobile menu works properly
-import Navbar from "@/components/layout/Navbar"
+import Navbar from '@/frontend/components/layout/Navbar'
 
 // Import directly since dynamic import was causing type issues
-import { ThemeProvider } from "@/components/ThemeProvider"
-import { CurrencyProvider } from '@/app/contexts/CurrencyContext'
-import { TimelineProvider } from '@/app/contexts/TimelineContext'
+import { ThemeProvider } from '@/frontend/components/ThemeProvider'
+import { CurrencyProvider } from '@/frontend/contexts/CurrencyContext'
+import { TimelineProvider } from '@/frontend/contexts/TimelineContext'
 
 // Import SmoothScrollInitializer directly
-import SmoothScrollInitializer from '@/app/components/SmoothScrollInitializer'
+import SmoothScrollInitializer from '@/frontend/components/SmoothScrollInitializer'
 
 // Optimize font loading - add display: 'swap' to show text with fallback font while custom font loads
 const inter = Inter({ 
@@ -437,3 +437,4 @@ export default function RootLayout({
     </html>
   )
 }
+

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import { FaLightbulb, FaRocket, FaClock, FaHandshake, FaHeart } from 'react-icons/fa'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 import Image from 'next/image'
-import { pageMetadata, generatePersonSchema, generateOrganizationSchema, injectStructuredData } from '@/app/lib/seo'
+import { pageMetadata, generatePersonSchema, generateOrganizationSchema, injectStructuredData } from '@/backend/lib/seo'
 import AboutPageClient from './AboutPageClient'
 
 // Generate metadata for SEO

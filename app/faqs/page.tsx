@@ -2,9 +2,9 @@
 
 import { useState, FormEvent, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/frontend/components/ui/accordion';
 import { ChevronDown } from 'lucide-react';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Interface for user-submitted questions
 interface UserQuestion {

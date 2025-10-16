@@ -52,3 +52,4 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Security check failed' }, { status: 500 })
   }
 }
+

@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import os from 'os';
-import neonDb from '@/lib/neon';    // Neon PostgreSQL database
+import neonDb from '@/backend/lib/neon';    // Neon PostgreSQL database
 
 export async function GET(request: NextRequest) {
   try {

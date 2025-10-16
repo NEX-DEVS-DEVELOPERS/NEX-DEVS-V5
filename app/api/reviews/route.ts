@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { PlanReview } from '@/app/components/ReviewsDrawer';
+import { PlanReview } from '@/frontend/components/ReviewsDrawer';
 import fs from 'fs';
 import path from 'path';
 

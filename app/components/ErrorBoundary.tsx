@@ -1,7 +1,7 @@
 'use client'
 
 import React, { Component, ErrorInfo, ReactNode } from 'react'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 interface Props {
   children: ReactNode
@@ -176,3 +176,4 @@ export function FormErrorBoundary({ children }: { children: ReactNode }) {
 }
 
 export default ErrorBoundary
+

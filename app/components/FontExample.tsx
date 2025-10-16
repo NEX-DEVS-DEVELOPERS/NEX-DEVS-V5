@@ -8,7 +8,7 @@ import {
   vt323DefaultSize, 
   getVT323Style, 
   getAudiowideStyle 
-} from '@/app/utils/fonts';
+} from '@/frontend/utils/fonts';
 
 /**
  * FontExample component
@@ -138,7 +138,7 @@ const FontExample = () => {
         <pre className="bg-zinc-800 p-4 rounded-lg overflow-auto text-sm">
           {`
 // In your layout.tsx file:
-import { fontVariables } from '@/app/utils/fonts';
+import { fontVariables } from '@/frontend/utils/fonts';
 
 export default function RootLayout({ children }) {
   return (

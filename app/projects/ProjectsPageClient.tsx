@@ -3,15 +3,15 @@
 import { useState, useEffect, useRef } from 'react'
 import { motion, useScroll, useSpring, useMotionValueEvent } from 'framer-motion'
 import Link from 'next/link'
-import NewlyAddedProjects from '../components/NewlyAddedProjects'
-import ProjectsGrid from '../components/ProjectsGrid'
-import ProjectImageGallery from '../components/ProjectImageGallery'
-import AISolutionsShowcase from '../components/AISolutionsShowcase'
-import MobileShowcase from '../components/MobileShowcase'
-import AutomationWorkflowsShowcase from '../components/AutomationWorkflowsShowcase'
-import VisionDrawer from '../components/VisionDrawer'
+import NewlyAddedProjects from '@/frontend/components/NewlyAddedProjects'
+import ProjectsGrid from '@/frontend/components/ProjectsGrid'
+import ProjectImageGallery from '@/frontend/components/ProjectImageGallery'
+import AISolutionsShowcase from '@/frontend/components/AISolutionsShowcase'
+import MobileShowcase from '@/frontend/components/MobileShowcase'
+import AutomationWorkflowsShowcase from '@/frontend/components/AutomationWorkflowsShowcase'
+import VisionDrawer from '@/frontend/components/VisionDrawer'
 import FloatingProjectsIndicator from '../../components/FloatingProjectsIndicator'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 interface ProjectCategory {
   id: string
@@ -471,3 +471,4 @@ export default function ProjectsPageClient({ projectsData, loading }: ProjectsPa
     </>
   )
 }
+

@@ -4,9 +4,9 @@ import React, { useEffect, useState, Suspense } from 'react';
 import { FaPhone, FaEnvelope, FaMapMarkerAlt, FaLinkedin, FaGithub, FaTwitter, FaWhatsapp, FaClock, FaGlobe, FaCode, FaPalette, FaRocket, FaMobile, FaWordpress, FaShoppingCart } from 'react-icons/fa';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { PlanReview } from '../components/ReviewsDrawer';
-import { carouselReviews, planReviews, Review } from '../components/ReviewsData';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { PlanReview } from '@/frontend/components/ReviewsDrawer';
+import { carouselReviews, planReviews, Review } from '@/frontend/components/ReviewsData';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Add glowing dots component
 const GlowingDot = ({ className = "", size = "small" }) => (

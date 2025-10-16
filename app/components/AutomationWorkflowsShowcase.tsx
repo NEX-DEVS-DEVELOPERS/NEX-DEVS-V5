@@ -5,7 +5,7 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import Image from 'next/image'
 import { AutomationWorkflow } from '@/app/api/automation-workflows/route'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 // Custom Video Player Component
 const CustomVideoPlayer = ({ src, poster, className = "", isSmall = false }: {

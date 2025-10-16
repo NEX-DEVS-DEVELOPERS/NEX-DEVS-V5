@@ -8,7 +8,7 @@ import confetti from 'canvas-confetti'; // Import the confetti library
 import { TypeAnimation } from 'react-type-animation'; // Import the typewriter animation component
 
 // Add barba.js imports
-import { initBarba } from '@/utils/barba-init';
+import { initBarba } from '@/frontend/utils/barba-init';
 
 // Add Audiowide and VT323 font imports
 import { Audiowide, VT323 } from 'next/font/google';

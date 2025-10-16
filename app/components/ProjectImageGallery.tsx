@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import CodeHighlighter from './CodeHighlighter'
-import { audiowide } from '@/app/utils/fonts'
+import { audiowide } from '@/frontend/utils/fonts'
 
 // Project type definition
 type Project = {

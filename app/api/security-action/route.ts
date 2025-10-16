@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { enhancedSecurityMonitor } from '@/utils/enhancedSecurityMonitor';
+import { enhancedSecurityMonitor } from '@/backend/utils/enhancedSecurityMonitor';
 
 // Admin password from environment
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123';
@@ -186,3 +186,4 @@ export async function GET(request: NextRequest) {
     }, { status: 500 });
   }
 }
+

@@ -633,7 +633,7 @@ const RequirementsModal: React.FC<RequirementsModalProps> = ({
       // Determine next step based on current step and selection
       let nextStep = currentStep + 1;
 
-      // Skip step 3 if not coming from "Other" selection
+      // Skip step 3 if not coming from 'Other' selection
       if (currentStep === 2 && option.value !== 'other') {
         nextStep = 4; // Skip to AI Integration Plan
       }
@@ -775,7 +775,7 @@ const RequirementsModal: React.FC<RequirementsModalProps> = ({
 
     if (websiteChoice === 'yes') {
       if (techStack === 'other' && specificTech) {
-        // Handle specific technology from "Other" selection
+        // Handle specific technology from 'Other' selection
         switch (specificTech) {
           case 'vue':
             return "Excellent! Vue.js is a fantastic framework. Our API-based integration will work seamlessly with your Vue application.";
@@ -1491,3 +1491,4 @@ const RequirementsModal: React.FC<RequirementsModalProps> = ({
 };
 
 export default RequirementsModal;
+

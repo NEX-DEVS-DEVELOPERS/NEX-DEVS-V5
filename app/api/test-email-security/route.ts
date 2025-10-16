@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { emailSecurityService } from '@/lib/email-security';
+import { emailSecurityService } from '@/backend/lib/email-security';
 
 export async function POST(request: NextRequest) {
   try {
@@ -110,3 +110,4 @@ export async function GET(request: NextRequest) {
     method: 'POST'
   });
 }
+

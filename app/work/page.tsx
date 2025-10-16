@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
 import { FiCode, FiLayout, FiShoppingBag, FiDatabase, FiSmartphone } from 'react-icons/fi'
-import { pageMetadata, generatePersonSchema, injectStructuredData } from '@/app/lib/seo'
+import { pageMetadata, generatePersonSchema, injectStructuredData } from '@/backend/lib/seo'
 import WorkPageClient from './WorkPageClient'
 
 // Generate metadata for SEO

@@ -6,7 +6,7 @@ import Image from 'next/image'
 import { useState, useEffect } from 'react'
 import { FiCode, FiLayout, FiShoppingBag, FiChevronRight } from 'react-icons/fi'
 import { BiCodeBlock, BiPalette, BiStore, BiMobile, BiServer, BiAnalyse } from 'react-icons/bi'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 const services = [
   {

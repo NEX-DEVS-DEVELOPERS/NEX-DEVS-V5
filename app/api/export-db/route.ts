@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import db from '@/app/services/database';
+import db from '@/backend/services/database';
 import fs from 'fs';
 import path from 'path';
 

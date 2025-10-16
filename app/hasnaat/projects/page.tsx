@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
-import DebugPanelWrapper from '@/app/components/DebugPanelWrapper'
+import DebugPanelWrapper from '@/frontend/components/DebugPanelWrapper'
 
 // Project type definition
 type Project = {

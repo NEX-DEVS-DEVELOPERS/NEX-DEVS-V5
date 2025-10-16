@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { toast, Toaster } from 'react-hot-toast'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 import Link from 'next/link'
 
 export default function TestDatabasePage() {

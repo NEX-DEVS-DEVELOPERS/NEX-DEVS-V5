@@ -5,55 +5,55 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import dynamic from 'next/dynamic'
-import { audiowide, vt323 } from '@/app/utils/fonts'
-import { generatePersonSchema, generateOrganizationSchema, generateWebSiteSchema, generateLocalBusinessSchema, injectStructuredData } from '@/app/lib/seo'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
+import { generatePersonSchema, generateOrganizationSchema, generateWebSiteSchema, generateLocalBusinessSchema, injectStructuredData } from '@/backend/lib/seo'
 import Head from 'next/head'
 
 // Dynamic imports for better code splitting and performance
-const Hero = dynamic(() => import("@/components/sections/Hero"), {
+const Hero = dynamic(() => import('@/frontend/components/sections/Hero'), {
   loading: () => <div className="h-screen bg-black animate-pulse" />,
   ssr: true
 })
-const BusinessHero = dynamic(() => import("@/components/sections/BusinessHero"), {
+const BusinessHero = dynamic(() => import('@/frontend/components/sections/BusinessHero'), {
   loading: () => <div className="h-screen bg-black animate-pulse" />,
   ssr: true
 })
-const HeroToggle = dynamic(() => import("@/components/sections/HeroToggle"), {
+const HeroToggle = dynamic(() => import('@/frontend/components/sections/HeroToggle'), {
   ssr: true
 })
-const HomeProjectGallery = dynamic(() => import("@/components/HomeProjectGallery"), {
+const TeamSection = dynamic(() => import('@/frontend/components/sections/TeamSection'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
-const TeamSection = dynamic(() => import("@/components/sections/TeamSection"), {
+const GraphsSection = dynamic(() => import('@/frontend/components/sections/GraphsSection'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
-const GraphsSection = dynamic(() => import("@/components/sections/GraphsSection"), {
-  loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
-})
-const WelcomeScreen = dynamic(() => import('@/app/components/WelcomeScreen'), {
+const WelcomeScreen = dynamic(() => import('@/frontend/components/WelcomeScreen'), {
   ssr: false
 })
-const AIFirstAgencyPopup = dynamic(() => import('@/app/components/AIFirstAgencyPopup'), {
+const AIFirstAgencyPopup = dynamic(() => import('@/frontend/components/AIFirstAgencyPopup'), {
   ssr: false
 })
 
 // Preload AI First Agency popup for instant display after welcome screen
 if (typeof window !== 'undefined') {
-  import('@/app/components/AIFirstAgencyPopup');
+  import('@/frontend/components/AIFirstAgencyPopup');
 }
-const FloatingActionButton = dynamic(() => import('@/app/components/FloatingActionButton'), {
+const FloatingActionButton = dynamic(() => import('@/frontend/components/FloatingActionButton'), {
   ssr: false
 })
-const MobilePopup = dynamic(() => import('@/app/components/MobilePopup'), {
+const MobilePopup = dynamic(() => import('@/frontend/components/MobilePopup'), {
   ssr: false
 })
-const ClientTestimonials = dynamic(() => import('@/components/TestimonialsSection'), {
+const ClientTestimonials = dynamic(() => import('@/frontend/components/TestimonialsSection'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
-const AIFeatures = dynamic(() => import('@/components/sections/AIFeatures'), {
+const AIFeatures = dynamic(() => import('@/frontend/components/sections/AIFeatures'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
-const ROISection = dynamic(() => import('./components/ROISection'), {
+const ROISection = dynamic(() => import('@/frontend/components/ROISection'), {
+  loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
+})
+const NewlyAddedProjects = dynamic(() => import('@/frontend/components/NewlyAddedProjects'), {
   loading: () => <div className="h-96 bg-black/50 animate-pulse rounded-lg" />
 })
 
@@ -805,9 +805,9 @@ export default function Home() {
           {/* REMOVED: Heavy CSS animations for 60fps performance */}
         </section>
         
-        {/* Project Gallery Section */}
-        <div data-barba="container" data-barba-namespace="projects">
-          <HomeProjectGallery />
+        {/* Newly Added Projects Section - Detailed View */}
+        <div data-barba="container" data-barba-namespace="newly-added-projects">
+          <NewlyAddedProjects />
         </div>
 
       {/* Client Testimonials Section */}
@@ -1104,3 +1104,4 @@ export default function Home() {
     </>
   )
 }
+

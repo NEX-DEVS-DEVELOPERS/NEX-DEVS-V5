@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
 import path from 'path'
-import { getProjects, saveProjects } from '@/app/utils/projects'
-import sqliteDb from '@/app/services/database'
-import neonDb from '@/lib/neon'
+import { getProjects, saveProjects } from '@/frontend/utils/projects'
+import sqliteDb from '@/backend/services/database'
+import neonDb from '@/backend/lib/neon'
 
 // Set a password for admin operations
 const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'nex-devs.org889123'

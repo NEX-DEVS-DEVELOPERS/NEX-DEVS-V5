@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Add PixelatedLine class
 class PixelatedLine {

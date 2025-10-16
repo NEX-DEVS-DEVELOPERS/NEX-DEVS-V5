@@ -4,7 +4,7 @@ import { useState, FormEvent } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast, Toaster } from 'react-hot-toast'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 
 export default function NewReviewPage() {
   const router = useRouter()

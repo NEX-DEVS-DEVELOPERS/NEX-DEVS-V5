@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { useCurrency } from '../contexts/CurrencyContext';
-import { useTimeline } from '../contexts/TimelineContext';
-import { formatPrice } from '../utils/pricing';
+import { useCurrency } from '@/frontend/contexts/CurrencyContext';
+import { useTimeline } from '@/frontend/contexts/TimelineContext';
+import { formatPrice } from '@/frontend/utils/pricing';
 import TimelineSelector from './TimelineSelector';
 import InvoiceCalculator from './InvoiceCalculator';
 import WelcomeModal from './WelcomeModal';

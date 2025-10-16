@@ -1,8 +1,8 @@
 import { Metadata } from 'next';
-import BlogCard from '../components/BlogCard';
-import BlogTestimonial from '../components/BlogTestimonial';
-import { audiowide, vt323 } from '@/app/utils/fonts';
-import { pageMetadata, generatePersonSchema, generateWebSiteSchema, generateBlogPostSchema, injectStructuredData } from '@/app/lib/seo';
+import BlogCard from '@/frontend/components/BlogCard';
+import BlogTestimonial from '@/frontend/components/BlogTestimonial';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
+import { pageMetadata, generatePersonSchema, generateWebSiteSchema, generateBlogPostSchema, injectStructuredData } from '@/backend/lib/seo';
 import BlogPageClient from './BlogPageClient';
 
 // Generate metadata for SEO

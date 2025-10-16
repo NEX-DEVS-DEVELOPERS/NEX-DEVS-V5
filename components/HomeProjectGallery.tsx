@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { motion, AnimatePresence } from 'framer-motion'
-import { audiowide, vt323 } from '@/app/utils/fonts';
+import { audiowide, vt323 } from '@/frontend/utils/fonts';
 
 // Project type definition with essential fields
 interface Project {

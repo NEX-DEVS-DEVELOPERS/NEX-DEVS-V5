@@ -4,15 +4,15 @@ import { useState, useEffect, useRef, useCallback } from 'react'
 import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { audiowide, vt323 } from '@/app/utils/fonts'
-import { ClientComponentErrorBoundary } from '@/app/components/ErrorBoundary'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
+import { ClientComponentErrorBoundary } from '@/frontend/components/ErrorBoundary'
 
 // Dynamic imports for client-side components
-const Hero = dynamic(() => import("@/components/sections/Hero"), {
+const Hero = dynamic(() => import('@/frontend/components/sections/Hero'), {
   loading: () => <div className="h-screen bg-black animate-pulse" />,
   ssr: false
 })
-const HeroToggle = dynamic(() => import("@/components/sections/HeroToggle"), {
+const HeroToggle = dynamic(() => import('@/frontend/components/sections/HeroToggle'), {
   ssr: false
 })
 
@@ -351,3 +351,4 @@ export default function HomePageClient() {
     </ClientComponentErrorBoundary>
   )
 }
+

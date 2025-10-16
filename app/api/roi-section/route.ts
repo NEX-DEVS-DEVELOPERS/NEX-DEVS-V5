@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getROISection } from '@/lib/neon';
+import { getROISection } from '@/backend/lib/neon';
 
 // GET ROI section with cards (public endpoint)
 export async function GET(request: NextRequest) {

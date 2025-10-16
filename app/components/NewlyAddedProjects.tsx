@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
-import { audiowide } from '@/app/utils/fonts'
+import { audiowide } from '@/frontend/utils/fonts'
 
 // Project type definition
 type Project = {

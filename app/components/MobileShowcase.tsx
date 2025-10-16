@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import dynamic from 'next/dynamic'
-import { audiowide } from '@/app/utils/fonts'
+import { audiowide } from '@/frontend/utils/fonts'
 
 // Add CSS for custom transitions
 const customTransitions = `

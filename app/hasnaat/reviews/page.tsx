@@ -2,10 +2,10 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 import { toast, Toaster } from 'react-hot-toast'
-import DebugPanelWrapper from '@/app/components/DebugPanelWrapper'
-import { carouselReviews, planReviews } from '@/app/components/ReviewsData'
+import DebugPanelWrapper from '@/frontend/components/DebugPanelWrapper'
+import { carouselReviews, planReviews } from '@/frontend/components/ReviewsData'
 
 // Type definition for a review
 type Review = {

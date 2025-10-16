@@ -4,7 +4,7 @@ import { useState, useEffect, FormEvent, use } from 'react';
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { toast, Toaster } from 'react-hot-toast'
-import AdminAuthCheck from '@/app/components/AdminAuthCheck'
+import AdminAuthCheck from '@/frontend/components/AdminAuthCheck'
 
 interface SuccessMetric {
   label: string;

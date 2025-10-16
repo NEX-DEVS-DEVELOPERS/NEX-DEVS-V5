@@ -10,7 +10,7 @@ import {
   validateKnowledgeEntry,
   type KnowledgeEntry,
   type SimpleKnowledgeEntry
-} from '@/lib/nexious-knowledge';
+} from '@/backend/lib/nexious-knowledge';
 
 // Admin authentication check
 function checkAdminAuth(request: NextRequest): boolean {
@@ -239,3 +239,4 @@ export async function DELETE(request: NextRequest) {
     );
   }
 }
+

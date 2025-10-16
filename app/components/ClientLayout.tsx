@@ -4,11 +4,11 @@ import { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 // import BarbaInitializer from './BarbaInitializer'; // Disabled to prevent button conflicts
 import ChatbotClientWrapper from './ChatbotClientWrapper';
-import FloatingPortal from '@/components/FloatingPortal';
+import FloatingPortal from '@/frontend/components/FloatingPortal';
 import MobileHeroToggle from './MobileHeroToggle';
 
 // Dynamic imports for better client-side code splitting
-const Footer = dynamic(() => import("@/components/layout/Footer"), {
+const Footer = dynamic(() => import('@/frontend/components/layout/Footer'), {
   loading: () => <div className="h-20 bg-black" />
 });
 

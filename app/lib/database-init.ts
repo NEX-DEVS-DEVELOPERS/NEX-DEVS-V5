@@ -1,4 +1,4 @@
-import { initDatabase } from '@/lib/neon';
+import { initDatabase } from '@/backend/lib/neon';
 
 // Initialize the database when the app starts
 let initialized = false;

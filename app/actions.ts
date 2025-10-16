@@ -1,6 +1,6 @@
 "use server";
-import { neon } from "@neondatabase/serverless";
-import neonDb from '@/lib/neon';
+import { neon } from '@neondatabase/serverless';
+import neonDb from '@/backend/lib/neon';
 
 // Get all projects from Neon database
 export async function getProjects() {

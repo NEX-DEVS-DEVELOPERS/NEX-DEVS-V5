@@ -1,12 +1,12 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import FeaturedProject from '../components/FeaturedProject'
-import NewlyAddedProjects from '../components/NewlyAddedProjects'
-import ProjectsGrid from '../components/ProjectsGrid'
-import ProjectImageGallery from '../components/ProjectImageGallery'
+import FeaturedProject from '@/frontend/components/FeaturedProject'
+import NewlyAddedProjects from '@/frontend/components/NewlyAddedProjects'
+import ProjectsGrid from '@/frontend/components/ProjectsGrid'
+import ProjectImageGallery from '@/frontend/components/ProjectImageGallery'
 import NeuralNetworkBackground from '../../components/NeuralNetworkBackground'
-import { audiowide, vt323 } from '@/app/utils/fonts'
-import { pageMetadata, generatePersonSchema, generateWebSiteSchema, injectStructuredData } from '@/app/lib/seo'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
+import { pageMetadata, generatePersonSchema, generateWebSiteSchema, injectStructuredData } from '@/backend/lib/seo'
 import ProjectsPageClient from './ProjectsPageClient'
 
 // Generate metadata for SEO

@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import Link from 'next/link';
 import Image from 'next/image';
-import CodeBlock from '@/app/components/CodeBlock';
+import CodeBlock from '@/frontend/components/CodeBlock';
 
 export const metadata: Metadata = {
   title: 'Building Modern Web Applications with Next.js 13 | Your Name',

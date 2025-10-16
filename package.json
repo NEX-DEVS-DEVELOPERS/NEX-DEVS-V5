@@ -5,13 +5,13 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "postbuild": "node scripts/copy-db-vercel.js",
+    "postbuild": "node backend/scripts/copy-db-vercel.js",
     "start": "next start",
     "lint": "next lint",
-    "db:init": "node -e \"require('./lib/neon').initDatabase().then(console.log)\"",
-    "db:test": "node --experimental-modules scripts/test-neon-connection.js",
-    "update-db-schema": "node scripts/update-database-schema.js",
-    "fix-db": "node scripts/fix-database.js"
+    "db:init": "node -e \"require('./backend/lib/neon').initDatabase().then(console.log)\"",
+    "db:test": "node --experimental-modules backend/scripts/test-neon-connection.js",
+    "update-db-schema": "node backend/scripts/update-database-schema.js",
+    "fix-db": "node backend/scripts/fix-database.js"
   },
   "dependencies": {
     "@barba/core": "^2.10.3",

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from 'react';
-import { useSmoothScroll } from '@/hooks/useSmoothScroll';
+import { useSmoothScroll } from '@/frontend/hooks/useSmoothScroll';
 
 /**
  * Client component to initialize Barba.js
@@ -14,7 +14,7 @@ export default function BarbaInitializer() {
       // Skip asset preloading for better initial performance
 
       // Dynamically import barba initialization
-      import('@/utils/barba-init').then(({ useBarba }) => {
+      import('@/backend/utils/barba-init').then(({ useBarba }) => {
         useBarba({
           optimizeWelcomeScreen: true,
           transitionSpeed: 0.3, // Faster transitions

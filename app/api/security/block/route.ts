@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { emailSecurityService } from '@/lib/email-security'
-import { logSecurityEvent } from '@/lib/env-config'
+import { emailSecurityService } from '@/backend/lib/email-security'
+import { logSecurityEvent } from '@/backend/lib/env-config'
 
 export async function POST(request: NextRequest) {
   try {
@@ -190,3 +190,4 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Security block failed' }, { status: 500 })
   }
 }
+

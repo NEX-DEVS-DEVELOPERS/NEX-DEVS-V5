@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { audiowide, vt323 } from '@/app/utils/fonts'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
 
 const VisionDrawer = () => {
   const [isOpen, setIsOpen] = useState(false)

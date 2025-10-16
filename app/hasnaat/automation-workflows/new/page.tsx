@@ -5,8 +5,8 @@ import { motion } from 'framer-motion'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { AutomationWorkflow } from '@/app/api/automation-workflows/route'
-import { audiowide, vt323 } from '@/app/utils/fonts'
-import { compressImage, compressVideo, validateImageFile, validateVideoFile, uploadFile } from '@/app/utils/compression'
+import { audiowide, vt323 } from '@/frontend/utils/fonts'
+import { compressImage, compressVideo, validateImageFile, validateVideoFile, uploadFile } from '@/frontend/utils/compression'
 
 export default function NewAutomationWorkflowPage() {
   const router = useRouter()

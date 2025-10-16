@@ -3,7 +3,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useEffect, useState } from 'react';
-import { useIsMobile } from '@/app/utils/deviceDetection';
+import { useIsMobile } from '@/frontend/utils/deviceDetection';
 
 interface TransitionEffectProps {
   isExit?: boolean;
