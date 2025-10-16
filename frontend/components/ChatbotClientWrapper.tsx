@@ -1,7 +1,7 @@
 'use client';
 
 import dynamic from 'next/dynamic';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 // Import NexiousChatbot dynamically with SSR disabled but with better loading handling
 const NexiousChatbot = dynamic(() => import('@/frontend/components/NexiousChatbot'), {
@@ -12,6 +12,8 @@ const NexiousChatbot = dynamic(() => import('@/frontend/components/NexiousChatbo
 export default function ChatbotClientWrapper() {
   const [isInitialized, setIsInitialized] = useState(false);
   const [chatbotReady, setChatbotReady] = useState(false);
+  const [shouldLoadChatbot, setShouldLoadChatbot] = useState(false);
+  const scrollListenerRef = useRef<(() => void) | null>(null);
 
   // Pre-initialize chatbot settings to avoid delays
   useEffect(() => {
@@ -48,8 +50,51 @@ export default function ChatbotClientWrapper() {
     preInitializeChatbot();
   }, []);
 
+  // Defer chatbot loading until user scrolls 30% down or after 3 seconds
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+
+    let timeoutId: NodeJS.Timeout;
+    let hasLoaded = false;
+
+    const loadChatbot = () => {
+      if (!hasLoaded) {
+        hasLoaded = true;
+        setShouldLoadChatbot(true);
+        if (scrollListenerRef.current) {
+          window.removeEventListener('scroll', scrollListenerRef.current);
+        }
+        if (process.env.NODE_ENV === 'development') {
+          console.log('[Chatbot] Deferred initialization triggered');
+        }
+      }
+    };
+
+    // Load after 3 seconds as fallback
+    timeoutId = setTimeout(loadChatbot, 3000);
+
+    // Or load when user scrolls 30% down the page
+    scrollListenerRef.current = () => {
+      const scrollPercentage = (window.scrollY / (document.documentElement.scrollHeight - window.innerHeight)) * 100;
+      if (scrollPercentage > 30) {
+        loadChatbot();
+      }
+    };
+
+    window.addEventListener('scroll', scrollListenerRef.current, { passive: true });
+
+    return () => {
+      if (timeoutId) clearTimeout(timeoutId);
+      if (scrollListenerRef.current) {
+        window.removeEventListener('scroll', scrollListenerRef.current);
+      }
+    };
+  }, []);
+
   // Add global animation classes and ensure chatbot container is ready
   useEffect(() => {
+    if (!shouldLoadChatbot) return;
+
     // Create style element for global chatbot animations
     const style = document.createElement('style');
     style.textContent = `
@@ -116,7 +161,8 @@ export default function ChatbotClientWrapper() {
   }, []);
 
   // Don't render until both initialization and chatbot settings are ready
-  if (!isInitialized || !chatbotReady) {
+  // AND chatbot loading has been triggered
+  if (!isInitialized || !chatbotReady || !shouldLoadChatbot) {
     return null;
   }
 

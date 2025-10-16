@@ -7,6 +7,7 @@ import {
   Chart as ChartJS, CategoryScale, LinearScale, PointElement, LineElement, BarElement,
   Title, Tooltip, Legend, ArcElement, RadialLinearScale, Filler, ChartOptions,
 } from 'chart.js';
+import { useAdvancedIntersectionObserver } from '@/hooks/useAdvancedIntersectionObserver';
 
 ChartJS.register(
   CategoryScale, LinearScale, PointElement, LineElement, BarElement,
@@ -194,6 +195,12 @@ export default function GraphsSection() {
   const [activeTab, setActiveTab] = useState('AI Integration');
   const [isAutoScrolling, setIsAutoScrolling] = useState(true);
   const [isMobile, setIsMobile] = useState(false);
+  
+  // Defer heavy graph rendering until section is visible
+  const [setRef, isVisible] = useAdvancedIntersectionObserver({ 
+    threshold: 0.3, 
+    once: true 
+  });
 
   useEffect(() => {
     const checkMobile = () => setIsMobile(window.innerWidth < 768);
@@ -299,8 +306,16 @@ export default function GraphsSection() {
   }
     
     return (
-    <section className="py-16 sm:py-24 bg-black text-white">
+    <section ref={setRef} className="py-16 sm:py-24 bg-black text-white">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        {/* Only render heavy charts when visible */}
+        {!isVisible && (
+          <div className="flex items-center justify-center py-32">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-500"></div>
+          </div>
+        )}
+        {isVisible && (
+          <>
         <div className="text-center mb-12">
           <h2 className="text-3xl sm:text-4xl font-bold mb-3">Performance Metrics</h2>
           <p className="text-gray-400 max-w-2xl mx-auto">Explore our metrics showcasing our expertise, workflow efficiency, and project priorities.</p>
@@ -355,6 +370,8 @@ export default function GraphsSection() {
             </AnimatePresence>
           </div>
         </div>
+        </>
+        )}
       </div>
     </section>
   );

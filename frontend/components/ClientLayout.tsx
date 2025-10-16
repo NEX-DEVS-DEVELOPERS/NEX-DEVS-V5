@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import ChatbotClientWrapper from './ChatbotClientWrapper';
 import FloatingPortal from '@/frontend/components/FloatingPortal';
 import MobileHeroToggle from './MobileHeroToggle';
+import { usePerformance, applyPerformanceOptimizations } from '@/hooks/usePerformance';
 
 // Dynamic imports for better client-side code splitting
 const Footer = dynamic(() => import('@/frontend/components/layout/Footer'), {
@@ -29,6 +30,44 @@ declare global {
  */
 export default function ClientLayout({ children }: ClientLayoutProps) {
   // Removed duplicate scroll handler - handled in layout.tsx for better performance
+
+  // Track Core Web Vitals for performance monitoring
+  const metrics = usePerformance(process.env.NODE_ENV === 'development');
+
+  // Apply performance optimizations on mount
+  useEffect(() => {
+    try {
+      // Apply image optimizations and DNS preconnect
+      applyPerformanceOptimizations({
+        imageLazyLoading: true,
+        preconnect: true
+      });
+
+      // Log performance metrics in development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Performance] Core Web Vitals:', {
+          FCP: metrics.fcp ? `${metrics.fcp.toFixed(2)}ms` : 'Measuring...',
+          LCP: metrics.lcp ? `${metrics.lcp.toFixed(2)}ms` : 'Measuring...',
+          CLS: metrics.cls ? metrics.cls.toFixed(4) : 'Measuring...',
+          FID: metrics.fid ? `${metrics.fid.toFixed(2)}ms` : 'Measuring...',
+          TTFB: metrics.ttfb ? `${metrics.ttfb.toFixed(2)}ms` : 'Measuring...'
+        });
+
+        // Performance budget warnings
+        if (metrics.lcp && metrics.lcp > 2500) {
+          console.warn('[Performance] LCP exceeds 2.5s budget:', `${metrics.lcp.toFixed(2)}ms`);
+        }
+        if (metrics.fid && metrics.fid > 100) {
+          console.warn('[Performance] FID exceeds 100ms budget:', `${metrics.fid.toFixed(2)}ms`);
+        }
+        if (metrics.cls && metrics.cls > 0.1) {
+          console.warn('[Performance] CLS exceeds 0.1 budget:', metrics.cls.toFixed(4));
+        }
+      }
+    } catch (error) {
+      console.error('[Performance] Error applying optimizations:', error);
+    }
+  }, [metrics]);
 
   // Optimized welcome screen preparation - 60fps focused
   useEffect(() => {

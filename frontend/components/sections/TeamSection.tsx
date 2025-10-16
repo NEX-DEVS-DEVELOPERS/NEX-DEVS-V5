@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import TeamMemberCard from './TeamMemberCard' // Import the new component
 import { audiowide } from '@/frontend/utils/fonts';
+import { fetchWithCache } from '@/lib/cache-utils';
 
 interface TeamMember {
   id: number
@@ -58,15 +59,20 @@ export default function TeamSection() {
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([])
   const [loading, setLoading] = useState(true)
 
-  // Fetch team members from API
+  // Fetch team members from API with smart caching
   useEffect(() => {
     const fetchTeamMembers = async () => {
       try {
-        const response = await fetch('/api/team-members')
-        if (response.ok) {
-          const data = await response.json()
-          setTeamMembers(data.data || [])
-        }
+        // Use smart caching to reduce API calls
+        const data = await fetchWithCache<{data: TeamMember[]}>(
+          '/api/team-members',
+          {},
+          {
+            ttl: 10 * 60 * 1000, // 10 minutes cache for team data
+            tags: ['team', 'team-members']
+          }
+        );
+        setTeamMembers(data.data || [])
       } catch (error) {
         console.error('Error fetching team members:', error)
       } finally {

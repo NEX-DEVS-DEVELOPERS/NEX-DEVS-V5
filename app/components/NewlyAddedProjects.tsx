@@ -4,6 +4,8 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useEffect, useState, useRef } from 'react'
 import { audiowide } from '@/frontend/utils/fonts'
+import { fetchWithCache, dataCache } from '@/lib/cache-utils'
+import { useIntersectionObserver } from '@/hooks/useIntersectionObserver'
 
 // Project type definition
 type Project = {
@@ -53,6 +55,28 @@ const NewBadge = () => (
   </div>
 );
 
+// Lazy-loaded project card wrapper for better performance
+const LazyProjectCard = ({ children, index }: { children: React.ReactNode; index: number }) => {
+  const [ref, isVisible] = useIntersectionObserver<HTMLDivElement>({
+    threshold: 0.1,
+    rootMargin: '100px',
+    enabled: index > 2 // Only lazy load cards after the first 3
+  });
+
+  // Render placeholder for cards beyond first 3 until they're visible
+  if (index > 2 && !isVisible) {
+    return (
+      <div ref={ref} className="min-h-[200px] bg-black/20 rounded-xl border border-gray-700/50 animate-pulse">
+        <div className="h-full flex items-center justify-center text-gray-600">
+          Loading...
+        </div>
+      </div>
+    );
+  }
+
+  return <div ref={index > 2 ? ref : undefined}>{children}</div>;
+};
+
 export default function NewlyAddedProjects() {
   const [newlyAddedProjects, setNewlyAddedProjects] = useState<Project[]>([])
   const [isLoading, setIsLoading] = useState(true)
@@ -62,7 +86,7 @@ export default function NewlyAddedProjects() {
   const [enlargedImage, setEnlargedImage] = useState<{projectId: number, image: string} | null>(null)
   const projectRefs = useRef<{ [key: number]: HTMLDivElement | null }>({})
 
-  // Fetch newly added projects with memoization
+  // Fetch newly added projects with smart caching
   useEffect(() => {
     const controller = new AbortController()
     
@@ -71,28 +95,18 @@ export default function NewlyAddedProjects() {
         setIsLoading(true)
         setError(null)
         
-        // Enhanced cache busting with multiple random values
-        const timestamp = new Date().getTime();
-        const randomValue = Math.floor(Math.random() * 10000000);
-        const cache = `nocache=${timestamp}-${randomValue}`;
-        const response = await fetch(`/api/projects?t=${timestamp}&r=${randomValue}&${cache}`, {
-          method: 'GET',
-          signal: controller.signal,
-          cache: 'no-store',
-          headers: {
-            'Cache-Control': 'no-cache, no-store, must-revalidate, max-age=0',
-            'Pragma': 'no-cache',
-            'Expires': '0',
-            'X-Force-Refresh': 'true',
-            'X-Random-Value': randomValue.toString()
+        // Use smart caching to reduce API calls
+        const data = await fetchWithCache<Project[]>(
+          '/api/projects',
+          { 
+            method: 'GET',
+            signal: controller.signal,
+          },
+          {
+            ttl: 5 * 60 * 1000, // 5 minutes cache
+            tags: ['projects', 'newly-added']
           }
-        })
-        
-        if (!response.ok) {
-          throw new Error(`Server responded with ${response.status}: ${response.statusText}`)
-        }
-        
-        const data = await response.json()
+        )
         
         if (!Array.isArray(data)) {
           throw new Error('API did not return an array of projects')
@@ -771,19 +785,19 @@ export default function NewlyAddedProjects() {
               const isExpanded = expandedProject === project.id;
               
               return (
-                <div 
-                  key={project.id}
-                  ref={(el) => {
-                    projectRefs.current[project.id] = el;
-                  }}
-                  className={`
-                    relative overflow-hidden rounded-xl transition-all duration-500 ease-out
-                    ${isExpanded 
-                      ? 'bg-black border border-purple-500/30 shadow-2xl shadow-purple-900/20' 
-                      : 'bg-black border border-gray-700/50 hover:border-purple-500/30'
-                    }
-                  `}
-                >
+                <LazyProjectCard key={project.id} index={index}>
+                  <div 
+                    ref={(el) => {
+                      projectRefs.current[project.id] = el;
+                    }}
+                    className={`
+                      relative overflow-hidden rounded-xl transition-all duration-500 ease-out
+                      ${isExpanded 
+                        ? 'bg-black border border-purple-500/30 shadow-2xl shadow-purple-900/20' 
+                        : 'bg-black border border-gray-700/50 hover:border-purple-500/30'
+                      }
+                    `}
+                  >
                   {/* Professional New Badge */}
                   {project.visualEffects?.showBadge && (
                     <div className="absolute top-4 right-4 z-20">
@@ -1290,6 +1304,7 @@ export default function NewlyAddedProjects() {
                 </div>
               </div>
             </div>
+                </LazyProjectCard>
           )
         })}
           </div>

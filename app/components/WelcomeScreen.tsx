@@ -8,7 +8,8 @@ import confetti from 'canvas-confetti'; // Import the confetti library
 import { TypeAnimation } from 'react-type-animation'; // Import the typewriter animation component
 
 // Add barba.js imports
-import { initBarba } from '@/frontend/utils/barba-init';
+import { initBarba } from '@/utils/barba-init';
+import { usePerformance } from '@/hooks/usePerformance';
 
 // Add Audiowide and VT323 font imports
 import { Audiowide, VT323 } from 'next/font/google';
@@ -567,6 +568,20 @@ function WelcomeScreen({ onComplete, initialDirection = -1 }: { onComplete: () =
   const [hideMobilePreview, setHideMobilePreview] = useState(true);
   const barbaInitialized = useRef(false);
   const onCompleteTriggered = useRef(false);
+  
+  // Track performance metrics for welcome screen
+  const metrics = usePerformance(process.env.NODE_ENV === 'development');
+  
+  // Log welcome screen performance impact
+  useEffect(() => {
+    if (mounted && process.env.NODE_ENV === 'development') {
+      console.log('[WelcomeScreen] Performance Impact:', {
+        FCP: metrics.fcp ? `${metrics.fcp.toFixed(2)}ms` : 'Measuring...',
+        LCP: metrics.lcp ? `${metrics.lcp.toFixed(2)}ms` : 'Measuring...',
+        'Welcome Screen Active': true
+      });
+    }
+  }, [mounted, metrics]);
   
   // Add state for closing animation
   const [isClosing, setIsClosing] = useState(false);
